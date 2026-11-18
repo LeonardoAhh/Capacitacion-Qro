@@ -19,7 +19,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 > Source pages analyzed: the home page, the AI Gateway page, the customers page, and the pricing page. The ink/canvas/hairline trio recurs on every page; the accent blue (`{colors.link}`) surfaces on pricing, and the mesh-gradient stops live in the hero.
 
-**ViñoPlastic application themes:** The app supports persistent light and dark modes. The light palette uses grafito claro surfaces and `--primary` #1c3a9c; dark mode uses grafito oscuro surfaces and `--primary` #9ec1ff. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both modes. The mode is selected in Settings and applied before hydration.
+**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #1c3a9c; dark mode uses grafito oscuro surfaces and `--primary` #9ec1ff. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
 
 | UI token | Light | Dark |
 |---|---|---|

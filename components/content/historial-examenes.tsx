@@ -85,7 +85,7 @@ export default function HistorialExamenesContent() {
       ) : error ? (
         <div className="text-destructive text-center py-8">{error}</div>
       ) : examenes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-card rounded-lg border border-dashed">
+        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-card rounded-xl border border-dashed">
           <History size={48} className="mb-4 opacity-20" />
           <p className="text-lg font-medium">No se encontraron exámenes</p>
           <p className="text-sm text-center max-w-sm mt-1 opacity-70">
@@ -100,7 +100,7 @@ export default function HistorialExamenesContent() {
               className="cursor-pointer hover:border-primary/50 transition-colors"
               onClick={() => setSelectedExamen(ex)}
             >
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="space-y-3 p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] font-bold text-muted-foreground">FOLIO</span>
@@ -176,7 +176,7 @@ export default function HistorialExamenesContent() {
           <DialogHeader className="px-4 sm:px-5 pt-5 pb-4 border-b shrink-0">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <div className="grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary shrink-0">
                   <FileText size={18} aria-hidden="true" />
                 </div>
                 <div className="min-w-0 text-left">
@@ -189,13 +189,13 @@ export default function HistorialExamenesContent() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2 mt-3">
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-full px-2.5 py-1 font-sans">
+              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-md px-2.5 py-1 font-sans">
                 FOLIO: {selectedExamen ? generarFolioExamen(selectedExamen.id, selectedExamen.empleado?.numero, selectedExamen.created_at) : ""}
               </span>
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-primary/10 text-primary rounded-full px-2.5 py-1">
+              <span className="flex items-center gap-1 text-[11px] font-medium bg-primary/10 text-primary rounded-md px-2.5 py-1">
                 Categoría: {selectedExamen?.categoria_destino}
               </span>
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-full px-2.5 py-1">
+              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-md px-2.5 py-1">
                 Depto: {selectedExamen?.departamento}
               </span>
             </div>
@@ -207,14 +207,14 @@ export default function HistorialExamenesContent() {
               {selectedExamen?.preguntas.map((p, index) => {
                 const correcta = p.respuesta_correcta?.toUpperCase()
                 return (
-                  <div key={p.id} className="bg-background rounded-lg p-3 border border-border shadow-sm flex items-center justify-between gap-3">
+                  <div key={p.id} className="bg-background rounded-xl p-3 border border-border shadow-sm flex items-center justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-medium text-[13px] text-foreground leading-snug">
                         <span className="text-muted-foreground mr-1.5">{index + 1}.</span>
                         <span className="line-clamp-2" title={p.pregunta}>{p.pregunta}</span>
                       </p>
                     </div>
-                    <div className="shrink-0 w-8 h-8 rounded-full border border-success bg-success/10 text-success flex items-center justify-center font-bold text-base">
+                    <div className="shrink-0 w-8 h-8 rounded-md border border-success bg-success/10 text-success flex items-center justify-center font-bold text-base">
                       {correcta}
                     </div>
                   </div>

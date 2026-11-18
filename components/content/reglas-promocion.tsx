@@ -102,7 +102,7 @@ export default function ReglasPromocionContent({ onChange }: Props) {
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
             {error}
           </div>
         )}
@@ -144,8 +144,8 @@ export default function ReglasPromocionContent({ onChange }: Props) {
             Cargando reglas...
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-lg border border-dashed bg-background text-center">
-            <div className="bg-primary/10 p-4 rounded-full mb-3">
+          <div className="flex flex-col items-center justify-center py-16 rounded-xl border border-dashed bg-background text-center">
+            <div className="bg-primary/10 p-4 rounded-md mb-3">
               <SlidersHorizontal aria-hidden="true" className={`${PROMOTION_ICON.emptyState} text-primary`} />
             </div>
             <p className="text-base font-semibold text-foreground">
@@ -160,7 +160,7 @@ export default function ReglasPromocionContent({ onChange }: Props) {
         ) : (
           <>
             {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto rounded-lg border">
+            <div className="hidden md:block overflow-x-auto rounded-xl border">
               <Table>
                 <TableHeader>
                   <TableRow className="bg-muted text-xs">
@@ -248,7 +248,7 @@ export default function ReglasPromocionContent({ onChange }: Props) {
               {filtered.map((r) => (
                 <div
                   key={r.id}
-                  className={`rounded-lg border p-3 space-y-2 bg-card ${r.activo ? "" : "opacity-60"}`}
+                  className={`rounded-xl border p-3 space-y-2 bg-card ${r.activo ? "" : "opacity-60"}`}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">

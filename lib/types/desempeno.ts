@@ -145,13 +145,13 @@ export const DEFAULT_CUMPLIMIENTO: CumplimientoItem[] = [
     {
         descripcion: "Cumplir con puntualidad.",
         porcentaje: "NA",
-        evalua: "JEFE",
+        evalua: "RH",
         comentarios: "",
     },
     {
         descripcion: "No presentar más de dos permisos por mes.",
         porcentaje: "NA",
-        evalua: "JEFE",
+        evalua: "RH",
         comentarios: "",
     },
 ];

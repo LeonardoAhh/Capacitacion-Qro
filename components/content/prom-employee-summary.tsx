@@ -3,7 +3,7 @@ import { PROMOTION_DIALOG_TYPE } from "@/lib/promociones/dialog-config"
 
 export function PromEmployeeSummary({ empleado }: { empleado: EmpleadoPromocion }) {
   return (
-    <dl className="grid gap-3 rounded-lg border bg-muted/40 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+    <dl className="grid gap-3 rounded-xl border bg-muted/40 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
       <div className="min-w-0">
         <dt className={PROMOTION_DIALOG_TYPE.label}>Colaborador</dt>
         <dd className={`mt-1 break-words ${PROMOTION_DIALOG_TYPE.primaryValue}`}>

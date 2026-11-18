@@ -30,7 +30,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         ].map(r => (
           <div key={r.label} className="flex justify-between gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full" style={{ background: r.color }} />{r.label}
+              <span className="h-2 w-2 rounded-md" style={{ background: r.color }} />{r.label}
             </span>
             <span className={`font-bold ${r.cls}`} style={!r.cls ? { color: r.color } : undefined}>{r.value}</span>
           </div>
@@ -67,8 +67,8 @@ function SkeletonContent() {
             <div className="flex justify-between">
               <Skeleton className="h-3 w-12" /><Skeleton className="h-3 w-16" />
             </div>
-            <div className="h-2 bg-muted/50 rounded-full overflow-hidden">
-              <motion.div className="h-full bg-muted-foreground/20 rounded-full"
+            <div className="h-2 bg-muted/50 rounded-md overflow-hidden">
+              <motion.div className="h-full bg-muted-foreground/20 rounded-md"
                 initial={{ width: 0 }} animate={{ width: `${w}%` }}
                 transition={{ duration: 0.7, delay: 0.2 + i * 0.08, ease: "easeOut" }} />
             </div>
@@ -113,7 +113,7 @@ export default function DashboardYearlyCompliance() {
             <div className="flex flex-wrap items-center gap-3 mt-2">
               {kpiBadges.map(({ color, label, value }) => (
                 <div key={label} className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color }} />
+                  <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: color }} />
                   <span className="text-xs text-muted-foreground">{label}</span>
                   <Badge variant="secondary" className="text-xs px-1.5">{value}</Badge>
                 </div>
@@ -174,8 +174,8 @@ export default function DashboardYearlyCompliance() {
                         <span className="ml-2 font-semibold" style={{ color: COLORS.aprobado }}>{s.pct}%</span>
                       </span>
                     </div>
-                    <div className="h-2 rounded-full bg-muted overflow-hidden">
-                      <motion.div className="h-full rounded-full" style={{ background: COLORS.aprobado }}
+                    <div className="h-2 rounded-md bg-muted overflow-hidden">
+                      <motion.div className="h-full rounded-md" style={{ background: COLORS.aprobado }}
                         initial={{ width: 0 }} animate={{ width: `${s.pct}%` }}
                         transition={{ duration: 0.8, ease: "easeOut", delay: skip ? 0 : 0.3 + i * 0.1 }} />
                     </div>

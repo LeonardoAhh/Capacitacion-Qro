@@ -39,22 +39,22 @@ export function SearchPanel({
     onInputKeyDown,
   } = context;
   return <Card>
-    <CardContent className="pb-4 pt-4">
+    <CardContent className="p-6">
       <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_auto_auto] xl:items-center">
         {/* Campo de búsqueda */}
         <div className="flex w-full min-w-0 gap-2 md:col-start-1 md:row-start-1">
           <div className="relative min-w-0 flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input ref={inputRef} value={numeroBuscado} enterKeyHint="search" onChange={e => {
               setNumeroBuscado(e.target.value);
               setShowSugg(true);
-            }} onFocus={() => setShowSugg(true)} onBlur={() => setShowSugg(false)} onKeyDown={onInputKeyDown} disabled={loading} placeholder={DESEMPENO.search.placeholder} aria-label={DESEMPENO.search.label} aria-describedby={`${searchId}-help`} aria-controls={expanded && !suggestionError ? listId : undefined} aria-activedescendant={expanded && !suggLoading && suggestions[activeIdx] ? `${listId}-${activeIdx}` : undefined} className="min-h-11 pl-9 pr-11 font-normal leading-5" autoComplete="off" role="combobox" aria-expanded={expanded} aria-autocomplete="list" />
+            }} onFocus={() => setShowSugg(true)} onBlur={() => setShowSugg(false)} onKeyDown={onInputKeyDown} disabled={loading} placeholder={DESEMPENO.search.placeholder} aria-label={DESEMPENO.search.label} aria-describedby={`${searchId}-help`} aria-controls={expanded && !suggestionError ? listId : undefined} aria-activedescendant={expanded && !suggLoading && suggestions[activeIdx] ? `${listId}-${activeIdx}` : undefined} className="pl-9 pr-11" autoComplete="off" role="combobox" aria-expanded={expanded} aria-autocomplete="list" />
             {numeroBuscado && <button type="button" disabled={loading} onClick={() => {
               setNumeroBuscado("");
               setSuggestions([]);
               inputRef.current?.focus();
-            }} className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" aria-label="Limpiar búsqueda">
-              <X className="h-4 w-4" />
+            }} className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed rounded-md disabled:opacity-50" aria-label="Limpiar búsqueda">
+              <X className="size-4" aria-hidden="true" />
             </button>}
 
             {showMinLengthHint && <div role="status" className="absolute z-20 mt-1 w-full rounded-md border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-[var(--floating-shadow)]">
@@ -104,7 +104,7 @@ export function SearchPanel({
               </span>}
         </div>
         {(data || existingEvaluation) && <div className="flex shrink-0 items-center gap-2 max-md:justify-end md:col-start-2 md:row-start-1 xl:col-start-3">
-          <ActionButton icon={<X className="h-3.5 w-3.5" />} label="Cerrar" tooltip="Cerrar evaluación" onClick={closeEvaluation} variant="outline" className="text-foreground" />
+          <ActionButton icon={<X className="size-4" />} label="Cerrar" tooltip="Cerrar evaluación" onClick={closeEvaluation} variant="outline" className="text-foreground" />
         </div>}
       </div>
 

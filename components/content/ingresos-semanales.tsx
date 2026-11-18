@@ -206,7 +206,7 @@ export default function IngresosSemanalesContent() {
         En mobile/tablet se apilan verticalmente.
       */}
       <Card className="mb-6">
-        <CardContent className="p-4 sm:p-6">
+        <CardContent className="p-6">
           <div className="flex flex-col lg:flex-row lg:items-center gap-4">
 
             {/* ── Col. izquierda: título + búsqueda ───────────────────── */}
@@ -352,8 +352,8 @@ export default function IngresosSemanalesContent() {
                 <li key={`skeleton-row-${i}`} className="flex items-center gap-3 px-4 py-3">
                   <Skeleton className="h-4 w-16 shrink-0" />
                   <Skeleton className="h-4 flex-1" />
-                  <Skeleton className="h-5 w-20 rounded-full hidden sm:block" />
-                  <Skeleton className="h-5 w-20 rounded-full hidden md:block" />
+                  <Skeleton className="h-5 w-20 rounded-md hidden sm:block" />
+                  <Skeleton className="h-5 w-20 rounded-md hidden md:block" />
                 </li>
               ))}
             </ul>

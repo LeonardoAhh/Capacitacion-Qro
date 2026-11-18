@@ -5,6 +5,7 @@ import {
   DEFAULT_CUMPLIMIENTO,
   DEFAULT_CUMPLIMIENTO_POR_TIPO,
   DEFAULT_OBJETIVOS_POR_TIPO,
+  CumplimientoOperativoIndex,
   type Competencia,
   type CumplimientoItem,
   type DesempenoData,
@@ -25,6 +26,7 @@ export interface IncidenciaParaEvaluacion {
 
 const ESCALA_GRADUADA: Record<number, number> = { 0: 100, 1: 66, 2: 33 }
 const aplicarEscala = (count: number): number => ESCALA_GRADUADA[count] ?? 0
+const MAX_PERMISOS_POR_MES = 2
 
 export function calcularAsistenciaPorcentaje(incidencias: IncidenciaParaEvaluacion[], periodo: string): number {
   const meses = mesesDePeriodo(periodo)
@@ -43,6 +45,18 @@ export function calcularAsistenciaPorcentaje(incidencias: IncidenciaParaEvaluaci
     .reduce((total, item) => total + (item.valor ?? 0), 0))
 }
 
+export function calcularPermisosPorcentaje(incidencias: IncidenciaParaEvaluacion[], periodo: string): number {
+  const meses = mesesDePeriodo(periodo)
+  if (meses.length === 0) {
+    throw new Error(`No se puede determinar el rango de fechas del periodo "${periodo}".`)
+  }
+
+  return meses.every((mes) => incidencias
+    .filter((item) => item.mes === mes && item.categoria === "PERMISO")
+    .reduce((total, item) => total + (item.valor ?? 0), 0) <= MAX_PERMISOS_POR_MES)
+    ? 100 : 0
+}
+
 export function crearBorradorEvaluacion(
   empleado: EmpleadoParaEvaluacion,
   periodo: string,
@@ -51,8 +65,14 @@ export function crearBorradorEvaluacion(
 ): DesempenoData {
   const tipo = getTipoDesempenoByPuesto(empleado.puesto)
   const cumplimiento: CumplimientoItem[] = (DEFAULT_CUMPLIMIENTO_POR_TIPO[tipo] ?? DEFAULT_CUMPLIMIENTO).map((item) => ({ ...item }))
-  if (tipo !== "jefe" && cumplimiento[2]) {
-    cumplimiento[2].porcentaje = String(calcularAsistenciaPorcentaje(incidencias, periodo))
+  if (tipo !== "jefe") {
+    const asistencia = cumplimiento[CumplimientoOperativoIndex.Asistencia]
+    const permisos = cumplimiento[CumplimientoOperativoIndex.Permisos]
+    if (asistencia) asistencia.porcentaje = String(calcularAsistenciaPorcentaje(incidencias, periodo))
+    if (permisos) {
+      permisos.porcentaje = String(calcularPermisosPorcentaje(incidencias, periodo))
+      permisos.no_aplica = false
+    }
   }
   const competencias: Competencia[] = (DEFAULT_COMPETENCIAS_POR_TIPO[tipo] ?? DEFAULT_COMPETENCIAS_POR_TIPO.operativo).map((item) => ({ ...item }))
 

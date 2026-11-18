@@ -17,7 +17,7 @@ export function EmployeeBadge({
 }: EmployeeBadgeProps) {
   return <motion.div variants={itemV} layout className="min-w-0 self-start">
     <PendingCard asChild interactive variant={isSelected ? "selected" : item.hasVencida ? "urgent" : "default"}>
-      <button type="button" onClick={onSelect} aria-expanded={isSelected} aria-haspopup="dialog" aria-label={`Ver detalle de ${item.nombre}, empleado ${item.numero ?? "sin número"}, ${item.evals.length} ${item.evals.length === 1 ? "evaluación pendiente" : "evaluaciones pendientes"}`} className="w-full select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+      <button type="button" onClick={onSelect} aria-expanded={isSelected} aria-haspopup="dialog" aria-label={`Ver detalle de ${item.nombre}, empleado ${item.numero ?? "sin número"}, ${item.evals.length} ${item.evals.length === 1 ? "evaluación pendiente" : "evaluaciones pendientes"}`} className="w-full select-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <PendingCardFields
           number={item.numero}
           name={item.nombre}

@@ -6,6 +6,7 @@ import {
   DENSITY_SCALE_MAP,
   FONT_SIZE_MAP,
   APP_THEME_COLORS,
+  isThemeMode,
   THEME_STORAGE_KEYS,
   type Density,
   type FontSize,
@@ -30,7 +31,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [initialized, setInitialized] = useState(false)
-  const [themeMode, setThemeModeState] = useState<ThemeMode>("light")
+  const [themeMode, setThemeModeState] = useState<ThemeMode>("system")
+  const [systemPrefersDark, setSystemPrefersDark] = useState(false)
   const [fontSize, setFontSizeState] = useState<FontSize>("medium")
   const [density, setDensityState] = useState<Density>("comfortable")
   const [reducedMotion, setReducedMotionState] = useState(false)
@@ -41,6 +43,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const setReducedMotion = useCallback((value: boolean) => setReducedMotionState(value), [])
 
   useEffect(() => {
+    const colorScheme = window.matchMedia("(prefers-color-scheme: dark)")
+    const syncSystemTheme = () => setSystemPrefersDark(colorScheme.matches)
     const storedThemeMode = localStorage.getItem(THEME_STORAGE_KEYS.colorMode)
     localStorage.removeItem(THEME_STORAGE_KEYS.legacyAccentColor)
     document.documentElement.style.removeProperty("--brand-accent")
@@ -53,8 +57,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const storedReducedMotion = localStorage.getItem(THEME_STORAGE_KEYS.reducedMotion)
     const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches
 
+    syncSystemTheme()
+    colorScheme.addEventListener("change", syncSystemTheme)
+
     startTransition(() => {
-      setThemeMode(storedThemeMode === "dark" ? "dark" : "light")
+      setThemeMode(isThemeMode(storedThemeMode) ? storedThemeMode : "system")
       if (storedFontSize === "small" || storedFontSize === "medium" || storedFontSize === "large") {
         setFontSize(storedFontSize)
       }
@@ -66,15 +73,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       )
       setInitialized(true)
     })
+
+    return () => colorScheme.removeEventListener("change", syncSystemTheme)
   }, [setDensity, setFontSize, setReducedMotion, setThemeMode])
 
   useEffect(() => {
     if (!initialized) return
-    document.documentElement.classList.toggle("dark", themeMode === "dark")
+    const resolvedThemeMode = themeMode === "system"
+      ? systemPrefersDark ? "dark" : "light"
+      : themeMode
+    document.documentElement.classList.toggle("dark", resolvedThemeMode === "dark")
     localStorage.setItem(THEME_STORAGE_KEYS.colorMode, themeMode)
     const themeColor = document.querySelector('meta[name="theme-color"]')
-    themeColor?.setAttribute("content", APP_THEME_COLORS[themeMode])
-  }, [initialized, themeMode])
+    themeColor?.setAttribute("content", APP_THEME_COLORS[resolvedThemeMode])
+  }, [initialized, systemPrefersDark, themeMode])
 
   useEffect(() => {
     if (!initialized) return

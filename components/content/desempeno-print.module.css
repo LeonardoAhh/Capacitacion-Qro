@@ -100,7 +100,7 @@
 .periodBadge {
     background: var(--print-bg-badge);
     padding: var(--sp-1) var(--sp-2);
-    border-radius: 0.2rem;
+    border-radius: var(--radius-control);
     font-weight: 600;
     color: var(--print-text);
     font-size: var(--fs-base);

@@ -111,7 +111,7 @@ function RevisionPill({ fechaRevision }: { fechaRevision: string | null }) {
       : `${prefix} · ${formatDate(fechaRevision)}`
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${className}`}
+      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${className}`}
     >
       <Icon size={12} aria-hidden="true" />
       {label}
@@ -126,7 +126,7 @@ function EvalCard({ row }: { row: EvalRow }) {
       className="bg-card border-border/60 hover:border-border transition-colors"
       aria-label={`Evaluación de ${row.nombre ?? row.numero_empleado}`}
     >
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="p-6 space-y-3">
         {/* Top: employee + score */}
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
@@ -497,7 +497,7 @@ export default function DesempenoSeguimiento() {
                     {dot && (
                       <span
                         aria-hidden="true"
-                        className={`h-2 w-2 shrink-0 rounded-full ${dot}`}
+                        className={`h-2 w-2 shrink-0 rounded-md ${dot}`}
                       />
                     )}
                     {label}
@@ -528,17 +528,17 @@ export default function DesempenoSeguimiento() {
           <span className="sr-only">Cargando evaluaciones…</span>
           {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i} className="bg-card">
-              <CardContent className="p-4 space-y-3">
+              <CardContent className="p-6 space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-2/3" />
                     <Skeleton className="h-3 w-1/3" />
                   </div>
-                  <Skeleton className="h-7 w-10 rounded-full" />
+                  <Skeleton className="h-7 w-10 rounded-md" />
                 </div>
                 <div className="flex gap-2">
-                  <Skeleton className="h-5 w-20 rounded-full" />
-                  <Skeleton className="h-5 w-28 rounded-full" />
+                  <Skeleton className="h-5 w-20 rounded-md" />
+                  <Skeleton className="h-5 w-28 rounded-md" />
                 </div>
                 <Skeleton className="h-16 w-full rounded-md" />
               </CardContent>
@@ -550,7 +550,7 @@ export default function DesempenoSeguimiento() {
       {/* Empty state — no data */}
       {!loading && rows.length === 0 && !error && (
         <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-full bg-success/10 text-success">
+          <div className="grid h-14 w-14 place-items-center rounded-md bg-success/10 text-success">
             <CheckCircle2 size={26} aria-hidden="true" />
           </div>
           <p className="text-base font-semibold text-foreground">¡Todo en orden!</p>

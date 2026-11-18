@@ -399,7 +399,7 @@ export function IngresosBulkImport({ open, onClose, onImported }: IngresosBulkIm
               {validCount > 0 && (
                 <article>
                   <h2 id="preview-title" className="text-sm font-semibold">Empleados listos para crear</h2>
-                  <div className="mt-3 overflow-x-auto rounded-lg border border-border">
+                  <div className="mt-3 overflow-x-auto rounded-xl border border-border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -427,7 +427,7 @@ export function IngresosBulkImport({ open, onClose, onImported }: IngresosBulkIm
               {duplicateCount > 0 && (
                 <article>
                   <h3 className="text-sm font-semibold text-[hsl(var(--warning))]">Duplicados omitidos</h3>
-                  <div className="mt-3 rounded-lg border border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.08)] p-3">
+                  <div className="mt-3 rounded-xl border border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.08)] p-3">
                     <ul className="space-y-2 text-sm">
                       {duplicateEntries.map((item) => (
                         <li key={`${item.index}-${item.numero}`}>
@@ -444,7 +444,7 @@ export function IngresosBulkImport({ open, onClose, onImported }: IngresosBulkIm
               {invalidCount > 0 && (
                 <article>
                   <h3 className="text-sm font-semibold text-destructive">Registros inválidos</h3>
-                  <div className="mt-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                  <div className="mt-3 rounded-xl border border-destructive/30 bg-destructive/5 p-3">
                     <ul className="space-y-3 text-sm">
                       {invalidEntries.map((item) => (
                         <li key={item.index} className="space-y-1">

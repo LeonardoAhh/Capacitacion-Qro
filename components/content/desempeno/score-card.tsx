@@ -11,13 +11,11 @@ export function ScoreCard({
     ponderacion
   } = context;
   return <Card className="text-center">
-    <CardContent className="pb-6 pt-6">
-      <div className="text-5xl font-semibold leading-none tabular-nums text-primary" aria-live="polite" aria-atomic="true">
+    <CardContent className="p-6">
+      <div className="text-display-xl tabular-nums text-foreground" aria-live="polite" aria-atomic="true">
         {ponderacion.calificacionFinal}%
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">
-        <strong>Calificación del periodo</strong>
-      </p>
+      <p className="mt-2 text-label-sm text-muted-foreground">Calificación del periodo</p>
     </CardContent>
   </Card>;
 }

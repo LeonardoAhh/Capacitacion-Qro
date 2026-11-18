@@ -10,6 +10,7 @@ import {
   aplicarIncumplimientosReglamentoDelPeriodo,
 } from "@/lib/desempeno/actas-evaluacion"
 import { crearBorradorEvaluacion } from "@/lib/desempeno/crear-borrador"
+import { aplicarRetardosDelPeriodo } from "@/lib/desempeno/retardos-evaluacion"
 import { cargarEvaluacionesVencidas, guardarEvaluacionTardia, type EvaluacionVencida } from "@/lib/desempeno/regularizacion/servicio"
 import { validarEvaluacion, type DesempenoData } from "@/lib/types/desempeno"
 
@@ -103,7 +104,8 @@ export function useRegularizacion(enabled: boolean) {
       if (id !== request.current) return
       const baseDraft = crearBorradorEvaluacion(entry, entry.periodo, incidencias ?? [], entry.hito_nuevo_ingreso)
       const withActas = await aplicarActasDelPeriodo(baseDraft)
-      const draft = await aplicarIncumplimientosReglamentoDelPeriodo(withActas)
+      const withReglamento = await aplicarIncumplimientosReglamentoDelPeriodo(withActas)
+      const draft = await aplicarRetardosDelPeriodo(withReglamento)
       if (id !== request.current) return
       setBaseline(JSON.stringify(draft))
       setData(draft)

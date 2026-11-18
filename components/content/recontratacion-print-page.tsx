@@ -55,7 +55,7 @@ export default function RecontratacionPrintPage() {
   if (!roleLoading && isEvaluador) {
     return (
       <div className="no-print min-h-screen flex items-center justify-center bg-muted/40 p-4">
-        <div className="bg-card border border-border rounded-lg px-8 py-8 text-center max-w-sm shadow-sm">
+        <div className="bg-card border border-border rounded-xl px-8 py-8 text-center max-w-sm shadow-sm">
           <Lock className="h-8 w-8 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
           <p className="text-sm text-muted-foreground m-0">
             No tienes permiso para acceder a este formato.

@@ -32,7 +32,7 @@ export default function PromocionesClient() {
             {loading && empleados.length === 0 ? (
                 <div className="space-y-2">
                     <Skeleton className="h-9 w-full rounded-md" />
-                    <div className="hidden md:block rounded-lg border overflow-hidden">
+                    <div className="hidden md:block rounded-xl border overflow-hidden">
                         {Array.from({ length: 6 }).map((_, i) => (
                             <Skeleton key={i} className="h-12 w-full" />
                         ))}
@@ -44,7 +44,7 @@ export default function PromocionesClient() {
                     </div>
                 </div>
             ) : error ? (
-                <div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+                <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
                     Error al cargar datos: {error}
                 </div>
             ) : (

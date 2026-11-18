@@ -74,7 +74,7 @@ export function PromDesempenoDialog({
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-        <div className="text-xs text-muted-foreground bg-muted rounded-lg px-3 py-2">
+        <div className="text-xs text-muted-foreground bg-muted rounded-xl px-3 py-2">
           <span className="font-medium text-foreground">{empleado.puesto}</span>
           {empleado.numero && <span className="ml-2">#{empleado.numero}</span>}
         </div>
@@ -120,7 +120,7 @@ export function PromDesempenoDialog({
         </div>
 
         {error && (
-          <div role="alert" aria-live="assertive" className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+          <div role="alert" aria-live="assertive" className="text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2">
             {error}
           </div>
         )}

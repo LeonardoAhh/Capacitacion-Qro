@@ -74,14 +74,14 @@ export function ConfirmationDialog({
       size={size}
       contentClassName="border-border"
     >
-      <div className={cn("px-5 py-5 sm:px-6", minimal && "sm:py-6")}>
+      <div className="px-4 pb-2 pt-4 sm:px-6 sm:pt-6">
         <div className="flex items-start gap-3">
-          {!minimal && <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-md border border-current/15 bg-card [&_svg]:size-4", styles.container)}>
+          {!minimal && <div className={cn("flex size-10 shrink-0 items-center justify-center rounded-md border border-current/15 bg-card [&_svg]:size-4", styles.container)}>
             {icon ?? styles.icon}
           </div>}
-          <div className={cn("min-w-0 flex-1", minimal && "space-y-2")}>
-            <h2 aria-hidden="true" className={cn("font-semibold tracking-tight text-foreground", minimal ? "text-lg leading-7" : "text-base leading-6")}>{title}</h2>
-            {description && <p aria-hidden="true" className={cn("text-sm leading-5 text-muted-foreground", !minimal && "mt-0.5")}>{description}</p>}
+          <div className={cn("min-w-0 flex-1", minimal && "space-y-1")}>
+            <h2 aria-hidden="true" className="text-heading-md text-foreground">{title}</h2>
+            {description && <p aria-hidden="true" className={cn("text-body-md text-muted-foreground", !minimal && "mt-1")}>{description}</p>}
           </div>
         </div>
         {requireInputText && (
@@ -95,13 +95,12 @@ export function ConfirmationDialog({
               onChange={event => onInputChange(event.target.value)}
               placeholder={requireInputText}
               autoComplete="off"
-              className="h-11 bg-card"
             />
           </div>
         )}
       </div>
       <ModalFooter
-        className={cn("[&_button]:min-h-11 [&_button]:whitespace-nowrap", minimal ? "bg-card" : "bg-muted/30")}
+        className="border-t-0 pb-4 pt-2 sm:pb-6"
         onCancel={onCancel}
         cancelLabel={cancelLabel}
         onConfirm={onConfirm}

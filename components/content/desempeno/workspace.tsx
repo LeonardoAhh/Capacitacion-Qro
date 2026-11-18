@@ -38,19 +38,19 @@ export function EvaluationWorkspace({
   const router = useRouter();
   return <div className={evaluationStyles.page}>
     <header className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 print:hidden">
-      <nav aria-label="Evaluación de desempeño" className="grid min-w-max flex-1 grid-flow-col auto-cols-fr gap-1.5 sm:flex sm:flex-none sm:gap-2">
+      <nav aria-label="Evaluación de desempeño" className="grid min-w-max flex-1 grid-flow-col auto-cols-fr gap-1 sm:flex sm:flex-none">
         {navigation.filter(item => item.key !== "saved" || !isEvaluador).map(({
           key,
           href,
           icon: Icon
-        }) => <Button key={key} asChild variant={section === key ? "default" : "outline"} className="min-h-11 min-w-0 gap-1 px-2 text-sm font-medium sm:gap-2 sm:px-4">
+        }) => <Button key={key} asChild size="sm" variant={section === key ? "default" : "ghost"} className={section === key ? "min-w-0 px-2 sm:px-3" : "min-w-0 px-2 text-muted-foreground sm:px-3"}>
             <Link href={href} aria-current={section === key ? "page" : undefined} onNavigate={confirmNavigation ? event => {
               event.preventDefault();
               void confirmNavigation().then(confirmed => {
                 if (confirmed) router.push(href);
               });
             } : undefined}>
-              <Icon className="hidden size-4 shrink-0 sm:block" aria-hidden="true" />
+              <Icon className="hidden sm:block" aria-hidden="true" />
               {DESEMPENO.pages[key].title}
             </Link>
           </Button>)}

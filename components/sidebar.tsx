@@ -8,23 +8,20 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { cn } from "@/lib/utils"
 import { HOME_PATH, MOBILE_NAV_ID, NAV_SECTIONS, findActiveLeaf } from "@/lib/navigation"
 import { AppMark } from "@/components/app-transition"
-import { useRole, type AppRole } from "@/lib/hooks/useRole"
+import { useRole } from "@/lib/hooks/useRole"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountMenu } from "@/components/account-menu"
+import { APP_NAME, BRAND_NAME } from "@/lib/constants/company"
 
 // Matches Tailwind's `md` boundary; layout visibility itself stays in CSS.
 const DESKTOP_QUERY = "(min-width: 48rem)"
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
-const rowIdle = "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-const rowActiveSolid = "ui-floating-surface border-sidebar-border font-medium text-sidebar-foreground"
-const navLinkBase = "flex min-h-11 w-full items-center rounded-md border border-transparent px-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
-const BRAND_NAME = "ViñoPlastic"
-const ROLE_LABELS: Record<AppRole, string> = {
-  dev: "Desarrollador",
-  admin: "Administrador",
-  evaluador: "Evaluador",
-}
+// Sobre la superficie compartida: hover neutro y selección con el tinte del tema.
+const rowIdle = "text-muted-foreground hover:bg-muted hover:text-foreground"
+const rowActiveSolid = "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+const navLinkBase = "flex min-h-11 w-full items-center rounded-md border border-transparent px-3 text-body-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
+const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
 
 export interface SidebarApi {
   showMobileSidebar: boolean
@@ -83,10 +80,8 @@ export function useSidebar(): SidebarApi & {
 }
 
 function SidebarBrand({
-  role,
   onClose,
 }: {
-  role: AppRole
   onClose?: () => void
 }) {
   return (
@@ -96,14 +91,14 @@ function SidebarBrand({
         onClick={onClose}
         aria-label={`${BRAND_NAME}, ir a Inicio`}
         className={cn(
-          "flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-sidebar-border bg-card px-2 transition-colors hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring",
+          "flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-md border border-sidebar-border bg-card px-2 transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring",
           onClose && "mr-11",
         )}
       >
         <AppMark className="size-9 shrink-0" />
-        <span className="flex min-w-0 flex-col leading-tight">
-          <span className="truncate text-sm font-semibold text-foreground">{BRAND_NAME}</span>
-          <span className="truncate text-xs font-normal text-muted-foreground">{ROLE_LABELS[role]}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="truncate text-label-sm text-foreground">{APP_NAME}</span>
+          <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
         </span>
       </Link>
       {onClose && (
@@ -111,7 +106,7 @@ function SidebarBrand({
           type="button"
           onClick={onClose}
           aria-label="Cerrar menú"
-          className="absolute right-3 flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+          className={cn(controlBase, "absolute right-3")}
         >
           <X className="size-4" aria-hidden="true" />
         </button>
@@ -155,7 +150,7 @@ function NavTree({
           isCollapsed ? "px-2" : "px-3",
         )}
       >
-        <ul className="space-y-0 pt-1">
+        <ul className="space-y-1 pt-1">
           {navigationItems.map(({ leaf, active }) => {
             const link = (
               <Link
@@ -233,11 +228,10 @@ export default function Sidebar({
               Navegación entre las secciones de la aplicación
             </DrawerDescription>
 
-            <SidebarBrand role={role} onClose={closeMobile} />
-            <div aria-hidden="true" className="mx-3 my-2 shrink-0 border-t border-sidebar-border" />
+            <SidebarBrand onClose={closeMobile} />
             <NavTree pathname={pathname} onNavigate={closeMobile} />
             {role !== "evaluador" && (
-              <div className="safe-bottom-content shrink-0 border-t border-sidebar-border px-3 py-2">
+              <div className="safe-bottom-content shrink-0 px-3 py-2">
                 <AccountMenu variant="sidebar" onNavigate={closeMobile} />
               </div>
             )}
@@ -249,16 +243,17 @@ export default function Sidebar({
       <aside
         aria-label="Menú principal"
         data-collapsed={isCollapsed}
-        className="workspace-sidebar hidden flex-col bg-sidebar text-sidebar-foreground md:flex"
+        className="workspace-sidebar hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex"
       >
+        {/* Encabezado sin contenedor; misma altura que el header. El texto se alinea con los iconos de navegación. */}
         <div className={cn(
-          "mx-2 flex h-12 shrink-0 items-center px-2",
-          isCollapsed ? "justify-center" : "justify-between gap-2",
+          "mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center",
+          isCollapsed ? "justify-center px-2" : "justify-between gap-1 pl-6 pr-2",
         )}>
           {!isCollapsed && (
-            <span className="flex min-w-0 flex-col leading-tight">
-              <span className="truncate text-sm font-semibold text-foreground">{BRAND_NAME}</span>
-              <span className="truncate text-xs font-normal text-muted-foreground">{ROLE_LABELS[role]}</span>
+            <span className="flex min-w-0 flex-col" title={`${APP_NAME} · ${BRAND_NAME}`}>
+              <span className="truncate text-label-sm text-foreground">{APP_NAME}</span>
+              <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
             </span>
           )}
           <button
@@ -268,20 +263,16 @@ export default function Sidebar({
             aria-controls="workspace-desktop-navigation"
             aria-expanded={!isCollapsed}
             title={isCollapsed ? "Expandir navegación" : "Contraer navegación"}
-            className="flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            className={controlBase}
           >
             {isCollapsed
               ? <PanelLeft className="size-5" aria-hidden="true" />
               : <PanelLeftDashed className="size-5" aria-hidden="true" />}
           </button>
         </div>
-        <div
-          aria-hidden="true"
-          className="mx-3 mt-[var(--workspace-inset)] shrink-0 border-t border-sidebar-border"
-        />
         <NavTree pathname={pathname} isCollapsed={isCollapsed} />
         {role !== "evaluador" && (
-          <div className="shrink-0 border-t border-sidebar-border px-2 py-2">
+          <div className="shrink-0 px-2 py-2">
             <AccountMenu variant="sidebar" isCollapsed={isCollapsed} />
           </div>
         )}

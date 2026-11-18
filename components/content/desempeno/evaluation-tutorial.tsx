@@ -52,8 +52,8 @@ function PercentagePractice({ id, label, value, onChange }: {
   value: string;
   onChange: (value: string) => void;
 }) {
-  return <div className="flex flex-wrap items-center justify-between gap-3">
-    <Label htmlFor={id}>{label}</Label>
+  return <div className="flex flex-wrap items-center gap-x-3 gap-y-2 @md:justify-end">
+    <Label htmlFor={id} className="text-muted-foreground">{label}</Label>
     <Input
       id={id}
       type="number"
@@ -65,7 +65,7 @@ function PercentagePractice({ id, label, value, onChange }: {
         const digits = event.target.value.replace(/\D/g, "").slice(0, 3);
         onChange(digits && Number(digits) > 100 ? "100" : digits);
       }}
-      className="h-11 w-24 tabular-nums"
+      className="w-20 tabular-nums"
     />
   </div>;
 }
@@ -158,31 +158,31 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
 
   return <div className="flex min-h-0 flex-1 flex-col">
     <div ref={scrollRef} className={step === 5
-      ? "min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-3 sm:p-4"
-      : "min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain p-4 sm:p-6"}>
+      ? "min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-6"
+      : "min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-4 sm:p-6"}>
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-3 text-body-sm text-muted-foreground">
           <span>Paso {step + 1} de {TUTORIAL_STEPS.length}</span>
           <span>{Math.round(((step + 1) / TUTORIAL_STEPS.length) * 100)}%</span>
         </div>
         <Progress value={((step + 1) / TUTORIAL_STEPS.length) * 100} aria-label="Progreso del tutorial" />
         <div className="space-y-1">
-          <h3 ref={headingRef} tabIndex={-1} className="text-lg font-semibold tracking-tight outline-none">{TUTORIAL_STEPS[step]}</h3>
+          <h3 ref={headingRef} tabIndex={-1} className="rounded-md text-heading-md text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{TUTORIAL_STEPS[step]}</h3>
         </div>
       </div>
 
       <div id="tutorial-action" role="status" className="rounded-md border border-border border-l-2 border-l-primary bg-muted/40 px-4 py-3">
-        <p className="font-sans text-xs font-medium uppercase text-muted-foreground">Haz esto ahora</p>
-        <p className="mt-1 text-sm font-medium">{nextAction}</p>
+        <p className="text-eyebrow uppercase text-muted-foreground">Haz esto ahora</p>
+        <p className="mt-1 text-label-sm">{nextAction}</p>
       </div>
 
       {step === 0 && <div className="space-y-3">
         <Label htmlFor="tutorial-search">Buscar por número o nombre</Label>
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input id="tutorial-search" value={query} onChange={event => { setQuery(event.target.value); setSelected(false); resetSimulation(); }} placeholder="Escribe 0000" className="h-11 pl-9" />
+          <Input id="tutorial-search" value={query} onChange={event => { setQuery(event.target.value); setSelected(false); resetSimulation(); }} placeholder="Escribe 0000" className="pl-9" />
         </div>
-        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
           <span className="min-w-0"><span className="block font-medium">{DEMO.name}</span><span className="block text-xs text-muted-foreground">#{DEMO.number} · {DEMO.position}</span></span>
           {selected && <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />}
         </button>}
@@ -190,7 +190,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
       </div>}
 
       {step === 1 && <div className="space-y-4">
-        <Card><CardContent className="grid gap-3 p-4 sm:grid-cols-2">
+        <Card><CardContent className="grid gap-3 p-6 sm:grid-cols-2">
           <div><p className="text-xs text-muted-foreground">Número empleado</p><p className="text-sm font-medium">{DEMO.number}</p></div>
           <div><p className="text-xs text-muted-foreground">Nombre</p><p className="text-sm font-medium">{DEMO.name}</p></div>
           <div><p className="text-xs text-muted-foreground">Puesto</p><p className="text-sm font-medium">{DEMO.position}</p></div>
@@ -217,7 +217,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
             <PercentagePractice id="tutorial-responsibility" label="Cumplimiento (%)" value={responsibility} onChange={value => { setResponsibility(value); resetSimulation(); }} />
           </PercentageCriterionCard>
           <PercentageCriterionCard title="Responsabilidad 2" description="Asistencia del periodo." metadataLabel="Evalúa" metadata="Sistema">
-            <div className="flex items-center justify-between gap-3 text-sm"><span>Dato automático</span><span className="font-medium tabular-nums">{DEMO.automaticResponsibility}%</span></div>
+            <div className="flex items-center gap-3 text-sm @md:justify-end"><span className="text-muted-foreground">Dato automático</span><span className="font-medium tabular-nums">{DEMO.automaticResponsibility}%</span></div>
           </PercentageCriterionCard>
         </div>
         <p className="text-xs text-muted-foreground">Los datos automáticos no se editan. En los demás criterios puedes usar «No aplica» cuando corresponda.</p>
@@ -228,10 +228,10 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
         name="tutorial-competency" showError={false} onChange={value => { setCompetency(value); resetSimulation(); }}
       />}
 
-      {step === 5 && <Card><CardContent className="space-y-3 p-3 sm:p-4">
+      {step === 5 && <Card><CardContent className="space-y-3 p-6">
         <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
           <span className="text-sm text-muted-foreground">Calificación de práctica</span>
-          <span className="text-2xl font-semibold tabular-nums" aria-live="polite">{score}%</span>
+          <span className="text-heading-md tabular-nums" aria-live="polite">{score}%</span>
         </div>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
           <ReviewDateField id="tutorial-review-date" value={reviewDate} onChange={value => { setReviewDate(value); resetSimulation(); }} />
@@ -250,19 +250,19 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
       </CardContent></Card>}
 
       {step === 6 && <div className="space-y-4">
-        <Card><CardContent className="space-y-3 p-4">
-          <p className="text-sm font-medium">Evaluación de práctica guardada · {score}%</p>
+        <Card><CardContent className="space-y-3 p-6">
+          <p className="text-label-sm">Evaluación de práctica guardada · {score}%</p>
           <p className="text-sm text-muted-foreground">En el sistema real, Imprimir abre el formato oficial. Aquí solo se simula el paso.</p>
-          <Button id="tutorial-print" type="button" onClick={() => setPrinted(true)} disabled={printed} className="min-h-11"><Printer aria-hidden="true" /> {printed ? "Impresión simulada" : "Simular impresión"}</Button>
+          <Button id="tutorial-print" type="button" onClick={() => setPrinted(true)} disabled={printed}><Printer aria-hidden="true" /> {printed ? "Impresión simulada" : "Simular impresión"}</Button>
         </CardContent></Card>
         {printed && <p role="status" className="flex items-start gap-2 text-sm text-muted-foreground"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-foreground" aria-hidden="true" /> Después se recaban las firmas y se entrega el documento físico a Capacitación.</p>}
       </div>}
     </div>
 
     <footer className="safe-bottom-content flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-4 pt-3 sm:px-6">
-      <Button type="button" variant="outline" onClick={() => goTo(step - 1)} disabled={step === 0} className="min-h-11"><ChevronLeft aria-hidden="true" /> Atrás</Button>
-      <Button id="tutorial-next" type="button" onClick={advance} aria-describedby="tutorial-action" className="min-h-11">
-        {step === 5 && !saved ? <><Save aria-hidden="true" /> Guardar simulación</> : step === TUTORIAL_STEPS.length - 1 ? "Terminar" : <>Siguiente <ChevronRight aria-hidden="true" /></>}
+      <Button type="button" variant="outline" size="sm" onClick={() => goTo(step - 1)} disabled={step === 0} className="pl-2 pr-3"><ChevronLeft aria-hidden="true" />Atrás</Button>
+      <Button id="tutorial-next" type="button" size="sm" onClick={advance} aria-describedby="tutorial-action" className={step === 5 && !saved ? "pl-2 pr-3" : step === TUTORIAL_STEPS.length - 1 ? undefined : "pl-3 pr-2"}>
+        {step === 5 && !saved ? <><Save aria-hidden="true" />Guardar simulación</> : step === TUTORIAL_STEPS.length - 1 ? "Terminar" : <>Siguiente<ChevronRight aria-hidden="true" /></>}
       </Button>
     </footer>
   </div>;

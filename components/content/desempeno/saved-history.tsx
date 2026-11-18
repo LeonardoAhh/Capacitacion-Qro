@@ -32,7 +32,7 @@ export function SavedHistory({
     gruposPorDepto
   } = context;
   return <Card>
-    <CardHeader className="pb-3">
+    <CardHeader className="p-6 pb-3">
       <div className="flex items-center justify-between gap-3">
         <div>
           <SectionTitle>Historial de evaluaciones</SectionTitle>
@@ -41,23 +41,23 @@ export function SavedHistory({
         {data && <Tooltip>
           <TooltipTrigger asChild>
             <Button size="icon" className="shrink-0" onClick={() => setShowPrintDialog(true)} disabled={bloqueado} aria-label="Imprimir">
-              <Printer className="h-4 w-4" />
+              <Printer aria-hidden="true" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>{bloqueado ? `Captura compromisos primero (calificación < ${UMBRAL_CALIFICACION_APROBATORIA}%)` : "Imprimir evaluación cargada"}</TooltipContent>
         </Tooltip>}
       </div>
     </CardHeader>
-    <CardContent className="space-y-3">
+    <CardContent className="space-y-3 p-6 pt-0">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
         <Input value={histSearch} onChange={e => setHistSearch(e.target.value)} placeholder="Buscar por nombre, número o periodo..." aria-label="Buscar evaluaciones guardadas por nombre, número o periodo" className="pl-9" />
       </div>
 
       {historialLoading ? <div className="space-y-2">
         {Array.from({
           length: 5
-        }).map((_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+        }).map((_, i) => <Skeleton key={i} className="h-11 w-full" />)}
       </div> : gruposPorDepto.length === 0 ? <div className="text-center py-8 text-sm text-muted-foreground">
         {histSearch ? "Sin resultados." : "No hay evaluaciones guardadas."}
       </div> : <Accordion type="multiple" value={histSearch ? gruposPorDepto.map(([dep]) => dep) : openDeps} onValueChange={histSearch ? undefined : setOpenDeps} className="w-full">
@@ -93,12 +93,12 @@ export function SavedHistory({
                         <TableCell className="py-2 font-sans text-xs">{e.numero}</TableCell>
                         <TableCell className="py-2 font-medium break-words">
                           <div className="flex flex-col items-start gap-1">
-                            <button type="button" onClick={() => setSelectedNumero(e.numero)} className="min-h-10 w-full rounded-md text-left font-medium underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label={`Ver evaluaciones de ${e.nombre}`}>{e.nombre}</button>
+                            <button type="button" onClick={() => setSelectedNumero(e.numero)} className="min-h-11 w-full rounded-md text-left font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label={`Ver evaluaciones de ${e.nombre}`}>{e.nombre}</button>
                             <span className="text-xs font-normal text-muted-foreground md:hidden">{e.puesto || "—"} · {lastEval?.periodo || "—"}</span>
                             {e.origen === "nuevo_ingreso" && <Badge variant="secondary" className="w-fit text-xs">Nuevo Ingreso</Badge>}
                           </div>
                         </TableCell>
-                        <TableCell className="hidden md:table-cell py-2 text-xs leading-relaxed text-muted-foreground whitespace-normal break-words">{e.puesto || "—"}</TableCell>
+                        <TableCell className="hidden md:table-cell py-2 text-xs text-muted-foreground whitespace-normal break-words">{e.puesto || "—"}</TableCell>
                         <TableCell className="hidden md:table-cell py-2">
                           {lastEval ? <div className="flex flex-wrap items-center gap-1.5">
                             <span className="text-xs text-muted-foreground">{lastEval.periodo}</span>
@@ -120,7 +120,7 @@ export function SavedHistory({
       </Accordion>}
 
       {loading && <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
         <span className="text-sm">Cargando evaluación...</span>
       </div>}
     </CardContent>

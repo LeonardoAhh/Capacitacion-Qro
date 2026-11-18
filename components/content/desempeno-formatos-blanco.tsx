@@ -90,7 +90,7 @@ export default function FormatosBlanco() {
 
       {/* Preview visible on screen, printable */}
       <Card className="overflow-auto">
-        <CardContent className="p-4">
+        <CardContent className="p-6">
           <div className="print-area">
             <DesempenoPrint data={data} blankMode />
           </div>

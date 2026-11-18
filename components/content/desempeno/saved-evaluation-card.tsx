@@ -36,7 +36,7 @@ export function SavedEvaluationCard({ evaluation: ev, actions }: { evaluation: E
 
   return (
     <article aria-labelledby={titleId} className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="flex flex-wrap items-start justify-between gap-3 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-6">
         <div className="min-w-0 space-y-1">
           <h3 id={titleId} className="break-words text-sm font-medium leading-5 text-foreground">{ev.periodo || SAVED_DETAIL.noPeriod}{ev.hito_nuevo_ingreso ? ` · ${HITOS_NUEVO_INGRESO[ev.hito_nuevo_ingreso - 1].etiqueta}` : ""}</h3>
           <p className="text-xs leading-4 text-muted-foreground">
@@ -51,7 +51,7 @@ export function SavedEvaluationCard({ evaluation: ev, actions }: { evaluation: E
           </p>
         </div>
       </div>
-      <div className="flex items-center gap-2 border-t px-3 py-2">
+      <div className="flex items-center gap-2 border-t p-2">
         <Button type="button" variant="ghost" asChild className="min-w-0 flex-1 sm:flex-none" aria-label={`${SAVED_DETAIL.edit}: ${ev.periodo || SAVED_DETAIL.noPeriod}`}>
           <Link href={`/desempeno?evalId=${ev.id}`}><Pencil aria-hidden="true" />{SAVED_DETAIL.edit}</Link>
         </Button>
@@ -65,7 +65,7 @@ export function SavedEvaluationCard({ evaluation: ev, actions }: { evaluation: E
               type="button"
               variant={confirmingDelete ? "destructive" : "ghost"}
               size={confirmingDelete ? "sm" : "icon"}
-              className={confirmingDelete ? "ml-auto min-h-11 shrink-0" : "ml-auto min-h-11 min-w-11 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"}
+              className={confirmingDelete ? "ml-auto shrink-0" : "ml-auto min-w-11 shrink-0 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"}
               disabled={deleting}
               onClick={handleDelete}
               onBlur={() => { if (!deleting) setConfirmingDelete(false); }}

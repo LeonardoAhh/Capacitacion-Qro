@@ -27,22 +27,22 @@ export function PendientesLista({ items, onSelect }: {
   return <section aria-labelledby="regularizacion-pendientes" className="space-y-4">
     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between md:gap-6">
       <div className="min-w-0">
-        <h2 id="regularizacion-pendientes" className="text-lg font-semibold tracking-tight">Evaluaciones vencidas</h2>
+        <h2 id="regularizacion-pendientes" className="text-heading-md text-foreground">Evaluaciones vencidas</h2>
       </div>
       <div className="w-full min-w-0 md:w-52 md:flex-none">
         <Label htmlFor="regularizacion-buscar" className="sr-only">Buscar por número, nombre o periodo</Label>
-        <Input id="regularizacion-buscar" type="search" placeholder="Buscar…" value={query} onChange={event => setQuery(event.target.value)} className="h-11" />
+        <Input id="regularizacion-buscar" type="search" placeholder="Buscar…" value={query} onChange={event => setQuery(event.target.value)} />
       </div>
     </div>
     {buscando && visibles.length ? <ul className="grid gap-3 lg:grid-cols-2">
       {visibles.map((item) => <li key={`${item.numero}:${item.periodo}:${item.hito_nuevo_ingreso ?? "planta"}`}>
-        <Card className="h-full"><CardContent className="flex h-full flex-wrap items-center justify-between gap-4 p-4">
+        <Card className="h-full"><CardContent className="flex h-full flex-wrap items-center justify-between gap-4 p-6">
           <div className="min-w-0 space-y-1">
-            <p className="break-words font-semibold">{item.nombre}</p>
+            <p className="break-words text-label-sm">{item.nombre}</p>
             <p className="text-sm text-muted-foreground">#{item.numero} · {item.periodo} · {item.hito_nuevo_ingreso ? HITOS_NUEVO_INGRESO[item.hito_nuevo_ingreso - 1].etiqueta : "Semestral"}</p>
             <p className="text-sm text-muted-foreground">Venció el <time dateTime={item.fecha_limite}>{item.fecha_limite}</time></p>
           </div>
-          <Button type="button" variant="outline" className="min-h-11" onClick={() => onSelect(item)} aria-label={`Capturar ${item.hito_nuevo_ingreso ? HITOS_NUEVO_INGRESO[item.hito_nuevo_ingreso - 1].etiqueta + " de " : ""}${item.periodo} de ${item.nombre}`}>
+          <Button type="button" variant="outline" onClick={() => onSelect(item)} aria-label={`Capturar ${item.hito_nuevo_ingreso ? HITOS_NUEVO_INGRESO[item.hito_nuevo_ingreso - 1].etiqueta + " de " : ""}${item.periodo} de ${item.nombre}`}>
             Capturar
           </Button>
         </CardContent></Card>

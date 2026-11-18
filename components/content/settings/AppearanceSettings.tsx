@@ -29,15 +29,27 @@ export function AppearanceSettings() {
 
       <SettingsGroup title="Pantalla">
         <SettingsRow
-          label="Tema oscuro"
-          description="Usa la paleta grafito oscura en toda la aplicación."
+          label="Tema"
+          description="Elige un tema o sigue la preferencia de tu dispositivo."
           htmlFor="theme-mode"
         >
-          <Switch
-            id="theme-mode"
-            checked={themeMode === "dark"}
-            onCheckedChange={(enabled) => setThemeMode(enabled ? "dark" : "light")}
-          />
+          <Select
+            value={themeMode}
+            onValueChange={(value) => {
+              if (value === "light" || value === "dark" || value === "system") {
+                setThemeMode(value)
+              }
+            }}
+          >
+            <SelectTrigger id="theme-mode" className="min-h-11 w-full sm:w-40">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="light">Claro</SelectItem>
+              <SelectItem value="dark">Oscuro</SelectItem>
+              <SelectItem value="system">Sistema</SelectItem>
+            </SelectContent>
+          </Select>
         </SettingsRow>
         <SettingsRow
           label="Tamaño de fuente"

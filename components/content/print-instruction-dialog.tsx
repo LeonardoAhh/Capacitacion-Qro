@@ -42,36 +42,33 @@ export function PrintInstructionDialog({ open, onOpenChange, onConfirm }: PrintI
       title={PRINT_GUIDE.title}
       description={PRINT_GUIDE.description}
       maxWidth="sm:max-w-md"
-      contentClassName="print:hidden [&_button]:min-h-11"
+      contentClassName="print:hidden"
     >
-      <div className="shrink-0 [&_button]:min-w-11">
-        <ModalHeader title={PRINT_GUIDE.title} onClose={close} />
-      </div>
+      <ModalHeader title={PRINT_GUIDE.title} onClose={close} />
 
-      <div className="min-h-0 overflow-y-auto overscroll-contain px-4 py-5 sm:px-6">
-        <p className="text-sm leading-relaxed text-muted-foreground">{PRINT_GUIDE.description}</p>
-        <ol className="mt-5 space-y-4" aria-label="Ajustes antes de imprimir">
+      <div className="min-h-0 overflow-y-auto overscroll-contain p-4 sm:px-6">
+        <p className="text-body-md text-muted-foreground">{PRINT_GUIDE.description}</p>
+        <ol className="mt-4 space-y-3" aria-label="Ajustes antes de imprimir">
           {PRINT_GUIDE.steps.map((step, index) => (
             <li key={step.title} className="flex items-start gap-3">
-              <span aria-hidden="true" className="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+              <span aria-hidden="true" className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium tabular-nums text-muted-foreground">
                 {index + 1}
               </span>
               <div className="min-w-0 space-y-1">
-                <h3 className="text-sm font-semibold leading-relaxed">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+                <h3 className="text-label-sm text-foreground">{step.title}</h3>
+                <p className="text-body-md text-muted-foreground">{step.description}</p>
               </div>
             </li>
           ))}
         </ol>
-        <p className="mt-5 rounded-lg bg-muted p-3 text-xs leading-relaxed text-muted-foreground">{PRINT_GUIDE.note}</p>
+        <p className="mt-4 rounded-md bg-muted p-3 text-body-sm text-muted-foreground">{PRINT_GUIDE.note}</p>
       </div>
 
       <ModalFooter
-        className="[&_button]:whitespace-nowrap [&_button]:px-3 sm:[&_button]:px-4"
         onCancel={close}
         onConfirm={handleConfirm}
         confirmLabel="Continuar"
-        confirmIcon={<Printer className="size-4" aria-hidden="true" />}
+        confirmIcon={<Printer aria-hidden="true" />}
       />
     </ResponsiveShell>
   )

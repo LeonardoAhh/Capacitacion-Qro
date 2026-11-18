@@ -30,30 +30,30 @@ function MockupSidebar() {
   return (
     <div className="wn-mockup" style={{ display: "flex", flexDirection: "row", background: "hsl(var(--background))" }}>
       <div style={{ width: "64px", borderRight: "1px solid hsl(var(--border))", display: "flex", flexDirection: "column", gap: "1rem", padding: "1rem 0", alignItems: "center" }}>
-        <div style={{ width: "32px", height: "32px", background: "hsl(var(--primary)/0.1)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))" }}>
+        <div style={{ width: "32px", height: "32px", background: "hsl(var(--primary)/0.1)", borderRadius: "var(--radius-control)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))" }}>
           <Briefcase size={16} />
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "1rem" }}>
-          <div style={{ width: "32px", height: "32px", background: "hsl(var(--primary)/0.1)", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))" }}>
+          <div style={{ width: "32px", height: "32px", background: "hsl(var(--primary)/0.1)", borderRadius: "var(--radius-control)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))" }}>
             <GraduationCap size={16} />
           </div>
-          <div style={{ width: "32px", height: "32px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--muted-foreground))" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-control)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--muted-foreground))" }}>
             <Award size={16} />
           </div>
-          <div style={{ width: "32px", height: "32px", borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--muted-foreground))" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-control)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--muted-foreground))" }}>
             <FileText size={16} />
           </div>
         </div>
       </div>
       <div style={{ flex: 1, padding: "2rem 1rem", position: "relative" }}>
-        <div style={{ position: "absolute", top: "4rem", left: "-0.5rem", width: "160px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "12px", padding: "0.5rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}>
+        <div style={{ position: "absolute", top: "4rem", left: "-0.5rem", width: "160px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "var(--radius-card)", padding: "0.5rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}>
           <p style={{ fontSize: "10px", fontWeight: "bold", textTransform: "uppercase", padding: "0.25rem 0.5rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>Capacitación</p>
-          <div style={{ fontSize: "12px", padding: "0.5rem", background: "hsl(var(--accent)/0.5)", borderRadius: "6px", marginBottom: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ fontSize: "12px", padding: "0.5rem", background: "hsl(var(--accent)/0.5)", borderRadius: "var(--radius-control)", marginBottom: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>Presentaciones</span>
-            <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "hsl(var(--primary))" }} />
+            <span style={{ width: "4px", height: "4px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary))" }} />
           </div>
-          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "6px" }}>Categorías</div>
-          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "6px" }}>Exámenes</div>
+          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Categorías</div>
+          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Exámenes</div>
         </div>
       </div>
     </div>
@@ -65,10 +65,10 @@ function MockupHeader() {
     <div className="wn-mockup" style={{ background: "hsl(var(--background))", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "flex-end", padding: "1rem", borderBottom: "1px solid hsl(var(--border))" }}>
         <div style={{ position: "relative" }}>
-          <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "12px" }}>U</div>
-          <div style={{ position: "absolute", top: "40px", right: "0", width: "180px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "12px", padding: "0.25rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}>
+          <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "12px" }}>U</div>
+          <div style={{ position: "absolute", top: "40px", right: "0", width: "180px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "var(--radius-card)", padding: "0.25rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem" }}>
-              <div style={{ width: "24px", height: "24px", borderRadius: "50%", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "10px" }}>U</div>
+              <div style={{ width: "24px", height: "24px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "10px" }}>U</div>
               <div style={{ display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: "12px", fontWeight: "bold" }}>Usuario</span>
                 <span style={{ fontSize: "10px", color: "hsl(var(--muted-foreground))" }}>user@viño.com</span>
@@ -90,7 +90,7 @@ function MockupMotivation() {
   return (
     <div className="wn-mockup" style={{ border: "none", boxShadow: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}>
-        <div style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", padding: "1rem", borderRadius: "1rem" }}>
+        <div style={{ background: "hsl(var(--primary) / 0.1)", color: "hsl(var(--primary))", padding: "1rem", borderRadius: "var(--radius-panel)" }}>
           <Sparkles size={48} />
         </div>
         <div>

@@ -42,7 +42,7 @@ export function PromReglasPreview({
           Si ya existe una regla para el mismo puesto, será reemplazada.
         </p>
 
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted text-xs">
@@ -116,7 +116,7 @@ export function PromDatosPreview({
           El enlace es por <strong>N.N</strong> (número de empleado). Si ya existe un registro se actualizará.
         </p>
 
-        <div className="overflow-x-auto rounded-lg border">
+        <div className="overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
               <TableRow className="bg-muted text-xs">

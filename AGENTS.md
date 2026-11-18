@@ -11,6 +11,7 @@ App autenticada (workspace): panel elevado con sidebar, header sticky, data grid
 Marketing conserva la estética ink-on-white: casi todo es neutro, un solo gradiente decorativo, tipografía apretada y bordes de 1px. El workspace ofrece las paletas clara y oscura definidas abajo; conserva sus colores semánticos para acciones y estados.
 
 Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es #1c3a9c en claro y #9ec1ff en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
+La preferencia de tema admite claro, oscuro y sistema. Sistema sigue la preferencia de color del dispositivo y se aplica antes de hidratar; si cambia mientras está seleccionado, la interfaz se actualiza sin reemplazar esa preferencia.
 
 2. Stack esperado
 Asume y respeta lo siguiente (verifica en package.json antes de introducir algo distinto):

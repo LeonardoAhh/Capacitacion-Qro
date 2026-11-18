@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Textarea } from "@/components/ui/textarea"
 import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import {
   parseEmployeeDayCountJson,
   type EmployeeDayCountImport,
@@ -20,6 +21,22 @@ interface EmployeeDayCountImportDialogProps {
   itemSingular: string
   itemPlural: string
   onReplaceMonths: (payload: EmployeeDayCountImport) => Promise<{ success: boolean; error?: string }>
+  /** Lector del archivo; por defecto el formato numero_empleado/mes/días. */
+  parse?: (json: string) => EmployeeDayCountImport
+  /** Ejemplo del formato esperado. */
+  placeholder?: string
+  /** Explicación bajo el encabezado. */
+  note?: string
+  /** Validación asíncrona previa a la carga; devuelve el mensaje de error o null. */
+  validate?: (payload: EmployeeDayCountImport) => Promise<string | null>
+}
+
+const DEFAULT_PLACEHOLDER = `[\n  {\n    "1": "0",\n    "23": "1",\n    "numero_empleado": "2160",\n    "mes": "2026-06"\n  }\n]`
+const DEFAULT_NOTE = "Se reemplazan únicamente los meses incluidos en el archivo, completos para todos los empleados. Los días en cero no se guardan."
+
+function sumMinutes(registros: EmployeeDayCountImport["meses"][number]["registros"]): number | null {
+  if (!registros.some(registro => registro.minutos !== undefined)) return null
+  return registros.reduce((sum, registro) => sum + (registro.minutos ?? 0), 0)
 }
 
 function formatMonth(month: string): string {
@@ -40,17 +57,48 @@ export function EmployeeDayCountImportDialog({
   itemSingular,
   itemPlural,
   onReplaceMonths,
+  parse = parseEmployeeDayCountJson,
+  placeholder = DEFAULT_PLACEHOLDER,
+  note = DEFAULT_NOTE,
+  validate,
 }: EmployeeDayCountImportDialogProps) {
   const [saving, setSaving] = useState(false)
   const [jsonText, setJsonText] = useState("")
   const [preview, setPreview] = useState<EmployeeDayCountImport | null>(null)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [validating, setValidating] = useState(false)
+  const [validationError, setValidationError] = useState<string | null>(null)
+  // Descarta resultados de validaciones de un texto que ya cambió.
+  const validationRun = useRef(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const resetValidation = () => {
+    validationRun.current += 1
+    setValidating(false)
+    setValidationError(null)
+  }
 
   const clearImport = () => {
     setJsonText("")
     setPreview(null)
     setParseError(null)
+    resetValidation()
+  }
+
+  const runValidation = (payload: EmployeeDayCountImport) => {
+    if (!validate) return
+    const run = validationRun.current
+    setValidating(true)
+    validate(payload)
+      .then(message => {
+        if (run === validationRun.current) setValidationError(message)
+      })
+      .catch(caught => {
+        if (run === validationRun.current) setValidationError(describeSupabaseError(caught, "No se pudo validar el archivo contra Plantilla."))
+      })
+      .finally(() => {
+        if (run === validationRun.current) setValidating(false)
+      })
   }
 
   const closeDialog = (nextOpen: boolean) => {
@@ -62,10 +110,13 @@ export function EmployeeDayCountImportDialog({
     setJsonText(text)
     setPreview(null)
     setParseError(null)
+    resetValidation()
     if (!text.trim()) return
 
     try {
-      setPreview(parseEmployeeDayCountJson(text))
+      const parsed = parse(text)
+      setPreview(parsed)
+      runValidation(parsed)
     } catch (caught) {
       setParseError(caught instanceof Error ? caught.message : "No se pudo validar el JSON.")
     }
@@ -133,9 +184,7 @@ export function EmployeeDayCountImportDialog({
         onClose={() => closeDialog(false)}
       />
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card p-4 sm:p-6">
-        <p className="text-sm text-muted-foreground">
-          Se reemplazan únicamente los meses incluidos en el archivo, completos para todos los empleados. Los días en cero no se guardan.
-        </p>
+        <p className="text-sm text-muted-foreground">{note}</p>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -160,7 +209,7 @@ export function EmployeeDayCountImportDialog({
         <Textarea
           value={jsonText}
           onChange={event => parseText(event.target.value)}
-          placeholder={`[\n  {\n    "1": "0",\n    "23": "1",\n    "numero_empleado": "2160",\n    "mes": "2026-06"\n  }\n]`}
+          placeholder={placeholder}
           rows={8}
           className="min-h-40 resize-y font-sans"
           aria-label={`Contenido JSON de ${itemPlural}`}
@@ -179,7 +228,7 @@ export function EmployeeDayCountImportDialog({
             <ul className="list-inside list-disc space-y-1 text-muted-foreground">
               {preview.meses.map(month => (
                 <li key={month.mes}>
-                  {formatMonth(month.mes)}: {month.empleados} {month.empleados === 1 ? "empleado" : "empleados"}, {month.totalCount} {month.totalCount === 1 ? itemSingular : itemPlural}
+                  {formatMonth(month.mes)}: {month.empleados} {month.empleados === 1 ? "empleado" : "empleados"}, {month.totalCount} {month.totalCount === 1 ? itemSingular : itemPlural}{sumMinutes(month.registros) !== null && `, ${sumMinutes(month.registros)} min`}
                 </li>
               ))}
             </ul>
@@ -187,6 +236,15 @@ export function EmployeeDayCountImportDialog({
               <p>Los meses sin {itemPlural} positivos quedarán vacíos.</p>
             )}
           </div>
+        )}
+        {validating && (
+          <p role="status" className="text-sm text-muted-foreground">Validando números de empleado en Plantilla…</p>
+        )}
+        {validationError && (
+          <Alert variant="destructive" role="alert">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertDescription>{validationError}</AlertDescription>
+          </Alert>
         )}
       </div>
       <div className="flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-card px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
@@ -203,7 +261,7 @@ export function EmployeeDayCountImportDialog({
           type="button"
           className="min-h-11"
           onClick={() => void handleImport()}
-          disabled={!preview || saving}
+          disabled={!preview || saving || validating || Boolean(validationError)}
         >
           {saving ? "Reemplazando..." : "Cargar datos"}
         </Button>

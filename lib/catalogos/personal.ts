@@ -113,9 +113,13 @@ export const ESCOLARIDAD = [
   "DOCTORADO"
 ]
 
+/**
+ * Responsable de cada departamento de CATALOGO_ORGANIZACIONAL (p. ej. firma del DNC).
+ * Montaje forma parte de Producción y Acabados GP12 de Calidad.
+ */
 export const JEFES_DE_AREA_POR_DEPARTAMENTO: { [departamento: string]: string[] } = {
   "PRODUCCIÓN": [
-    "GOMEZ SANCHEZ CARLOS ARIEL ",
+    "GOMEZ SANCHEZ CARLOS ARIEL",
   ],
   "MANTENIMIENTO": [
     "BRAVO GARCIA JESUS FERNANDO",
@@ -130,7 +134,7 @@ export const JEFES_DE_AREA_POR_DEPARTAMENTO: { [departamento: string]: string[] 
     "GOMEZ SANCHEZ CESAR",
   ],
   "SGI": [
-    "OCHOA VELAZQUEZ PAMELA",
+    "PEREZ BAUTISTA EDGAR",
   ],
   "METROLOGÍA": [
     "ESQUIVEL MATA ARIADNA NAYELY",
@@ -139,10 +143,13 @@ export const JEFES_DE_AREA_POR_DEPARTAMENTO: { [departamento: string]: string[] 
     "SALINAS ORTIZ ANA ERIKA",
   ],
   "SISTEMAS": [
-    "CABRERO BOO MANUEL ALBERTO",
+    "HERNANDEZ RUIZ MIGUEL ANGEL",
   ],
-    "CALIDAD": [
-      "INFANTE VAZQUEZ IVAN",
+  "CALIDAD": [
+    "INFANTE VAZQUEZ IVAN",
+  ],
+  "LOGISTICA": [
+    "HERNANDEZ RUIZ MIGUEL ANGEL",
   ],
 }
 
@@ -212,4 +219,27 @@ export const DEPARTAMENTOS_EVALUADORES: Record<string, string[]> = {
   "SISTEMAS": [
     "CABRERO BOO MANUEL ALBERTO",
     ],
+}
+
+/**
+ * Departamento de CATALOGO_ORGANIZACIONAL que atiende cada grupo de
+ * DEPARTAMENTOS_EVALUADORES. `null` = el grupo evalúa a cualquier departamento.
+ * Un grupo sin entrada solo aparece cuando no se puede filtrar.
+ */
+export const DEPARTAMENTO_POR_GRUPO_EVALUADOR: Record<string, string | null> = {
+  "Dirección": null,
+  "Gerencia": null,
+  "Producción": "PRODUCCIÓN",
+  "Montaje": "PRODUCCIÓN",
+  "Acabados GP12": "CALIDAD",
+  "Recursos Humanos": "RECURSOS HUMANOS",
+  "Calidad": "CALIDAD",
+  "Metrología": "METROLOGÍA",
+  "SGI": "SGI",
+  "Mantenimiento": "MANTENIMIENTO",
+  "Almacén": "ALMACÉN",
+  "Logística": "LOGISTICA",
+  "Moldes": "TALLER DE MOLDES",
+  "Proyectos": "PROYECTOS",
+  "SISTEMAS": "SISTEMAS",
 }

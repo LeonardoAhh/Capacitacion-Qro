@@ -1,5 +1,16 @@
 import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { extendTailwindMerge } from "tailwind-merge"
+import { TYPOGRAPHY_TOKENS } from "@/lib/theme/typography"
+
+// Registra los tokens tipográficos como tamaños de fuente; sin esto,
+// tailwind-merge los trata como color y descarta `text-foreground` o el token.
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "font-size": [{ text: [...TYPOGRAPHY_TOKENS] }],
+    },
+  },
+})
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

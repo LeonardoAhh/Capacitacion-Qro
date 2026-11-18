@@ -27,12 +27,12 @@ export function MaintenanceLocalIndicator() {
             type="button"
             variant="outline"
             size="icon"
-            className="relative size-11 rounded-full bg-card text-muted-foreground hover:text-foreground"
+            className="relative size-11 rounded-md bg-card text-muted-foreground hover:text-foreground"
             aria-label={COPY.label}
             title={COPY.title}
           >
             <Wrench strokeWidth={1.75} aria-hidden="true" />
-            <span className="absolute right-0 top-0 size-2.5 rounded-full border-2 border-card bg-warning" aria-hidden="true" />
+            <span className="absolute right-0 top-0 size-2.5 rounded-md border-2 border-card bg-warning" aria-hidden="true" />
           </Button>
         </PopoverTrigger>
         <PopoverContent

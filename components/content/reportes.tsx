@@ -189,7 +189,7 @@ export default function ReportesContent() {
   return (
     <div className="flex w-full min-w-0 flex-col gap-6 pb-10">
       <Card className="border-border">
-        <CardHeader className="flex-shrink-0 border-b border-border/50 bg-muted/20 p-4 sm:p-6">
+        <CardHeader className="flex-shrink-0 border-b border-border/50 bg-muted/20 p-6">
           <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
             <div className="relative min-w-0 flex-1">
               <label htmlFor={searchId} className="sr-only">

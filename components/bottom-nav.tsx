@@ -156,7 +156,7 @@ export default function BottomNav() {
               {moreActive ? (
                 <motion.span
                   layoutId="bottom-nav-active"
-                  className="absolute inset-x-6 top-1 h-0.5 rounded-full bg-brand"
+                  className="absolute inset-x-6 top-1 h-0.5 rounded-md bg-brand"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               ) : null}
@@ -188,7 +188,7 @@ export default function BottomNav() {
                           href={item.href}
                           onClick={() => setOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
+                            "flex items-center gap-3 rounded-md border px-3 py-3 text-sm font-medium transition-colors",
                             active
                               ? "border-brand/40 bg-brand/10 text-brand-text"
                               : "border-border/60 bg-card text-foreground hover:border-brand/30 hover:bg-muted/40",
@@ -196,7 +196,7 @@ export default function BottomNav() {
                         >
                           <span
                             className={cn(
-                              "grid size-9 shrink-0 place-items-center rounded-lg",
+                              "grid size-9 shrink-0 place-items-center rounded-md",
                               active ? "bg-brand/15 text-brand-text" : "bg-muted/60 text-muted-foreground",
                             )}
                           >
@@ -231,7 +231,7 @@ function TabLink({ item, active }: { item: NavItem; active: boolean }) {
         {active ? (
           <motion.span
             layoutId="bottom-nav-active"
-            className="absolute inset-x-6 top-1 h-0.5 rounded-full bg-brand"
+            className="absolute inset-x-6 top-1 h-0.5 rounded-md bg-brand"
             transition={{ type: "spring", stiffness: 350, damping: 30 }}
           />
         ) : null}

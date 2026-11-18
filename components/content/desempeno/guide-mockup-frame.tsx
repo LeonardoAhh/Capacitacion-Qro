@@ -12,9 +12,9 @@ import { useEvaluationReducedMotion } from "./use-evaluation-motion";
 export const mockupStyles = {
   card: "space-y-3 rounded-xl border bg-card p-3",
   field: "flex min-w-0 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground",
-  action: "inline-flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-xs font-medium",
+  action: "inline-flex h-7 items-center justify-center gap-1 rounded-md border px-2 text-xs font-medium",
   primary: "border-primary bg-primary text-primary-foreground",
-  line: "h-2 rounded-full bg-muted-foreground/20",
+  line: "h-2 rounded-sm bg-muted-foreground/20",
 } as const;
 
 export function GuideMockupFrame({ scene, children }: { scene: string; children: ReactNode }) {
@@ -27,7 +27,7 @@ export function GuideMockupFrame({ scene, children }: { scene: string; children:
       {/* Decorative preview: instructions outside the frame describe the real controls. */}
       <div aria-hidden="true" className="pointer-events-none mx-auto w-full max-w-md overflow-hidden rounded-xl border bg-background">
         <div className="flex items-center gap-2 border-b bg-card px-3 py-2">
-          <span className="size-2 shrink-0 rounded-full bg-primary" />
+          <span className="size-2 shrink-0 rounded-sm bg-primary" />
           <span className="min-w-0 text-xs font-medium text-foreground">{DESEMPENO.title}</span>
         </div>
         <div className="space-y-3 p-3">

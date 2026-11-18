@@ -200,7 +200,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               if (ok) onDelete(record.id)
             }}
             disabled={saving}
-            className="flex items-center justify-center gap-2 w-full h-9 rounded-full border border-destructive/30 text-destructive hover:border-destructive/60 hover:bg-destructive/5 transition-colors text-sm font-medium disabled:opacity-50"
+            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-sm font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Trash2 className="h-4 w-4" />
             Eliminar empleado

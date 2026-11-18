@@ -260,7 +260,7 @@ export function CalificacionModal({
                                 </p>
                             </div>
 
-                            <div className="grid grid-cols-3 gap-1.5 rounded-lg border bg-muted/25 px-2 py-1.5 text-[10px] text-muted-foreground">
+                            <div className="grid grid-cols-3 gap-1.5 rounded-xl border bg-muted/25 px-2 py-1.5 text-[10px] text-muted-foreground">
                                 <span className="truncate">{periodoEval(item.fechaIngreso, evalNum)}</span>
                                 <span className="truncate text-center">Vence: {formatDate(item.fecha)}</span>
                                 <span className={`truncate text-right font-semibold ${toneText}`}>{dias(item.diasDiff)}</span>
@@ -445,7 +445,7 @@ export function MasterListItem({ nombre, meta, diasLabel, fechaLabel, selected, 
                 }`}
         >
             {selected && (
-                <span className={`absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-full ${selectedDot}`} aria-hidden />
+                <span className={`absolute left-0 top-1/2 h-6 w-0.5 -translate-y-1/2 rounded-md ${selectedDot}`} aria-hidden />
             )}
             <span aria-hidden className={`shrink-0 ${toneIcon}`}>
                 <UserRound size={20} strokeWidth={1.25} />

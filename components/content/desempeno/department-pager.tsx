@@ -31,7 +31,7 @@ export function DepartmentPager({
       type="button"
       variant="ghost"
       size="icon"
-      className="size-11 shrink-0"
+      className="shrink-0"
       onClick={onPrevious}
       disabled={index === 0}
       aria-label={previousLabel ? `Departamento anterior: ${previousLabel}` : "Primer departamento"}
@@ -45,7 +45,7 @@ export function DepartmentPager({
       type="button"
       variant="ghost"
       size="icon"
-      className="size-11 shrink-0"
+      className="shrink-0"
       onClick={onNext}
       disabled={index === total - 1}
       aria-label={nextLabel ? `Departamento siguiente: ${nextLabel}` : "Último departamento"}

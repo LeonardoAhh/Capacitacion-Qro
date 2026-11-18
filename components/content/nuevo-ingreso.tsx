@@ -337,8 +337,8 @@ export default function NuevoIngresoContent() {
                 <div key={i} className="flex items-center gap-3 px-4 py-3">
                   <Skeleton className="h-4 w-16 shrink-0" />
                   <Skeleton className="h-4 flex-1" />
-                  <Skeleton className="h-5 w-20 rounded-full hidden sm:block" />
-                  <Skeleton className="h-5 w-20 rounded-full hidden md:block" />
+                  <Skeleton className="h-5 w-20 rounded-md hidden sm:block" />
+                  <Skeleton className="h-5 w-20 rounded-md hidden md:block" />
                 </div>
               ))}
             </div>

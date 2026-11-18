@@ -75,7 +75,7 @@ export function PendingCardStatus({
   children: ReactNode;
 }) {
   return <span className={cn(
-    "inline-flex min-w-20 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border px-2 py-0.5 text-xs font-medium leading-4",
+    "inline-flex min-h-6 min-w-20 items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 text-xs font-medium leading-4",
     statusTones[tone],
   )}>
     {icon}

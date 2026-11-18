@@ -197,14 +197,14 @@ export function InstallPrompt() {
                   </div>
                   <ol className="mt-5 space-y-4 text-sm">
                     <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">1</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">1</span>
                       <span className="flex-1 text-foreground">Toca el botón</span>
                       <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-xs font-medium">
                         <Share className="size-3.5" aria-hidden /> Compartir
                       </span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold text-muted-foreground">2</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">2</span>
                       <span className="flex-1 text-foreground">Elige</span>
                       <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-xs font-medium">
                         <Plus className="size-3.5" aria-hidden /> Agregar al inicio

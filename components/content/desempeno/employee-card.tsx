@@ -25,8 +25,8 @@ export function EmployeeCard({
   } = context;
   return <>
     {/* ── Header ── */}
-    <Card>
-      <CardHeader className="space-y-3">
+    <Card className="@container">
+      <CardHeader className="space-y-3 p-6">
         <p className="text-xs leading-4 text-muted-foreground">
           <span className="font-medium text-foreground">Instrucciones para el evaluador:</span> {DESEMPENO.instructions}
       </p>
@@ -48,8 +48,8 @@ export function EmployeeCard({
       </div>
     </CardHeader>
 
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+      <CardContent className="space-y-4 p-6 pt-0">
+        <div className="grid grid-cols-1 gap-x-6 gap-y-4 @lg:grid-cols-2">
           <InfoField label={DESEMPENO.fields.employeeNumber}>
             <span className="text-base font-medium leading-6">{data.numero_empleado || "—"}</span>
         </InfoField>
@@ -64,7 +64,7 @@ export function EmployeeCard({
 
           <InfoField label={DESEMPENO.fields.evaluator}>
             <div className="min-w-0">
-              {canEdit ? <ComboboxEvaluador value={data.evaluador_nombre ?? ""} onChange={handleEvaluadorChange} /> : <span className="break-words font-medium" aria-label={`Evaluador: ${data.evaluador_nombre || "sin asignar"}`}>
+              {canEdit ? <ComboboxEvaluador value={data.evaluador_nombre ?? ""} onChange={handleEvaluadorChange} puestoEvaluado={data.puesto} nombreEvaluado={data.nombre} /> : <span className="break-words font-medium" aria-label={`Evaluador: ${data.evaluador_nombre || "sin asignar"}`}>
                 {data.evaluador_nombre || "—"}
               </span>}
             </div>

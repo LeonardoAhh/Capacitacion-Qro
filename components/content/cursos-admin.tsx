@@ -337,7 +337,7 @@ function CursoRow({ curso, canEdit, onEdit, onToggle, onDelete }: CursoRowProps)
 
   return (
     <Card className={`transition-opacity ${curso.activo ? "" : "opacity-60"}`}>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         <div className="flex items-start gap-3">
           {/* Thumbnail mini */}
           <div className="shrink-0 hidden sm:block">
@@ -497,14 +497,14 @@ export default function CursosAdminContent() {
         {loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-24 w-full rounded-lg" />
+              <Skeleton key={i} className="h-24 w-full rounded-xl" />
             ))}
           </div>
         )}
 
         {/* Empty */}
         {!loading && !error && cursos.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border rounded-lg bg-muted/30">
+          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border rounded-xl bg-muted/30">
             <QrCode size={40} className="text-muted-foreground/40" />
             <p className="text-muted-foreground text-sm">
               {canEdit ? "Sin cursos. Crea el primero." : "Sin cursos disponibles."}

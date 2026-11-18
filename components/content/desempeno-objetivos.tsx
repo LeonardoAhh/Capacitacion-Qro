@@ -1,6 +1,6 @@
 "use client";
 
-import { SectionTitle } from "./desempeno/presentation";
+import { FieldValue, SectionTitle } from "./desempeno/presentation";
 import { EvaluationWorkspace } from "./desempeno/workspace";
 import { useSavedEvaluations } from "./desempeno/use-saved-evaluations";
 import { ObjectivesCatalog } from "./desempeno/objectives-catalog";
@@ -33,35 +33,23 @@ export default function DesempenoObjetivos() {
 
       {/* Print area for selected evaluation */}
       {data && !puesto && <Card className="print:hidden">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <SectionTitle className="text-base">Evaluación cargada</SectionTitle>
+        <CardHeader className="p-6 pb-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <SectionTitle>Evaluación cargada</SectionTitle>
             <Button variant="outline" size="sm" onClick={() => setShowPrintDialog(true)} disabled={bloqueado || loading}>
-              <Printer className="h-4 w-4 mr-1.5" />
+              <Printer aria-hidden="true" />
               {bloqueado ? "Captura compromisos" : "Imprimir"}
           </Button>
         </div>
       </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-            <div>
-              <span className="text-muted-foreground text-xs">Empleado</span>
-              <p className="font-semibold">{data.numero_empleado} — {data.nombre}</p>
+        <CardContent className="p-6 pt-0">
+          <div className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-4">
+            <FieldValue label="Empleado">{data.numero_empleado} — {data.nombre}</FieldValue>
+            <FieldValue label="Puesto">{data.puesto}</FieldValue>
+            <FieldValue label="Periodo">{data.periodo || "—"}</FieldValue>
+            <FieldValue label="Calificación"><ScoreBadge score={data.calificacion_final} /></FieldValue>
           </div>
-            <div>
-              <span className="text-muted-foreground text-xs">Puesto</span>
-              <p className="font-semibold">{data.puesto}</p>
-          </div>
-            <div>
-              <span className="text-muted-foreground text-xs">Periodo</span>
-              <p className="font-semibold">{data.periodo || "—"}</p>
-          </div>
-            <div>
-              <span className="text-muted-foreground text-xs">Calificación</span>
-              <ScoreBadge score={data.calificacion_final} className="text-lg px-3 py-1" />
-          </div>
-        </div>
-      </CardContent>
+        </CardContent>
     </Card>}
       {/* Detalle de evaluaciones del empleado — modal (PC) / sheet (móvil) */}
       {empleadoSel && <SavedDetail context={context} />}

@@ -27,7 +27,7 @@ export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, o
   if (!visible) return null
   const approved = calificacion !== undefined && calificacion >= UMBRAL_CALIFICACION_APROBATORIA
   return <Card ref={cardRef} tabIndex={-1} role="status" aria-live="polite" className="border-border bg-card outline-none print:hidden">
-    <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+    <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <CheckCircle2 className="mt-1 size-5 shrink-0 text-foreground" aria-hidden="true" />
         <div className="min-w-0">

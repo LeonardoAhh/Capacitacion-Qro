@@ -5,14 +5,14 @@ import { cn } from "@/lib/utils";
 export const evaluationStyles = {
   page: "w-full min-w-0 space-y-6",
   stack: "space-y-4",
-  sectionTitle: "text-base font-semibold leading-snug tracking-tight text-foreground",
-  description: "text-sm leading-relaxed text-muted-foreground",
-  fieldLabel: "text-sm font-medium leading-5 text-muted-foreground",
-  caption: "text-xs leading-relaxed text-muted-foreground",
+  sectionTitle: "text-heading-md text-foreground",
+  description: "text-body-md text-muted-foreground",
+  fieldLabel: "text-label-sm text-muted-foreground",
+  caption: "text-body-sm text-muted-foreground",
   actions: "flex flex-wrap items-center gap-2",
   sectionHeader: "flex flex-wrap items-start justify-between gap-3",
   tableNumber: "w-28 tabular-nums",
-  summary: "mt-4 flex flex-wrap justify-between gap-3 border-t pt-4 text-sm font-semibold"
+  summary: "mt-4 flex flex-wrap justify-between gap-3 border-t pt-4 text-label-sm"
 } as const;
 export function SectionTitle({
   className,
@@ -27,5 +27,5 @@ export function FieldValue({
   label: string;
   children: ReactNode;
 }) {
-  return <dl className="min-w-0 space-y-1"><dt className={evaluationStyles.fieldLabel}>{label}</dt><dd className="break-words text-base leading-6 text-foreground">{children}</dd></dl>;
+  return <dl className="min-w-0 space-y-1"><dt className={evaluationStyles.fieldLabel}>{label}</dt><dd className="break-words text-body-lg text-foreground">{children}</dd></dl>;
 }

@@ -2,6 +2,8 @@ export interface EmployeeDayCountRow {
   numero_empleado: string
   dia: number
   cantidad: number
+  /** Solo para registros con duración (p. ej. retardos). */
+  minutos?: number
 }
 
 export interface EmployeeDayCountMonthImport {

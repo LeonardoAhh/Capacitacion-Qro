@@ -10,6 +10,10 @@ import {
   type DesempenoData,
 } from "@/lib/types/desempeno";
 import { EVALUADORES_PUESTO } from "@/lib/catalogo";
+import { notify } from "@/lib/notify";
+
+// Un solo toast por formulario: reintentos lo reemplazan en lugar de apilarse.
+const STEP_ERROR_TOAST_ID = "evaluation-step-error";
 
 export interface EvaluationFormProps {
   data: DesempenoData;
@@ -26,10 +30,19 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
   const headingId = useId();
   const identity = `${data.numero_empleado}:${data.periodo}`;
 
+  const clearStepError = () => {
+    setStepError("");
+    notify.dismiss(STEP_ERROR_TOAST_ID);
+  };
+
   useEffect(() => {
     setActiveView(1);
     setStepError("");
+    notify.dismiss(STEP_ERROR_TOAST_ID);
   }, [identity]);
+
+  // Al cerrar la evaluación no debe quedar un error de un formulario que ya no existe.
+  useEffect(() => () => { notify.dismiss(STEP_ERROR_TOAST_ID); }, []);
 
   const focusStep = () => requestAnimationFrame(() => {
     const heading = document.getElementById(headingId);
@@ -59,24 +72,27 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
         "Califica todas las competencias; el cero también es válido.",
         `Captura compromisos para una calificación menor a ${UMBRAL_CALIFICACION_APROBATORIA}%.`,
       ];
-      setStepError(messages[activeView - 1] ?? "Completa este paso para continuar.");
+      const message = messages[activeView - 1] ?? "Completa este paso para continuar.";
+      // El estado marca los campos inválidos; el mensaje se comunica con un toast.
+      setStepError(message);
+      notify.error(message, { id: STEP_ERROR_TOAST_ID });
       requestAnimationFrame(() => {
         const selector = activeView === 1
           ? '[aria-label="Evaluador"]'
           : activeView === 4
             ? '[data-competency-pending="true"] input[type="radio"]'
             : '[aria-invalid="true"]';
-        (document.querySelector<HTMLElement>(selector) ?? document.querySelector<HTMLElement>(`[data-step-error="${activeView}"]`))?.focus();
+        (document.querySelector<HTMLElement>(selector) ?? document.getElementById(headingId))?.focus();
       });
       return;
     }
-    setStepError("");
+    clearStepError();
     setActiveView(value => Math.min(5, value + 1));
     focusStep();
   };
 
   const goPrevView = () => {
-    setStepError("");
+    clearStepError();
     setActiveView(value => Math.max(1, value - 1));
     focusStep();
   };

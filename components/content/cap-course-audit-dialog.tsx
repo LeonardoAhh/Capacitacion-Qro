@@ -231,7 +231,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
         </div>
 
         {selectedCourseId !== "all" && (
-          <div className="flex items-center justify-between gap-4 rounded-lg border border-border/60 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
               <Users className="h-5 w-5 shrink-0 text-muted-foreground" />
               <div className="min-w-0">

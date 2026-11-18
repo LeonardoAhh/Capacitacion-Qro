@@ -3,23 +3,31 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { ChevronDown, LogOut, Moon, Settings } from "lucide-react"
+import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useProfile, useRole, useUser } from "@/lib/hooks"
 import { LOGIN_PATH, SETTINGS_PATH } from "@/lib/navigation"
+import { SYSTEM_CREDIT, SYSTEM_VERSION } from "@/lib/constants/system"
+import { ROLE_LABELS } from "@/lib/constants/roles"
 import { supabase } from "@/lib/supabase/client"
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
 import { useSignOut } from "@/components/signout-overlay"
 import { useTheme } from "@/components/theme-context"
+import type { ThemeMode } from "@/lib/theme/constants"
 
 type AccountMenuProps = {
   variant: "header" | "sidebar"
@@ -28,6 +36,11 @@ type AccountMenuProps = {
 }
 
 const accountMenuItemClass = "min-h-11 gap-2.5 px-2 text-sm font-normal"
+const THEME_MODE_LABELS: Record<ThemeMode, string> = {
+  light: "Claro",
+  dark: "Oscuro",
+  system: "Automático",
+}
 
 function AccountAvatar({ src, initials, className }: { src?: string | null; initials: string; className?: string }) {
   return (
@@ -44,7 +57,7 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
   const router = useRouter()
   const { user } = useUser()
   const { profile } = useProfile(user?.id)
-  const { isEvaluador, loading: roleLoading } = useRole()
+  const { role, isEvaluador, loading: roleLoading } = useRole()
   const { signingOut, setSigningOut } = useSignOut()
   const { themeMode, setThemeMode } = useTheme()
 
@@ -53,6 +66,8 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
     : user?.email?.[0]?.toUpperCase() ?? "U"
   const displayName = profile?.displayName || user?.email?.split("@")[0] || "Usuario"
   const sidebar = variant === "sidebar"
+  const roleLabel = roleLoading ? null : ROLE_LABELS[role]
+  const accountLabel = roleLabel ? `Cuenta de ${displayName}, ${roleLabel}` : `Cuenta de ${displayName}`
 
   const handleLogout = async () => {
     if (signingOut) return
@@ -89,10 +104,10 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            aria-label={`Cuenta de ${displayName}`}
-            title={sidebar && isCollapsed ? `Cuenta de ${displayName}` : undefined}
+            aria-label={accountLabel}
+            title={sidebar && isCollapsed ? accountLabel : undefined}
             className={cn(
-              "flex min-h-11 items-center rounded-md text-foreground transition-colors hover:bg-accent data-[state=open]:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex min-h-11 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
               sidebar
                 ? isCollapsed
                   ? "w-full justify-center px-0"
@@ -102,8 +117,9 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
           >
             <AccountAvatar src={profile?.avatar} initials={initials} />
             {(!sidebar || !isCollapsed) && (
-              <span className={cn("truncate text-sm font-medium", sidebar ? "min-w-0 flex-1 text-left" : "hidden max-w-32 sm:inline")}>
-                {displayName}
+              <span className={cn("min-w-0 flex-col text-left", sidebar ? "flex flex-1" : "hidden max-w-32 sm:flex")}>
+                <span className="truncate text-label-sm text-foreground">{displayName}</span>
+                {roleLabel && <span className="truncate text-body-sm text-muted-foreground">{roleLabel}</span>}
               </span>
             )}
             {(!sidebar || !isCollapsed) && (
@@ -133,13 +149,30 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
             </>
           )}
 
-          <DropdownMenuItem
-            className={accountMenuItemClass}
-            onSelect={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
-          >
-            <Moon className="text-muted-foreground" aria-hidden="true" />
-            Tema oscuro
-          </DropdownMenuItem>
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className={accountMenuItemClass}>
+              {themeMode === "light"
+                ? <Sun className="text-muted-foreground" aria-hidden="true" />
+                : themeMode === "dark"
+                  ? <Moon className="text-muted-foreground" aria-hidden="true" />
+                  : <Monitor className="text-muted-foreground" aria-hidden="true" />}
+              Tema: {THEME_MODE_LABELS[themeMode]}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent sideOffset={4}>
+              <DropdownMenuRadioGroup
+                value={themeMode}
+                onValueChange={(value) => {
+                  if (value === "light" || value === "dark" || value === "system") {
+                    setThemeMode(value)
+                  }
+                }}
+              >
+                <DropdownMenuRadioItem value="light">Claro</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="dark">Oscuro</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system">Automatico</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
 
           <DropdownMenuSeparator />
           <DropdownMenuItem
@@ -151,18 +184,11 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
             Cerrar sesión
           </DropdownMenuItem>
 
-          {sidebar && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuLabel className="flex items-center justify-between gap-6 text-xs font-normal text-muted-foreground">
-                <span>Versión del sistema</span>
-                <span className="font-sans tabular-nums">2.0.0</span>
-              </DropdownMenuLabel>
-              <DropdownMenuLabel className="pt-0 text-xs font-normal text-muted-foreground">
-                Designed by <span className="font-medium text-foreground">LAHH</span>
-              </DropdownMenuLabel>
-            </>
-          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuLabel className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-body-sm font-normal text-muted-foreground">
+            <span>Versión <span className="tabular-nums text-foreground">{SYSTEM_VERSION}</span></span>
+            <span>Designed by <span className="font-medium text-foreground">{SYSTEM_CREDIT}</span></span>
+          </DropdownMenuLabel>
         </DropdownMenuContent>
       </DropdownMenu>}
     </>

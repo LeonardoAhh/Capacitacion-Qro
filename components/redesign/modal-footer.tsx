@@ -1,5 +1,6 @@
 import React from "react"
-import { cn } from "@/lib/utils"
+import { Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 export interface RedesignModalSecondaryAction {
@@ -37,84 +38,53 @@ export function RedesignModalFooter({
   secondaryAction,
   confirmTooltip,
 }: RedesignModalFooterProps) {
-  
-  // No shadows, 8px radius (rounded-md), semantic colors
-  const confirmClasses = confirmVariant === 'destructive'
-    ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-    : "bg-primary text-primary-foreground hover:bg-primary/90"
-
-  const secondaryClasses = secondaryAction?.variant === 'outline'
-    ? "border border-border bg-transparent hover:bg-accent hover:text-accent-foreground"
-    : secondaryAction?.variant === 'ghost'
-    ? "hover:bg-accent hover:text-accent-foreground"
-    : "bg-surface-card text-ink border border-border hover:bg-accent"
+  const confirmButton = onConfirm && (
+    <Button
+      type="button"
+      variant={confirmVariant === 'destructive' ? "destructive" : "default"}
+      onClick={onConfirm}
+      disabled={saving || confirmDisabled}
+      aria-busy={saving || undefined}
+    >
+      {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : confirmIcon}
+      {confirmLabel}
+    </Button>
+  )
 
   return (
-    <div className="flex items-center justify-between gap-3 px-6 py-4 border-t border-border/60 bg-surface-card shrink-0 mt-auto">
+    <div className="mt-auto flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-4 py-3 sm:px-6">
       <div className="flex-1">
         {secondaryAction && (
-          <button
+          <Button
             type="button"
+            variant={secondaryAction.variant ?? "outline"}
             onClick={secondaryAction.onClick}
             disabled={saving || secondaryAction.disabled}
-            className={cn(
-              "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-              secondaryClasses
-            )}
           >
-            {secondaryAction.icon && <span className="mr-2">{secondaryAction.icon}</span>}
+            {secondaryAction.icon}
             {secondaryAction.label}
-          </button>
+          </Button>
         )}
       </div>
       <div className="flex items-center gap-2">
         {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            disabled={saving || cancelDisabled}
-            className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-transparent px-4 text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 text-ink"
-          >
+          <Button type="button" variant="outline" onClick={onCancel} disabled={saving || cancelDisabled}>
             {cancelLabel}
-          </button>
+          </Button>
         )}
-        {onConfirm && (() => {
-          const btn = (
-            <button
-              type="button"
-              onClick={onConfirm}
-              disabled={saving || confirmDisabled}
-              className={cn(
-                "inline-flex h-10 items-center justify-center rounded-md px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-                confirmClasses
-              )}
-            >
-              {saving ? (
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-              ) : confirmIcon ? (
-                <span className="mr-2">{confirmIcon}</span>
-              ) : null}
-              {confirmLabel}
-            </button>
-          )
-
-          if (!confirmTooltip) return btn
-
-          return (
-            <TooltipProvider>
-              <Tooltip delayDuration={100}>
-                <TooltipTrigger asChild>
-                  <div className="inline-block cursor-not-allowed">
-                    {btn}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="bg-destructive text-destructive-foreground border-destructive font-normal text-xs px-2.5 py-1.5">
-                  {confirmTooltip}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )
-        })()}
+        {confirmButton && (confirmTooltip ? (
+          <TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                {/* Un botón deshabilitado no recibe eventos; el contenedor enfocable expone el motivo. */}
+                <span tabIndex={saving || confirmDisabled ? 0 : undefined} aria-label={saving || confirmDisabled ? confirmTooltip : undefined} className="inline-flex cursor-not-allowed rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                  {confirmButton}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="top">{confirmTooltip}</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        ) : confirmButton)}
       </div>
     </div>
   )

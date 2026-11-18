@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  BadgeCheck, BookPlus, CalendarClock, ChevronDown, EllipsisVertical, FilePenLine, FileText,
+  AlarmClock, BadgeCheck, BookPlus, CalendarClock, ChevronDown, EllipsisVertical, FilePenLine, FileText,
   LayoutGrid, Layers, Search, ShieldAlert, Trash2, UserPlus, UserRoundPen, Users, X,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -30,6 +30,7 @@ interface CapHistorialTabProps {
   onBulkImport: () => void
   onBulkImportIncumplimientos: () => void
   onBulkImportActas: () => void
+  onBulkImportRetardos?: () => void
   onBulkCreateEmployees: () => void
   onViewEmployee: (emp: Employee) => void
   onEditEmployee: (emp: Employee) => void
@@ -40,7 +41,7 @@ interface CapHistorialTabProps {
 export function CapHistorialTab({
   employees, loadingEmployees, canEdit,
   newEmpSuccess, addCoursesSuccess,
-  onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkCreateEmployees,
+  onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkImportRetardos, onBulkCreateEmployees,
   onViewEmployee, onEditEmployee, onAddCourses, onDeleteEmployee,
 }: CapHistorialTabProps) {
   const [empSearch, setEmpSearch]         = useState("")
@@ -113,6 +114,12 @@ export function CapHistorialTab({
                       <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImportActas}>
                         <FileText className="size-4" aria-hidden="true" />
                         Actas
+                      </Button>
+                    )}
+                    {canEdit && onBulkImportRetardos && (
+                      <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
+                        <AlarmClock className="size-4" aria-hidden="true" />
+                        Retardos
                       </Button>
                     )}
                   </div>
@@ -266,6 +273,14 @@ export function CapHistorialTab({
                                     <Link href={`/plantilla/incumplimientos/${encodeURIComponent(emp.numero)}`}>
                                       <ShieldAlert />
                                       <span>Incumplimiento</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                )}
+                                {emp.numero && (
+                                  <DropdownMenuItem asChild className={employeeActionItemClass}>
+                                    <Link href={`/plantilla/retardos/${encodeURIComponent(emp.numero)}`}>
+                                      <AlarmClock />
+                                      <span>Retardos</span>
                                     </Link>
                                   </DropdownMenuItem>
                                 )}

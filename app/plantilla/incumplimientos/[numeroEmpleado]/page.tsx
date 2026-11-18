@@ -15,6 +15,8 @@ export default async function IncumplimientosPage({
 
   return (
     <Dashboard
+      headerTitleHref="/plantilla"
+      headerTitleHrefLabel="Volver a plantilla"
       content={
         <ReglamentoIncumplimientosPage
           key={numeroEmpleado}

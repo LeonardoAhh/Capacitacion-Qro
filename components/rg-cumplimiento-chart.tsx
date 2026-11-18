@@ -95,7 +95,7 @@ export default function RgCumplimientoChart() {
             <div className="flex flex-wrap items-center gap-3 mt-2">
               {kpiBadges.map(({ color, label, value }) => (
                 <div key={label} className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color }} />
+                  <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: color }} />
                   <span className="text-xs text-muted-foreground">{label}</span>
                   <Badge variant="secondary" className="text-xs px-1.5">{value}</Badge>
                 </div>

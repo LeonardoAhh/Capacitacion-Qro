@@ -39,14 +39,14 @@ export function GuiaEvaluadorPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/login"
-              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Acceder al sistema
               <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
             <a
               href="#flujo"
-              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-5 py-2.5 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Consultar pasos
             </a>
@@ -101,7 +101,7 @@ export function GuiaEvaluadorPage() {
                       <li key={step.id}>
                         <a
                           href={`#paso-${step.id}`}
-                          className="flex min-h-10 items-center gap-3 rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         >
                           <span className="font-sans text-xs tabular-nums text-primary">
                             {String(index + 1).padStart(2, "0")}
@@ -214,7 +214,7 @@ function GuideStepSection({ step, index }: { step: GuideStep; index: number }) {
           <ol className="space-y-3">
             {step.instructions.map((instruction, instructionIndex) => (
               <li key={instruction} className="flex items-start gap-3 text-sm leading-relaxed">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/5 font-sans text-[10px] font-semibold text-primary">
+                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/5 font-sans text-[10px] font-semibold text-primary">
                   {instructionIndex + 1}
                 </span>
                 <span>{instruction}</span>
@@ -344,7 +344,7 @@ function StepPreview({ id }: { id: GuideStep["id"] }) {
 
 function PreviewFrame({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <figure className="overflow-hidden rounded-lg border border-border bg-muted/10">
+    <figure className="overflow-hidden rounded-xl border border-border bg-muted/10">
       <figcaption className="border-b border-border px-4 py-2 font-sans text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
         {label}
       </figcaption>

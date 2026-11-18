@@ -30,7 +30,7 @@ export function ActionButton({
 }: ActionButtonProps) {
   const content = <><span aria-hidden="true">{icon}</span><span>{label}</span>{!!badge && badge > 0 && <span className="rounded-md bg-destructive px-1.5 text-xs tabular-nums text-destructive-foreground">{badge}</span>}</>;
   return <Tooltip><TooltipTrigger asChild>
-      {href && !disabled ? <Button asChild variant={variant} className={cn("min-h-11", className)}><Link href={href} aria-label={tooltip}>{content}</Link></Button> : <span tabIndex={disabled ? 0 : undefined} aria-label={disabled ? tooltip : undefined}><Button type="button" className={cn("min-h-11", className)} variant={variant} onClick={onClick} disabled={disabled} aria-label={tooltip}>{content}</Button></span>}
+      {href && !disabled ? <Button asChild size="sm" variant={variant} className={cn("px-3", className)}><Link href={href} aria-label={tooltip}>{content}</Link></Button> : <span tabIndex={disabled ? 0 : undefined} aria-label={disabled ? tooltip : undefined}><Button type="button" size="sm" className={cn("px-3", className)} variant={variant} onClick={onClick} disabled={disabled} aria-label={tooltip}>{content}</Button></span>}
     </TooltipTrigger><TooltipContent>{tooltip}</TooltipContent></Tooltip>;
 }
 
@@ -49,11 +49,11 @@ export function NoticeCard({
 }) {
   // Color semántico mediante los tokens compartidos.
   const color = tone === "danger" ? "text-destructive" : "text-warning";
-  return <div role="alert" className="flex items-center gap-1.5 py-1">
+  return <div role="alert" className="flex items-center gap-2 py-1">
     <span className={cn("flex shrink-0 items-center justify-center", color)} aria-hidden="true">
       {icon}
     </span>
-    <div className="flex flex-col sm:flex-row sm:items-center min-w-0 gap-x-1.5 gap-y-0.5 text-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center min-w-0 gap-x-2 gap-y-1 text-sm">
       <span className={cn("font-medium", color)}>
         {title}{title ? ":" : ""}
       </span>
@@ -72,8 +72,8 @@ export function GuiaButton({
 }: GuiaButtonProps) {
   return <Tooltip>
     <TooltipTrigger asChild>
-      <Button type="button" variant="default" onClick={onClick} aria-label="Practicar evaluación con ejemplo" aria-haspopup="dialog" className="min-h-11 w-11 shrink-0 gap-2 px-0 sm:w-auto sm:px-4">
-        <GraduationCap className="size-4" aria-hidden="true" />
+      <Button type="button" variant="outline" size="sm" onClick={onClick} aria-label="Practicar evaluación con ejemplo" aria-haspopup="dialog" className="w-9 shrink-0 px-0 sm:w-auto sm:px-3">
+        <GraduationCap aria-hidden="true" />
         <span className="sr-only sm:not-sr-only">Practicar</span>
       </Button>
     </TooltipTrigger>

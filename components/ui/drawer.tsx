@@ -31,7 +31,7 @@ const DrawerOverlay = React.forwardRef<
   <DrawerPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-black/50",
+      "fixed inset-0 z-50 bg-[var(--overlay-scrim)]",
       className
     )}
     {...props}
@@ -42,7 +42,7 @@ DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content> & { raw?: boolean; showHandle?: boolean; fullViewport?: boolean }
->(({ className, children, raw, showHandle = true, fullViewport = false, ...props }, ref) => {
+>(({ className, children, raw, showHandle = true, fullViewport = false, style, ...props }, ref) => {
   // Detecta cuando el teclado está visible para ajustar la altura
   const [keyboardVisible, setKeyboardVisible] = React.useState(false)
 
@@ -94,22 +94,23 @@ const DrawerContent = React.forwardRef<
           // Altura máxima: nunca sube más allá del safe-area-top
           // Cuando el teclado está visible, usa visualViewport height
           "flex flex-col",
-          "rounded-t-xl border bg-card",
+          "rounded-t-xl border bg-card text-card-foreground focus:outline-none",
           // mt-24 original mantenido para el snap inicial
           "mt-24",
           className
         )}
-        style={fullViewport ? undefined : {
+        style={fullViewport ? style : {
           // Altura dinámica según estado del teclado para drawers inferiores.
           maxHeight: keyboardVisible
             ? `calc(var(--visual-viewport-height, 100dvh) - env(safe-area-inset-top, 44px))`
             : `calc(100dvh - env(safe-area-inset-top, 44px))`,
+          ...style,
         }}
         {...props}
       >
         {/* Drag handle — shrink-0 para que nunca desaparezca */}
         {showHandle && (
-          <div className="mx-auto mt-4 mb-1 h-2 w-[100px] shrink-0 rounded-full bg-border" />
+          <div aria-hidden="true" className="mx-auto my-2 h-1 w-10 shrink-0 rounded-sm bg-border" />
         )}
 
         {raw ? (
@@ -137,7 +138,7 @@ const DrawerHeader = ({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("grid gap-1.5 p-4 text-center sm:text-left", className)}
+    className={cn("grid gap-1 px-4 py-2 text-left", className)}
     {...props}
   />
 )
@@ -161,7 +162,7 @@ const DrawerTitle = React.forwardRef<
   <DrawerPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-heading-md text-foreground",
       className
     )}
     {...props}
@@ -175,7 +176,7 @@ const DrawerDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DrawerPrimitive.Description
     ref={ref}
-    className={cn("text-sm text-muted-foreground", className)}
+    className={cn("text-body-md text-muted-foreground", className)}
     {...props}
   />
 ))

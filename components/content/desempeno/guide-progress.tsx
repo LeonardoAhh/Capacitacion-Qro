@@ -11,12 +11,12 @@ export function GuideProgress({ current, onSelect }: { current: number; onSelect
             <Button
               type="button"
               variant="ghost"
-              className="h-8 w-full px-0 hover:bg-transparent"
+              className="w-full px-0 hover:bg-transparent"
               onClick={() => onSelect(index)}
               aria-current={index === current ? "step" : undefined}
               aria-label={`${GUIDE_COPY.step(index, GUIDE_STEPS.length)}: ${step.title}`}
             >
-              <span className={cn("h-1.5 w-full rounded-full", index === current ? "bg-primary" : "bg-muted-foreground/20")} aria-hidden="true" />
+              <span className={cn("h-1 w-full", index === current ? "bg-primary" : "bg-muted-foreground/20")} aria-hidden="true" />
             </Button>
           </li>
         ))}

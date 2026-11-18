@@ -75,7 +75,7 @@ function PromPromoverDialogContent({
         <PromPositionChange empleado={empleado} />
         <PromPromotionCriteria empleado={empleado} />
 
-        <div className="grid gap-2 rounded-lg border p-3 xs:grid-cols-2 xs:items-center sm:p-4">
+        <div className="grid gap-2 rounded-xl border p-3 xs:grid-cols-2 xs:items-center sm:p-4">
           <Label htmlFor="fecha-inicio" className={PROMOTION_DIALOG_TYPE.sectionTitle}>
             {PROMOTION_DIALOG_COPY.dateLabel}
           </Label>

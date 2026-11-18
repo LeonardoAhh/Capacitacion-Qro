@@ -200,7 +200,7 @@ export default function TrainingHoursKPI() {
 
             return (
             <AccordionItem value={y.year} key={y.year} className="border-none">
-              <AccordionTrigger className="py-2 px-3 hover:no-underline rounded-lg border bg-muted/30 data-[state=open]:bg-muted/50 transition-colors">
+              <AccordionTrigger className="py-2 px-3 hover:no-underline rounded-md border bg-muted/30 data-[state=open]:bg-muted/50 transition-colors">
                 <div
                   data-testid={`hours-kpi-year-${y.year}`}
                   className="flex flex-1 items-center justify-between gap-3 text-xs pr-2"
@@ -271,7 +271,7 @@ export default function TrainingHoursKPI() {
       <CardHeader className="pb-2">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/15">
+            <div className="p-2 rounded-md bg-primary/15">
               <Clock size={18} className="text-primary" aria-hidden="true" />
             </div>
             <div>
@@ -312,7 +312,7 @@ export default function TrainingHoursKPI() {
         {loading ? (
           <div className="space-y-4 w-full">
             <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-xl" />
           </div>
         ) : hasNoDuration ? (
           <div className="flex flex-col items-center justify-center py-6 text-muted-foreground gap-2">
@@ -352,7 +352,7 @@ export default function TrainingHoursKPI() {
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={years} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                     <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ fontSize: '12px', borderRadius: '8px' }} formatter={(val: unknown) => [`${val} h`, "Total"]} labelStyle={{ fontWeight: "bold", color: "hsl(var(--foreground))" }} />
+                    <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ fontSize: '12px', borderRadius: 'var(--radius-control)' }} formatter={(val: unknown) => [`${val} h`, "Total"]} labelStyle={{ fontWeight: "bold", color: "hsl(var(--foreground))" }} />
                     <Bar dataKey="totalHours" radius={[4, 4, 0, 0]}>
                       {years.map((y, i) => (
                         <Cell key={i} fill={y.year === currentYear ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.3)"} />
@@ -364,7 +364,7 @@ export default function TrainingHoursKPI() {
             )}
             
             {showChart && years.length <= 1 && currentYearData && (
-              <div className="flex items-center gap-3 mt-2 bg-muted/40 p-3 rounded-lg border">
+              <div className="flex items-center gap-3 mt-2 bg-muted/40 p-3 rounded-xl border">
                 <Users size={16} className="text-muted-foreground" />
                 <div className="flex flex-col">
                   <span className="text-sm font-semibold">{currentYearData.uniqueEmployees} empleados</span>

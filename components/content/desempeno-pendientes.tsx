@@ -3,6 +3,7 @@
 import { SectionTitle } from "./desempeno/presentation";
 import { EvaluationWorkspace } from "./desempeno/workspace";
 import { EASE_OUT } from "./desempeno/pending-presentation";
+import { useEvaluationReducedMotion } from "./desempeno/use-evaluation-motion";
 import { VistaMensual } from "./desempeno/pending-monthly";
 import { DepartmentPager } from "./desempeno/department-pager";
 import { useState } from "react";
@@ -30,6 +31,7 @@ export default function DesempenoPendientes({
     totalEmployees,
   } = usePendingEvals(filterDepartamentos);
   const [vista, setVista] = useState<Vista>("mensual");
+  const reducedMotion = useEvaluationReducedMotion();
   const periodoActual = periodoSemestral ?? PERIODOS_DESEMPENO.semestrales[0];
   const semestrales = useSemestralPendientes(periodoActual, filterDepartamentos, vista === "semestral");
   // The first available department is the default page for each view.
@@ -66,9 +68,9 @@ export default function DesempenoPendientes({
   };
   return <EvaluationWorkspace section="pending"><Card>
       {/* Header */}
-      <CardHeader>
+      <CardHeader className="p-6">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <SectionTitle>Evaluaciones Pendientes</SectionTitle>
+          <SectionTitle>Evaluaciones pendientes</SectionTitle>
           <div className="min-w-0">
             {vista === "mensual" && !loading && deptGroups.length > 1 && monthlyIndex >= 0 && <DepartmentPager
               label={monthlyGroup.departamento}
@@ -92,25 +94,22 @@ export default function DesempenoPendientes({
         </div>
     </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 p-6 pt-0">
         {/* Toggle de vista */}
-        <div className="grid grid-cols-2 gap-2">
-          <Button variant={vista === "mensual" ? "default" : "outline"} size="sm" onClick={() => setVista("mensual")} aria-pressed={vista === "mensual"} className="gap-1.5">
-            <UserPlus className="h-3.5 w-3.5" />
-              Nuevo Ingreso
-        </Button>
-          <Button variant={vista === "semestral" ? "default" : "outline"} size="sm" onClick={() => setVista("semestral")} aria-pressed={vista === "semestral"} className="gap-1.5">
-            <CalendarRange className="h-3.5 w-3.5" />
-              Semestrales
-        </Button>
-      </div>
+        <div role="group" aria-label="Tipo de evaluación" className="grid grid-cols-2 gap-2 sm:inline-grid">
+          <Button variant={vista === "mensual" ? "default" : "outline"} onClick={() => setVista("mensual")} aria-pressed={vista === "mensual"}>
+            <UserPlus aria-hidden="true" />
+            Nuevo ingreso
+          </Button>
+          <Button variant={vista === "semestral" ? "default" : "outline"} onClick={() => setVista("semestral")} aria-pressed={vista === "semestral"}>
+            <CalendarRange aria-hidden="true" />
+            Semestrales
+          </Button>
+        </div>
 
         {/* Contenido por vista */}
         <AnimatePresence mode="wait">
-          {vista === "semestral" ? <motion.div key="semestral" initial={{
-            opacity: 0,
-            y: 6
-          }} animate={{
+          {vista === "semestral" ? <motion.div key="semestral" initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{
             opacity: 1,
             y: 0
           }} exit={{
@@ -121,10 +120,7 @@ export default function DesempenoPendientes({
             ease: EASE_OUT
           }}>
             <DesempenoSemestralPendientes loading={semestrales.loading} deptGroups={semestrales.deptGroups} activeTab={currentSemestralTab} direction={semestralDirection} />
-        </motion.div> : <motion.div key="mensual" initial={{
-            opacity: 0,
-            y: 6
-          }} animate={{
+        </motion.div> : <motion.div key="mensual" initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{
             opacity: 1,
             y: 0
           }} exit={{

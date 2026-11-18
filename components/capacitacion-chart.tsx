@@ -36,7 +36,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
       {dataPoints.map((p) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2 w-2 rounded-full" style={{ background: p.color }} />
+            <span className="h-2 w-2 rounded-md" style={{ background: p.color }} />
             {p.dataKey}
           </span>
           <span className="font-medium text-foreground">
@@ -58,11 +58,11 @@ function SkeletonContent() {
       {/* Header badges skeleton */}
       <div className="flex gap-3">
         {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-5 w-16 rounded-full" />
+          <Skeleton key={i} className="h-5 w-16 rounded-md" />
         ))}
       </div>
       {/* Line chart skeleton */}
-      <div className="flex-1 relative overflow-hidden rounded-lg bg-muted/30">
+      <div className="flex-1 relative overflow-hidden rounded-xl bg-muted/30">
         {/* Simulated wave lines */}
         <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
           {[
@@ -122,7 +122,7 @@ export default function CapacitacionChart() {
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {yearTotals.map(({ year, total }) => (
               <div key={year} className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: COLORS[year] }} />
+                <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: COLORS[year] }} />
                 <span className="text-xs text-muted-foreground">{year}</span>
                 <Badge variant="secondary" className="text-xs px-1.5">
                   {total}

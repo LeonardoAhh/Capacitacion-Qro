@@ -5,13 +5,28 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { formatDate } from "@/lib/hooks/useNuevoIngreso";
 import { pendingEvalStatus, type DeptGroup, type EmployeePending, type PendingEvalStatus } from "@/lib/hooks/usePendingEvals";
 import { estadoVentanaEvaluacion } from "@/lib/desempeno/hitos-nuevo-ingreso";
+import { Clock3 } from "lucide-react";
 import { DetailModal } from "./pending-detail";
+import { PendingCard, PendingCardFields, PendingCardStatus } from "./pending-card";
 
 const titles: Record<PendingEvalStatus, string> = {
   vencidas: "Evaluaciones vencidas",
   proximas: "Evaluaciones próximas",
   "a-tiempo": "Evaluaciones a tiempo",
 };
+
+const STATUS_TONES = {
+  vencidas: "destructive",
+  proximas: "warning",
+  "a-tiempo": "success",
+} as const satisfies Record<PendingEvalStatus, "destructive" | "warning" | "success">;
+
+function relativeDays(diff: number) {
+  if (diff === 0) return "Hoy";
+  const count = Math.abs(diff);
+  const unit = count === 1 ? "día" : "días";
+  return diff < 0 ? `Hace ${count} ${unit}` : `En ${count} ${unit}`;
+}
 
 export function PendingSummaryDetail({ status, groups, onOpenChange }: {
   status: PendingEvalStatus | null;
@@ -34,23 +49,29 @@ export function PendingSummaryDetail({ status, groups, onOpenChange }: {
     {selected ? <DetailModal item={selected} onBack={() => setSelected(null)} onEvaluate={() => {
       setSelected(null);
       onOpenChange(false);
-    }} /> : <DialogContent>
+    }} /> : <DialogContent className="sm:max-w-3xl">
       <DialogHeader>
         <DialogTitle>{status ? titles[status] : "Evaluaciones pendientes"}</DialogTitle>
         <DialogDescription>{entries.length} {entries.length === 1 ? "evaluación pendiente" : "evaluaciones pendientes"} en este estado.</DialogDescription>
       </DialogHeader>
-      {entries.length > 0 ? <ul className="divide-y rounded-lg border">
-        {entries.map(({ employee, entry, departamento }) => <li key={`${employee.dbId}:${entry.periodo}:${entry.fecha}`}>
-          <button type="button" onClick={() => setSelected(employee)} aria-label={`Ver detalle de ${employee.nombre}, ${entry.periodo}`} className="block min-h-11 w-full space-y-1 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
-            <span className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <span className="min-w-0 break-words text-sm font-semibold text-foreground">{employee.nombre}</span>
-              <span className="text-xs tabular-nums text-muted-foreground">#{employee.numero ?? "—"}</span>
-            </span>
-            <span className="block text-sm text-muted-foreground">{entry.periodo} · {departamento}</span>
-            <span className="block text-xs text-muted-foreground">Fecha límite: <time dateTime={entry.fecha}>{formatDate(entry.fecha)}</time> · {estadoVentanaEvaluacion(entry.numeroEvaluacion, entry.diasDiff) === "disponible" ? "Disponible para captura" : entry.diasDiff < 0 ? `Hace ${-entry.diasDiff} ${entry.diasDiff === -1 ? "día" : "días"}` : entry.diasDiff === 0 ? "Hoy" : `En ${entry.diasDiff} ${entry.diasDiff === 1 ? "día" : "días"}`}</span>
-          </button>
-        </li>)}
-      </ul> : <p role="status" className="rounded-lg border px-4 py-6 text-center text-sm text-muted-foreground">
+      {entries.length > 0 ? <ul className="grid gap-2 sm:grid-cols-2">
+        {entries.map(({ employee, entry, departamento }) => {
+          const disponible = estadoVentanaEvaluacion(entry.numeroEvaluacion, entry.diasDiff) === "disponible";
+          const when = disponible ? "Disponible" : relativeDays(entry.diasDiff);
+          return <li key={`${employee.dbId}:${entry.periodo}:${entry.fecha}`} className="min-w-0">
+            <PendingCard asChild interactive>
+              <button type="button" onClick={() => setSelected(employee)} aria-label={`Ver detalle de ${employee.nombre}, ${entry.periodo}, ${when}`} className="h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <PendingCardFields
+                  number={employee.numero}
+                  name={employee.nombre}
+                  detail={`${entry.periodo} · ${departamento} · Límite ${formatDate(entry.fecha)}`}
+                  status={<PendingCardStatus tone={disponible ? "success" : STATUS_TONES[status ?? "a-tiempo"]} icon={<Clock3 className="size-3.5 shrink-0" aria-hidden="true" />}>{when}</PendingCardStatus>}
+                />
+              </button>
+            </PendingCard>
+          </li>;
+        })}
+      </ul> : <p role="status" className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
         No hay evaluaciones pendientes en este estado.
       </p>}
     </DialogContent>}

@@ -6,7 +6,6 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useDesempeno } from "@/lib/hooks/useDesempeno";
 import { normalizarPeriodoDesempeno } from "@/lib/catalogo";
 import { UMBRAL_CALIFICACION_APROBATORIA, calcularPonderacion } from "@/lib/types/desempeno";
-import { useMaintenanceNoticeStatus } from "@/components/maintenance-notice-status";
 import { useRole } from "@/lib/hooks";
 import { usePendingEvals } from "@/lib/hooks/usePendingEvals";
 import { confirm } from "@/components/ui/confirm-dialog";
@@ -45,9 +44,8 @@ export function useEvaluationSearch() {
   } = usePendingEvals();
   const [guiaRequested, setGuiaRequested] = useState(false);
   const [practiceAcknowledged, setPracticeAcknowledged] = useState(false);
-  const maintenanceNoticeStatus = useMaintenanceNoticeStatus();
   const practiceLocked = isEvaluador && !practiceAcknowledged;
-  const guiaOpen = guiaRequested || (practiceLocked && maintenanceNoticeStatus === false);
+  const guiaOpen = guiaRequested || practiceLocked;
   const setGuiaOpen = (open: boolean) => {
     setGuiaRequested(open);
     if (!open) setPracticeAcknowledged(true);
@@ -212,6 +210,8 @@ export function useEvaluationSearch() {
     clearEvaluation();
     setModoEdicion(false);
     setNumeroBuscado("");
+    // El buscador reaparece al cerrar; devuelve ahí el foco.
+    requestAnimationFrame(() => inputRef.current?.focus());
     const newParams = new URLSearchParams(searchParams.toString());
     newParams.delete("q");
     newParams.delete("evalId");

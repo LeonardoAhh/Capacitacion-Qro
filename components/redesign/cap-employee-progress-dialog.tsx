@@ -57,7 +57,7 @@ export function CapEmployeeProgressDialog({
                   <span className="shrink-0 font-medium text-foreground">{completion}%</span>
                 </div>
                 <div
-                  className="mt-2 flex h-2 overflow-hidden rounded-full bg-muted"
+                  className="mt-2 flex h-2 overflow-hidden rounded-md bg-muted"
                   role="progressbar"
                   aria-label="Cursos aprobados"
                   aria-valuemin={0}

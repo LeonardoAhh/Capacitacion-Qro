@@ -29,6 +29,10 @@ import { CapBulkCreateEmployees } from "@/components/redesign/cap-bulk-create-em
 import { EmployeeDayCountImportDialog } from "@/components/content/employee-day-count-import-dialog"
 import { useActasSeguimiento } from "@/lib/hooks/useActasSeguimiento"
 import { useReglamentoIncumplimientos } from "@/lib/hooks/useReglamentoIncumplimientos"
+import { useRegistrosPorDia } from "@/lib/hooks/useRegistrosPorDia"
+import { RETARDOS_CONFIG } from "@/lib/plantilla/registros-por-dia"
+import { parseRetardosJson } from "@/lib/imports/retardos-json"
+import { validarEmpleadosExistentes } from "@/lib/imports/validar-empleados"
 
 // Hooks
 import { useBulkImport } from "@/lib/hooks/useBulkImport"
@@ -38,6 +42,7 @@ export default function CapacitacionContent() {
   const { canEdit, isReadOnly } = useRole()
   const { replaceMonths: replaceActasMonths } = useActasSeguimiento()
   const { replaceMonths: replaceIncumplimientosMonths } = useReglamentoIncumplimientos()
+  const { replaceMonths: replaceRetardosMonths } = useRegistrosPorDia(RETARDOS_CONFIG)
   const {
     importing, importError,
     parseJSON, importData,
@@ -107,6 +112,7 @@ export default function CapacitacionContent() {
   const [newEmpSuccess, setNewEmpSuccess] = useState(false)
   const [reglamentoImportOpen, setReglamentoImportOpen] = useState(false)
   const [actasImportOpen, setActasImportOpen] = useState(false)
+  const [retardosImportOpen, setRetardosImportOpen] = useState(false)
 
   const [addCoursesDlgOpen, setAddCoursesDlgOpen] = useState(false)
   const [addCoursesDlgEmp, setAddCoursesDlgEmp] = useState<Employee | null>(null)
@@ -468,6 +474,7 @@ export default function CapacitacionContent() {
               onBulkImport={bulkImport.openDialog}
               onBulkImportIncumplimientos={() => setReglamentoImportOpen(true)}
               onBulkImportActas={() => setActasImportOpen(true)}
+              onBulkImportRetardos={() => setRetardosImportOpen(true)}
               onBulkCreateEmployees={() => setBulkCreateEmpOpen(true)}
               onViewEmployee={handleViewEmployee}
               onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
@@ -495,6 +502,7 @@ export default function CapacitacionContent() {
           itemSingular="incumplimiento"
           itemPlural="incumplimientos"
           onReplaceMonths={replaceIncumplimientosMonths}
+          validate={validarEmpleadosExistentes}
         />
       )}
       {canEdit && (
@@ -506,6 +514,22 @@ export default function CapacitacionContent() {
           itemSingular="acta administrativa"
           itemPlural="actas administrativas"
           onReplaceMonths={replaceActasMonths}
+          validate={validarEmpleadosExistentes}
+        />
+      )}
+      {canEdit && (
+        <EmployeeDayCountImportDialog
+          open={retardosImportOpen}
+          onOpenChange={setRetardosImportOpen}
+          title="Cargar retardos"
+          description="Importa el reporte de retardos por empleado y fecha desde un archivo JSON."
+          itemSingular="retardo"
+          itemPlural="retardos"
+          onReplaceMonths={replaceRetardosMonths}
+          parse={parseRetardosJson}
+          validate={validarEmpleadosExistentes}
+          note="Cada fila es un retardo; se agrupan por empleado y día sumando los minutos. Se reemplazan únicamente los meses incluidos en el archivo, completos para todos los empleados."
+          placeholder={`[\n  {\n    "NOMINA": "330",\n    "NOMBRE": "SANCHEZ HERNANDEZ MARICELA",\n    "FECHA": "15/10/2026",\n    "TIEMPO DE RETARDO": "8",\n    "RETARDO": "SI"\n  }\n]`}
         />
       )}
 

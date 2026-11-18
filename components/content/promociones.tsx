@@ -293,8 +293,8 @@ export default function PromocionesContent({
 
       {/* Contenido principal */}
       {empleados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center rounded-lg border border-dashed bg-background">
-          <div className="bg-primary/10 p-4 rounded-full mb-4">
+        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed bg-background">
+          <div className="bg-primary/10 p-4 rounded-md mb-4">
             <ChartNoAxesColumnIncreasing aria-hidden="true" className={`${PROMOTION_ICON.emptyState} text-primary`} />
           </div>
           <h3 className="text-lg font-semibold text-foreground mb-1">Sin datos de empleados</h3>

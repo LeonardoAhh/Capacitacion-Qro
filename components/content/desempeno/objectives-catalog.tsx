@@ -15,12 +15,12 @@ const COPY = {
 export function ObjectivesCatalog({ context }: { context: SavedEvaluationsContext }) {
   const { puesto, objetivos, hasPuestoObjetivos } = context;
   return (
-    <details className="group rounded-lg border bg-card text-card-foreground print:hidden">
-      <summary className="flex cursor-pointer list-none items-center gap-3 rounded-lg p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&::-webkit-details-marker]:hidden">
+    <details className="group rounded-xl border bg-card text-card-foreground print:hidden">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <Target className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="min-w-0 flex-1 space-y-1">
-          <span className="block text-sm font-semibold">{COPY.title}</span>
-          <span className="block text-xs leading-relaxed text-muted-foreground">{puesto || COPY.description}</span>
+          <span className="block text-label-sm">{COPY.title}</span>
+          <span className="block text-body-sm text-muted-foreground">{puesto || COPY.description}</span>
         </span>
         <ChevronDown className="size-4 shrink-0 group-open:rotate-180" aria-hidden="true" />
       </summary>
@@ -29,12 +29,12 @@ export function ObjectivesCatalog({ context }: { context: SavedEvaluationsContex
         <section className="min-w-0 space-y-3 lg:col-span-2">
           {puesto ? <>
             <div className="space-y-1">
-              <SectionTitle>{puesto}</SectionTitle>
+              <SectionTitle className="text-label-sm">{puesto}</SectionTitle>
               <p className={evaluationStyles.caption}>{hasPuestoObjetivos ? COPY.specific : COPY.generic}</p>
             </div>
-            {objetivos.length ? <ol className="divide-y rounded-lg border">
+            {objetivos.length ? <ol className="divide-y rounded-md border">
               {objetivos.map(obj => (
-                <li key={obj.numero} className="flex items-start gap-3 p-3 text-sm leading-relaxed">
+                <li key={obj.numero} className="flex items-start gap-3 p-3 text-body-md">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium tabular-nums text-muted-foreground" aria-hidden="true">{obj.numero}</span>
                   <span className="min-w-0 break-words">{obj.descripcion}</span>
                 </li>

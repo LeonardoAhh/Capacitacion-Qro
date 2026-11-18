@@ -42,7 +42,7 @@ export function CapReportPreviewDialog({ open, onClose, onDownload }: CapReportP
       />
 
       <div className="p-5 sm:p-6 bg-card">
-        <div className="flex items-start gap-3 rounded-lg border border-border/60 bg-muted/20 p-4">
+        <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/20 p-4">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background">
             <Download className="h-4 w-4 text-muted-foreground" />
           </div>

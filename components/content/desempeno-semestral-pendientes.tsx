@@ -42,8 +42,8 @@ export default function DesempenoSemestralPendientes({ loading, deptGroups, acti
     <div className="space-y-4">
       {!loading && deptGroups.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card py-8 text-muted-foreground">
-          <Users className="size-6 opacity-60" aria-hidden="true" />
-          <p className="text-sm font-medium">Sin personal de planta en tu área.</p>
+          <Users className="size-6" aria-hidden="true" />
+          <p className="text-label-sm">Sin personal de planta en tu área.</p>
         </div>
       )}
 

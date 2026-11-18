@@ -95,7 +95,7 @@ export default function ReglasExamenContent() {
       </div>
 
       {error && (
-        <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+        <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
           {error}
         </div>
       )}
@@ -142,7 +142,7 @@ export default function ReglasExamenContent() {
                 return (
                   <div
                     key={t}
-                    className={`rounded-lg border px-3 py-2 transition-opacity ${TRANSICION_COLOR[t]} ${regla && !regla.activo ? "opacity-50" : ""}`}
+                    className={`rounded-xl border px-3 py-2 transition-opacity ${TRANSICION_COLOR[t]} ${regla && !regla.activo ? "opacity-50" : ""}`}
                   >
                     {/* Fila superior: toggle + etiqueta + estado */}
                     <div className="flex items-center gap-2 mb-1.5">

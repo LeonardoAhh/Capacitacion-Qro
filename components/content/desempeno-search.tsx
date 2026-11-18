@@ -8,16 +8,16 @@ import { useEvaluationSearch } from "./desempeno/use-evaluation-search";
 import { SearchPanel } from "./desempeno/search-panel";
 import { PendingSummary } from "./desempeno/pending-summary";
 import { ExistingEvaluationNotice } from "./desempeno/existing-evaluation-notice";
-import { Suspense } from "react";
-import { AlertCircle, ClipboardClock } from "lucide-react";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Suspense, useEffect } from "react";
+import { ClipboardClock, X } from "lucide-react";
+import { notify } from "@/lib/notify";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno";
 import DesempenoPrint from "./desempeno-print";
 import { DesempenoForm } from "./desempeno-form-operativo";
 import { DesempenoSaveSuccess } from "./desempeno-save-success";
 import { DesempenoGuia } from "./desempeno-guia";
-import { GuiaButton } from "./desempeno/search-controls";
+import { ActionButton, GuiaButton } from "./desempeno/search-controls";
 import { useRole } from "@/lib/hooks/useRole";
 import { useUser } from "@/lib/hooks/useUser";
 import { DESEMPENO } from "@/lib/desempeno/presentation";
@@ -58,6 +58,10 @@ function EvaluationLoadingSkeleton() {
   );
 }
 
+// Un solo toast para el resultado de la búsqueda; una búsqueda nueva lo reemplaza.
+const SEARCH_ERROR_TOAST_ID = "evaluation-search-error";
+const REGULARIZATION_TITLE = "Regularización requerida";
+
 function DesempenoSearchContent() {
   const router = useRouter();
   const { role, loading: roleLoading } = useRole();
@@ -80,46 +84,58 @@ function DesempenoSearchContent() {
     bloqueado,
     faltaEvaluador
   } = context;
+  // Los errores de búsqueda se comunican con toast (sin banner en la página).
+  useEffect(() => {
+    if (!error) {
+      notify.dismiss(SEARCH_ERROR_TOAST_ID);
+      return;
+    }
+    if (roleLoading) return;
+    const needsRegularization = error.title === REGULARIZATION_TITLE;
+    const canRegularize = role === "admin" || role === "dev";
+    notify.error(error.title, {
+      id: SEARCH_ERROR_TOAST_ID,
+      description: needsRegularization && !canRegularize
+        ? `${error.description} Acude a Recursos Humanos.`
+        : error.description,
+      // Con acción, el toast permanece hasta que se use o se cierre.
+      ...(needsRegularization && canRegularize ? {
+        duration: Infinity,
+        action: { label: "Regularizar →", onClick: () => router.push(DESEMPENO.routes.late) },
+      } : {}),
+    });
+  }, [error, role, roleLoading, router]);
+
+  useEffect(() => () => { notify.dismiss(SEARCH_ERROR_TOAST_ID); }, []);
+
   return <TooltipProvider>
     <div inert={practiceLocked}>
     <EvaluationWorkspace
       section="evaluation"
       confirmNavigation={context.confirmDiscard}
       actions={<>
-        {context.modoEdicion && data && <Button type="button" variant="outline" disabled className="min-h-11 px-4">Editando</Button>}
-        {!roleLoading && user && (role === "admin" || role === "dev") && <Button asChild variant="outline" className="min-h-11 px-3 text-sm font-medium sm:px-4">
+        {context.modoEdicion && data && <Button type="button" variant="outline" size="sm" disabled className="px-3">Editando</Button>}
+        {!roleLoading && user && (role === "admin" || role === "dev") && <Button asChild variant="outline" size="sm" className="px-3">
           <Link href={DESEMPENO.routes.late} onNavigate={event => {
             event.preventDefault();
             void context.confirmDiscard().then(confirmed => {
               if (confirmed) router.push(DESEMPENO.routes.late);
             });
-          }} aria-label="Regularizar evaluaciones vencidas"><ClipboardClock className="hidden size-4 sm:block" aria-hidden="true" /><span className="sm:hidden">Regularizar</span><span className="hidden sm:inline">Regularizar vencidas</span></Link>
+          }} aria-label="Regularizar evaluaciones vencidas"><ClipboardClock className="hidden sm:block" aria-hidden="true" /><span className="sm:hidden">Regularizar</span><span className="hidden sm:inline">Vencidas</span></Link>
         </Button>}
         <GuiaButton onClick={() => setGuiaOpen(true)} />
+        {data && <ActionButton icon={<X />} label="Cerrar" tooltip="Cerrar evaluación" onClick={context.closeEvaluation} variant="outline" />}
       </>}
     >
 
-      {/* ── Buscador ── */}
-      <SearchPanel context={context} />
+      {/* ── Buscador: oculto mientras se evalúa; Cerrar vive en las acciones ── */}
+      {!data && <SearchPanel context={context} />}
 
       {/* Banner de Pendientes en estado vacío */}
       <PendingSummary context={context} />
 
       {loading && <EvaluationLoadingSkeleton />}
 
-      {/* Alertas */}
-      {error && <Alert variant="destructive" className="font-sans">
-        <AlertCircle className="size-4" aria-hidden="true" />
-        <div>
-          <AlertTitle className="text-sm font-semibold leading-5 tracking-normal">{error.title}</AlertTitle>
-          <AlertDescription className="text-sm font-normal leading-5">
-            {error.description}
-            {error.title === "Regularización requerida" && (role === "admin" || role === "dev"
-              ? <> <Link href={DESEMPENO.routes.late} className="font-medium underline underline-offset-4">Abrir Regularización</Link></>
-              : " Acude a Recursos Humanos para capturar la evaluación vencida.")}
-          </AlertDescription>
-        </div>
-    </Alert>}
 
       {existingEvaluation && !loading && <ExistingEvaluationNotice evaluation={existingEvaluation} />}
 

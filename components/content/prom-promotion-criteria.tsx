@@ -90,7 +90,7 @@ export function PromPromotionCriteria({ empleado }: { empleado: EmpleadoPromocio
         </h3>
         <AptitudBadge status={calcularAptitud(empleado)} />
       </div>
-      <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-lg border bg-border xs:grid-cols-2">
+      <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border bg-border xs:grid-cols-2">
         {criteria.map(criterion => <PromotionCriterion key={criterion.label} {...criterion} />)}
       </ul>
     </section>

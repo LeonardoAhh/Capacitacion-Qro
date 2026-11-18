@@ -399,7 +399,7 @@ export default function CumpleanosContent() {
   if (error) {
     return (
       <Card role="alert">
-        <CardContent className="flex flex-col items-start gap-4 p-5 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
           <AlertCircle className="size-5 shrink-0 text-destructive" aria-hidden="true" />
           <p className="flex-1 text-sm">No se pudo cargar la información de cumpleaños.</p>
           <Button variant="outline" size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" onClick={() => void recargar()}>

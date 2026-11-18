@@ -201,7 +201,7 @@ export function PromReglaDialog({
           />
         </div>
 
-        <div className="flex items-center justify-between rounded-lg border border-border/60 bg-muted/40 px-3 py-2.5">
+        <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/40 px-3 py-2.5">
           <div className="space-y-0.5">
             <Label className="text-sm font-medium">Regla activa</Label>
             <p className="text-[11px] text-muted-foreground">
@@ -212,7 +212,7 @@ export function PromReglaDialog({
         </div>
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 rounded-lg px-3 py-2">
+          <div className="text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2">
             {error}
           </div>
         )}

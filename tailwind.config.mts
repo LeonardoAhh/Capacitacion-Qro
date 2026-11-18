@@ -23,10 +23,7 @@ const config: Config = {
   theme: {
     extend: {
       spacing: dynamicSpacing,
-      fontSize: {
-        "heading-md": ["1.25rem", { lineHeight: "1.75rem", letterSpacing: "-0.02em" }],
-        "heading-lg": ["2rem", { lineHeight: "2.5rem", letterSpacing: "-0.04em" }],
-      },
+      // La escala tipográfica vive en app/globals.css (@theme).
       screens: {
         xs: "480px",
       },
@@ -113,9 +110,17 @@ const config: Config = {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        sm: "var(--radius-control)",
+        md: "var(--radius-control)",
+        lg: "var(--radius-panel)",
+        xl: "var(--radius-card)",
+        control: "var(--radius-control)",
+        card: "var(--radius-card)",
+        panel: "var(--radius-panel)",
+        category: "var(--radius-category)",
+        marketing: "var(--radius-marketing)",
+        avatar: "var(--radius-avatar)",
+        full: "var(--radius-avatar)",
       },
       keyframes: {
         "accordion-down": {

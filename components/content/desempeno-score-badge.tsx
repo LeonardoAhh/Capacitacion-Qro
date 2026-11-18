@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno"
 
 interface ScoreBadgeProps {
@@ -19,7 +20,7 @@ export function ScoreBadge({ score, className = "" }: ScoreBadgeProps) {
     <Badge
       variant="outline"
       aria-label={`Calificación final: ${pct} de 100`}
-      className={`text-sm font-bold tabular-nums px-2.5 py-0.5 shrink-0 ${color} ${className}`}
+      className={cn("shrink-0 px-2 text-label-sm tabular-nums", color, className)}
     >
       {pct.toFixed(0)}%
     </Badge>

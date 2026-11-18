@@ -8,6 +8,7 @@ import { useRole } from "@/lib/hooks/useRole"
 import {
 
   DEFAULT_CUMPLIMIENTO,
+  CumplimientoOperativoIndex,
   DEFAULT_CUMPLIMIENTO_POR_TIPO,
   DEFAULT_COMPETENCIAS_POR_TIPO,
   calcularPonderacion,
@@ -23,7 +24,8 @@ import {
   aplicarActasDelPeriodo,
   aplicarIncumplimientosReglamentoDelPeriodo,
 } from "@/lib/desempeno/actas-evaluacion"
-import { calcularAsistenciaPorcentaje, crearBorradorEvaluacion } from "@/lib/desempeno/crear-borrador"
+import { calcularAsistenciaPorcentaje, calcularPermisosPorcentaje, crearBorradorEvaluacion } from "@/lib/desempeno/crear-borrador"
+import { aplicarRetardosDelPeriodo } from "@/lib/desempeno/retardos-evaluacion"
 import { resolverHitoNuevoIngreso, type SeguimientoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
 
 /** Origen del empleado: planta (`employees`) o nuevo ingreso (`nuevo_ingreso`). */
@@ -313,7 +315,7 @@ export function useDesempeno() {
       if (estadoHito?.estado === "vencido") {
         throw new EvaluationMessageError(
           "Regularización requerida",
-          `La evaluación del ${estadoHito.hito.etiqueta} venció el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}. Debe regularizarse antes de continuar con la siguiente evaluación.`,
+          `El ${estadoHito.hito.etiqueta} venció el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}.`,
         )
       }
 
@@ -348,11 +350,12 @@ export function useDesempeno() {
       try {
         result = await aplicarActasDelPeriodo(result)
         result = await aplicarIncumplimientosReglamentoDelPeriodo(result)
+        result = await aplicarRetardosDelPeriodo(result)
       } catch (error) {
-        console.error("[buscarEmpleado] No se pudieron consultar las actas o los incumplimientos del periodo:", error)
+        console.error("[buscarEmpleado] No se pudieron consultar los datos automáticos del periodo:", error)
         throw new EvaluationMessageError(
           "Datos automáticos no disponibles",
-          "No se pudieron consultar las actas administrativas o los incumplimientos del periodo. Inténtalo de nuevo antes de continuar.",
+          "No se pudieron consultar las actas administrativas, los incumplimientos o los retardos del periodo. Inténtalo de nuevo antes de continuar.",
         )
       }
 
@@ -735,9 +738,16 @@ export function useDesempeno() {
     const tipoPuesto = getTipoDesempenoByPuesto(currentData.puesto)
     const cumplimiento = [...(currentData.cumplimiento_responsabilidades ?? [])]
 
-    // Actualiza el porcentaje de asistencia (índice 2) solo para operativo/administrativo
-    if (tipoPuesto !== "jefe" && cumplimiento[2]) {
-      cumplimiento[2] = { ...cumplimiento[2], porcentaje: String(asistenciaPorcentaje) }
+    // Los datos de incidencias dependen del periodo seleccionado.
+    if (tipoPuesto !== "jefe") {
+      const asistencia = cumplimiento[CumplimientoOperativoIndex.Asistencia]
+      const permisos = cumplimiento[CumplimientoOperativoIndex.Permisos]
+      if (asistencia) {
+        cumplimiento[CumplimientoOperativoIndex.Asistencia] = { ...asistencia, porcentaje: String(asistenciaPorcentaje) }
+      }
+      if (permisos) {
+        cumplimiento[CumplimientoOperativoIndex.Permisos] = { ...permisos, porcentaje: String(calcularPermisosPorcentaje(incidencias, nuevoPeriodo)), no_aplica: false }
+      }
     }
 
     setData({ ...currentData, periodo: nuevoPeriodo, cumplimiento_responsabilidades: cumplimiento })

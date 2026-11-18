@@ -327,7 +327,7 @@ const FilterBar = memo(function FilterBar({
   ].filter(Boolean).length
 
   return (
-    <div className="rounded-lg border border-border/50 bg-muted/20">
+    <div className="rounded-xl border border-border/50 bg-muted/20">
       {/* Header del panel – siempre visible */}
       <button
         type="button"
@@ -345,7 +345,7 @@ const FilterBar = memo(function FilterBar({
           <SlidersHorizontal className="h-3.5 w-3.5" aria-hidden="true" />
           Filtros
           {activeFilters > 0 && (
-            <span className="inline-flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">
+            <span className="inline-flex h-4 w-4 items-center justify-center rounded-md bg-primary text-[10px] font-semibold text-primary-foreground">
               {activeFilters}
             </span>
           )}
@@ -500,7 +500,7 @@ const EmployeePanel = memo(function EmployeePanel({
   const someSelected = employees.some((e) => selectedIds.has(e.dbId))
 
   return (
-    <div className="rounded-lg border border-border/50 bg-muted/20">
+    <div className="rounded-xl border border-border/50 bg-muted/20">
       {/* Búsqueda + toggle all */}
       <div className="flex items-center gap-2 px-3 py-2 border-b border-border/40">
         <div className="relative flex-1">
@@ -585,7 +585,7 @@ const MessagePreview = memo(function MessagePreview({
   return (
     <section
       aria-label="Vista previa del mensaje"
-      className="flex flex-col flex-1 min-h-0 rounded-lg border border-border/60 bg-card overflow-hidden"
+      className="flex flex-col flex-1 min-h-0 rounded-xl border border-border/60 bg-card overflow-hidden"
     >
       {/* Header de la preview */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-border/40 bg-muted/30">

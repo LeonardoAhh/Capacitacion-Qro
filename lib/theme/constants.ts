@@ -9,7 +9,12 @@
 
 export type FontSize = "small" | "medium" | "large"
 export type Density = "comfortable" | "compact"
-export type ThemeMode = "light" | "dark"
+export type ResolvedThemeMode = "light" | "dark"
+export type ThemeMode = ResolvedThemeMode | "system"
+
+export function isThemeMode(value: string | null): value is ThemeMode {
+  return value === "light" || value === "dark" || value === "system"
+}
 
 export const FONT_SIZE_MAP: Record<FontSize, string> = {
   small: "14px",
@@ -19,7 +24,7 @@ export const FONT_SIZE_MAP: Record<FontSize, string> = {
 
 export const DENSITY_SCALE_MAP: Record<Density, string> = {
   comfortable: "1",
-  compact: "0.875",
+  compact: "1",
 }
 
 // localStorage persistence keys. Written/read by both the bootstrap script
@@ -32,7 +37,7 @@ export const THEME_STORAGE_KEYS = {
   reducedMotion: "reducedMotion",
 } as const
 
-export const APP_THEME_COLORS: Record<ThemeMode, string> = {
+export const APP_THEME_COLORS: Record<ResolvedThemeMode, string> = {
   light: "#f4f5f7",
   dark: "#121418",
 }
@@ -54,7 +59,9 @@ export function buildThemeBootstrapScript(): string {
   var fs=${fontSizes};
   var tc=${themeColors};
   var k=${k};
-  var t=localStorage.getItem(k.colorMode)==="dark"?"dark":"light";
+  var p=localStorage.getItem(k.colorMode);
+  if(p!=="light"&&p!=="dark"&&p!=="system")p="system";
+  var t=p==="dark"?"dark":p==="light"?"light":window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";
   d.classList.toggle("dark",t==="dark");
   var m=document.querySelector('meta[name="theme-color"]');
   if(m)m.setAttribute("content",tc[t]);
@@ -68,6 +75,6 @@ export function buildThemeBootstrapScript(): string {
   var dn=localStorage.getItem(k.density);
   if(dn==="compact"){d.classList.add("density-compact");d.style.setProperty("--density-scale","${compactScale}");}
   if(localStorage.getItem(k.reducedMotion)==="true")d.classList.add("reduce-motion");
-  localStorage.setItem(k.colorMode,t);
+  localStorage.setItem(k.colorMode,p);
 }catch(e){}})();`
 }

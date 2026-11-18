@@ -9,14 +9,14 @@ function SearchPreview() {
     <div className={mockupStyles.card}>
       <p className="text-xs font-medium text-foreground">{DESEMPENO.search.title}</p>
       <div className="flex gap-2">
-        <div className={cn(mockupStyles.field, "flex-1 ring-2 ring-primary/20")}>
+        <div className={cn(mockupStyles.field, "flex-1 border-primary")}>
           <Search className="size-3.5 shrink-0" />
           <span className="min-w-0 break-words">{DESEMPENO.search.placeholder}</span>
         </div>
         <span className={cn(mockupStyles.action, mockupStyles.primary)}><Search className="size-4" /></span>
       </div>
       <div className="flex items-center gap-3 rounded-md border bg-background p-3">
-        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary"><UserRound className="size-4" /></span>
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><UserRound className="size-4" /></span>
         <div className="min-w-0 flex-1 space-y-2">
           <p className="text-xs font-medium text-foreground">{DESEMPENO.fields.name}</p>
           <div className={cn(mockupStyles.line, "w-3/4")} />
@@ -54,8 +54,8 @@ function EvaluationPreview({ step }: { step: GuideStep }) {
             <span className="min-w-0 text-foreground">{weight.label}</span>
             <span className="shrink-0 font-semibold tabular-nums text-primary">{weight.value * 100}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary" style={{ width: `${weight.value * 100}%` }} />
+          <div className="h-2 overflow-hidden rounded-sm bg-muted">
+            <div className="h-full bg-primary" style={{ width: `${weight.value * 100}%` }} />
           </div>
         </div>
       ))}

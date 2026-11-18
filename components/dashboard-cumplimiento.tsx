@@ -34,7 +34,7 @@ function BarTooltip({ active, payload, label }: { active?: boolean; payload?: Ba
         ].map(r => (
           <div key={r.label} className="flex justify-between gap-4">
             <span className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full" style={{ background: r.color }} />{r.label}
+              <span className="h-2 w-2 rounded-md" style={{ background: r.color }} />{r.label}
             </span>
             <span className={`font-bold ${r.cls}`}>{r.value}</span>
           </div>
@@ -60,7 +60,7 @@ function SkeletonContent() {
       </div>
       <div className="space-y-1.5">
         <div className="flex justify-between"><Skeleton className="h-3 w-28" /><Skeleton className="h-3 w-20" /></div>
-        <Skeleton className="h-2 w-full rounded-full" />
+        <Skeleton className="h-2 w-full rounded-md" />
       </div>
       {[78, 55, 90, 42, 68].map((w, i) => (
         <div key={i} className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export default function DashboardCumplimiento() {
           <div className="flex flex-wrap items-center gap-3 mt-2">
             {kpiBadges.map(({ color, label, value }) => (
               <div key={label} className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ background: color }} />
+                <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: color }} />
                 <span className="text-xs text-muted-foreground">{label}</span>
                 <Badge variant="secondary" className="text-xs px-1.5">{value}</Badge>
               </div>
@@ -204,8 +204,8 @@ export default function DashboardCumplimiento() {
                     </Badge>
                   </div>
                 </div>
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <motion.div className="h-full rounded-full" style={{ backgroundColor: colorPct(pctGeneral) }}
+                <div className="h-2 bg-muted rounded-md overflow-hidden">
+                  <motion.div className="h-full rounded-md" style={{ backgroundColor: colorPct(pctGeneral) }}
                     initial={{ width: 0 }} animate={{ width: `${pctGeneral}%` }}
                     transition={{ duration: 0.9, ease: "easeOut", delay: skip ? 0 : 0.35 }} />
                 </div>

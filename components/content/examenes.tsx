@@ -219,7 +219,7 @@ export default function ExamenesContent({
       </div>
 
       {error && (
-        <div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+        <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
           {error}
         </div>
       )}
@@ -244,8 +244,8 @@ export default function ExamenesContent({
               <Skeleton className="h-4 w-3/4" />
               <Skeleton className="h-3 w-1/2" />
               <div className="flex gap-2 pt-1">
-                <Skeleton className="h-5 w-16 rounded-full" />
-                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-md" />
+                <Skeleton className="h-5 w-20 rounded-md" />
               </div>
             </div>
           ))}
@@ -262,7 +262,7 @@ export default function ExamenesContent({
           <div className="flex flex-col gap-3 md:hidden">
             {paginadas.map((p) => (
               <Card key={p.id} className="overflow-hidden">
-                <CardContent className="p-4">
+                <CardContent className="p-6">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <Badge variant="secondary" className="shrink-0 text-xs">{p.departamento}</Badge>
                     <div className="flex gap-1 shrink-0">

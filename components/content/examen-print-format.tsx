@@ -114,7 +114,7 @@ const ExamenPrintFormat = forwardRef<HTMLDivElement, ExamenPrintFormatProps>(
               </p>
               {(["a", "b", "c"] as const).map((op) => (
                 <div key={op} className="flex items-start gap-1 ml-3">
-                  <span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-full shrink-0 mt-[1px] text-[11px] font-bold leading-none">
+                  <span className="inline-flex items-center justify-center w-4 h-4 border border-black rounded-md shrink-0 mt-[1px] text-[11px] font-bold leading-none">
                     {OPCION_LABEL[op]}
                   </span>
                   <span className="leading-snug">

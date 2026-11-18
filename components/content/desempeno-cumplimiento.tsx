@@ -23,7 +23,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: 
 function Metric({ label, value, detail, loading }: { label: string; value: number; detail: string; loading: boolean }) {
   return (
     <Card className="min-w-0">
-      <CardContent className="space-y-2 p-4">
+      <CardContent className="space-y-2 p-6">
         <p className="text-xs text-muted-foreground">{label}</p>
         {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-semibold leading-8 tabular-nums">{value}</p>}
         {loading ? <Skeleton className="h-4 w-24" /> : <p className="text-xs text-muted-foreground">{detail}</p>}
@@ -144,7 +144,7 @@ function Department({
   const Icon = expanded ? ChevronDown : ChevronRight
   return (
     <Card className="overflow-hidden">
-      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-16 w-full min-w-0 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-16 w-full min-w-0 items-center gap-3 px-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-foreground">{group.departamento}</span>
@@ -200,7 +200,7 @@ export default function DesempenoCumplimientoContent() {
       {isReadOnly && <ReadOnlyBanner />}
 
       <Card>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Periodo asignado automáticamente</p>
             <p className="text-base font-semibold">{periodo}</p>

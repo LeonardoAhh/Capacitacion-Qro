@@ -37,7 +37,7 @@ export default function LandingPage() {
 
       <main className="flex-1">
         {/* Hero Band with Mesh Gradient */}
-        <section className="relative overflow-hidden py-32 sm:py-40">
+        <section className="relative overflow-hidden py-32">
           <div className="absolute inset-0 z-0">
             {/* Mesh gradient approximation using multiple radial gradients */}
             <div className="absolute top-[-10%] left-[-10%] h-[50%] w-[50%] rounded-full bg-blue-500/20 blur-[100px]" />
@@ -64,7 +64,7 @@ export default function LandingPage() {
         </section>
 
         {/* Logo Strip */}
-        <section className="border-y border-border bg-background py-16">
+        <section className="border-y border-border bg-background py-8">
           <div className="mx-auto max-w-7xl px-6 text-center">
             <p className="font-sans text-[12px] font-medium uppercase tracking-widest text-muted-foreground">
               Trusted by the best frontend teams
@@ -167,7 +167,7 @@ export default function LandingPage() {
         </section>
 
         {/* CTA Band */}
-        <section className="border-t border-border bg-background py-24 sm:py-32 text-center">
+        <section className="border-t border-border bg-background py-24 text-center">
           <div className="mx-auto max-w-3xl px-6">
             <h2 className="text-[40px] font-semibold tracking-[-1.28px] md:text-[48px]">
               Ready to deploy?
@@ -185,7 +185,7 @@ export default function LandingPage() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border bg-background py-12">
+      <footer className="border-t border-border bg-background py-16">
         <div className="mx-auto max-w-7xl px-6 md:flex md:items-center md:justify-between">
           <div className="flex justify-center md:justify-start">
             <span className="font-semibold">{COMPANY_NAME}</span>

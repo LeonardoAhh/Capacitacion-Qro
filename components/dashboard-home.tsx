@@ -1,11 +1,9 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import {
-    CalendarDays,
-    Clock,
-} from "lucide-react"
+import Link from "next/link"
+import { CalendarDays, ClipboardList } from "lucide-react"
 import { useUser, useProfile } from "@/lib/hooks"
+import { Button } from "@/components/ui/button"
 import { DashboardAlertasProvider } from "@/components/dashboard-alertas-context"
 import { CumplimientoProvider } from "@/components/dashboard-cumplimiento-context"
 import DashboardAlertas from "@/components/dashboard-alertas"
@@ -17,31 +15,11 @@ import TrainingHoursKPI from "@/components/training-hours-kpi"
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function formatTime(d: Date): string {
-    return d.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })
-}
-
-function formatDate(d: Date): string {
-    return d.toLocaleDateString("es-MX", {
-        weekday: "long", day: "numeric", month: "long",
-    })
-}
-
 // ─── Greeting Bar ─────────────────────────────────────────────────────────────
 
 function GreetingBar() {
     const { user } = useUser()
     const { profile } = useProfile(user?.id)
-    const [now, setNow] = useState<Date | null>(null)
-
-    useEffect(() => {
-        setNow(new Date())
-        const id = setInterval(() => setNow(new Date()), 30_000)
-        return () => clearInterval(id)
-    }, [])
-
-    const timeStr = useMemo(() => (now ? formatTime(now) : ""), [now])
-    const dateStr = useMemo(() => (now ? formatDate(now) : ""), [now])
     const displayName = profile?.displayName || profile?.firstName || "Bienvenido"
 
     return (
@@ -49,15 +27,13 @@ function GreetingBar() {
             <div className="flex min-w-0 items-center gap-2">
                 <h2 className="truncate text-xl font-semibold tracking-tight">{displayName}</h2>
             </div>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                <span className="flex items-center gap-1.5">
-                    <CalendarDays size={14} className="text-muted-foreground" aria-hidden="true" />
-                    <span className="capitalize">{dateStr}</span>
-                </span>
-                <span className="flex items-center gap-1.5 tabular-nums">
-                    <Clock size={14} className="text-muted-foreground" aria-hidden="true" />
-                    {timeStr}
-                </span>
+            <div className="flex flex-wrap items-center gap-2">
+                <Button asChild variant="outline">
+                    <Link href="/dnc"><ClipboardList aria-hidden="true" />DNC</Link>
+                </Button>
+                <Button asChild variant="outline">
+                    <Link href="/plan-anual"><CalendarDays aria-hidden="true" />Plan Anual</Link>
+                </Button>
             </div>
         </div>
     )

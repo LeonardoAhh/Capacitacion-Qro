@@ -29,7 +29,7 @@ export function VistaMensual({
   return <div className="space-y-4">
     {/* All-clear */}
     {!loading && totalEmployees === 0 && <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/5 py-8 text-success">
-      <CheckCircle2 size={28} className="opacity-70" />
+      <CheckCircle2 className="size-6 opacity-70" aria-hidden="true" />
       <p className="text-sm font-medium">¡Todo al día! Sin evaluaciones pendientes.</p>
     </div>}
 
@@ -71,7 +71,7 @@ export function VistaMensual({
                 return a.localeCompare(b, "es");
               });
               return sortedKeys.map(key => <div key={key} className="space-y-2">
-                  <h4 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                  <h4 className="flex items-center gap-2 text-eyebrow uppercase text-muted-foreground">
                     <Layers className="size-3.5" aria-hidden="true" />
                     {key}
                     <span className="text-xs font-normal opacity-70">({grouped[key].length})</span>
@@ -96,14 +96,14 @@ export function VistaMensual({
     {/* Leyenda */}
     {!loading && totalEmployees > 0 && <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
       <span className="flex items-center gap-1">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-destructive" />
+        <span className="inline-block size-2 rounded-sm bg-destructive" aria-hidden="true" />
           Vencida
       </span>
       <span className="flex items-center gap-1">
-        <span className="inline-block h-2.5 w-2.5 rounded-full bg-success" />
+        <span className="inline-block size-2 rounded-sm bg-success" aria-hidden="true" />
           Pendiente
       </span>
-      <span className="text-xs font-semibold text-foreground sm:ml-auto">
+      <span className="text-xs font-medium text-foreground sm:ml-auto">
           Toca un número para ver el detalle
       </span>
     </div>}

@@ -221,7 +221,7 @@ export default function GeneradorExamenContent() {
                   onClick={() => handleSeleccionarEmpleado(emp)}
                   className="w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors flex items-center gap-3 focus-visible:outline-none focus-visible:bg-muted/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
                 >
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted shrink-0">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted shrink-0">
                     <User size={14} className="text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -256,8 +256,8 @@ export default function GeneradorExamenContent() {
       {empleadoSeleccionado && (
         <>
           <Card className="border-primary/30 bg-primary/5">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+            <CardContent className="flex items-center gap-3 p-6">
+              <div className="flex items-center justify-center w-10 h-10 rounded-md bg-primary/10 shrink-0">
                 <User size={18} className="text-primary" />
               </div>
               <div className="flex-1">
@@ -302,7 +302,7 @@ export default function GeneradorExamenContent() {
                       key={key}
                       onClick={() => setTransicionSeleccionada(key)}
                       aria-pressed={selected}
-                      className={`rounded-lg border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                      className={`rounded-xl border-2 p-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
                         selected
                           ? "border-primary bg-primary/5"
                           : "border-border hover:border-primary/40"
@@ -372,7 +372,7 @@ export default function GeneradorExamenContent() {
       )}
 
       {error && (
-        <div className="p-4 rounded-lg border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+        <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
           {error}
         </div>
       )}

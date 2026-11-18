@@ -7,13 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getTipoCursoByName } from "@/lib/catalogo"
+import { empleadosAsignadosAlCurso } from "@/lib/capacitacion/course-metrics"
 import type { Course, Position, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
-
-function courseStatus(cal: number | null): { estado: string; variant: "secondary" | "success" | "destructive" } {
-  if (cal == null) return { estado: 'pendiente', variant: 'secondary' }
-  if (cal >= 7) return { estado: 'aprobado', variant: 'success' }
-  return { estado: 'reprobado', variant: 'destructive' }
-}
 
 interface CapCourseDetailViewProps {
   course: Course
@@ -38,19 +33,12 @@ export function CapCourseDetailView({
 }: CapCourseDetailViewProps) {
   
   const empleadosConEstado = useMemo(() => {
-    const puestosAsignados = positions
-      .filter(pos => positionCourses.some(pc => pc.course_id === course.id && pc.position_id === pos.id))
-      .map(pos => pos.name)
-
-    return employees
-      .filter(emp => puestosAsignados.includes(emp.puesto ?? ''))
-      .map(emp => {
-        const match = empCourses.find(ec => ec.course_id === course.id && ec.employee_id === emp.id)
-        const calificacion = match?.calificacion ?? null
-        const fecha = match?.fecha_aplicacion ?? null
-        const { estado, variant } = courseStatus(calificacion)
-        return { ...emp, calificacion, fecha, estado, variant }
-      })
+    return empleadosAsignadosAlCurso(course.id, employees, positions, positionCourses, empCourses)
+      .map(employee => ({
+        ...employee,
+        variant: employee.estado === "aprobado" ? "success" as const
+          : employee.estado === "reprobado" ? "destructive" as const : "secondary" as const,
+      }))
   }, [course.id, employees, positions, positionCourses, empCourses])
 
   const courseType = course.tipo || getTipoCursoByName(course.name)
