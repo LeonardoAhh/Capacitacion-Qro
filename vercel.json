@@ -1,5 +1,5 @@
 {
-  "installCommand": "npm install",
+  "installCommand": "npm install --prefer-offline --no-audit --no-fund",
   "crons": [
     {
       "path": "/api/cumpleanos/automatico",
