@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
-import { DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
+import { DncNeedAuthorizationStep, DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
 import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition } from "@/lib/dnc"
 
 interface DncNeedDialogProps {
@@ -17,10 +17,13 @@ interface DncNeedDialogProps {
   onSave: (datos: DatosNecesidad) => Promise<void>
 }
 
-const PASOS = ["Necesidad y puestos", "Justificación y programación"] as const
+const PASOS = ["Necesidad y puestos", "Justificación y programación", "Autorización"] as const
+type Paso = 1 | 2 | 3
+// Campo que recibe el foco al entrar a cada paso.
+const PRIMER_CAMPO: Record<Paso, string> = { 1: "dnc-necesidad", 2: "dnc-funcion", 3: "dnc-autorizacion-autorizado" }
 
 /** Indicador compacto del asistente: paso actual resaltado, anteriores en tono neutro. */
-function DncNeedStepper({ step }: { step: 1 | 2 }) {
+function DncNeedStepper({ step }: { step: Paso }) {
   return (
     <ol aria-label="Pasos" className="flex flex-wrap items-center gap-x-3 gap-y-1">
       {PASOS.map((label, index) => {
@@ -45,7 +48,7 @@ function DncNeedStepper({ step }: { step: 1 | 2 }) {
 }
 
 export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, puestos, departmentName, onClose, onSave }: DncNeedDialogProps) {
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<Paso>(1)
   const [form, setForm] = useState<DatosNecesidad>({
     necesidad: necesidad?.necesidad ?? "",
     course_id: necesidad?.course_id ?? "",
@@ -55,13 +58,26 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
     beneficio: necesidad?.beneficio ?? "",
     mes_sugerido: necesidad?.mes_sugerido ?? 1,
     tipo: necesidad?.tipo ?? "interno",
+    autorizacion: necesidad?.autorizacion ?? null,
+    motivo_no_autorizado: necesidad?.motivo_no_autorizado ?? "",
   })
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const isFirstRender = useRef(true)
   useEffect(() => {
-    if (step === 2) document.getElementById("dnc-funcion")?.focus()
+    // El primer paso enfoca el título del modal (ResponsiveShell); los demás, su primer campo.
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    document.getElementById(PRIMER_CAMPO[step])?.focus()
   }, [step])
+
+  function goTo(next: Paso) {
+    setError(null)
+    setStep(next)
+  }
 
   function update(field: keyof DatosNecesidad, value: string | number) {
     const isText = (CAMPOS_TEXTO_NECESIDAD as readonly string[]).includes(field)
@@ -75,13 +91,24 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
       setError("Indica la necesidad, el curso y al menos un puesto.")
       return
     }
-    setError(null)
-    setStep(2)
+    goTo(2)
+  }
+
+  function handleContinueDetails() {
+    if ([form.funcion_actividad, form.motivo, form.beneficio].some(value => !value.trim())) {
+      setError("Completa la función, el motivo y el beneficio de la capacitación.")
+      return
+    }
+    goTo(3)
   }
 
   async function handleSave() {
-    if ([form.funcion_actividad, form.motivo, form.beneficio].some(value => !value.trim())) {
-      setError("Completa la función, el motivo y el beneficio de la capacitación.")
+    if (!form.autorizacion) {
+      setError("Indica si la necesidad fue autorizada.")
+      return
+    }
+    if (form.autorizacion === "no_autorizado" && !form.motivo_no_autorizado?.trim()) {
+      setError("Indica el motivo por el que no se autorizó.")
       return
     }
     setSaving(true)
@@ -108,17 +135,15 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
               setForm(current => ({ ...current, position_ids: positionIds }))
               setError(null)
             }} />
-        ) : <DncNeedDetailsStep form={form} onChange={update} />}
+        ) : step === 2
+          ? <DncNeedDetailsStep form={form} onChange={update} />
+          : <DncNeedAuthorizationStep form={form} onChange={update} />}
         {error && <p role="alert" className="-mt-2 text-body-sm text-destructive">{error}</p>}
       </div>
-      <ModalFooter onCancel={step === 1 ? onClose : () => {
-        setError(null)
-        setStep(1)
-        requestAnimationFrame(() => document.getElementById("dnc-necesidad")?.focus())
-      }}
+      <ModalFooter onCancel={step === 1 ? onClose : () => goTo(step === 3 ? 2 : 1)}
         cancelLabel={step === 1 ? "Cancelar" : "Volver"}
-        onConfirm={step === 1 ? handleContinue : handleSave}
-        confirmLabel={step === 1 ? "Continuar" : "Guardar necesidad"} saving={saving}
+        onConfirm={step === 1 ? handleContinue : step === 2 ? handleContinueDetails : handleSave}
+        confirmLabel={step === 3 ? "Guardar necesidad" : "Continuar"} saving={saving}
         confirmDisabled={step === 1 && (cursosLoading || Boolean(cursosError) || cursos.length === 0 || puestos.length === 0)} />
     </ResponsiveShell>
   )

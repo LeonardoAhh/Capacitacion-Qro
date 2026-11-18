@@ -30,10 +30,15 @@ export interface DncNecesidad {
   beneficio: string
   mes_sugerido: number
   tipo: "interno" | "externo"
+  /** NULL en necesidades capturadas antes de existir la autorización. */
+  autorizacion: AutorizacionDnc | null
+  motivo_no_autorizado: string | null
 }
 
+export type AutorizacionDnc = "autorizado" | "no_autorizado"
+
 export type DatosNecesidad = Pick<DncNecesidad,
-  "necesidad" | "course_id" | "position_ids" | "funcion_actividad" | "motivo" | "beneficio" | "mes_sugerido" | "tipo">
+  "necesidad" | "course_id" | "position_ids" | "funcion_actividad" | "motivo" | "beneficio" | "mes_sugerido" | "tipo" | "autorizacion" | "motivo_no_autorizado">
 
 export function nombreDepartamento(reporte: DncReporte): string {
   return (Array.isArray(reporte.department) ? reporte.department[0]?.name : reporte.department?.name) ?? "Departamento"
@@ -45,7 +50,7 @@ export function aMayusculasDnc(texto: string): string {
 }
 
 /** Campos de texto libre de una necesidad (los que se normalizan a mayúsculas). */
-export const CAMPOS_TEXTO_NECESIDAD = ["necesidad", "funcion_actividad", "motivo", "beneficio"] as const
+export const CAMPOS_TEXTO_NECESIDAD = ["necesidad", "funcion_actividad", "motivo", "beneficio", "motivo_no_autorizado"] as const
 
 /**
  * Responsables posibles del DNC de un departamento: su jefe registrado en el catálogo.
@@ -66,7 +71,7 @@ export function nombreEquipoDnc(departamento: string): string {
 }
 
 const REPORTE_COLUMNS = "id,anio,department_id,department:departments(name),responsable_nombre,fecha_elaboracion,updated_at"
-const NECESIDAD_COLUMNS = "id,reporte_id,orden,necesidad,course_id,curso_nombre,funcion_actividad,motivo,beneficio,mes_sugerido,tipo,puestos:dnc_necesidad_puestos(position_id)"
+const NECESIDAD_COLUMNS = "id,reporte_id,orden,necesidad,course_id,curso_nombre,funcion_actividad,motivo,beneficio,mes_sugerido,tipo,autorizacion,motivo_no_autorizado,puestos:dnc_necesidad_puestos(position_id)"
 
 type NecesidadRow = Omit<DncNecesidad, "position_ids"> & {
   puestos: { position_id: string }[] | null
@@ -143,6 +148,10 @@ export async function guardarNecesidadDnc(reporteId: string, datos: DatosNecesid
     p_beneficio: aMayusculasDnc(datos.beneficio.trim()),
     p_mes_sugerido: datos.mes_sugerido,
     p_tipo: datos.tipo,
+    p_autorizacion: datos.autorizacion,
+    p_motivo_no_autorizado: datos.autorizacion === "no_autorizado"
+      ? aMayusculasDnc((datos.motivo_no_autorizado ?? "").trim())
+      : null,
   })
   if (error) throw error
   const { data, error: readError } = await supabase.from("dnc_necesidades")

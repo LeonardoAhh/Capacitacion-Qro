@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { EllipsisVertical, Pencil, Trash2 } from "lucide-react"
+import { CircleCheck, CircleDashed, CircleX, EllipsisVertical, Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { TruncatedText } from "@/components/ui/truncated-text"
@@ -110,6 +110,32 @@ export function DncTableSkeleton() {
   )
 }
 
+/**
+ * Estado de autorización al inicio del menú de acciones. Solo "No autorizada"
+ * es interactivo: abre el motivo en el diálogo de detalle.
+ */
+function DncAutorizacionEstado({ necesidad, onShowMotivo }: { necesidad: DncNecesidad; onShowMotivo: () => void }) {
+  if (necesidad.autorizacion === "no_autorizado") {
+    return (
+      <DropdownMenuItem onSelect={onShowMotivo} aria-haspopup="dialog" className="items-start py-2">
+        <CircleX aria-hidden="true" className="mt-0.5 text-destructive" />
+        <span className="grid">
+          No autorizada
+          <span className="text-body-sm text-muted-foreground">Ver motivo</span>
+        </span>
+      </DropdownMenuItem>
+    )
+  }
+  const autorizada = necesidad.autorizacion === "autorizado"
+  const Icon = autorizada ? CircleCheck : CircleDashed
+  return (
+    <DropdownMenuLabel className="flex min-h-11 items-center gap-2 py-0 text-body-md">
+      <Icon aria-hidden="true" className={cn("size-4 shrink-0", autorizada ? "text-success" : "text-muted-foreground")} />
+      {autorizada ? "Autorizada" : "Sin autorización"}
+    </DropdownMenuLabel>
+  )
+}
+
 export function DncNeedsTable({ necesidades, puestos, departmentName, canEdit, onEdit, onDelete }: DncNeedsTableProps) {
   const [detail, setDetail] = useState<Detail | null>(null)
   // El detalle se conserva al cerrar para que la animación de salida no quede vacía.
@@ -163,6 +189,11 @@ export function DncNeedsTable({ necesidades, puestos, departmentName, canEdit, o
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
+                      <DncAutorizacionEstado necesidad={necesidad} onShowMotivo={() => {
+                        setDetail({ label: "Motivo de no autorización", title: necesidad.curso_nombre, content: necesidad.motivo_no_autorizado ?? "" })
+                        setDetailOpen(true)
+                      }} />
+                      <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={() => onEdit(necesidad)}><Pencil aria-hidden="true" />Editar</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={() => onDelete(necesidad)}

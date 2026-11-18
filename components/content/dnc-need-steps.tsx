@@ -1,10 +1,11 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import { MESES } from "@/lib/plan-anual"
-import { nombreEquipoDnc, type DatosNecesidad, type DncCourse, type DncPosition } from "@/lib/dnc"
+import { nombreEquipoDnc, type AutorizacionDnc, type DatosNecesidad, type DncCourse, type DncPosition } from "@/lib/dnc"
 
 interface StepProps {
   form: DatosNecesidad
@@ -124,6 +125,39 @@ export function DncNeedDetailsStep({ form, onChange }: StepProps) {
           </SelectContent>
         </Select>
       </div>
+    </div>
+  )
+}
+
+const OPCIONES_AUTORIZACION: { value: AutorizacionDnc; label: string }[] = [
+  { value: "autorizado", label: "Autorizada" },
+  { value: "no_autorizado", label: "No autorizada" },
+]
+
+export function DncNeedAuthorizationStep({ form, onChange }: StepProps) {
+  return (
+    <div className="grid gap-4">
+      <div role="group" aria-labelledby="dnc-autorizacion-label" className="grid gap-2">
+        <p id="dnc-autorizacion-label" className="text-label-sm text-foreground">Autorización</p>
+        <RadioGroup value={form.autorizacion ?? ""} onValueChange={value => onChange("autorizacion", value)}
+          aria-labelledby="dnc-autorizacion-label" className="grid gap-2 sm:grid-cols-2">
+          {OPCIONES_AUTORIZACION.map(opcion => (
+            <label key={opcion.value} htmlFor={`dnc-autorizacion-${opcion.value}`}
+              className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground hover:bg-muted has-[[data-state=checked]]:border-primary">
+              <RadioGroupItem id={`dnc-autorizacion-${opcion.value}`} value={opcion.value} />
+              {opcion.label}
+            </label>
+          ))}
+        </RadioGroup>
+      </div>
+      {form.autorizacion === "no_autorizado" && (
+        <div className={FIELD}>
+          <Label htmlFor="dnc-motivo-no-autorizado">Motivo de no autorización</Label>
+          <Textarea id="dnc-motivo-no-autorizado" rows={3} className={AUTO_TEXTAREA}
+            value={form.motivo_no_autorizado ?? ""}
+            onChange={event => onChange("motivo_no_autorizado", event.target.value)} maxLength={1000} />
+        </div>
+      )}
     </div>
   )
 }
