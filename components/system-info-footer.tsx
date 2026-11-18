@@ -6,10 +6,11 @@ import { Code2 } from "lucide-react"
 import { useAppReducedMotion } from "@/components/app-transition"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
+import { SYSTEM_CREDIT, SYSTEM_VERSION } from "@/lib/constants/system"
 import { cn } from "@/lib/utils"
 
 const CREDIT_PREFIX = "Designed by "
-const CREDIT_NAME = "LAHH"
+const CREDIT_NAME = SYSTEM_CREDIT
 const CREDIT_LENGTH = CREDIT_PREFIX.length + CREDIT_NAME.length
 
 export function SystemInfoFooter({ variant = "sidebar", className }: {
@@ -34,7 +35,7 @@ export function SystemInfoFooter({ variant = "sidebar", className }: {
 
   const version = <div className={cn("flex items-center gap-2", variant === "sidebar" && "justify-between")}>
     <span>Versión del sistema</span>
-    <span className="font-sans tabular-nums">3.0.0</span>
+    <span className="font-sans tabular-nums">{SYSTEM_VERSION}</span>
   </div>
 
   const credit = <TooltipProvider>
