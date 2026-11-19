@@ -2,6 +2,8 @@
 
 import { useEffect } from "react"
 import { Toaster, toast } from "sonner"
+import { CircleCheck, CircleX, Info, LoaderCircle, TriangleAlert, X } from "lucide-react"
+import { useTheme } from "@/components/theme-context"
 import { useMobileNoticePlacement } from "@/lib/hooks/useMobileNoticePlacement"
 
 const noticeOffset = {
@@ -13,6 +15,7 @@ const noticeOffset = {
 
 export function SonnerProvider() {
   const isMobile = useMobileNoticePlacement()
+  const { themeMode } = useTheme()
   // Dev-only handle: lets you trigger toasts from the browser console
   // (window.__toast.success(...)) to verify styles per variant.
   useEffect(() => {
@@ -23,8 +26,16 @@ export function SonnerProvider() {
 
   return (
     <Toaster
-      theme="light"
+      theme={themeMode}
       closeButton
+      icons={{
+        success: <CircleCheck aria-hidden="true" />,
+        error: <CircleX aria-hidden="true" />,
+        warning: <TriangleAlert aria-hidden="true" />,
+        info: <Info aria-hidden="true" />,
+        loading: <LoaderCircle aria-hidden="true" className="animate-spin" />,
+        close: <X aria-hidden="true" />,
+      }}
       expand={false}
       visibleToasts={1}
       position={isMobile ? "top-center" : "bottom-right"}
@@ -33,6 +44,7 @@ export function SonnerProvider() {
       gap={12}
       toastOptions={{
         duration: 4000,
+        closeButtonAriaLabel: "Cerrar notificación",
         classNames: {
           toast: "app-toast",
           success: "app-toast--success",

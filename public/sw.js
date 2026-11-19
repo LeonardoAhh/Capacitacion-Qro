@@ -95,7 +95,7 @@ self.addEventListener("message", (event) => {
   }
 })
 
-// Avisos del Kanban enviados por el webhook protegido.
+// Avisos push enviados por las rutas protegidas del servidor.
 self.addEventListener("push", (event) => {
   let payload = {}
   try {
@@ -126,7 +126,8 @@ self.addEventListener("notificationclick", (event) => {
   } catch {
     destination = new URL("/kanban", self.location.origin)
   }
-  const target = destination.origin === self.location.origin && destination.pathname === "/kanban"
+  const allowedPath = destination.pathname === "/kanban" || destination.pathname === "/desempeno/pendientes"
+  const target = destination.origin === self.location.origin && allowedPath
     ? destination.href
     : new URL("/kanban", self.location.origin).href
 

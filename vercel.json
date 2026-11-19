@@ -4,6 +4,10 @@
     {
       "path": "/api/cumpleanos/automatico",
       "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/desempeno/push",
+      "schedule": "0 14 * * *"
     }
   ],
   "headers": [

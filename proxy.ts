@@ -7,7 +7,7 @@ export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Supabase llama este webhook sin sesión; la ruta valida su secreto.
-  if (pathname === '/api/kanban/push') return NextResponse.next()
+  if (pathname === '/api/kanban/push' || pathname === '/api/desempeno/push') return NextResponse.next()
 
   // Rutas públicas — dejar pasar siempre
   if (PUBLIC_ROUTES.some(r => pathname.startsWith(r))) {

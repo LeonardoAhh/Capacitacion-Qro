@@ -390,9 +390,9 @@ export const LIMITE_AVISOS = 30
 
 const ACCION_AVISO: Record<KanbanAvisoTipo, string> = {
   asignada: "te asignó",
-  colaborador: "te sumó como colaborador en",
-  apoyo_tomado: "tomó tu pedido de apoyo en",
-  comentario: "comentó en",
+  colaborador: "te sumó como colaborador",
+  apoyo_tomado: "tomó tu pedido de apoyo",
+  comentario: "comentó",
 }
 
 /** "ANA LÓPEZ te asignó" (sin el título, que se muestra aparte). */

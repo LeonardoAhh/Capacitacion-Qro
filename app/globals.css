@@ -662,38 +662,44 @@ input[type="color"]::-webkit-color-swatch {
 
 /* Sonner injects unlayered CSS. These overrides must be unlayered too. */
     [data-sonner-toast][data-styled='true'].app-toast {
-        align-items: flex-start;
+        align-items: center;
         gap: 0.5rem;
+        min-height: 2.75rem;
         width: max-content;
-        max-width: min(var(--notice-width), calc(100vw - 2rem));
-        padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+        max-width: min(var(--notice-width), calc(100vw - var(--notice-edge) - var(--notice-edge)));
+        padding: 0.5rem 3rem 0.5rem 0.75rem;
         border: 1px solid hsl(var(--border));
         border-radius: var(--radius-control);
         background: hsl(var(--card));
         color: hsl(var(--card-foreground));
         box-shadow: var(--floating-shadow);
         font-family: var(--font-sans);
-        font-size: 0.875rem;
-        line-height: 1.25rem;
+        font-size: var(--text-body-md);
+        line-height: var(--text-body-md--line-height);
     }
 
     .app-toast[data-sonner-toast][data-styled='true'] [data-title] {
         color: hsl(var(--foreground));
-        font-size: 0.875rem;
-        font-weight: 600;
-        line-height: 1.25rem;
+        font-size: var(--text-label-sm);
+        font-weight: var(--text-label-sm--font-weight);
+        line-height: var(--text-label-sm--line-height);
     }
 
     .app-toast[data-sonner-toast][data-styled='true'] [data-description] {
         color: hsl(var(--muted-foreground));
-        font-size: 0.75rem;
-        line-height: 1rem;
+        font-size: var(--text-body-sm);
+        line-height: var(--text-body-sm--line-height);
     }
 
     .app-toast[data-sonner-toast][data-styled='true'] [data-icon] {
-        width: 1.25rem;
-        height: 1.25rem;
+        width: 1rem;
+        height: 1rem;
         color: hsl(var(--foreground));
+    }
+
+    .app-toast[data-sonner-toast][data-styled='true'] [data-icon] svg {
+        width: 1rem;
+        height: 1rem;
     }
 
     .app-toast[data-sonner-toast][data-styled='true'].app-toast--success [data-icon] { color: hsl(var(--success)); }
@@ -703,10 +709,10 @@ input[type="color"]::-webkit-color-swatch {
 
     .app-toast[data-sonner-toast][data-styled='true'] [data-button],
     .app-toast[data-sonner-toast][data-styled='true'] [data-cancel] {
-        min-height: 2rem;
+        min-height: 2.75rem;
         border-radius: var(--radius-control);
         padding-inline: 0.75rem;
-        font-size: 0.75rem;
+        font-size: var(--text-label-sm);
         font-weight: 500;
     }
 
@@ -741,32 +747,21 @@ input[type="color"]::-webkit-color-swatch {
         grid-column: 2;
         grid-row: 2;
         justify-self: start;
-        min-height: 1.25rem;
+        min-height: 2.75rem;
         height: auto;
         margin: 0;
         padding: 0;
         border-radius: var(--radius-control);
         background: transparent;
         color: hsl(var(--primary));
-        font-size: 0.875rem;
+        font-size: var(--text-label-sm);
         font-weight: 500;
-        line-height: 1.25rem;
+        line-height: var(--text-label-sm--line-height);
     }
 
     .app-toast[data-sonner-toast][data-styled='true']:has([data-button]) [data-button]:hover {
         text-decoration: underline;
         text-underline-offset: 4px;
-    }
-
-    /* Área táctil de 44px sin cambiar el tamaño visual (AGENTS.md §6). */
-    .app-toast[data-sonner-toast][data-styled='true']:has([data-button]) [data-button]::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: max(100%, 2.75rem);
-        height: max(100%, 2.75rem);
-        transform: translate(-50%, -50%);
     }
 
     .app-toast[data-sonner-toast][data-styled='true'] [data-cancel] {
@@ -775,16 +770,21 @@ input[type="color"]::-webkit-color-swatch {
     }
 
     [data-sonner-toaster] .app-toast[data-sonner-toast][data-styled='true'] [data-close-button] {
-        top: 0.625rem;
-        right: 0.625rem;
+        top: 0;
+        right: 0;
         left: auto;
-        width: 1.5rem;
-        height: 1.5rem;
+        width: 2.75rem;
+        height: 100%;
         transform: none;
         border: 0;
-        border-radius: var(--radius-control);
+        border-radius: 0 var(--radius-control) var(--radius-control) 0;
         background: transparent;
         color: hsl(var(--muted-foreground));
+    }
+
+    [data-sonner-toaster] .app-toast[data-sonner-toast][data-styled='true'] [data-close-button] svg {
+        width: 1rem;
+        height: 1rem;
     }
 
     [data-sonner-toaster] .app-toast[data-sonner-toast][data-styled='true'] [data-close-button]:hover {

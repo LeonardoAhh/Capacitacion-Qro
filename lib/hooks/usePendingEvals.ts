@@ -5,7 +5,11 @@ import { supabase } from "@/lib/supabase/client"
 import { daysFromToday } from "@/lib/hooks/useNuevoIngreso"
 import { notify } from "@/lib/notify"
 import { normalizeDepartamento } from "@/lib/catalogo"
-import { estadoVentanaEvaluacion, type HitoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
+import type { HitoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
+import { pendingEvalStatus, type PendingEvalStatus } from "@/lib/desempeno/pending-status"
+
+export { pendingEvalStatus }
+export type { PendingEvalStatus }
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -16,16 +20,6 @@ export interface PendingEvalEntry {
   numeroEvaluacion: HitoNuevoIngreso
   fecha: string
   diasDiff: number
-}
-
-export type PendingEvalStatus = "vencidas" | "proximas" | "a-tiempo"
-
-export function pendingEvalStatus(diasDiff: number, numeroEvaluacion: HitoNuevoIngreso): PendingEvalStatus {
-  const estadoVentana = estadoVentanaEvaluacion(numeroEvaluacion, diasDiff)
-  if (estadoVentana === "vencido") return "vencidas"
-  if (diasDiff < 0) return "a-tiempo"
-  if (diasDiff <= (numeroEvaluacion === 3 ? 15 : 7)) return "proximas"
-  return "a-tiempo"
 }
 
 /** One record per employee, with all pending evals grouped */
@@ -53,7 +47,7 @@ export interface DeptGroup {
 
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
-export function usePendingEvals(filterDepartamentos?: string[] | null) {
+export function usePendingEvals(filterDepartamentos?: string[] | null, enabled = true) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [deptGroups, setDeptGroups] = useState<DeptGroup[]>([])
@@ -224,7 +218,12 @@ export function usePendingEvals(filterDepartamentos?: string[] | null) {
 
   const cargar = useCallback(() => load(false), [load])
 
-  useEffect(() => { void load(true) }, [load])
+  useEffect(() => {
+    if (!enabled) return
+    let cancelled = false
+    queueMicrotask(() => { if (!cancelled) void load(true) })
+    return () => { cancelled = true }
+  }, [enabled, load])
 
   return { loading, refreshing, deptGroups, totalEmployees, totalEvals, totalVencidas, totalProximas, totalATiempo, cargar }
 }

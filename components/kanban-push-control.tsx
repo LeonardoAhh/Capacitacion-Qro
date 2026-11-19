@@ -53,15 +53,16 @@ export function KanbanPushControl({ userId }: { userId: string }) {
   }
 
   const isActive = state === "active"
-  const isDisabled = state === "checking" || state === "saving" || state === "unavailable" || state === "denied"
-  const label = state === "unavailable" ? "Notificaciones no disponibles"
-    : state === "denied" ? "Notificaciones bloqueadas"
+  if (state === "checking" || state === "unavailable") return null
+
+  const isDisabled = state === "saving" || state === "denied"
+  const label = state === "denied" ? "Notificaciones bloqueadas"
     : state === "saving" ? "Configurando notificaciones…"
     : isActive ? "Desactivar notificaciones" : "Activar notificaciones"
 
   return (
-    <div className="border-t border-border p-2">
-      <Button type="button" variant="ghost" className="w-full justify-start text-foreground"
+    <div className="border-t border-border">
+      <Button type="button" variant="ghost" className="w-full justify-start rounded-none px-3 text-foreground"
         disabled={isDisabled} onClick={() => void toggle()}>
         {isActive ? <BellOff aria-hidden="true" /> : <BellRing aria-hidden="true" />}
         {label}
