@@ -22,14 +22,14 @@ export const LOGIN = {
 
 /** Layout and typography use the system spacing scale and semantic theme tokens. */
 export const loginStyles = {
-  page: "min-h-dvh bg-background text-foreground safe-bottom-content sm:h-dvh sm:min-h-0 sm:flex-row sm:items-stretch sm:px-[var(--workspace-inset)] md:px-0",
-  container: "grid min-h-dvh w-full flex-1 grid-cols-1 bg-card sm:my-[var(--workspace-inset)] sm:min-h-0 sm:grid-cols-2 sm:rounded-xl sm:border sm:border-border md:my-0",
-  formRegion: "flex min-h-dvh min-w-0 items-center justify-center px-4 py-8 text-card-foreground sm:min-h-0 sm:px-6 md:px-8 lg:px-12",
-  form: "mx-auto w-full max-w-md space-y-7",
+  page: "min-h-dvh bg-background text-foreground safe-bottom-content sm:h-dvh sm:min-h-0 sm:flex-row sm:items-stretch sm:px-[var(--workspace-inset)]",
+  container: "flex min-h-dvh w-full flex-1 flex-col bg-card sm:my-[var(--workspace-inset)] sm:min-h-0 sm:rounded-xl sm:border sm:border-border md:my-0 md:rounded-none md:border-0",
+  formRegion: "flex min-h-dvh min-w-0 flex-1 items-center justify-center overflow-y-auto px-4 py-8 text-card-foreground sm:h-full sm:min-h-0 sm:px-6",
+  form: "mx-auto flex w-full max-w-md flex-col gap-6",
   heading: "text-xl font-semibold leading-7 tracking-[-0.4px] text-foreground",
   description: "text-sm leading-relaxed text-muted-foreground",
-  fields: "space-y-4",
-  field: "space-y-2",
+  fields: "flex flex-col gap-4",
+  field: "flex flex-col gap-2",
   input: "h-11",
   passwordInput: "h-11 pr-12",
   passwordToggle: "absolute inset-y-0 right-0 size-11 text-muted-foreground hover:text-foreground",

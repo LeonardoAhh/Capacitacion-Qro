@@ -42,7 +42,7 @@
     "jspdf-autotable": "^5.0.8",
     "lucide": "^1.58.0",
     "lucide-react": "^1.58.0",
-    "morphicons": "^2.0.0",
+    "morphicons": "^2.0.2",
     "next": "^16.4.3",
     "react": "^19",
     "react-day-picker": "latest",

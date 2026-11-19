@@ -60,13 +60,15 @@ export function AppTransition({
       transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
       className={
         mode === "overlay"
-          ? "fixed inset-0 z-[200] flex items-center justify-center bg-background text-foreground"
-          : "flex min-h-dvh items-center justify-center bg-background text-foreground"
+          ? "workspace-shell fixed inset-0 z-[200] bg-background text-foreground"
+          : "workspace-shell bg-background text-foreground"
       }
     >
-      <div className="flex max-w-[calc(100vw-2rem)] flex-col items-center gap-4 rounded-xl border border-border bg-card px-6 py-6 text-center">
-        <AppMark className="size-12 shrink-0" />
-        <p className="text-sm font-normal leading-5 text-muted-foreground">{message}</p>
+      <div className="workspace-panel items-center justify-center bg-card md:rounded-xl md:border md:border-border">
+        <div className="flex max-w-full flex-col items-center gap-4 px-6 py-6 text-center">
+          <AppMark className="size-12 shrink-0" />
+          <p className="text-body-md text-muted-foreground">{message}</p>
+        </div>
       </div>
     </motion.div>
   )

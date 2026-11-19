@@ -6,7 +6,9 @@
  * Al agregar un token, actualiza ambos lugares.
  */
 export const TYPOGRAPHY_TOKENS = [
+  "display-2xl",
   "display-xl",
+  "display-lg",
   "heading-lg",
   "heading-md",
   "label-sm",

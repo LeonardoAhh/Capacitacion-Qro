@@ -70,6 +70,7 @@ export default function LoginForm() {
           <Label htmlFor="email">{LOGIN.email}</Label>
           <Input
             id="email"
+            autoFocus
             name="email"
             type="email"
             inputMode="email"

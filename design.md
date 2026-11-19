@@ -8,7 +8,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 **Key Characteristics:**
 - Marketing uses a neutral ink ladder on a near-white canvas; workspace colors resolve from the selected light or dark palette.
-- The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) is the entire decorative system, confined to the hero.
+- The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) stays confined to the hero; the login has a separate, local SonarGrid illustration.
 - Two button shapes by context: rounded black **pills** (`{rounded.pill}`) for marketing CTAs, tight 6px squares (`{rounded.sm}`) for nav/app controls.
 - Mona Sans for all text, including tightly-tracked display type (`{typography.display-xl}` at -2.4px), uppercase technical eyebrows, and code.
 - Hairline-bordered cards in precise grids; depth via 1px border + whisper shadow, never heavy elevation.
@@ -79,7 +79,9 @@ The system uses locally bundled **Mona Sans** as its only typeface for UI, prose
 
 | Token | Size | Weight | Line Height | Letter Spacing | Use |
 |---|---|---|---|---|---|
+| `{typography.display-2xl}` | 56px | 600 | 56px | -3.08px | Login introductory headline on larger screens |
 | `{typography.display-xl}` | 48px | 600 | 48px | -2.4px | Hero headline |
+| `{typography.display-lg}` | 24px | 600 | 32px | -0.72px | Login introductory headline on mobile |
 | `{typography.heading-lg}` | 32px | 600 | 40px | -1.28px | Major section headings |
 | `{typography.heading-md}` | 20px | 600 | 28px | -0.4px | Sub-section / card headings |
 | `{typography.label-sm}` | 14px | 500 | 20px | -0.28px | Strong labels, nav emphasis |
@@ -112,7 +114,7 @@ Mona Sans is bundled locally under the SIL Open Font License and loaded through 
 - **Authenticated workspace** (`{layout.workspace-max}` — 1408px): shared maximum width for the application header and main content. It gives data grids and three-column layouts more room without returning to a full-bleed canvas.
 - **Evaluation pending summary** (`{layout.evaluation-summary-max}` — 960px): centered within the authenticated workspace; the search and evaluation form keep the workspace width.
 - **Workspace gutters** (`{layout.workspace-gutter}`): 16px on mobile, 24px from tablet, and 32px from laptop upward. Header and main content must use the same gutter values and centered grid.
-- **Workspace frame** (`{components.workspace-frame}`): on desktop, the authenticated header and main content share one elevated-canvas panel (`{colors.canvas-elevated}`) with a 1px hairline, 12px radius, and an 8px outer inset on all four sides. It has no shadow. The sidebar stays on the base canvas and uses the same 8px vertical inset. On mobile, the frame becomes full-bleed with no outer border or radius.
+- **Workspace frame** (`{components.workspace-frame}`): the login and authenticated workspace share one elevated-canvas panel (`{colors.canvas-elevated}`) with a 1px hairline and 12px radius. The shared outer inset is 16px on tablet and 24px on laptop and desktop, on all four sides. It has no shadow. On mobile, the frame becomes full-bleed with no outer border or radius.
 - **Workspace sidebar**: desktop and mobile navigation share a flat link list; every route has a unique icon, without visible group headings or dividers. Rows have a 44px minimum hit area; the current route uses a white surface and visible border. Desktop sidebar collapses to a 72px icon rail; icon-only links retain accessible names and tooltips, and the preference persists across routes. The expanded desktop header shows “Capacitación Querétaro” and “ViñoPlastic” beside the collapse control, grouped in a shared white, bordered container with a 6px radius; the collapsed rail hides the text and centers the control in the same container. The mobile drawer retains its brand and always remains expanded. Use 6px radius for sidebar links and controls, never full/pill radius. On desktop, the sidebar stays viewport-bound while the workspace main region owns vertical scrolling, keeping the frame border visible.
 - **Workspace header**: 48px high and shares the content grid and gutter tokens; its desktop sticky inset is defined by the workspace tokens. The page title stays on the left; the account control stays on the right. Menu controls have a 44px minimum hit area and use the same neutral focus treatment as the sidebar.
 - **Floating notices**: toasts and update notices sit at the bottom right on desktop and top center on mobile. Their edge inset respects mobile safe areas, and their width stays within the shared notice token.
@@ -152,7 +154,7 @@ The hero mesh gradient is a CSS/SVG composition that scales fluidly. Feature ill
 Depth is deliberately minimal. The system prefers a crisp 1px hairline plus the near-white-on-white surface step to a shadow; when a surface floats, it uses a finely-layered, very-low-alpha shadow stack rather than a single heavy drop.
 
 ### Decorative Depth
-The hero **mesh gradient** is the only atmospheric element — a soft multi-stop bloom of the brand accent colors against the white canvas. Feature illustrations (ink node-graphs, code editors) add a sense of product depth without color. No glows, no heavy gradients elsewhere.
+The hero **mesh gradient** is a soft multi-stop bloom of the brand accent colors against the white canvas. The login's SonarGrid is confined to its illustration panel and follows the active theme. Feature illustrations (ink node-graphs, code editors) add a sense of product depth without color. No glows, no heavy gradients elsewhere.
 
 ## Shapes
 
@@ -255,5 +257,5 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Don't mix the button shapes within one context — marketing CTAs stay pills, app/nav controls stay 6px squares.
 - Don't pile on shadows — depth is a 1px hairline plus, at most, a finely-layered low-alpha shadow stack.
 - Don't set marketing body copy in pure black (`#000000`) — the brand's ink is #171717 and body steps to `{colors.body}`. Workspace text uses the active theme's foreground tokens.
-- Don't add a second decorative system — the mesh gradient is the only flourish; everything else is ink on white.
+- Don't add a second decorative system to the shared chrome. The login illustration is the approved exception: a theme-colored SonarGrid confined to its visual panel; other surfaces keep the established ink-on-white treatment.
 - Don't loosen the display tracking — large Mona Sans headings carry tight negative letter-spacing by design.

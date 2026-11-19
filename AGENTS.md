@@ -176,7 +176,7 @@ Resumen de evaluación pendiente: max-width: 960px, centrado dentro del workspac
 
 Gutters del workspace: 16px móvil → 24px tablet → 32px laptop+.
 
-Frame del workspace (desktop): panel canvas-elevated, 1px hairline, radius 12px, inset 8px exterior, sin sombra. En móvil se vuelve full-bleed sin borde ni radio.
+Frame del workspace: panel canvas-elevated, 1px hairline, radius 12px, margen exterior de 16px en tablet y 24px en laptop/desktop, sin sombra. Login y workspace autenticado comparten este margen; en móvil el frame es full-bleed sin borde ni radio.
 
 Sidebar: 44px mínimo de hit area; ruta activa con fondo blanco y borde visible. Sin grupos visibles ni divisores. En desktop, viewport-bound con scroll en el main; permite colapsar a rail de 72px con iconos centrados, nombres accesibles y preferencia persistida entre rutas. El encabezado desktop muestra “Capacitación Querétaro” y “ViñoPlastic” junto al control de colapso, dentro de un contenedor compartido con fondo blanco, borde y radio de 6px; en la rail colapsada oculta el texto y centra el control. El drawer móvil conserva su marca y permanece expandido. Usa radio de 6px en links y controles; no uses rounded-full.
 
@@ -258,7 +258,7 @@ No apiles sombras. Hairline + (como máximo) una sombra fina en capas.
 
 En marketing, no uses #000000: la tinta es #171717 y el body es #4d4d4d. En el workspace, usa el foreground de la paleta activa.
 
-No añadas un segundo sistema decorativo. El mesh gradient es el único flourish.
+No añadas un segundo sistema decorativo. Excepción aprobada: el panel ilustrativo del login usa SonarGrid con el color primario del tema; no lo extiendas al chrome ni a otras rutas.
 
 No aflojes el tracking de los headings grandes.
 
