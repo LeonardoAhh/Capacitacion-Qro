@@ -1,3 +1,4 @@
+import { createECDH, timingSafeEqual } from "node:crypto"
 import { sendNotification } from "web-push"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
@@ -9,10 +10,24 @@ export interface PushSubscriptionRow {
 }
 
 export function pushConfig() {
-  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-  const privateKey = process.env.VAPID_PRIVATE_KEY
-  const subject = process.env.VAPID_SUBJECT
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim()
+  const privateKey = process.env.VAPID_PRIVATE_KEY?.trim()
+  const subject = process.env.VAPID_SUBJECT?.trim()
   if (!publicKey || !privateKey || !subject || !/^(mailto:|https:\/\/)/.test(subject)) return null
+  try {
+    const publicBytes = Buffer.from(publicKey, "base64url")
+    const privateBytes = Buffer.from(privateKey, "base64url")
+    if (publicBytes.length !== 65 || privateBytes.length !== 32) throw new Error("Invalid VAPID key length")
+    const keyPair = createECDH("prime256v1")
+    keyPair.setPrivateKey(privateBytes)
+    const derivedPublicKey = keyPair.getPublicKey()
+    if (derivedPublicKey.length !== publicBytes.length || !timingSafeEqual(derivedPublicKey, publicBytes)) {
+      throw new Error("VAPID keys do not match")
+    }
+  } catch {
+    console.error("[push] Las claves VAPID no forman un par válido")
+    return null
+  }
   return { publicKey, privateKey, subject }
 }
 

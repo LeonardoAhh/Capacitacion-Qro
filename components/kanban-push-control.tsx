@@ -5,7 +5,7 @@ import { BellOff, BellRing } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
-import { activateKanbanPush, canUseKanbanPush, deactivateKanbanPush } from "@/lib/kanban-push"
+import { activateKanbanPush, canUseKanbanPush, deactivateKanbanPush, hasCurrentVapidKey } from "@/lib/kanban-push"
 
 type PushState = "checking" | "unavailable" | "denied" | "inactive" | "active" | "saving"
 
@@ -25,7 +25,7 @@ export function KanbanPushControl({ userId }: { userId: string }) {
       }
       const registration = await navigator.serviceWorker.getRegistration("/")
       const subscription = await registration?.pushManager.getSubscription()
-      if (!subscription) {
+      if (!subscription || !hasCurrentVapidKey(subscription)) {
         if (mounted) setState("inactive")
         return
       }

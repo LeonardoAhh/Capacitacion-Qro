@@ -24,6 +24,11 @@ function matchesVapidKey(subscription: PushSubscription, key: Uint8Array<ArrayBu
   return bytes.length === key.length && bytes.every((value, index) => value === key[index])
 }
 
+export function hasCurrentVapidKey(subscription: PushSubscription) {
+  const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+  return publicKey ? matchesVapidKey(subscription, vapidKeyBytes(publicKey)) : false
+}
+
 async function updateServer(method: "POST" | "DELETE", subscription: PushSubscription) {
   const payload = subscription.toJSON()
   const response = await fetch(KANBAN_PUSH_SUBSCRIPTION_URL, {
@@ -47,6 +52,7 @@ export async function activateKanbanPush() {
   const key = vapidKeyBytes(publicKey)
   let subscription = await registration.pushManager.getSubscription()
   if (subscription && !matchesVapidKey(subscription, key)) {
+    await updateServer("DELETE", subscription)
     await subscription.unsubscribe()
     subscription = null
   }
