@@ -9,7 +9,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { nombreCursoPlan, type CursoPlan } from "@/lib/plan-anual"
+import { KanbanCrearDesdeItem } from "@/components/content/kanban-crear-desde"
+import { rangoDelMes, type TarjetaDesde } from "@/lib/kanban"
+import { MESES, nombreCursoPlan, type CursoPlan } from "@/lib/plan-anual"
 
 interface PlanAnualActionsMenuProps {
   curso: CursoPlan
@@ -18,6 +20,21 @@ interface PlanAnualActionsMenuProps {
   onMetrics: (curso: CursoPlan) => void
   onEdit: (curso: CursoPlan) => void
   onDelete: (curso: CursoPlan) => void
+}
+
+/** Tarjeta para preparar el curso: vence al final de su mes o en la fecha reprogramada. */
+function tarjetaDelCurso(curso: CursoPlan): TarjetaDesde {
+  const rango = rangoDelMes(curso.anio, curso.mes)
+  return {
+    titulo: nombreCursoPlan(curso),
+    descripcion: [
+      `Plan anual · ${MESES[curso.mes - 1]} ${curso.anio}`,
+      `Área que solicita: ${curso.area_solicitante}`,
+      `Aplica para: ${curso.aplica_para}`,
+    ].join("\n"),
+    fecha_inicio: rango.fecha_inicio,
+    fecha_limite: curso.reprogramado && curso.fecha_reprogramada ? curso.fecha_reprogramada : rango.fecha_limite,
+  }
 }
 
 export function PlanAnualActionsMenu({ curso, canEdit, onOpen, onMetrics, onEdit, onDelete }: PlanAnualActionsMenuProps) {
@@ -35,6 +52,7 @@ export function PlanAnualActionsMenu({ curso, canEdit, onOpen, onMetrics, onEdit
         <DropdownMenuItem onSelect={() => onMetrics(curso)}>
           <BarChart3 aria-hidden="true" />Métricas
         </DropdownMenuItem>
+        <KanbanCrearDesdeItem datos={tarjetaDelCurso(curso)} />
         {canEdit && (
           <>
             <DropdownMenuItem onSelect={() => onEdit(curso)}>

@@ -11,11 +11,15 @@ import { TruncatedText } from "@/components/ui/truncated-text"
 import { cn } from "@/lib/utils"
 import { MESES } from "@/lib/plan-anual"
 import { nombreEquipoDnc, type DncNecesidad, type DncPosition } from "@/lib/dnc"
+import { rangoDelMes, type TarjetaDesde } from "@/lib/kanban"
+import { KanbanCrearDesdeItem } from "@/components/content/kanban-crear-desde"
 
 interface DncNeedsTableProps {
   necesidades: DncNecesidad[]
   puestos: DncPosition[]
   departmentName: string
+  /** Año del reporte: ubica el mes sugerido al crear una tarjeta. */
+  anio: number
   canEdit: boolean
   onEdit: (necesidad: DncNecesidad) => void
   onDelete: (necesidad: DncNecesidad) => void
@@ -136,7 +140,16 @@ function DncAutorizacionEstado({ necesidad, onShowMotivo }: { necesidad: DncNece
   )
 }
 
-export function DncNeedsTable({ necesidades, puestos, departmentName, canEdit, onEdit, onDelete }: DncNeedsTableProps) {
+/** Tarjeta para atender la necesidad durante su mes sugerido. */
+function tarjetaDeNecesidad(necesidad: DncNecesidad, departmentName: string, anio: number): TarjetaDesde {
+  return {
+    titulo: necesidad.curso_nombre,
+    descripcion: [`DNC ${anio} · ${departmentName}`, `Necesidad: ${necesidad.necesidad}`].join("\n"),
+    ...rangoDelMes(anio, necesidad.mes_sugerido),
+  }
+}
+
+export function DncNeedsTable({ necesidades, puestos, departmentName, anio, canEdit, onEdit, onDelete }: DncNeedsTableProps) {
   const [detail, setDetail] = useState<Detail | null>(null)
   // El detalle se conserva al cerrar para que la animación de salida no quede vacía.
   const [detailOpen, setDetailOpen] = useState(false)
@@ -195,6 +208,9 @@ export function DncNeedsTable({ necesidades, puestos, departmentName, canEdit, o
                       }} />
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={() => onEdit(necesidad)}><Pencil aria-hidden="true" />Editar</DropdownMenuItem>
+                      {necesidad.autorizacion !== "no_autorizado" && (
+                        <KanbanCrearDesdeItem datos={tarjetaDeNecesidad(necesidad, departmentName, anio)} />
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem onSelect={() => onDelete(necesidad)}
                         className="text-destructive focus:bg-destructive/10 focus:text-destructive">

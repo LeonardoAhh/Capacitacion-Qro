@@ -11,7 +11,7 @@ import { etiquetaEstado, type KanbanTarjeta } from "@/lib/kanban"
  * cuando la persona agregó algo; al día siguiente empieza vacía.
  */
 export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
-  const { editar, alternarMiDia } = useKanbanAcciones()
+  const { ver, alternarMiDia } = useKanbanAcciones()
   if (!tarjetas.length) return null
   const hechas = tarjetas.filter(tarjeta => tarjeta.estado === "concluido").length
 
@@ -29,7 +29,7 @@ export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
           const concluida = tarjeta.estado === "concluido"
           return (
             <li key={tarjeta.id} className="flex min-h-11 items-center gap-3 pl-3 pr-1">
-              <button type="button" onClick={() => editar(tarjeta)}
+              <button type="button" onClick={() => ver(tarjeta)}
                 className={cn(
                   "min-w-0 flex-1 truncate rounded-sm text-left text-body-md",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",

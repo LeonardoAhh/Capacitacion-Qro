@@ -4,13 +4,14 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AppTransition, APP_TRANSITION_EXIT_MS, APP_TRANSITION_MIN_MS, useAppReducedMotion } from "@/components/app-transition"
 import { useRole } from "@/lib/hooks"
+import { POST_LOGIN_PATH } from "@/lib/navigation"
 
 export function PostLoginLoading() {
   const searchParams = useSearchParams()
   const requestedPath = searchParams.get("to")
   const redirectTo = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") && requestedPath !== "/" && !requestedPath.startsWith("/auth/redirect")
     ? requestedPath
-    : "/inicio"
+    : POST_LOGIN_PATH
   const { role, loading: roleLoading } = useRole()
   const router = useRouter()
   const prefersReducedMotion = useAppReducedMotion()

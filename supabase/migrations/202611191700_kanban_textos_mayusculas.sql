@@ -15,7 +15,7 @@ BEGIN
   v := regexp_replace(v, '\r\n?', E'\n', 'g');
   v := regexp_replace(v, '[\t ]', ' ', 'g');
   -- Control e invisibles (salto de línea se conserva).
-  v := regexp_replace(v, '[\x01-\x09\x0B-\x1F\x7F​-‏ -‮⁠-⁤﻿]', '', 'g');
+  v := regexp_replace(v, '[\x01-\x09\x0B-\x1F\x7F\u200B-\u200F\u2028-\u202E\u2060-\u2064\uFEFF]', '', 'g');
   IF NOT p_multilinea THEN
     v := replace(v, E'\n', ' ');
   END IF;

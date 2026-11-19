@@ -22,8 +22,10 @@ interface KanbanCardDialogProps {
   tarjeta: KanbanTarjeta | null
   /** Columna inicial para tarjetas nuevas. */
   estadoInicial: KanbanEstado
-  /** Datos de partida para una tarjeta nueva (duplicar). */
+  /** Datos de partida para una tarjeta nueva (duplicar o desde otro módulo). */
   base?: DatosTarjeta | null
+  /** La tarjeta nueva es copia de otra. */
+  duplicando?: boolean
   miembros: KanbanMiembro[]
   /** Plantillas del equipo; solo se ofrecen al crear. */
   plantillas: KanbanPlantilla[]
@@ -92,7 +94,7 @@ function ColaboradoresField({ miembros, responsableId, value, onChange }: Colabo
   )
 }
 
-export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros, plantillas, onClose, onSave }: KanbanCardDialogProps) {
+export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplicando = false, miembros, plantillas, onClose, onSave }: KanbanCardDialogProps) {
   const [form, setForm] = useState<DatosTarjeta>(base ?? {
     tipo: tarjeta?.tipo ?? "actividad",
     estado: tarjeta?.estado ?? estadoInicial,
@@ -120,7 +122,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros
     document.getElementById(PRIMER_CAMPO[step])?.focus()
   }, [step])
   const nombreDe = (id: string | null) => miembros.find(miembro => miembro.user_id === id)?.nombre ?? "Usuario sin perfil"
-  const title = tarjeta ? "Editar tarjeta" : base ? "Duplicar tarjeta" : "Nueva tarjeta"
+  const title = tarjeta ? "Editar tarjeta" : duplicando ? "Duplicar tarjeta" : "Nueva tarjeta"
 
   function update<K extends keyof DatosTarjeta>(field: K, value: DatosTarjeta[K]) {
     setForm(current => ({ ...current, [field]: value }))

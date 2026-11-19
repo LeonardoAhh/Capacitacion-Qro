@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase/client"
 import { LoginSubmitButton, type LoginSubmitStatus } from "@/components/login-submit-button"
 import LoginWelcome from "@/components/login-welcome"
 import { LOGIN, loginStyles } from "@/lib/login/presentation"
-import { HOME_PATH } from "@/lib/navigation"
+import { POST_LOGIN_PATH } from "@/lib/navigation"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -52,7 +52,7 @@ export default function LoginForm() {
       const requestedPath = searchParams.get("redirectTo")
       const rawRedirect = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") && requestedPath !== "/" && !requestedPath.startsWith("/auth/redirect")
         ? requestedPath
-        : HOME_PATH
+        : POST_LOGIN_PATH
       setSubmitStatus("success")
 
       router.push("/auth/redirect?to=" + encodeURIComponent(rawRedirect))

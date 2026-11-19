@@ -8,6 +8,7 @@ import { getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { AccountMenu } from "@/components/account-menu"
 import { WorkspaceClock } from "@/components/workspace-clock"
+import { KanbanAvisos } from "@/components/kanban-avisos"
 
 interface HeaderProps {
   titleHref?: string
@@ -62,6 +63,8 @@ export default function Header({
           </div>
 
           <WorkspaceClock isCompact={isEvaluador && !roleLoading} />
+
+          <KanbanAvisos />
 
           {isEvaluador && !roleLoading && (
             <div className="shrink-0">

@@ -2,16 +2,17 @@
 
 import { createContext, useContext } from "react"
 import {
-  BellRing, CalendarDays, CircleSlash, Copy, EllipsisVertical, Flag, HandHelping, LayoutTemplate, ListTodo,
-  Pencil, Sun, SunDim, Trash2, UserPlus,
+  BellRing, CalendarDays, CircleSlash, Copy, EllipsisVertical, Flag, HandHelping, LayoutTemplate, ListChecks, ListTodo,
+  MessageSquare, Pencil, Sun, SunDim, Trash2, UserPlus,
 } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import {
-  estaVencida, etiquetaPrioridad, etiquetaTipo, formatRango, iniciales, participa,
+  estaVencida, etiquetaPrioridad, etiquetaTipo, formatRango, inicial, participa,
   type KanbanMiembro, type KanbanPrioridad, type KanbanTarjeta, type KanbanTipo,
 } from "@/lib/kanban"
 
@@ -64,13 +65,14 @@ export function KanbanFechas({ tarjeta }: { tarjeta: KanbanTarjeta }) {
 
 const AVATAR = "flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-eyebrow text-secondary-foreground"
 
-/** Iniciales del responsable; el nombre completo queda en title y para lectores de pantalla. */
+/** Foto de perfil o, sin foto, la inicial. El nombre completo queda en title y para lectores de pantalla. */
 export function KanbanAvatar({ miembro, rol = "Responsable", className }: { miembro: KanbanMiembro; rol?: string; className?: string }) {
   return (
-    <span title={miembro.nombre} className={cn(AVATAR, className)}>
-      <span aria-hidden="true">{iniciales(miembro.nombre)}</span>
+    <Avatar title={miembro.nombre} className={cn("h-6 w-6", className)}>
+      {miembro.avatar_url && <AvatarImage src={miembro.avatar_url} alt="" className="object-cover" />}
+      <AvatarFallback aria-hidden="true" className={AVATAR}>{inicial(miembro.nombre)}</AvatarFallback>
       <span className="sr-only">{rol}: {miembro.nombre}</span>
-    </span>
+    </Avatar>
   )
 }
 
@@ -125,10 +127,42 @@ export function KanbanBloqueo({ tarjeta }: { tarjeta: KanbanTarjeta }) {
   )
 }
 
+/** Avance del checklist y número de comentarios de una tarjeta. */
+export interface ResumenTarjeta {
+  pasos: number
+  hechos: number
+  comentarios: number
+}
+
+/** Solo aparece si la tarjeta tiene checklist o comentarios. */
+export function KanbanResumen({ resumen }: { resumen?: ResumenTarjeta }) {
+  if (!resumen || (!resumen.pasos && !resumen.comentarios)) return null
+  const completo = resumen.pasos > 0 && resumen.hechos === resumen.pasos
+  return (
+    <span className="flex shrink-0 items-center gap-2 text-body-sm tabular-nums text-muted-foreground">
+      {resumen.pasos > 0 && (
+        <span className={cn("flex items-center gap-1", completo && "text-success")}>
+          <ListChecks className="size-3.5" aria-hidden="true" />
+          {resumen.hechos}/{resumen.pasos}<span className="sr-only"> pasos hechos</span>
+        </span>
+      )}
+      {resumen.comentarios > 0 && (
+        <span className="flex items-center gap-1">
+          <MessageSquare className="size-3.5" aria-hidden="true" />
+          {resumen.comentarios}<span className="sr-only"> {resumen.comentarios === 1 ? "comentario" : "comentarios"}</span>
+        </span>
+      )}
+    </span>
+  )
+}
+
 /** Acciones sobre una tarjeta; las provee la página para no pasarlas por cada nivel. */
 export interface KanbanAcciones {
   userId: string | null
   miDia: Set<string>
+  resumenes: Map<string, ResumenTarjeta>
+  /** Abre el detalle (checklist y comentarios). */
+  ver: (tarjeta: KanbanTarjeta) => void
   editar: (tarjeta: KanbanTarjeta) => void
   duplicar: (tarjeta: KanbanTarjeta) => void
   guardarPlantilla: (tarjeta: KanbanTarjeta) => void

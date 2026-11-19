@@ -2,8 +2,8 @@
 
 import { cn } from "@/lib/utils"
 import {
-  KanbanApoyo, KanbanBloqueo, KanbanFechas, KanbanPersonas, KanbanPrioridadFlag, KanbanTarjetaMenu, KanbanTipoLabel,
-  useKanbanAcciones,
+  KanbanApoyo, KanbanBloqueo, KanbanFechas, KanbanPersonas, KanbanPrioridadFlag, KanbanResumen, KanbanTarjetaMenu,
+  KanbanTipoLabel, useKanbanAcciones,
 } from "@/components/content/kanban-meta"
 import type { KanbanMiembro, KanbanTarjeta } from "@/lib/kanban"
 
@@ -12,9 +12,9 @@ interface KanbanCardProps {
   miembros: Map<string, KanbanMiembro>
 }
 
-/** Tarjeta compacta: tipo, título, bloqueo, descripción breve, fechas y personas. Arrastrable entre columnas. */
+/** Tarjeta compacta: tipo, título, bloqueo, descripción breve, fechas, avance y personas. Arrastrable entre columnas. */
 export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
-  const { editar } = useKanbanAcciones()
+  const { ver, resumenes } = useKanbanAcciones()
   const concluida = tarjeta.estado === "concluido"
 
   return (
@@ -33,7 +33,7 @@ export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
         <KanbanTarjetaMenu tarjeta={tarjeta} className="-mr-1 -mt-1" />
       </div>
 
-      <button type="button" onClick={() => editar(tarjeta)}
+      <button type="button" onClick={() => ver(tarjeta)}
         className={cn(
           "line-clamp-2 break-words rounded-sm text-left text-label-sm",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
@@ -51,6 +51,7 @@ export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
       <div className="flex min-h-6 items-center gap-2">
         <KanbanFechas tarjeta={tarjeta} />
         <div className="ml-auto flex shrink-0 items-center gap-2">
+          <KanbanResumen resumen={resumenes.get(tarjeta.id)} />
           <KanbanPrioridadFlag prioridad={tarjeta.prioridad} />
           <KanbanPersonas tarjeta={tarjeta} miembros={miembros} />
         </div>

@@ -1,4 +1,4 @@
-// TIMESTAMP: 2026-11-19T21:04:30.286Z
+// TIMESTAMP: 2026-11-19T22:46:29.500Z
 const CACHE_NAME = "vinoplastic-v5"
 const STATIC_CACHE = "vinoplastic-static-v5"
 const API_CACHE = "vinoplastic-api-v5"
@@ -93,4 +93,54 @@ self.addEventListener("message", (event) => {
   if (event.data?.type === "SKIP_WAITING") {
     self.skipWaiting()
   }
+})
+
+// Avisos del Kanban enviados por el webhook protegido.
+self.addEventListener("push", (event) => {
+  let payload = {}
+  try {
+    const received = event.data?.json()
+    payload = received && typeof received === "object" ? received : {}
+  } catch {
+    // El aviso sigue siendo visible aunque el payload llegue incompleto.
+  }
+  const title = typeof payload.title === "string" ? payload.title : "Kanban"
+  const body = typeof payload.body === "string" ? payload.body : "Tienes un aviso nuevo."
+  const tag = typeof payload.tag === "string" ? payload.tag : "kanban-aviso"
+  const url = typeof payload.url === "string" ? payload.url : "/kanban"
+
+  event.waitUntil(self.registration.showNotification(title, {
+    body,
+    tag,
+    icon: "/icons/icon-192-any.png",
+    data: { url },
+  }))
+})
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close()
+  const requested = event.notification.data?.url
+  let destination
+  try {
+    destination = new URL(typeof requested === "string" ? requested : "/kanban", self.location.origin)
+  } catch {
+    destination = new URL("/kanban", self.location.origin)
+  }
+  const target = destination.origin === self.location.origin && destination.pathname === "/kanban"
+    ? destination.href
+    : new URL("/kanban", self.location.origin).href
+
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true })
+    const existing = windows.find(client => new URL(client.url).origin === self.location.origin)
+    if (existing) {
+      try {
+        const navigated = existing.url === target ? existing : await existing.navigate(target)
+        if (navigated) return navigated.focus()
+      } catch {
+        // Si la pestaña ya no puede navegar, se abre una nueva.
+      }
+    }
+    return self.clients.openWindow(target)
+  })())
 })

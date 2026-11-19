@@ -17,7 +17,7 @@ const DIAS_SEMANA = 7
  * Las tarjetas sin fecha límite no aparecen aquí.
  */
 export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
-  const { editar } = useKanbanAcciones()
+  const { ver } = useKanbanAcciones()
   const hoy = hoyISO()
   const [inicio, setInicio] = useState(() => inicioSemana(hoy))
   const dias = useMemo(() => Array.from({ length: DIAS_SEMANA }, (_, index) => sumarDias(inicio, index)), [inicio])
@@ -67,7 +67,7 @@ export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
                 <ul className="grid min-w-0 flex-1 gap-1.5 lg:flex-none">
                   {lista.map(tarjeta => (
                     <li key={tarjeta.id}>
-                      <button type="button" onClick={() => editar(tarjeta)}
+                      <button type="button" onClick={() => ver(tarjeta)}
                         className={cn(
                           "flex w-full min-w-0 items-start gap-1.5 rounded-md border border-border px-2 py-1.5 text-left text-body-sm hover:bg-muted",
                           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",

@@ -55,6 +55,8 @@ export type DatosPlantilla = Omit<KanbanPlantilla, "id">
 export interface KanbanMiembro {
   user_id: string
   nombre: string
+  /** Foto de perfil; sin foto se muestra la inicial. */
+  avatar_url: string | null
 }
 
 export const KANBAN_COLUMNS_SELECT =
@@ -117,9 +119,9 @@ export function etiquetaPrioridad(prioridad: KanbanPrioridad): string {
   return KANBAN_PRIORIDADES.find(item => item.prioridad === prioridad)?.label ?? prioridad
 }
 
-/** "Noemí Hernández Gudiño" → "NH". */
-export function iniciales(nombre: string): string {
-  return nombre.trim().split(/\s+/).slice(0, 2).map(parte => parte.charAt(0).toLocaleUpperCase("es-MX")).join("")
+/** "Noemí Hernández Gudiño" → "N". */
+export function inicial(nombre: string): string {
+  return nombre.trim().charAt(0).toLocaleUpperCase("es-MX")
 }
 
 const FECHA_HORA = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" })
@@ -344,4 +346,114 @@ export function normalizarNota(texto: string): string | null {
 export function plantillaDesdeTarjeta(tarjeta: KanbanTarjeta, nombre: string): DatosPlantilla {
   const { tipo, prioridad, titulo, descripcion, repeticion } = tarjeta
   return { nombre: normalizarTexto(nombre), tipo, prioridad, titulo, descripcion, repeticion }
+}
+
+// ─── Checklist, comentarios y avisos ─────────────────────────────────────────
+
+export interface KanbanPaso {
+  id: string
+  tarjeta_id: string
+  texto: string
+  hecho: boolean
+  created_at: string
+}
+
+export interface KanbanComentario {
+  id: string
+  tarjeta_id: string
+  autor_id: string | null
+  texto: string
+  created_at: string
+}
+
+export type KanbanAvisoTipo = "asignada" | "colaborador" | "apoyo_tomado" | "comentario"
+
+export interface KanbanAviso {
+  id: string
+  tarjeta_id: string | null
+  tipo: KanbanAvisoTipo
+  titulo: string
+  actor_nombre: string | null
+  leido: boolean
+  created_at: string
+}
+
+export const KANBAN_PASOS_SELECT = "id,tarjeta_id,texto,hecho,created_at"
+export const KANBAN_COMENTARIOS_SELECT = "id,tarjeta_id,autor_id,texto,created_at"
+export const KANBAN_AVISOS_SELECT = "id,tarjeta_id,tipo,titulo,actor_nombre,leido,created_at"
+/** Igual que la base de datos. */
+export const MAX_PASOS = 30
+export const MAX_PASO = 200
+export const MAX_COMENTARIO = 1000
+/** Avisos recientes que se muestran en la campana. */
+export const LIMITE_AVISOS = 30
+
+const ACCION_AVISO: Record<KanbanAvisoTipo, string> = {
+  asignada: "te asignó",
+  colaborador: "te sumó como colaborador en",
+  apoyo_tomado: "tomó tu pedido de apoyo en",
+  comentario: "comentó en",
+}
+
+/** "ANA LÓPEZ te asignó" (sin el título, que se muestra aparte). */
+export function textoAviso(aviso: Pick<KanbanAviso, "tipo" | "actor_nombre">): string {
+  return `${aviso.actor_nombre ?? "Alguien"} ${ACCION_AVISO[aviso.tipo]}`
+}
+
+const TIEMPO_RELATIVO = new Intl.RelativeTimeFormat("es-MX", { numeric: "auto" })
+
+/** "hace 5 minutos", "ayer". */
+export function formatHace(iso: string, ahora = Date.now()): string {
+  const minutos = Math.round((new Date(iso).getTime() - ahora) / 60_000)
+  if (Math.abs(minutos) < 60) return TIEMPO_RELATIVO.format(minutos, "minute")
+  const horas = Math.round(minutos / 60)
+  if (Math.abs(horas) < 24) return TIEMPO_RELATIVO.format(horas, "hour")
+  return TIEMPO_RELATIVO.format(Math.round(horas / 24), "day")
+}
+
+/** Mis tarjetas abiertas que vencen hoy o mañana (las vencidas ya se marcan en el tablero). */
+export function porVencer<T extends Pick<KanbanTarjeta, "estado" | "fecha_limite" | "responsable_id" | "colaboradores">>(
+  tarjetas: T[], userId: string, hoy = hoyISO(),
+): T[] {
+  const manana = sumarDias(hoy, 1)
+  return tarjetas.filter(tarjeta => tarjeta.estado !== "concluido" && participa(tarjeta, userId)
+    && tarjeta.fecha_limite !== null && tarjeta.fecha_limite >= hoy && tarjeta.fecha_limite <= manana)
+}
+
+// ─── Crear tarjetas desde otros módulos ──────────────────────────────────────
+
+export type TarjetaDesde = Pick<DatosTarjeta, "titulo" | "descripcion" | "fecha_inicio" | "fecha_limite">
+
+const PARAM_NUEVA = "nueva"
+export const PARAM_TARJETA = "tarjeta"
+
+/** Primer y último día del mes (mes 1–12). */
+export function rangoDelMes(anio: number, mes: number): Pick<TarjetaDesde, "fecha_inicio" | "fecha_limite"> {
+  const inicio = `${anio}-${String(mes).padStart(2, "0")}-01`
+  return { fecha_inicio: inicio, fecha_limite: sumarDias(`${anio}-${String(mes + 1).padStart(2, "0")}-01`, -1) }
+}
+
+/** Enlace al tablero que abre "Nueva tarjeta" con estos datos. */
+export function enlaceNuevaTarjeta(datos: TarjetaDesde): string {
+  const params = new URLSearchParams({ [PARAM_NUEVA]: "1", titulo: datos.titulo, descripcion: datos.descripcion })
+  if (datos.fecha_inicio) params.set("inicio", datos.fecha_inicio)
+  if (datos.fecha_limite) params.set("limite", datos.fecha_limite)
+  return `/kanban?${params.toString()}`
+}
+
+const FECHA_ISO = /^\d{4}-\d{2}-\d{2}$/
+
+/** Lee los datos de enlaceNuevaTarjeta; null si el enlace no pide una tarjeta nueva. */
+export function leerNuevaTarjeta(params: URLSearchParams): TarjetaDesde | null {
+  if (params.get(PARAM_NUEVA) !== "1") return null
+  const fecha = (key: string) => {
+    const value = params.get(key)
+    return value && FECHA_ISO.test(value) ? value : null
+  }
+  return {
+    titulo: normalizarTexto(params.get("titulo") ?? "").slice(0, MAX_TITULO),
+    descripcion: normalizarTexto(params.get("descripcion") ?? "", true).slice(0, MAX_DESCRIPCION),
+    fecha_inicio: fecha("inicio"),
+    fecha_limite: fecha("limite"),
+  }
 }

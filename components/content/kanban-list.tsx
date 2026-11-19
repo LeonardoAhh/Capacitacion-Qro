@@ -40,7 +40,7 @@ function KanbanListPlaceholderRows() {
 
 /** Vista de lista: una fila por tarjeta, con las mismas piezas que la vista de tablero. */
 export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
-  const { editar } = useKanbanAcciones()
+  const { ver } = useKanbanAcciones()
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <Table aria-label={tarjetas.length ? "Tarjetas" : "Tarjetas, sin registros"} className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm">
@@ -63,7 +63,7 @@ export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
               <TableRow key={tarjeta.id}>
                 <TableCell className="max-w-md">
                   <span className="flex min-w-0 items-center gap-2">
-                    <button type="button" onClick={() => editar(tarjeta)}
+                    <button type="button" onClick={() => ver(tarjeta)}
                       className={cn(
                         "line-clamp-1 min-w-0 break-all rounded-sm text-left text-label-sm",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",

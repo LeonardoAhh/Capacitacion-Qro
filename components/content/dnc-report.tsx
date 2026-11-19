@@ -163,7 +163,7 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, onSaveHeader
 
       <section aria-label="Necesidades de capacitación">
         <Card className="overflow-hidden">
-          <DncNeedsTable necesidades={necesidades} puestos={puestos} departmentName={nombreDepartamento(reporte)}
+          <DncNeedsTable necesidades={necesidades} puestos={puestos} departmentName={nombreDepartamento(reporte)} anio={reporte.anio}
             canEdit={canEdit} onEdit={onEdit} onDelete={onDelete} />
         </Card>
       </section>

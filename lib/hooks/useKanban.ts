@@ -4,13 +4,16 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import {
-  hoyISO, KANBAN_COLUMNS_SELECT, KANBAN_PLANTILLAS_SELECT,
-  type DatosPlantilla, type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPlantilla, type KanbanTarjeta,
+  hoyISO, KANBAN_COLUMNS_SELECT, KANBAN_COMENTARIOS_SELECT, KANBAN_PASOS_SELECT, KANBAN_PLANTILLAS_SELECT,
+  type DatosPlantilla, type DatosTarjeta, type KanbanComentario, type KanbanEstado, type KanbanMiembro, type KanbanPaso,
+  type KanbanPlantilla, type KanbanTarjeta,
 } from "@/lib/kanban"
 
 const TABLA = "kanban_tarjetas"
 const TABLA_PLANTILLAS = "kanban_plantillas"
 const TABLA_MI_DIA = "kanban_mi_dia"
+const TABLA_PASOS = "kanban_checklist"
+const TABLA_COMENTARIOS = "kanban_comentarios"
 
 /** Campos que se pueden cambiar desde el tablero (formulario y acciones rápidas). */
 export type CambiosTarjeta = Partial<DatosTarjeta & Pick<KanbanTarjeta, "necesita_apoyo" | "apoyo_nota" | "bloqueo_motivo">>
@@ -30,6 +33,8 @@ export function useKanban() {
   const [tarjetas, setTarjetas] = useState<KanbanTarjeta[]>([])
   const [miembros, setMiembros] = useState<KanbanMiembro[]>([])
   const [plantillas, setPlantillas] = useState<KanbanPlantilla[]>([])
+  const [pasos, setPasos] = useState<KanbanPaso[]>([])
+  const [comentarios, setComentarios] = useState<KanbanComentario[]>([])
   /** Tarjetas que la persona agregó a su día de hoy. */
   const [miDia, setMiDia] = useState<Set<string>>(() => new Set())
   const [loading, setLoading] = useState(true)
@@ -41,13 +46,16 @@ export function useKanban() {
   const cargar = useCallback(async () => {
     setError(null)
     // RLS limita "Mi día" a las filas de quien consulta.
-    const [tarjetasResult, miembrosResult, plantillasResult, miDiaResult] = await Promise.all([
+    const [tarjetasResult, miembrosResult, plantillasResult, miDiaResult, pasosResult, comentariosResult] = await Promise.all([
       supabase.from(TABLA).select(KANBAN_COLUMNS_SELECT).order("created_at"),
       supabase.rpc("kanban_miembros"),
       supabase.from(TABLA_PLANTILLAS).select(KANBAN_PLANTILLAS_SELECT).order("nombre"),
       supabase.from(TABLA_MI_DIA).select("tarjeta_id").eq("fecha", hoyISO()),
+      supabase.from(TABLA_PASOS).select(KANBAN_PASOS_SELECT).order("created_at"),
+      supabase.from(TABLA_COMENTARIOS).select(KANBAN_COMENTARIOS_SELECT).order("created_at"),
     ])
     const fallo = tarjetasResult.error ?? miembrosResult.error ?? plantillasResult.error ?? miDiaResult.error
+      ?? pasosResult.error ?? comentariosResult.error
     if (fallo) {
       setError(describeSupabaseError(fallo, "No se pudo cargar el tablero"))
     } else {
@@ -56,6 +64,8 @@ export function useKanban() {
         .sort((left, right) => left.nombre.localeCompare(right.nombre, "es")))
       setPlantillas((plantillasResult.data ?? []) as unknown as KanbanPlantilla[])
       setMiDia(new Set(((miDiaResult.data ?? []) as { tarjeta_id: string }[]).map(row => row.tarjeta_id)))
+      setPasos((pasosResult.data ?? []) as unknown as KanbanPaso[])
+      setComentarios((comentariosResult.data ?? []) as unknown as KanbanComentario[])
     }
     setLoading(false)
   }, [])
@@ -83,6 +93,24 @@ export function useKanban() {
           return
         }
         setPlantillas(current => upsert(current, payload.new as KanbanPlantilla))
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: TABLA_PASOS }, payload => {
+        if (!active) return
+        if (payload.eventType === "DELETE") {
+          const id = (payload.old as { id?: string }).id
+          if (id) setPasos(current => current.filter(paso => paso.id !== id))
+          return
+        }
+        setPasos(current => upsert(current, payload.new as KanbanPaso))
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: TABLA_COMENTARIOS }, payload => {
+        if (!active) return
+        if (payload.eventType === "DELETE") {
+          const id = (payload.old as { id?: string }).id
+          if (id) setComentarios(current => current.filter(comentario => comentario.id !== id))
+          return
+        }
+        setComentarios(current => upsert(current, payload.new as KanbanComentario))
       })
       .subscribe()
 
@@ -156,8 +184,45 @@ export function useKanban() {
     setPlantillas(current => current.filter(plantilla => plantilla.id !== id))
   }, [])
 
+  const agregarPaso = useCallback(async (tarjetaId: string, texto: string) => {
+    const { data, error: dbError } = await supabase.from(TABLA_PASOS).insert({ tarjeta_id: tarjetaId, texto })
+      .select(KANBAN_PASOS_SELECT).single()
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo agregar el paso"))
+    setPasos(current => upsert(current, data as unknown as KanbanPaso))
+  }, [])
+
+  /** Marcar o desmarcar es optimista: se revierte si falla. */
+  const marcarPaso = useCallback(async (id: string, hecho: boolean) => {
+    setPasos(current => current.map(paso => paso.id === id ? { ...paso, hecho } : paso))
+    const { error: dbError } = await supabase.from(TABLA_PASOS).update({ hecho }).eq("id", id)
+    if (dbError) {
+      setPasos(current => current.map(paso => paso.id === id ? { ...paso, hecho: !hecho } : paso))
+      throw new Error(describeSupabaseError(dbError, "No se pudo actualizar el paso"))
+    }
+  }, [])
+
+  const eliminarPaso = useCallback(async (id: string) => {
+    const { error: dbError } = await supabase.from(TABLA_PASOS).delete().eq("id", id)
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo eliminar el paso"))
+    setPasos(current => current.filter(paso => paso.id !== id))
+  }, [])
+
+  const comentar = useCallback(async (tarjetaId: string, texto: string) => {
+    const { data, error: dbError } = await supabase.from(TABLA_COMENTARIOS).insert({ tarjeta_id: tarjetaId, texto })
+      .select(KANBAN_COMENTARIOS_SELECT).single()
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo publicar el comentario"))
+    setComentarios(current => upsert(current, data as unknown as KanbanComentario))
+  }, [])
+
+  const eliminarComentario = useCallback(async (id: string) => {
+    const { error: dbError } = await supabase.from(TABLA_COMENTARIOS).delete().eq("id", id)
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo eliminar el comentario"))
+    setComentarios(current => current.filter(comentario => comentario.id !== id))
+  }, [])
+
   return {
-    tarjetas, miembros, plantillas, miDia, loading, error, recargar: cargar,
+    tarjetas, miembros, plantillas, miDia, pasos, comentarios, loading, error, recargar: cargar,
     crear, actualizar, mover, eliminar, alternarMiDia, crearPlantilla, eliminarPlantilla,
+    agregarPaso, marcarPaso, eliminarPaso, comentar, eliminarComentario,
   }
 }

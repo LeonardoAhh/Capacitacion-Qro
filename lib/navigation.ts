@@ -34,6 +34,8 @@ export interface NavSection {
 }
 
 export const HOME_PATH = "/inicio"
+/** Destino al iniciar sesión (dev y admin); los evaluadores van a Desempeño. */
+export const POST_LOGIN_PATH = "/kanban"
 export const LOGIN_PATH = "/login"
 export const SETTINGS_PATH = "/settings"
 export const ASSIGNMENTS_PATH = "/asignaciones"

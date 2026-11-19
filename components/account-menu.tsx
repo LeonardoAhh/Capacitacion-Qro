@@ -23,6 +23,7 @@ import { LOGIN_PATH, SETTINGS_PATH } from "@/lib/navigation"
 import { SYSTEM_CREDIT, SYSTEM_VERSION } from "@/lib/constants/system"
 import { ROLE_LABELS } from "@/lib/constants/roles"
 import { supabase } from "@/lib/supabase/client"
+import { deactivateKanbanPush } from "@/lib/kanban-push"
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
 import { useSignOut } from "@/components/signout-overlay"
@@ -82,6 +83,11 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
 
     setSigningOut(true)
     try {
+      try {
+        await deactivateKanbanPush()
+      } catch (error) {
+        console.warn("No se pudo retirar la suscripción push al cerrar sesión:", error)
+      }
       const { error } = await supabase.auth.signOut({ scope: "local" })
       if (error) {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()

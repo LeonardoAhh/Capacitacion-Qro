@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { CalendarRange, LayoutTemplate, List, Plus, SquareKanban, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -8,8 +9,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { KanbanCalendar } from "@/components/content/kanban-calendar"
 import { KanbanCardDialog } from "@/components/content/kanban-card-dialog"
 import { KanbanColumn } from "@/components/content/kanban-column"
+import { KanbanDetailDialog } from "@/components/content/kanban-detail-dialog"
 import { KanbanList } from "@/components/content/kanban-list"
-import { KanbanAccionesProvider, type KanbanAcciones } from "@/components/content/kanban-meta"
+import { KanbanAccionesProvider, type KanbanAcciones, type ResumenTarjeta } from "@/components/content/kanban-meta"
 import { KanbanMiDia } from "@/components/content/kanban-mi-dia"
 import { KanbanNotaDialog, type KanbanNotaConfig } from "@/components/content/kanban-nota-dialog"
 import { KanbanPlantillasDialog } from "@/components/content/kanban-plantillas-dialog"
@@ -18,9 +20,9 @@ import { useKanban, type CambiosTarjeta } from "@/lib/hooks/useKanban"
 import { useUser } from "@/lib/hooks/useUser"
 import { notify } from "@/lib/notify"
 import {
-  DIAS_CONCLUIDAS_VISIBLES, enProgresoDe, esConcluidaAntigua, KANBAN_COLUMNAS, LIMITE_EN_PROGRESO, MAX_TITULO,
-  ordenarTarjetas, plantillaDesdeTarjeta,
-  type DatosTarjeta, type KanbanEstado, type KanbanPlantilla, type KanbanTarjeta,
+  DIAS_CONCLUIDAS_VISIBLES, enProgresoDe, esConcluidaAntigua, KANBAN_COLUMNAS, leerNuevaTarjeta, LIMITE_EN_PROGRESO,
+  MAX_TITULO, ordenarTarjetas, PARAM_TARJETA, plantillaDesdeTarjeta,
+  type DatosTarjeta, type KanbanEstado, type KanbanPlantilla, type KanbanTarjeta, type TarjetaDesde,
 } from "@/lib/kanban"
 
 type Vista = "tablero" | "lista" | "calendario" | "equipo"
@@ -41,15 +43,44 @@ function mensaje(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback
 }
 
+/**
+ * Enlaces de otros módulos y de los avisos: ?tarjeta=<id> abre el detalle y
+ * ?nueva=1&… abre "Nueva tarjeta" con datos. Se atienden una vez y se limpia la URL.
+ * Va en Suspense porque lee los parámetros de búsqueda.
+ */
+function KanbanEnlaces({ listo, onAbrir, onNueva }: {
+  listo: boolean
+  onAbrir: (id: string) => void
+  onNueva: (datos: TarjetaDesde) => void
+}) {
+  const params = useSearchParams()
+  const router = useRouter()
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (!listo || !params.toString()) return
+    const id = params.get(PARAM_TARJETA)
+    const nueva = leerNuevaTarjeta(params)
+    if (id) onAbrir(id)
+    else if (nueva) onNueva(nueva)
+    router.replace(pathname, { scroll: false })
+  }, [listo, params, router, pathname, onAbrir, onNueva])
+
+  return null
+}
+
 export default function KanbanPage() {
   const {
     tarjetas, miembros, plantillas, miDia, loading, error, recargar,
-    crear, actualizar, mover, eliminar, alternarMiDia, crearPlantilla, eliminarPlantilla,
+    pasos, comentarios, crear, actualizar, mover, eliminar, alternarMiDia, crearPlantilla, eliminarPlantilla,
+    agregarPaso, marcarPaso, eliminarPaso, comentar, eliminarComentario,
   } = useKanban()
   const userId = useUser().user?.id ?? null
   const [vista, setVista] = useState<Vista>("tablero")
-  const [dialog, setDialog] = useState<{ tarjeta: KanbanTarjeta | null; estado: KanbanEstado; base?: DatosTarjeta } | null>(null)
+  const [dialog, setDialog] = useState<{ tarjeta: KanbanTarjeta | null; estado: KanbanEstado; base?: DatosTarjeta; duplicando?: boolean } | null>(null)
   const [nota, setNota] = useState<KanbanNotaConfig | null>(null)
+  // Solo el id: la tarjeta se toma de la lista para reflejar cambios en tiempo real.
+  const [detalleId, setDetalleId] = useState<string | null>(null)
   const [verPlantillas, setVerPlantillas] = useState(false)
   // Las concluidas antiguas quedan ocultas hasta pedirlas; se recuerda solo en esta visita.
   const [verAnteriores, setVerAnteriores] = useState(false)
@@ -85,6 +116,33 @@ export default function KanbanPage() {
   // La lista sigue el orden de las columnas y, dentro de cada estado, el mismo orden del tablero.
   const enLista = useMemo(() => porColumna.flatMap(columna => columna.tarjetas), [porColumna])
   const deMiDia = useMemo(() => ordenarTarjetas(tarjetas.filter(tarjeta => miDia.has(tarjeta.id))), [tarjetas, miDia])
+  const resumenes = useMemo(() => {
+    const mapa = new Map<string, ResumenTarjeta>()
+    const de = (id: string) => {
+      const actual = mapa.get(id) ?? { pasos: 0, hechos: 0, comentarios: 0 }
+      mapa.set(id, actual)
+      return actual
+    }
+    for (const paso of pasos) {
+      const resumen = de(paso.tarjeta_id)
+      resumen.pasos += 1
+      if (paso.hecho) resumen.hechos += 1
+    }
+    for (const comentario of comentarios) de(comentario.tarjeta_id).comentarios += 1
+    return mapa
+  }, [pasos, comentarios])
+  const detalle = detalleId ? tarjetas.find(tarjeta => tarjeta.id === detalleId) ?? null : null
+
+  // Estables para el efecto de KanbanEnlaces.
+  const abrirDesdeEnlace = useCallback((id: string) => setDetalleId(id), [])
+  const nuevaDesdeEnlace = useCallback((datos: TarjetaDesde) => setDialog({
+    tarjeta: null,
+    estado: "por_hacer",
+    base: {
+      tipo: "actividad", estado: "por_hacer", prioridad: "media", responsable_id: null, repeticion: "ninguna", colaboradores: [],
+      ...datos,
+    },
+  }), [])
 
   const verAnterioresBoton = antiguas > 0 && (
     <Button type="button" variant="ghost" size="sm" className="self-start px-2 text-muted-foreground"
@@ -159,6 +217,22 @@ export default function KanbanPage() {
     }
   }
 
+  async function handleDeleteComentario(id: string) {
+    const confirmed = await notify.confirm({
+      title: "Eliminar comentario",
+      description: "Se eliminará tu comentario para todo el equipo.",
+      confirmLabel: "Eliminar",
+      tone: "destructive",
+      appearance: "minimal",
+    })
+    if (!confirmed) return
+    try {
+      await eliminarComentario(id)
+    } catch (cause) {
+      notify.error(mensaje(cause, "No se pudo eliminar el comentario."))
+    }
+  }
+
   async function handleDeletePlantilla(plantilla: KanbanPlantilla) {
     const confirmed = await notify.confirm({
       title: "Eliminar plantilla",
@@ -179,11 +253,13 @@ export default function KanbanPage() {
   const acciones: KanbanAcciones = {
     userId,
     miDia,
+    resumenes,
+    ver: tarjeta => setDetalleId(tarjeta.id),
     editar: tarjeta => setDialog({ tarjeta, estado: tarjeta.estado }),
     duplicar: tarjeta => {
       const { tipo, estado, prioridad, titulo, descripcion, fecha_inicio, fecha_limite, responsable_id, repeticion, colaboradores } = tarjeta
       setDialog({
-        tarjeta: null, estado,
+        tarjeta: null, estado, duplicando: true,
         base: { tipo, estado, prioridad, titulo, descripcion, fecha_inicio, fecha_limite, responsable_id, repeticion, colaboradores },
       })
     },
@@ -244,6 +320,9 @@ export default function KanbanPage() {
 
   return (
     <KanbanAccionesProvider value={acciones}>
+      <Suspense fallback={null}>
+        <KanbanEnlaces listo={!loading && !error} onAbrir={abrirDesdeEnlace} onNueva={nuevaDesdeEnlace} />
+      </Suspense>
       <div className="space-y-4">
         <div className="flex items-center gap-2 sm:gap-3">
           <Tabs value={vista} onValueChange={value => cambiarVista(value as Vista)}>
@@ -307,8 +386,27 @@ export default function KanbanPage() {
 
         {dialog && (
           <KanbanCardDialog key={dialog.tarjeta?.id ?? `nueva-${dialog.estado}`} tarjeta={dialog.tarjeta}
-            estadoInicial={dialog.estado} base={dialog.base} miembros={miembros} plantillas={plantillas}
+            estadoInicial={dialog.estado} base={dialog.base} duplicando={dialog.duplicando} miembros={miembros} plantillas={plantillas}
             onClose={() => setDialog(null)} onSave={handleSave} />
+        )}
+        {detalle && !dialog && (
+          <KanbanDetailDialog key={detalle.id} tarjeta={detalle} miembros={miembrosPorId} userId={userId}
+            pasos={pasos.filter(paso => paso.tarjeta_id === detalle.id)}
+            comentarios={comentarios.filter(comentario => comentario.tarjeta_id === detalle.id)}
+            onClose={() => setDetalleId(null)}
+            onEdit={() => {
+              setDetalleId(null)
+              setDialog({ tarjeta: detalle, estado: detalle.estado })
+            }}
+            onAgregarPaso={texto => agregarPaso(detalle.id, texto)}
+            onMarcarPaso={(paso, hecho) => {
+              marcarPaso(paso.id, hecho).catch(cause => notify.error(mensaje(cause, "No se pudo actualizar el paso.")))
+            }}
+            onEliminarPaso={paso => {
+              eliminarPaso(paso.id).catch(cause => notify.error(mensaje(cause, "No se pudo eliminar el paso.")))
+            }}
+            onComentar={texto => comentar(detalle.id, texto)}
+            onEliminarComentario={comentario => void handleDeleteComentario(comentario.id)} />
         )}
         {nota && <KanbanNotaDialog config={nota} onClose={() => setNota(null)} />}
         {verPlantillas && (

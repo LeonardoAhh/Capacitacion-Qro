@@ -6,6 +6,9 @@ const PUBLIC_ROUTES = ['/login', '/guia-evaluador', '/manifest.webmanifest', '/s
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Supabase llama este webhook sin sesión; la ruta valida su secreto.
+  if (pathname === '/api/kanban/push') return NextResponse.next()
+
   // Rutas públicas — dejar pasar siempre
   if (PUBLIC_ROUTES.some(r => pathname.startsWith(r))) {
     return NextResponse.next()
@@ -33,7 +36,7 @@ export async function proxy(request: NextRequest) {
   // Sin sesión → redirigir a login
   if (!user) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirectTo', pathname === '/' || pathname.startsWith('/auth/redirect') ? '/inicio' : pathname)
+    loginUrl.searchParams.set('redirectTo', pathname === '/' || pathname.startsWith('/auth/redirect') ? '/kanban' : pathname)
     return NextResponse.redirect(loginUrl)
   }
 
