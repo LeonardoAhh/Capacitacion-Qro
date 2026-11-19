@@ -14,9 +14,6 @@ interface KanbanColumnProps {
   tarjetas: KanbanTarjeta[]
   miembros: Map<string, KanbanMiembro>
   onAdd: (estado: KanbanEstado) => void
-  onEdit: (tarjeta: KanbanTarjeta) => void
-  onDuplicate: (tarjeta: KanbanTarjeta) => void
-  onDelete: (tarjeta: KanbanTarjeta) => void
   onDropCard: (id: string, estado: KanbanEstado) => void
   /** Contenido opcional al pie de la columna (p. ej. "Ver anteriores"). */
   footer?: ReactNode
@@ -46,7 +43,7 @@ function KanbanCardPlaceholder() {
 }
 
 /** Columna del tablero: encabezado con conteo, lista de tarjetas y zona para soltar. */
-export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onEdit, onDuplicate, onDelete, onDropCard, footer }: KanbanColumnProps) {
+export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onDropCard, footer }: KanbanColumnProps) {
   const [dragOver, setDragOver] = useState(false)
   const titleId = `kanban-columna-${estado}`
 
@@ -88,7 +85,7 @@ export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onEdit,
         <ul className="grid gap-2">
           {tarjetas.map(tarjeta => (
             <li key={tarjeta.id}>
-              <KanbanCard tarjeta={tarjeta} responsable={tarjeta.responsable_id ? miembros.get(tarjeta.responsable_id) ?? null : null} onEdit={onEdit} onDuplicate={onDuplicate} onDelete={onDelete} />
+              <KanbanCard tarjeta={tarjeta} miembros={miembros} />
             </li>
           ))}
         </ul>

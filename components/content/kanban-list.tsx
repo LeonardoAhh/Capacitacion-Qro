@@ -3,16 +3,16 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import { KanbanAvatar, KanbanFechas, KanbanPrioridadFlag, KanbanTarjetaMenu, KanbanTipoLabel } from "@/components/content/kanban-meta"
+import {
+  KanbanApoyo, KanbanBloqueo, KanbanFechas, KanbanPersonas, KanbanPrioridadFlag, KanbanTarjetaMenu, KanbanTipoLabel,
+  useKanbanAcciones,
+} from "@/components/content/kanban-meta"
 import { etiquetaEstado, type KanbanMiembro, type KanbanTarjeta } from "@/lib/kanban"
 
 interface KanbanListProps {
   /** Ya ordenadas (por columna y dentro de cada columna). */
   tarjetas: KanbanTarjeta[]
   miembros: Map<string, KanbanMiembro>
-  onEdit: (tarjeta: KanbanTarjeta) => void
-  onDuplicate: (tarjeta: KanbanTarjeta) => void
-  onDelete: (tarjeta: KanbanTarjeta) => void
 }
 
 /** Lista vacía: filas de muestra con esqueletos estáticos (no es una carga en curso). */
@@ -39,7 +39,8 @@ function KanbanListPlaceholderRows() {
 }
 
 /** Vista de lista: una fila por tarjeta, con las mismas piezas que la vista de tablero. */
-export function KanbanList({ tarjetas, miembros, onEdit, onDuplicate, onDelete }: KanbanListProps) {
+export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
+  const { editar } = useKanbanAcciones()
   return (
     <div className="overflow-hidden rounded-xl border border-border">
       <Table aria-label={tarjetas.length ? "Tarjetas" : "Tarjetas, sin registros"} className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm">
@@ -61,14 +62,18 @@ export function KanbanList({ tarjetas, miembros, onEdit, onDuplicate, onDelete }
             return (
               <TableRow key={tarjeta.id}>
                 <TableCell className="max-w-md">
-                  <button type="button" onClick={() => onEdit(tarjeta)}
-                    className={cn(
-                      "line-clamp-1 break-all rounded-sm text-left text-label-sm",
-                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                      tarjeta.estado === "concluido" ? "text-muted-foreground" : "text-foreground",
-                    )}>
-                    {tarjeta.titulo}
-                  </button>
+                  <span className="flex min-w-0 items-center gap-2">
+                    <button type="button" onClick={() => editar(tarjeta)}
+                      className={cn(
+                        "line-clamp-1 min-w-0 break-all rounded-sm text-left text-label-sm",
+                        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                        tarjeta.estado === "concluido" ? "text-muted-foreground" : "text-foreground",
+                      )}>
+                      {tarjeta.titulo}
+                    </button>
+                    <KanbanApoyo tarjeta={tarjeta} />
+                  </span>
+                  {tarjeta.estado !== "concluido" && <KanbanBloqueo tarjeta={tarjeta} />}
                   {tarjeta.descripcion && (
                     <p className="line-clamp-1 text-body-sm text-muted-foreground">{tarjeta.descripcion}</p>
                   )}
@@ -79,7 +84,7 @@ export function KanbanList({ tarjetas, miembros, onEdit, onDuplicate, onDelete }
                 <TableCell>
                   {responsable ? (
                     <span className="flex min-w-0 items-center gap-2">
-                      <KanbanAvatar miembro={responsable} />
+                      <KanbanPersonas tarjeta={tarjeta} miembros={miembros} />
                       <span aria-hidden="true" className="truncate text-body-md text-foreground">{responsable.nombre}</span>
                     </span>
                   ) : <span className="text-body-sm text-muted-foreground">Sin asignar</span>}
@@ -88,7 +93,7 @@ export function KanbanList({ tarjetas, miembros, onEdit, onDuplicate, onDelete }
                   <KanbanFechas tarjeta={tarjeta} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <KanbanTarjetaMenu tarjeta={tarjeta} onEdit={onEdit} onDuplicate={onDuplicate} onDelete={onDelete} />
+                  <KanbanTarjetaMenu tarjeta={tarjeta} />
                 </TableCell>
               </TableRow>
             )

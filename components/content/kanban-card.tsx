@@ -1,20 +1,20 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { KanbanAvatar, KanbanFechas, KanbanPrioridadFlag, KanbanTarjetaMenu, KanbanTipoLabel } from "@/components/content/kanban-meta"
+import {
+  KanbanApoyo, KanbanBloqueo, KanbanFechas, KanbanPersonas, KanbanPrioridadFlag, KanbanTarjetaMenu, KanbanTipoLabel,
+  useKanbanAcciones,
+} from "@/components/content/kanban-meta"
 import type { KanbanMiembro, KanbanTarjeta } from "@/lib/kanban"
 
 interface KanbanCardProps {
   tarjeta: KanbanTarjeta
-  /** Integrante asignado, si existe. */
-  responsable: KanbanMiembro | null
-  onEdit: (tarjeta: KanbanTarjeta) => void
-  onDuplicate: (tarjeta: KanbanTarjeta) => void
-  onDelete: (tarjeta: KanbanTarjeta) => void
+  miembros: Map<string, KanbanMiembro>
 }
 
-/** Tarjeta compacta: tipo, título, descripción breve y fechas. Arrastrable entre columnas. */
-export function KanbanCard({ tarjeta, responsable, onEdit, onDuplicate, onDelete }: KanbanCardProps) {
+/** Tarjeta compacta: tipo, título, bloqueo, descripción breve, fechas y personas. Arrastrable entre columnas. */
+export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
+  const { editar } = useKanbanAcciones()
   const concluida = tarjeta.estado === "concluido"
 
   return (
@@ -29,10 +29,11 @@ export function KanbanCard({ tarjeta, responsable, onEdit, onDuplicate, onDelete
     >
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1 pt-0.5"><KanbanTipoLabel tipo={tarjeta.tipo} /></div>
-        <KanbanTarjetaMenu tarjeta={tarjeta} onEdit={onEdit} onDuplicate={onDuplicate} onDelete={onDelete} className="-mr-1 -mt-1" />
+        <KanbanApoyo tarjeta={tarjeta} />
+        <KanbanTarjetaMenu tarjeta={tarjeta} className="-mr-1 -mt-1" />
       </div>
 
-      <button type="button" onClick={() => onEdit(tarjeta)}
+      <button type="button" onClick={() => editar(tarjeta)}
         className={cn(
           "line-clamp-2 break-words rounded-sm text-left text-label-sm",
           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
@@ -40,6 +41,8 @@ export function KanbanCard({ tarjeta, responsable, onEdit, onDuplicate, onDelete
         )}>
         {tarjeta.titulo}
       </button>
+
+      {!concluida && <KanbanBloqueo tarjeta={tarjeta} />}
 
       {tarjeta.descripcion && (
         <p className="line-clamp-2 break-words text-body-sm text-muted-foreground">{tarjeta.descripcion}</p>
@@ -49,7 +52,7 @@ export function KanbanCard({ tarjeta, responsable, onEdit, onDuplicate, onDelete
         <KanbanFechas tarjeta={tarjeta} />
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <KanbanPrioridadFlag prioridad={tarjeta.prioridad} />
-          {responsable && <KanbanAvatar miembro={responsable} />}
+          <KanbanPersonas tarjeta={tarjeta} miembros={miembros} />
         </div>
       </div>
     </article>

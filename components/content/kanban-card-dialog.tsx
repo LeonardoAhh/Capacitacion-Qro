@@ -1,16 +1,21 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Stepper } from "@/components/ui/stepper"
+import { cn } from "@/lib/utils"
 import {
-  formatFechaHora, KANBAN_COLUMNAS, limpiarAlEscribir, normalizarTarjeta, normalizarTexto, KANBAN_PRIORIDADES, KANBAN_REPETICIONES, KANBAN_TIPOS, MAX_DESCRIPCION, MAX_TITULO, validarContenido, validarTarjeta,
-  type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPrioridad, type KanbanRepeticion, type KanbanTarjeta, type KanbanTipo,
+  formatFechaHora, KANBAN_COLUMNAS, limpiarAlEscribir, normalizarTarjeta, normalizarTexto, KANBAN_PRIORIDADES, KANBAN_REPETICIONES, KANBAN_TIPOS, MAX_COLABORADORES, MAX_DESCRIPCION, MAX_TITULO, validarContenido, validarTarjeta,
+  type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPlantilla, type KanbanPrioridad, type KanbanRepeticion, type KanbanTarjeta, type KanbanTipo,
 } from "@/lib/kanban"
 
 interface KanbanCardDialogProps {
@@ -20,11 +25,14 @@ interface KanbanCardDialogProps {
   /** Datos de partida para una tarjeta nueva (duplicar). */
   base?: DatosTarjeta | null
   miembros: KanbanMiembro[]
+  /** Plantillas del equipo; solo se ofrecen al crear. */
+  plantillas: KanbanPlantilla[]
   onClose: () => void
   onSave: (datos: DatosTarjeta) => Promise<void>
 }
 
 const SIN_ASIGNAR = "sin-asignar"
+const SIN_PLANTILLA = "sin-plantilla"
 const PASOS = ["Contenido", "Seguimiento"] as const
 type Paso = 1 | 2
 // Campo que recibe el foco al entrar a cada paso.
@@ -32,7 +40,59 @@ const PRIMER_CAMPO: Record<Paso, string> = { 1: "kanban-titulo", 2: "kanban-esta
 
 const FIELD = "grid min-w-0 content-start gap-2"
 
-export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros, onClose, onSave }: KanbanCardDialogProps) {
+interface ColaboradoresFieldProps {
+  miembros: KanbanMiembro[]
+  responsableId: string | null
+  value: string[]
+  onChange: (value: string[]) => void
+}
+
+/** Selección múltiple compacta: el disparador resume a quiénes se eligió. */
+function ColaboradoresField({ miembros, responsableId, value, onChange }: ColaboradoresFieldProps) {
+  const opciones = miembros.filter(miembro => miembro.user_id !== responsableId)
+  const elegidos = opciones.filter(miembro => value.includes(miembro.user_id))
+  const resumen = elegidos.length === 0 ? "Sin colaboradores"
+    : elegidos.length <= 2 ? elegidos.map(miembro => miembro.nombre).join(", ")
+    : `${elegidos.length} personas`
+  const lleno = value.length >= MAX_COLABORADORES
+
+  return (
+    <div className={FIELD}>
+      <Label htmlFor="kanban-colaboradores">Colaboradores <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button id="kanban-colaboradores" type="button" variant="outline" disabled={!opciones.length}
+            className="w-full justify-between px-3 font-normal">
+            <span className={cn("truncate", !elegidos.length && "text-muted-foreground")}>{resumen}</span>
+            <ChevronDown className="text-muted-foreground" aria-hidden="true" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="start" className="max-h-60 w-[var(--radix-popover-trigger-width)] overflow-y-auto p-1">
+          <ul aria-label="Colaboradores" className="grid">
+            {opciones.map(miembro => {
+              const checked = value.includes(miembro.user_id)
+              const id = `kanban-colaborador-${miembro.user_id}`
+              return (
+                <li key={miembro.user_id}>
+                  <label htmlFor={id}
+                    className="flex min-h-9 cursor-pointer items-center gap-3 rounded-sm px-2 text-body-md text-foreground hover:bg-muted has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                    <Checkbox id={id} checked={checked} disabled={!checked && lleno}
+                      onCheckedChange={next => onChange(next === true
+                        ? [...value, miembro.user_id]
+                        : value.filter(item => item !== miembro.user_id))} />
+                    <span className="truncate">{miembro.nombre}</span>
+                  </label>
+                </li>
+              )
+            })}
+          </ul>
+        </PopoverContent>
+      </Popover>
+    </div>
+  )
+}
+
+export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros, plantillas, onClose, onSave }: KanbanCardDialogProps) {
   const [form, setForm] = useState<DatosTarjeta>(base ?? {
     tipo: tarjeta?.tipo ?? "actividad",
     estado: tarjeta?.estado ?? estadoInicial,
@@ -43,7 +103,9 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros
     fecha_inicio: tarjeta?.fecha_inicio ?? null,
     fecha_limite: tarjeta?.fecha_limite ?? null,
     repeticion: tarjeta?.repeticion ?? "ninguna",
+    colaboradores: tarjeta?.colaboradores ?? [],
   })
+  const [plantillaId, setPlantillaId] = useState(SIN_PLANTILLA)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const [step, setStep] = useState<Paso>(1)
@@ -62,6 +124,16 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros
 
   function update<K extends keyof DatosTarjeta>(field: K, value: DatosTarjeta[K]) {
     setForm(current => ({ ...current, [field]: value }))
+    setError(null)
+  }
+
+  /** Copia el contenido de la plantilla; estado, personas y fechas se definen en el paso 2. */
+  function aplicarPlantilla(id: string) {
+    setPlantillaId(id)
+    const plantilla = plantillas.find(item => item.id === id)
+    if (!plantilla) return
+    const { tipo, prioridad, titulo, descripcion, repeticion } = plantilla
+    setForm(current => ({ ...current, tipo, prioridad, titulo, descripcion, repeticion }))
     setError(null)
   }
 
@@ -111,6 +183,20 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros
         <Stepper steps={PASOS} current={step} />
         {step === 1 ? (
           <>
+            {!tarjeta && !base && plantillas.length > 0 && (
+              <div className={FIELD}>
+                <Label htmlFor="kanban-plantilla">Plantilla <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+                <Select value={plantillaId} onValueChange={aplicarPlantilla}>
+                  <SelectTrigger id="kanban-plantilla"><SelectValue /></SelectTrigger>
+                  <SelectContent matchTriggerWidth className="max-h-60">
+                    <SelectItem value={SIN_PLANTILLA}>En blanco</SelectItem>
+                    {[...plantillas].sort((left, right) => left.nombre.localeCompare(right.nombre, "es"))
+                      .map(plantilla => <SelectItem key={plantilla.id} value={plantilla.id}>{plantilla.nombre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             <div role="group" aria-labelledby="kanban-tipo-label" className="grid gap-2">
               <p id="kanban-tipo-label" className="text-label-sm text-foreground">Tipo</p>
               <RadioGroup value={form.tipo} onValueChange={value => update("tipo", value as KanbanTipo)}
@@ -163,16 +249,22 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros
               </div>
             </div>
 
-            <div className={FIELD}>
-              <Label htmlFor="kanban-responsable">Responsable</Label>
-              <Select value={form.responsable_id ?? SIN_ASIGNAR}
-                onValueChange={value => update("responsable_id", value === SIN_ASIGNAR ? null : value)}>
-                <SelectTrigger id="kanban-responsable"><SelectValue /></SelectTrigger>
-                <SelectContent matchTriggerWidth className="max-h-60">
-                  <SelectItem value={SIN_ASIGNAR}>Sin asignar</SelectItem>
-                  {miembros.map(miembro => <SelectItem key={miembro.user_id} value={miembro.user_id}>{miembro.nombre}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className={FIELD}>
+                <Label htmlFor="kanban-responsable">Responsable</Label>
+                <Select value={form.responsable_id ?? SIN_ASIGNAR}
+                  onValueChange={value => update("responsable_id", value === SIN_ASIGNAR ? null : value)}>
+                  <SelectTrigger id="kanban-responsable"><SelectValue /></SelectTrigger>
+                  <SelectContent matchTriggerWidth className="max-h-60">
+                    <SelectItem value={SIN_ASIGNAR}>Sin asignar</SelectItem>
+                    {miembros.map(miembro => <SelectItem key={miembro.user_id} value={miembro.user_id}>{miembro.nombre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <ColaboradoresField miembros={miembros} responsableId={form.responsable_id}
+                value={form.colaboradores.filter(id => id !== form.responsable_id)}
+                onChange={value => update("colaboradores", value)} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

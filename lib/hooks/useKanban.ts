@@ -3,11 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import { KANBAN_COLUMNS_SELECT, type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanTarjeta } from "@/lib/kanban"
+import {
+  hoyISO, KANBAN_COLUMNS_SELECT, KANBAN_PLANTILLAS_SELECT,
+  type DatosPlantilla, type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPlantilla, type KanbanTarjeta,
+} from "@/lib/kanban"
 
 const TABLA = "kanban_tarjetas"
+const TABLA_PLANTILLAS = "kanban_plantillas"
+const TABLA_MI_DIA = "kanban_mi_dia"
 
-function upsert(list: KanbanTarjeta[], tarjeta: KanbanTarjeta): KanbanTarjeta[] {
+/** Campos que se pueden cambiar desde el tablero (formulario y acciones rápidas). */
+export type CambiosTarjeta = Partial<DatosTarjeta & Pick<KanbanTarjeta, "necesita_apoyo" | "apoyo_nota" | "bloqueo_motivo">>
+
+function upsert<T extends { id: string }>(list: T[], tarjeta: T): T[] {
   return list.some(item => item.id === tarjeta.id)
     ? list.map(item => item.id === tarjeta.id ? tarjeta : item)
     : [...list, tarjeta]
@@ -21,6 +29,9 @@ function upsert(list: KanbanTarjeta[], tarjeta: KanbanTarjeta): KanbanTarjeta[] 
 export function useKanban() {
   const [tarjetas, setTarjetas] = useState<KanbanTarjeta[]>([])
   const [miembros, setMiembros] = useState<KanbanMiembro[]>([])
+  const [plantillas, setPlantillas] = useState<KanbanPlantilla[]>([])
+  /** Tarjetas que la persona agregó a su día de hoy. */
+  const [miDia, setMiDia] = useState<Set<string>>(() => new Set())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   // Última lista conocida, para revertir un movimiento optimista.
@@ -29,16 +40,22 @@ export function useKanban() {
 
   const cargar = useCallback(async () => {
     setError(null)
-    const [tarjetasResult, miembrosResult] = await Promise.all([
+    // RLS limita "Mi día" a las filas de quien consulta.
+    const [tarjetasResult, miembrosResult, plantillasResult, miDiaResult] = await Promise.all([
       supabase.from(TABLA).select(KANBAN_COLUMNS_SELECT).order("created_at"),
       supabase.rpc("kanban_miembros"),
+      supabase.from(TABLA_PLANTILLAS).select(KANBAN_PLANTILLAS_SELECT).order("nombre"),
+      supabase.from(TABLA_MI_DIA).select("tarjeta_id").eq("fecha", hoyISO()),
     ])
-    if (tarjetasResult.error || miembrosResult.error) {
-      setError(describeSupabaseError(tarjetasResult.error ?? miembrosResult.error, "No se pudo cargar el tablero"))
+    const fallo = tarjetasResult.error ?? miembrosResult.error ?? plantillasResult.error ?? miDiaResult.error
+    if (fallo) {
+      setError(describeSupabaseError(fallo, "No se pudo cargar el tablero"))
     } else {
       setTarjetas((tarjetasResult.data ?? []) as unknown as KanbanTarjeta[])
       setMiembros(((miembrosResult.data ?? []) as KanbanMiembro[])
         .sort((left, right) => left.nombre.localeCompare(right.nombre, "es")))
+      setPlantillas((plantillasResult.data ?? []) as unknown as KanbanPlantilla[])
+      setMiDia(new Set(((miDiaResult.data ?? []) as { tarjeta_id: string }[]).map(row => row.tarjeta_id)))
     }
     setLoading(false)
   }, [])
@@ -58,6 +75,15 @@ export function useKanban() {
         }
         setTarjetas(current => upsert(current, payload.new as KanbanTarjeta))
       })
+      .on("postgres_changes", { event: "*", schema: "public", table: TABLA_PLANTILLAS }, payload => {
+        if (!active) return
+        if (payload.eventType === "DELETE") {
+          const id = (payload.old as { id?: string }).id
+          if (id) setPlantillas(current => current.filter(plantilla => plantilla.id !== id))
+          return
+        }
+        setPlantillas(current => upsert(current, payload.new as KanbanPlantilla))
+      })
       .subscribe()
 
     return () => {
@@ -72,7 +98,7 @@ export function useKanban() {
     setTarjetas(current => upsert(current, data as unknown as KanbanTarjeta))
   }, [])
 
-  const actualizar = useCallback(async (id: string, datos: Partial<DatosTarjeta>) => {
+  const actualizar = useCallback(async (id: string, datos: CambiosTarjeta) => {
     const { data, error: dbError } = await supabase.from(TABLA).update(datos).eq("id", id)
       .select(KANBAN_COLUMNS_SELECT).single()
     if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo guardar la tarjeta"))
@@ -96,7 +122,42 @@ export function useKanban() {
     const { error: dbError } = await supabase.from(TABLA).delete().eq("id", id)
     if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo eliminar la tarjeta"))
     setTarjetas(current => current.filter(tarjeta => tarjeta.id !== id))
+    setMiDia(current => {
+      const next = new Set(current)
+      next.delete(id)
+      return next
+    })
   }, [])
 
-  return { tarjetas, miembros, loading, error, recargar: cargar, crear, actualizar, mover, eliminar }
+  /** Agrega o quita la tarjeta del día de hoy de quien usa el tablero. */
+  const alternarMiDia = useCallback(async (id: string, agregar: boolean) => {
+    const { error: dbError } = agregar
+      ? await supabase.from(TABLA_MI_DIA).insert({ tarjeta_id: id, fecha: hoyISO() })
+      : await supabase.from(TABLA_MI_DIA).delete().eq("tarjeta_id", id).eq("fecha", hoyISO())
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo actualizar tu día"))
+    setMiDia(current => {
+      const next = new Set(current)
+      if (agregar) next.add(id)
+      else next.delete(id)
+      return next
+    })
+  }, [])
+
+  const crearPlantilla = useCallback(async (datos: DatosPlantilla) => {
+    const { data, error: dbError } = await supabase.from(TABLA_PLANTILLAS).insert(datos)
+      .select(KANBAN_PLANTILLAS_SELECT).single()
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo guardar la plantilla"))
+    setPlantillas(current => upsert(current, data as unknown as KanbanPlantilla))
+  }, [])
+
+  const eliminarPlantilla = useCallback(async (id: string) => {
+    const { error: dbError } = await supabase.from(TABLA_PLANTILLAS).delete().eq("id", id)
+    if (dbError) throw new Error(describeSupabaseError(dbError, "No se pudo eliminar la plantilla"))
+    setPlantillas(current => current.filter(plantilla => plantilla.id !== id))
+  }, [])
+
+  return {
+    tarjetas, miembros, plantillas, miDia, loading, error, recargar: cargar,
+    crear, actualizar, mover, eliminar, alternarMiDia, crearPlantilla, eliminarPlantilla,
+  }
 }

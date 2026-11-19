@@ -23,6 +23,13 @@ export interface KanbanTarjeta {
   repeticion: KanbanRepeticion
   /** Cuándo pasó a Concluido; null si no está concluida. Lo asigna la base de datos. */
   concluido_at: string | null
+  /** Pedido de apoyo al equipo, con nota breve opcional. */
+  necesita_apoyo: boolean
+  apoyo_nota: string | null
+  /** Si tiene texto, la tarjeta está bloqueada: "esperando a…". */
+  bloqueo_motivo: string | null
+  /** Personas que participan además del responsable. */
+  colaboradores: string[]
   /** Autoría y fechas de cambio: las asigna la base de datos. */
   creado_por: string | null
   actualizado_por: string | null
@@ -31,7 +38,19 @@ export interface KanbanTarjeta {
 }
 
 export type DatosTarjeta = Pick<KanbanTarjeta,
-  "tipo" | "estado" | "prioridad" | "titulo" | "descripcion" | "fecha_inicio" | "fecha_limite" | "responsable_id" | "repeticion">
+  "tipo" | "estado" | "prioridad" | "titulo" | "descripcion" | "fecha_inicio" | "fecha_limite" | "responsable_id" | "repeticion" | "colaboradores">
+
+export interface KanbanPlantilla {
+  id: string
+  nombre: string
+  tipo: KanbanTipo
+  prioridad: KanbanPrioridad
+  titulo: string
+  descripcion: string
+  repeticion: KanbanRepeticion
+}
+
+export type DatosPlantilla = Omit<KanbanPlantilla, "id">
 
 export interface KanbanMiembro {
   user_id: string
@@ -39,7 +58,9 @@ export interface KanbanMiembro {
 }
 
 export const KANBAN_COLUMNS_SELECT =
-  "id,tipo,estado,prioridad,titulo,descripcion,fecha_inicio,fecha_limite,responsable_id,repeticion,concluido_at,creado_por,actualizado_por,created_at,updated_at"
+  "id,tipo,estado,prioridad,titulo,descripcion,fecha_inicio,fecha_limite,responsable_id,repeticion,concluido_at,necesita_apoyo,apoyo_nota,bloqueo_motivo,colaboradores,creado_por,actualizado_por,created_at,updated_at"
+
+export const KANBAN_PLANTILLAS_SELECT = "id,nombre,tipo,prioridad,titulo,descripcion,repeticion"
 
 export const KANBAN_COLUMNAS: { estado: KanbanEstado; label: string }[] = [
   { estado: "por_hacer", label: "Por hacer" },
@@ -76,6 +97,13 @@ export function esConcluidaAntigua(tarjeta: Pick<KanbanTarjeta, "estado" | "conc
 
 export const MAX_TITULO = 120
 export const MAX_DESCRIPCION = 1000
+/** Nota de apoyo y motivo de bloqueo. */
+export const MAX_NOTA = 200
+export const MAX_COLABORADORES = 10
+/** Tarjetas en progreso por persona antes de sugerir cerrar algo. */
+export const LIMITE_EN_PROGRESO = 3
+/** Ventana de los indicadores del equipo. */
+export const DIAS_INDICADORES = 30
 
 export function etiquetaEstado(estado: KanbanEstado): string {
   return KANBAN_COLUMNAS.find(columna => columna.estado === estado)?.label ?? estado
@@ -104,8 +132,12 @@ export function formatFechaHora(iso: string): string {
 
 /** Fecha local de hoy en YYYY-MM-DD (sin desfase por zona horaria). */
 export function hoyISO(): string {
-  const now = new Date()
-  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, "0"), String(now.getDate()).padStart(2, "0")].join("-")
+  return aISO(new Date())
+}
+
+/** Date local → YYYY-MM-DD. */
+function aISO(date: Date): string {
+  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-")
 }
 
 const FECHA_CORTA = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" })
@@ -182,6 +214,9 @@ export function normalizarTarjeta(datos: DatosTarjeta): DatosTarjeta {
     descripcion: normalizarTexto(datos.descripcion, true),
     // Las actividades no se repiten.
     repeticion: datos.tipo === "recordatorio" ? datos.repeticion : "ninguna",
+    // Sin duplicados ni el responsable entre los colaboradores (la base de datos aplica la misma regla).
+    colaboradores: [...new Set(datos.colaboradores)]
+      .filter(id => id !== datos.responsable_id).slice(0, MAX_COLABORADORES),
   }
 }
 
@@ -208,4 +243,105 @@ export function validarSeguimiento(datos: Pick<DatosTarjeta, "fecha_inicio" | "f
 /** Mensaje de error o null si la tarjeta completa (ya normalizada) es válida. */
 export function validarTarjeta(datos: DatosTarjeta): string | null {
   return validarContenido(datos) ?? validarSeguimiento(datos)
+}
+
+// ─── Equipo: participación, carga e indicadores ───────────────────────────────
+
+/** Responsable o colaborador de la tarjeta. */
+export function participa(tarjeta: Pick<KanbanTarjeta, "responsable_id" | "colaboradores">, userId: string): boolean {
+  return tarjeta.responsable_id === userId || tarjeta.colaboradores.includes(userId)
+}
+
+export function enProgresoDe(tarjetas: KanbanTarjeta[], userId: string, excluirId?: string): number {
+  return tarjetas.filter(tarjeta =>
+    tarjeta.id !== excluirId && tarjeta.estado === "en_progreso" && tarjeta.responsable_id === userId).length
+}
+
+export interface CargaMiembro {
+  miembro: KanbanMiembro
+  activas: number
+  enProgreso: number
+  vencidas: number
+  bloqueadas: number
+}
+
+/** Carga por persona: tarjetas no concluidas donde participa. Ordenado de mayor a menor carga. */
+export function cargaDelEquipo(tarjetas: KanbanTarjeta[], miembros: KanbanMiembro[], hoy = hoyISO()): CargaMiembro[] {
+  const abiertas = tarjetas.filter(tarjeta => tarjeta.estado !== "concluido")
+  return miembros.map(miembro => {
+    const suyas = abiertas.filter(tarjeta => participa(tarjeta, miembro.user_id))
+    return {
+      miembro,
+      activas: suyas.length,
+      enProgreso: enProgresoDe(abiertas, miembro.user_id),
+      vencidas: suyas.filter(tarjeta => estaVencida(tarjeta, hoy)).length,
+      bloqueadas: suyas.filter(tarjeta => tarjeta.bloqueo_motivo).length,
+    }
+  }).sort((left, right) => right.activas - left.activas || left.miembro.nombre.localeCompare(right.miembro.nombre, "es"))
+}
+
+export interface IndicadoresEquipo {
+  concluidas: number
+  /** Con fecha límite: concluidas ese día o antes. */
+  aTiempo: number
+  conFecha: number
+  /** Días promedio de la creación a la conclusión; null sin datos. */
+  diasPromedio: number | null
+}
+
+/** Indicadores de las tarjetas concluidas en los últimos DIAS_INDICADORES días. */
+export function indicadoresEquipo(tarjetas: KanbanTarjeta[], ahora = Date.now()): IndicadoresEquipo {
+  const desde = ahora - DIAS_INDICADORES * 86_400_000
+  const concluidas = tarjetas.filter(tarjeta =>
+    tarjeta.estado === "concluido" && tarjeta.concluido_at && new Date(tarjeta.concluido_at).getTime() >= desde)
+  const conFecha = concluidas.filter(tarjeta => tarjeta.fecha_limite)
+  const aTiempo = conFecha.filter(tarjeta => fechaLocal(tarjeta.concluido_at as string) <= (tarjeta.fecha_limite as string))
+  const duraciones = concluidas.map(tarjeta =>
+    (new Date(tarjeta.concluido_at as string).getTime() - new Date(tarjeta.created_at).getTime()) / 86_400_000)
+  return {
+    concluidas: concluidas.length,
+    aTiempo: aTiempo.length,
+    conFecha: conFecha.length,
+    diasPromedio: duraciones.length ? duraciones.reduce((sum, value) => sum + value, 0) / duraciones.length : null,
+  }
+}
+
+// ─── Fechas de calendario ─────────────────────────────────────────────────────
+
+/** Marca de tiempo → fecha local YYYY-MM-DD. */
+export function fechaLocal(iso: string): string {
+  return aISO(new Date(iso))
+}
+
+export function sumarDias(iso: string, dias: number): string {
+  const [year, month, day] = iso.split("-").map(Number)
+  return aISO(new Date(year, month - 1, day + dias))
+}
+
+/** Lunes de la semana que contiene la fecha. */
+export function inicioSemana(iso: string): string {
+  const [year, month, day] = iso.split("-").map(Number)
+  const diaSemana = (new Date(year, month - 1, day).getDay() + 6) % 7
+  return sumarDias(iso, -diaSemana)
+}
+
+const DIA_SEMANA = new Intl.DateTimeFormat("es-MX", { weekday: "short" })
+
+/** "2026-11-19" → "jue". */
+export function formatDiaSemana(iso: string): string {
+  const [year, month, day] = iso.split("-").map(Number)
+  return DIA_SEMANA.format(new Date(year, month - 1, day)).replace(".", "")
+}
+
+// ─── Notas (apoyo / bloqueo) y plantillas ────────────────────────────────────
+
+/** Nota breve ya normalizada; vacía = null. */
+export function normalizarNota(texto: string): string | null {
+  const limpio = normalizarTexto(texto)
+  return limpio ? limpio.slice(0, MAX_NOTA) : null
+}
+
+export function plantillaDesdeTarjeta(tarjeta: KanbanTarjeta, nombre: string): DatosPlantilla {
+  const { tipo, prioridad, titulo, descripcion, repeticion } = tarjeta
+  return { nombre: normalizarTexto(nombre), tipo, prioridad, titulo, descripcion, repeticion }
 }
