@@ -12,6 +12,7 @@ import {
   ClipboardPenLine,
   Handshake,
   LayoutDashboard,
+  SquareKanban,
   TableProperties,
   Tags,
   UserPlus,
@@ -28,6 +29,8 @@ export interface NavLeaf {
 export interface NavSection {
   label: string
   items: NavLeaf[]
+  /** Se muestra al inicio del menú, en el orden declarado (sin ordenar alfabéticamente). */
+  pinned?: boolean
 }
 
 export const HOME_PATH = "/inicio"
@@ -39,7 +42,11 @@ export const MOBILE_NAV_ID = "workspace-mobile-navigation"
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Inicio",
-    items: [{ label: "Inicio", href: HOME_PATH, icon: LayoutDashboard }],
+    pinned: true,
+    items: [
+      { label: "Inicio", href: HOME_PATH, icon: LayoutDashboard },
+      { label: "Kanban", href: "/kanban", icon: SquareKanban },
+    ],
   },
   {
     label: "Personal",

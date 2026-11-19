@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
+import { Stepper } from "@/components/ui/stepper"
 import { DncNeedAuthorizationStep, DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
 import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition } from "@/lib/dnc"
 
@@ -21,31 +22,6 @@ const PASOS = ["Necesidad y puestos", "Justificación y programación", "Autoriz
 type Paso = 1 | 2 | 3
 // Campo que recibe el foco al entrar a cada paso.
 const PRIMER_CAMPO: Record<Paso, string> = { 1: "dnc-necesidad", 2: "dnc-funcion", 3: "dnc-autorizacion-autorizado" }
-
-/** Indicador compacto del asistente: paso actual resaltado, anteriores en tono neutro. */
-function DncNeedStepper({ step }: { step: Paso }) {
-  return (
-    <ol aria-label="Pasos" className="flex flex-wrap items-center gap-x-3 gap-y-1">
-      {PASOS.map((label, index) => {
-        const number = index + 1
-        const current = number === step
-        return (
-          <li key={label} aria-current={current ? "step" : undefined}
-            className={current ? "flex items-center gap-2 text-label-sm text-foreground" : "flex items-center gap-2 text-body-md text-muted-foreground"}>
-            {index > 0 && <span aria-hidden="true" className="h-px w-6 bg-border" />}
-            <span aria-hidden="true"
-              className={current
-                ? "flex size-5 items-center justify-center rounded-md bg-primary text-body-sm font-medium text-primary-foreground"
-                : "flex size-5 items-center justify-center rounded-md border border-border text-body-sm"}>
-              {number}
-            </span>
-            <span><span className="sr-only">Paso {number} de {PASOS.length}: </span>{label}</span>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
 
 export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, puestos, departmentName, onClose, onSave }: DncNeedDialogProps) {
   const [step, setStep] = useState<Paso>(1)
@@ -127,7 +103,7 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
       <ModalHeader title={necesidad ? "Editar necesidad" : "Agregar necesidad"}
         onClose={onClose} />
       <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
-        <DncNeedStepper step={step} />
+        <Stepper steps={PASOS} current={step} />
         {step === 1 ? (
           <DncNeedIdentityStep form={form} onChange={update} cursos={cursos} cursosLoading={cursosLoading}
             cursosError={cursosError} puestos={puestos} departmentName={departmentName}

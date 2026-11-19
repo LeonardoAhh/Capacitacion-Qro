@@ -1,0 +1,232 @@
+"use client"
+
+import { useEffect, useRef, useState } from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
+import { Stepper } from "@/components/ui/stepper"
+import {
+  formatFechaHora, KANBAN_COLUMNAS, limpiarAlEscribir, normalizarTarjeta, normalizarTexto, KANBAN_PRIORIDADES, KANBAN_REPETICIONES, KANBAN_TIPOS, MAX_DESCRIPCION, MAX_TITULO, validarContenido, validarTarjeta,
+  type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPrioridad, type KanbanRepeticion, type KanbanTarjeta, type KanbanTipo,
+} from "@/lib/kanban"
+
+interface KanbanCardDialogProps {
+  tarjeta: KanbanTarjeta | null
+  /** Columna inicial para tarjetas nuevas. */
+  estadoInicial: KanbanEstado
+  /** Datos de partida para una tarjeta nueva (duplicar). */
+  base?: DatosTarjeta | null
+  miembros: KanbanMiembro[]
+  onClose: () => void
+  onSave: (datos: DatosTarjeta) => Promise<void>
+}
+
+const SIN_ASIGNAR = "sin-asignar"
+const PASOS = ["Contenido", "Seguimiento"] as const
+type Paso = 1 | 2
+// Campo que recibe el foco al entrar a cada paso.
+const PRIMER_CAMPO: Record<Paso, string> = { 1: "kanban-titulo", 2: "kanban-estado" }
+
+const FIELD = "grid min-w-0 content-start gap-2"
+
+export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, miembros, onClose, onSave }: KanbanCardDialogProps) {
+  const [form, setForm] = useState<DatosTarjeta>(base ?? {
+    tipo: tarjeta?.tipo ?? "actividad",
+    estado: tarjeta?.estado ?? estadoInicial,
+    prioridad: tarjeta?.prioridad ?? "media",
+    responsable_id: tarjeta?.responsable_id ?? null,
+    titulo: tarjeta?.titulo ?? "",
+    descripcion: tarjeta?.descripcion ?? "",
+    fecha_inicio: tarjeta?.fecha_inicio ?? null,
+    fecha_limite: tarjeta?.fecha_limite ?? null,
+    repeticion: tarjeta?.repeticion ?? "ninguna",
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [step, setStep] = useState<Paso>(1)
+  const isFirstRender = useRef(true)
+
+  useEffect(() => {
+    // Al abrir, el foco va al título del modal (ResponsiveShell); al cambiar de paso, a su primer campo.
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
+    document.getElementById(PRIMER_CAMPO[step])?.focus()
+  }, [step])
+  const nombreDe = (id: string | null) => miembros.find(miembro => miembro.user_id === id)?.nombre ?? "Usuario sin perfil"
+  const title = tarjeta ? "Editar tarjeta" : base ? "Duplicar tarjeta" : "Nueva tarjeta"
+
+  function update<K extends keyof DatosTarjeta>(field: K, value: DatosTarjeta[K]) {
+    setForm(current => ({ ...current, [field]: value }))
+    setError(null)
+  }
+
+  function goTo(next: Paso) {
+    setError(null)
+    setStep(next)
+  }
+
+  function handleContinue() {
+    const datos = normalizarTarjeta(form)
+    setForm(datos)
+    const message = validarContenido(datos)
+    if (message) {
+      setError(message)
+      return
+    }
+    goTo(2)
+  }
+
+  async function handleSave() {
+    const datos = normalizarTarjeta(form)
+    setForm(datos)
+    const message = validarTarjeta(datos)
+    if (message) {
+      setError(message)
+      return
+    }
+    setSaving(true)
+    try {
+      await onSave(datos)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "No se pudo guardar la tarjeta.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <ResponsiveShell open onClose={onClose} size="sm" title={title}>
+      <ModalHeader title={title} onClose={onClose} />
+      <form className="grid min-h-0 gap-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5"
+        onSubmit={event => {
+          event.preventDefault()
+          if (step === 1) handleContinue()
+          else void handleSave()
+        }}>
+        <Stepper steps={PASOS} current={step} />
+        {step === 1 ? (
+          <>
+            <div role="group" aria-labelledby="kanban-tipo-label" className="grid gap-2">
+              <p id="kanban-tipo-label" className="text-label-sm text-foreground">Tipo</p>
+              <RadioGroup value={form.tipo} onValueChange={value => update("tipo", value as KanbanTipo)}
+                aria-labelledby="kanban-tipo-label" className="grid grid-cols-2 gap-2">
+                {KANBAN_TIPOS.map(opcion => (
+                  <label key={opcion.tipo} htmlFor={`kanban-tipo-${opcion.tipo}`}
+                    className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground hover:bg-muted has-[[data-state=checked]]:border-primary">
+                    <RadioGroupItem id={`kanban-tipo-${opcion.tipo}`} value={opcion.tipo} />
+                    {opcion.label}
+                  </label>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className={FIELD}>
+              <Label htmlFor="kanban-titulo">Título</Label>
+              <Input id="kanban-titulo" value={form.titulo} maxLength={MAX_TITULO} autoComplete="off"
+                onChange={event => update("titulo", limpiarAlEscribir(event.target.value))}
+                onBlur={event => update("titulo", normalizarTexto(event.target.value))} />
+            </div>
+
+            <div className={FIELD}>
+              <Label htmlFor="kanban-descripcion">Descripción <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+              <Textarea id="kanban-descripcion" rows={2} className="min-h-11 resize-none field-sizing-content"
+                value={form.descripcion} maxLength={MAX_DESCRIPCION}
+                onChange={event => update("descripcion", limpiarAlEscribir(event.target.value, true))}
+                onBlur={event => update("descripcion", normalizarTexto(event.target.value, true))} />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className={FIELD}>
+                <Label htmlFor="kanban-estado">Estado</Label>
+                <Select value={form.estado} onValueChange={value => update("estado", value as KanbanEstado)}>
+                  <SelectTrigger id="kanban-estado"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {KANBAN_COLUMNAS.map(columna => <SelectItem key={columna.estado} value={columna.estado}>{columna.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className={FIELD}>
+                <Label htmlFor="kanban-prioridad">Prioridad</Label>
+                <Select value={form.prioridad} onValueChange={value => update("prioridad", value as KanbanPrioridad)}>
+                  <SelectTrigger id="kanban-prioridad"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {KANBAN_PRIORIDADES.map(item => <SelectItem key={item.prioridad} value={item.prioridad}>{item.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className={FIELD}>
+              <Label htmlFor="kanban-responsable">Responsable</Label>
+              <Select value={form.responsable_id ?? SIN_ASIGNAR}
+                onValueChange={value => update("responsable_id", value === SIN_ASIGNAR ? null : value)}>
+                <SelectTrigger id="kanban-responsable"><SelectValue /></SelectTrigger>
+                <SelectContent matchTriggerWidth className="max-h-60">
+                  <SelectItem value={SIN_ASIGNAR}>Sin asignar</SelectItem>
+                  {miembros.map(miembro => <SelectItem key={miembro.user_id} value={miembro.user_id}>{miembro.nombre}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className={FIELD}>
+                <Label htmlFor="kanban-inicio">Inicio <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+                <Input id="kanban-inicio" type="date" value={form.fecha_inicio ?? ""}
+                  onChange={event => update("fecha_inicio", event.target.value || null)} />
+              </div>
+              <div className={FIELD}>
+                <Label htmlFor="kanban-limite">Fecha límite <span className="font-normal text-muted-foreground">(opcional)</span></Label>
+                <Input id="kanban-limite" type="date" value={form.fecha_limite ?? ""} min={form.fecha_inicio ?? undefined}
+                  onChange={event => update("fecha_limite", event.target.value || null)} />
+              </div>
+            </div>
+
+            {form.tipo === "recordatorio" && (
+              <div className={FIELD}>
+                <Label htmlFor="kanban-repeticion">Repetir</Label>
+                <Select value={form.repeticion} onValueChange={value => update("repeticion", value as KanbanRepeticion)}>
+                  <SelectTrigger id="kanban-repeticion"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {KANBAN_REPETICIONES.map(item => <SelectItem key={item.repeticion} value={item.repeticion}>{item.label}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {form.repeticion !== "ninguna" && (
+                  <p className="text-body-sm text-muted-foreground">Al concluirlo se crea el siguiente con las fechas recorridas.</p>
+                )}
+              </div>
+            )}
+          </>
+        )}
+
+        {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
+        {tarjeta && (
+          // Autoría registrada por la base de datos.
+          <dl className="grid gap-1 border-t border-border pt-3 text-body-sm text-muted-foreground">
+            <div className="flex flex-wrap gap-x-1">
+              <dt>Creada por</dt>
+              <dd className="text-foreground">{nombreDe(tarjeta.creado_por)}</dd>
+              <dd className="tabular-nums">· {formatFechaHora(tarjeta.created_at)}</dd>
+            </div>
+            <div className="flex flex-wrap gap-x-1">
+              <dt>Última modificación</dt>
+              <dd className="text-foreground">{nombreDe(tarjeta.actualizado_por)}</dd>
+              <dd className="tabular-nums">· {formatFechaHora(tarjeta.updated_at)}</dd>
+            </div>
+          </dl>
+        )}
+        {/* Enter en un campo envía el formulario. */}
+        <button type="submit" hidden aria-hidden="true" tabIndex={-1} />
+      </form>
+      <ModalFooter onCancel={step === 1 ? onClose : () => goTo(1)} cancelLabel={step === 1 ? "Cancelar" : "Volver"}
+        onConfirm={step === 1 ? handleContinue : () => void handleSave()} saving={saving}
+        confirmLabel={step === 1 ? "Continuar" : tarjeta ? "Guardar cambios" : "Crear tarjeta"} />
+    </ResponsiveShell>
+  )
+}

@@ -127,18 +127,19 @@ function NavTree({
   onNavigate?: () => void
   isCollapsed?: boolean
 }) {
-  const navigationItems = NAV_SECTIONS.flatMap((section) => {
+  // Secciones fijas (pinned) primero y en su orden declarado; el resto, alfabético.
+  const toItems = (sections: typeof NAV_SECTIONS) => sections.flatMap((section) => {
     const activeLeaf = findActiveLeaf(section.items, pathname)
     return section.items.map((leaf) => ({
       leaf,
       active: leaf.href === activeLeaf?.href,
     }))
-  }).sort((a, b) => {
-    if (a.leaf.href === HOME_PATH || b.leaf.href === HOME_PATH) {
-      return a.leaf.href === b.leaf.href ? 0 : a.leaf.href === HOME_PATH ? -1 : 1
-    }
-    return a.leaf.label.localeCompare(b.leaf.label, "es", { sensitivity: "base" })
   })
+  const navigationItems = [
+    ...toItems(NAV_SECTIONS.filter((section) => section.pinned)),
+    ...toItems(NAV_SECTIONS.filter((section) => !section.pinned))
+      .sort((a, b) => a.leaf.label.localeCompare(b.leaf.label, "es", { sensitivity: "base" })),
+  ]
 
   return (
     <TooltipProvider delayDuration={300}>
