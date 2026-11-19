@@ -38,6 +38,20 @@ function errorStatus(error: unknown) {
   return null
 }
 
+function errorReason(error: unknown) {
+  if (typeof error !== "object" || error === null || !("body" in error) || typeof error.body !== "string") {
+    return "sin-detalle"
+  }
+  const body = error.body
+  if (/BadJwtToken/i.test(body)) return "bad-jwt-token"
+  if (/VapidPkHashMismatch/i.test(body)) return "vapid-key-mismatch"
+  if (/UnauthorizedRegistration/i.test(body)) return "unauthorized-registration"
+  if (/SENDER_ID_MISMATCH/i.test(body)) return "sender-id-mismatch"
+  if (/THIRD_PARTY_PERMISSION_DENIED/i.test(body)) return "permission-denied"
+  if (/invalid JWT/i.test(body)) return "invalid-jwt"
+  return "sin-detalle"
+}
+
 export async function sendPush(
   db: SupabaseClient,
   subscriptions: PushSubscriptionRow[],
@@ -63,7 +77,11 @@ export async function sendPush(
         else expired++
       } else {
         failed++
-        console.error("[push] Falló el envío", errorStatus(error))
+        console.error("[push] Falló el envío", {
+          status: errorStatus(error),
+          service: new URL(subscription.endpoint).hostname,
+          reason: errorReason(error),
+        })
       }
     }
   }))
