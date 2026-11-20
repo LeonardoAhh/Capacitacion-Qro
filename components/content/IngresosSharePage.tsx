@@ -10,7 +10,7 @@ import { IngresosEmployeeSelectionDialog } from "@/components/content/IngresosEm
 import { usePendingEvals, type EmployeePending } from "@/lib/hooks/usePendingEvals"
 import {
   aplicaAlTema, buildEmailMessage, buildWhatsAppMessage, COPY_RESET_DELAY_MS, countVencidas, downloadAsTxt,
-  FORMAT_OPTIONS, htmlATexto, nombreArchivo, TEMPLATE_OPTIONS, tieneVencida, TODOS, TOPIC_OPTIONS,
+  FORMAT_OPTIONS, htmlATexto, nombreArchivo, TEMPLATE_OPTIONS, TODOS, TOPIC_OPTIONS,
   WA_CHAR_LIMIT, type ShareFormat, type ShareTopic, type TemplateType,
 } from "@/lib/ingresos/share-messages"
 import { notify } from "@/lib/notify"
@@ -29,6 +29,8 @@ export function IngresosSharePage() {
   const [filterDept, setFilterDept] = useState(TODOS)
   const [filterTurno, setFilterTurno] = useState(TODOS)
   const [urgencySort, setUrgencySort] = useState(false)
+  // Por defecto solo lo que pide acción (vencidas y próximas); el resto, a pedido.
+  const [incluirTodas, setIncluirTodas] = useState(false)
   // null: todos los que cumplen los filtros; Set: solo los elegidos a mano.
   const [selectedIds, setSelectedIds] = useState<Set<string> | null>(null)
   const [selecting, setSelecting] = useState(false)
@@ -45,15 +47,11 @@ export function IngresosSharePage() {
   const turnos = useMemo(() => [...new Set(deptGroups.flatMap(group => group.items.flatMap(employee => employee.turno ? [employee.turno] : [])))]
     .sort((a, b) => a.localeCompare(b, "es", { numeric: true })), [deptGroups])
 
-  const filtered = useMemo<EmployeePending[]>(() => {
-    const result = deptGroups
-      .filter(group => filterDept === TODOS || group.departamento === filterDept)
-      .flatMap(group => group.items)
-      .filter(employee => (filterTurno === TODOS || employee.turno === filterTurno) && aplicaAlTema(employee, topic))
-    if (!urgencySort) return result
-    // sort estable: dentro de cada grupo se conserva el orden original.
-    return result.sort((a, b) => Number(tieneVencida(b, topic)) - Number(tieneVencida(a, topic)))
-  }, [deptGroups, filterDept, filterTurno, topic, urgencySort])
+  const filtered = useMemo<EmployeePending[]>(() => deptGroups
+    .filter(group => filterDept === TODOS || group.departamento === filterDept)
+    .flatMap(group => group.items)
+    .filter(employee => (filterTurno === TODOS || employee.turno === filterTurno) && aplicaAlTema(employee, topic, incluirTodas)),
+  [deptGroups, filterDept, filterTurno, topic, incluirTodas])
 
   const employees = useMemo(
     () => selectedIds ? filtered.filter(employee => selectedIds.has(employee.dbId)) : filtered,
@@ -61,8 +59,8 @@ export function IngresosSharePage() {
   )
 
   const messageOptions = useMemo(
-    () => ({ employees, filterDept, filterTurno, template, topic }),
-    [employees, filterDept, filterTurno, template, topic],
+    () => ({ employees, filterDept, filterTurno, template, topic, priorizar: urgencySort, incluirTodas }),
+    [employees, filterDept, filterTurno, template, topic, urgencySort, incluirTodas],
   )
   const text = useMemo(() => buildWhatsAppMessage(messageOptions), [messageOptions])
   const html = useMemo(() => buildEmailMessage(messageOptions), [messageOptions])
@@ -129,7 +127,8 @@ export function IngresosSharePage() {
             departments={departments} turnos={turnos}
             filterDept={filterDept} onDeptChange={setFilterDept}
             filterTurno={filterTurno} onTurnoChange={setFilterTurno}
-            urgencySort={urgencySort} onUrgencySortChange={setUrgencySort} />
+            urgencySort={urgencySort} onUrgencySortChange={setUrgencySort}
+            incluirTodas={topic === "evals" ? incluirTodas : undefined} onIncluirTodasChange={setIncluirTodas} />
           <div className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2">
             <p className="text-body-md text-foreground">
               <span className="tabular-nums">{employees.length}</span> de <span className="tabular-nums">{filtered.length}</span> empleados

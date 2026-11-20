@@ -52,15 +52,28 @@ interface ShareFiltersProps {
   onTurnoChange: (value: string) => void
   urgencySort: boolean
   onUrgencySortChange: (value: boolean) => void
+  /** Solo aplica a evaluaciones; undefined oculta la opción. */
+  incluirTodas?: boolean
+  onIncluirTodasChange: (value: boolean) => void
+}
+
+function SwitchRow({ label, checked, onCheckedChange }: { label: string; checked: boolean; onCheckedChange: (value: boolean) => void }) {
+  const id = useId()
+  return (
+    <div className="flex min-h-11 items-center justify-between gap-4">
+      <Label htmlFor={id} className="cursor-pointer">{label}</Label>
+      <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
+    </div>
+  )
 }
 
 /** Departamento, turno y orden: siempre visibles, son pocos y definen a quién va el mensaje. */
 export function ShareFilters({
   departments, turnos, filterDept, onDeptChange, filterTurno, onTurnoChange, urgencySort, onUrgencySortChange,
+  incluirTodas, onIncluirTodasChange,
 }: ShareFiltersProps) {
   const deptId = useId()
   const turnoId = useId()
-  const urgencyId = useId()
 
   return (
     <div className="grid gap-4">
@@ -86,9 +99,11 @@ export function ShareFilters({
           </Select>
         </div>
       </div>
-      <div className="flex min-h-11 items-center justify-between gap-4">
-        <Label htmlFor={urgencyId} className="cursor-pointer">Priorizar vencidas</Label>
-        <Switch id={urgencyId} checked={urgencySort} onCheckedChange={onUrgencySortChange} />
+      <div className="grid">
+        <SwitchRow label="Priorizar vencidas" checked={urgencySort} onCheckedChange={onUrgencySortChange} />
+        {incluirTodas !== undefined && (
+          <SwitchRow label="Incluir las que van a tiempo" checked={incluirTodas} onCheckedChange={onIncluirTodasChange} />
+        )}
       </div>
     </div>
   )

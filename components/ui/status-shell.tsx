@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
  * Design system contract:
  * - Flat hairline card on the neutral canvas.
  * - Compact icon tile tinted only by semantic tone.
- * - Mona Sans typography for eyebrow and heading.
+ * - Satoshi typography for eyebrow and heading.
  * - Tokens only: accent color, density spacing and reduced-motion settings
  *   apply automatically. No pill/full-rounded shapes.
  */
