@@ -10,6 +10,7 @@ import type { Employee } from "@/lib/hooks"
 import { getTipoCursoByName } from "@/lib/catalogo"
 import { notify } from "@/lib/notify"
 import { addReportFooter } from "@/lib/pdf-footer"
+import { PRINT_FONT_FAMILY, registerPrintFont } from "@/lib/print-font"
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -72,6 +73,7 @@ export default function ReportesContent() {
     setGenerating(true)
     try {
       const doc = new jsPDF()
+      await registerPrintFont(doc)
       const selectedIds = Array.from(selected)
       
       for (let i = 0; i < selectedIds.length; i++) {
@@ -88,17 +90,17 @@ export default function ReportesContent() {
         doc.rect(0, 0, 210, 24, "F")
         doc.setTextColor(255, 255, 255)
         doc.setFontSize(16)
-        doc.setFont("helvetica", "bold")
+        doc.setFont(PRINT_FONT_FAMILY, "bold")
         doc.text("Reporte de Capacitación", 14, 15)
         
         // Employee info
         doc.setTextColor(15, 23, 42) // slate-900
         doc.setFontSize(18)
-        doc.setFont("helvetica", "bold")
+        doc.setFont(PRINT_FONT_FAMILY, "bold")
         doc.text(emp.nombre, 14, 38)
         
         doc.setFontSize(11)
-        doc.setFont("helvetica", "normal")
+        doc.setFont(PRINT_FONT_FAMILY, "normal")
         doc.setTextColor(71, 85, 105) // slate-500
         doc.text(`Nº Empleado: ${emp.numero || "N/A"}`, 14, 46)
         doc.text(`Puesto: ${emp.puesto || "N/A"}`, 14, 52)
@@ -109,7 +111,7 @@ export default function ReportesContent() {
         doc.rect(14, 66, 182, 14, "F")
         doc.setTextColor(15, 23, 42)
         doc.setFontSize(10)
-        doc.setFont("helvetica", "bold")
+        doc.setFont(PRINT_FONT_FAMILY, "bold")
         doc.text(`Requeridos: ${progress.totalRequired}`, 20, 75)
         doc.setTextColor(22, 163, 74) // green-600
         doc.text(`Aprobados: ${progress.aprobados}`, 65, 75)
@@ -130,7 +132,7 @@ export default function ReportesContent() {
         
         Object.keys(byType).sort().forEach(tipo => {
           doc.setFontSize(12)
-          doc.setFont("helvetica", "bold")
+          doc.setFont(PRINT_FONT_FAMILY, "bold")
           doc.setTextColor(30, 41, 59)
           doc.text(tipo.toUpperCase(), 14, startY)
           
@@ -147,7 +149,7 @@ export default function ReportesContent() {
             body: tableData,
             theme: "grid",
             headStyles: { fillColor: [241, 245, 249], textColor: [15, 23, 42], fontStyle: "bold" },
-            styles: { fontSize: 9, cellPadding: 4 },
+            styles: { font: PRINT_FONT_FAMILY, fontSize: 9, cellPadding: 4 },
             alternateRowStyles: { fillColor: [250, 250, 250] },
             margin: { left: 14, right: 14 },
             columnStyles: {

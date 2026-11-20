@@ -46,31 +46,6 @@ export function sortByTermino(a: NuevoIngreso, b: NuevoIngreso): number {
   return diferenciaA - diferenciaB
 }
 
-export type DetalleState =
-  | { status: "closed" }
-  | { status: "loading" }
-  | { status: "ready"; data: RecontratacionPrintData }
-  | { status: "error"; message: string }
-
-export type DetalleAction =
-  | { type: "open" }
-  | { type: "loaded"; data: RecontratacionPrintData }
-  | { type: "failed"; message: string }
-  | { type: "close" }
-
-export function detalleReducer(_: DetalleState, action: DetalleAction): DetalleState {
-  switch (action.type) {
-    case "open":
-      return { status: "loading" }
-    case "loaded":
-      return { status: "ready", data: action.data }
-    case "failed":
-      return { status: "error", message: action.message }
-    case "close":
-      return { status: "closed" }
-  }
-}
-
 export function urgencyLabel(urgency: UrgencyLevel, record: NuevoIngreso): string {
   const diferencia = daysFromToday(record.termino_contrato)
   switch (urgency) {

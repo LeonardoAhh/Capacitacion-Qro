@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useId, useMemo, useReducer, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useState } from "react"
 import {
   AlertCircle,
   BarChart3,
@@ -12,31 +12,18 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import RecontratacionLft from "@/components/content/recontratacion-lft"
-import { DetalleDialog } from "@/components/content/recontratacion-detail-dialog"
 import { EmpleadoRow, Pagination, SkeletonRow } from "@/components/content/recontratacion-employee-row"
 import { RecontratacionFilters } from "@/components/content/recontratacion-filters"
-import {
-  detalleReducer,
-  PAGE_SIZE,
-  SKELETON_COUNT,
-  sortByTermino,
-  type DetalleState,
-} from "@/components/content/recontratacion-logic"
+import { PAGE_SIZE, SKELETON_COUNT, sortByTermino } from "@/components/content/recontratacion-logic"
 import { useNuevoIngreso, type NuevoIngreso } from "@/lib/hooks"
-import { useRecontratacion } from "@/lib/hooks/useRecontratacion"
 
 export default function RecontratacionContent() {
   const { loading, error, fetchAll } = useNuevoIngreso()
-  const { buildRecontratacionData } = useRecontratacion()
 
   const [records, setRecords] = useState<NuevoIngreso[]>([])
   const [search, setSearch] = useState("")
   const [filterDept, setFilterDept] = useState("all")
   const [page, setPage] = useState(1)
-  const [detalleState, dispatchDetalle] = useReducer(
-    detalleReducer,
-    { status: "closed" } satisfies DetalleState,
-  )
 
   const searchId = useId()
 
@@ -84,22 +71,6 @@ export default function RecontratacionContent() {
   useEffect(() => {
     if (page > pageCount) setPage(pageCount)
   }, [page, pageCount])
-
-  const abrirDetalle = useCallback(
-    async (record: NuevoIngreso) => {
-      dispatchDetalle({ type: "open" })
-      try {
-        const data = await buildRecontratacionData(record)
-        dispatchDetalle({ type: "loaded", data })
-      } catch (err) {
-        dispatchDetalle({
-          type: "failed",
-          message: err instanceof Error ? err.message : "Error al cargar el detalle.",
-        })
-      }
-    },
-    [buildRecontratacionData],
-  )
 
   const imprimir = useCallback((numero: string) => {
     window.open(`/recontratacion/imprimir?numero=${encodeURIComponent(numero)}`, "_blank")
@@ -210,7 +181,6 @@ export default function RecontratacionContent() {
                     <EmpleadoRow
                       key={record.id}
                       record={record}
-                      onRevisar={abrirDetalle}
                       onImprimir={imprimir}
                     />
                   ))}
@@ -230,12 +200,6 @@ export default function RecontratacionContent() {
             )}
           </CardContent>
         </Card>
-
-        <DetalleDialog
-          state={detalleState}
-          onClose={() => dispatchDetalle({ type: "close" })}
-          onImprimir={imprimir}
-        />
       </TabsContent>
 
       <TabsContent value="lft" className="mt-0">

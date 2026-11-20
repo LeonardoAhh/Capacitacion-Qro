@@ -87,6 +87,7 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   "/plan-anual": "Plan Anual",
   [SETTINGS_PATH]: "Configuración",
   "/promociones": "Categorías",
+  "/promociones/reglas": "Reglas de promoción",
   "/asignaciones": "Asignaciones de evaluación",
   "/calificaciones": "Calificaciones",
   "/cursos": "Cursos",
@@ -111,6 +112,9 @@ const ROUTE_PREFIX_LABELS = [
   { prefix: "/plantilla/matriz/", label: "Matriz de capacitación" },
   { prefix: "/plantilla/incumplimientos/", label: "Incumplimientos" },
   { prefix: "/plantilla/retardos/", label: "Retardos" },
+  { prefix: "/recontratacion/", label: "Revisión de contrato" },
+  // Después de los overrides exactos: /promociones/reglas conserva su propia etiqueta.
+  { prefix: "/promociones/", label: "Detalle de promoción" },
 ]
 
 /** True when `pathname` is `href` itself or anywhere below it. */

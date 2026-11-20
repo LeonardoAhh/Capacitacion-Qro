@@ -35,7 +35,6 @@
     padding: 0;
     background: var(--print-bg);
     color: var(--print-text);
-    font-family: inherit;
     font-size: var(--fs-base);
     line-height: 1.35;
     -webkit-print-color-adjust: exact;

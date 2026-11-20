@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useMemo, useCallback } from "react"
+import Link from "next/link"
 import {
   ChartNoAxesColumnIncreasing,
   Download,
@@ -37,7 +38,6 @@ import {
   isHabilitado,
   calcularAptitud,
 } from "@/lib/promociones/utils"
-import { PromDetalleDialog } from "./prom-detalle-dialog"
 import { PromDesempenoDialog } from "./prom-desempeno-dialog"
 import { PromPromoverDialog } from "./prom-promover-dialog"
 import { PromExamDialog } from "./prom-exam-dialog"
@@ -53,14 +53,12 @@ const PAGE_SIZE = 9
 export default function PromocionesContent({
   empleados,
   onDatosActualizados,
-  onOpenRules,
   guardarDesempeño,
   promoverEmpleado,
   guardarExamen,
 }: {
   empleados: EmpleadoPromocion[]
   onDatosActualizados?: () => void
-  onOpenRules: () => void
   guardarDesempeño: (numero: string, calificacion: number, periodo?: string) => Promise<void>
   promoverEmpleado: (empleadoId: string, numero: string | undefined, nuevoPuesto: string, datos: ConfirmarPromocionInput) => Promise<void>
   guardarExamen: (numero: string, datos: ExamenPromocionInput) => Promise<void>
@@ -71,7 +69,6 @@ export default function PromocionesContent({
   const [filtroStatus, setFiltroStatus] = useState("todos")
   const [filtroPuesto, setFiltroPuesto] = useState("todos")
   const [pagina, setPagina] = useState(1)
-  const [empleadoDetalle, setEmpleadoDetalle] = useState<EmpleadoPromocion | null>(null)
   const [empleadoPromover, setEmpleadoPromover] = useState<EmpleadoPromocion | null>(null)
   const [empleadoExamen, setEmpleadoExamen] = useState<EmpleadoPromocion | null>(null)
   const [empleadoDesempeño, setEmpleadoDesempeño] = useState<EmpleadoPromocion | null>(null)
@@ -123,11 +120,11 @@ export default function PromocionesContent({
     [busqueda, filtroDept, filtroPuesto, filtroStatus]
   )
 
-  const handleExportPDF = useCallback(() => {
+  const handleExportPDF = useCallback(async () => {
     if (todosOrdenados.length === 0) { notify.error("No hay registros para exportar"); return }
     setExporting(true)
     try {
-      exportPromocionesPDF(todosOrdenados, exportMeta)
+      await exportPromocionesPDF(todosOrdenados, exportMeta)
       notify.success(`PDF generado (${todosOrdenados.length} registros)`)
     } catch (e) {
       console.error(e)
@@ -278,15 +275,11 @@ export default function PromocionesContent({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-11 min-h-11 gap-1.5 px-3 text-sm"
-              onClick={onOpenRules}
-              aria-label="Abrir reglas de promoción"
-            >
-              <SlidersHorizontal aria-hidden="true" className={PROMOTION_ICON.control} />
-              <span>Reglas</span>
+            <Button asChild variant="outline" size="sm" className="h-11 min-h-11 gap-1.5 px-3 text-sm">
+              <Link href="/promociones/reglas">
+                <SlidersHorizontal aria-hidden="true" className={PROMOTION_ICON.control} />
+                <span>Reglas</span>
+              </Link>
             </Button>
         </div>
       </div>
@@ -309,7 +302,6 @@ export default function PromocionesContent({
           <MobileList
             conCategoria={paginadosConCategoria}
             sinCategoria={paginadosSinCategoria}
-            onDetalle={setEmpleadoDetalle}
             onPromover={setEmpleadoPromover}
             onCapturarExamen={setEmpleadoExamen}
             onDesempeño={setEmpleadoDesempeño}
@@ -318,7 +310,6 @@ export default function PromocionesContent({
           <DesktopTable
             conCategoria={paginadosConCategoria}
             sinCategoria={paginadosSinCategoria}
-            onDetalle={setEmpleadoDetalle}
             onPromover={setEmpleadoPromover}
             onCapturarExamen={setEmpleadoExamen}
             onDesempeño={setEmpleadoDesempeño}
@@ -333,11 +324,6 @@ export default function PromocionesContent({
 
 
       {/* Dialogs */}
-      <PromDetalleDialog
-        empleado={empleadoDetalle}
-        open={!!empleadoDetalle}
-        onClose={() => setEmpleadoDetalle(null)}
-      />
 
       {empleadoPromover && (
         <PromPromoverDialog

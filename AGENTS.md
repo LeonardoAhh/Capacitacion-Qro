@@ -2,7 +2,7 @@ AGENTS.md
 Guía operativa para agentes de código (Claude Code, Cursor, Copilot, etc.) que trabajen en el proyecto ViñoPlastic. Léela completa antes de generar o modificar código. El documento de referencia visual completo vive en design.md.
 
 1. Contexto del proyecto
-ViñoPlastic es una aplicación web construida sobre el sistema de diseño Satoshi / Vercel-like documentado en design.md. Se compone de dos superficies:
+ViñoPlastic es una aplicación web construida sobre el sistema de diseño Alpino / Vercel-like documentado en design.md. Se compone de dos superficies:
 
 Marketing (home, pricing, customers, AI Gateway): hero con mesh gradient, grids de cards con hairline, bandas CTA.
 
@@ -20,7 +20,13 @@ Next.js (App Router) + React + TypeScript
 
 Tailwind CSS con tokens mapeados en tailwind.config.ts / globals.css vía CSS variables
 
-Satoshi autohospedada (ITF Free Font License, Fontshare) — no la cargues desde la API de Fontshare ni modifiques el archivo
+Alpino autohospedada (ITF Free Font License, Fontshare) — no la cargues desde la API de Fontshare ni modifiques el archivo
+
+Carga solo Regular (400), Medium (500) y Bold (700). El peso 600 de los encabezados usa el archivo Bold; no cargues Semibold.
+
+La altura óptica de Alpino se compensa con el token `--font-sans-x-height-target` en la interfaz; los formatos imprimibles con Inter desactivan ese ajuste.
+
+Inter autohospedada (SIL Open Font License) se reserva para formatos imprimibles y PDF; la interfaz conserva Alpino.
 
 Componentes UI tipo shadcn/ui permitidos, pero re-estilizados con los tokens de este archivo
 
@@ -123,13 +129,13 @@ display-xl	48px	600	48px	-2.4px	Hero H1
 heading-lg	32px	600	40px	-1.28px	Secciones mayores
 heading-md	20px	600	28px	-0.4px	Subsecciones / card headings
 label-sm	14px	500	20px	-0.28px	Labels fuertes, nav emphasis
-eyebrow	12px	500	16px	0	Eyebrows uppercase en Satoshi
+eyebrow	12px	500	16px	0	Eyebrows uppercase en Alpino
 body-lg	16px	400	24px	0	Párrafos lead
 body-md	14px	400	20px	0	Body default, nav, tablas
 body-sm	12px	400	16px	0	Captions, metadata
 button-lg	16px	500	20px	0	Pills de marketing
 button-md	14px	500	20px	0	Botones nav/app
-code	14px	400	20px	0	Código en Satoshi
+code	14px	400	20px	0	Código en Alpino
 Reglas tipográficas no negociables:
 
 Display siempre en 600 con tracking negativo (más negativo cuanto más grande).
@@ -138,7 +144,7 @@ Body siempre 400, sin tracking.
 
 No existe peso 300 ni 800/900, ni itálicas. No los uses.
 
-Satoshi es la única familia tipográfica para toda la interfaz, incluido el código.
+Alpino es la familia tipográfica de la interfaz, incluido el código. Los formatos imprimibles y PDF usan Inter.
 
 3.3 Espaciado
 Base 4px. Escala: 4 · 8 · 12 · 16 · 24 · 32 · 40 · 64 · 96 · 128.
@@ -215,7 +221,7 @@ FeatureCardElevated: igual + sombra nivel 2.
 
 PricingCard: canvas-elevated, hairline, radius: 16px, padding 32px.
 
-CodeBlock: canvas-elevated, hairline, radius: 12px, padding 16px, Satoshi code.
+CodeBlock: canvas-elevated, hairline, radius: 12px, padding 16px, Alpino code.
 
 Bands
 HeroBand: fondo canvas + mesh gradient (CSS/SVG), texto ink, display-xl, padding 128px 24px.
@@ -241,9 +247,9 @@ Reutiliza los dos shapes de botón por contexto (pill marketing / 6px app).
 
 1px hairline antes que cualquier sombra. Flat por defecto.
 
-Display con tracking negativo. Satoshi 600.
+Display con tracking negativo. Alpino 600.
 
-Eyebrows en Satoshi uppercase para introducir secciones.
+Eyebrows en Alpino uppercase para introducir secciones.
 
 Respeta la ladder de grises al elegir color de texto.
 
@@ -262,11 +268,11 @@ No añadas un segundo sistema decorativo. Excepción aprobada: el panel ilustrat
 
 No aflojes el tracking de los headings grandes.
 
-No declares ni cargues familias tipográficas distintas de Satoshi.
+No declares ni cargues familias tipográficas distintas de Alpino en la interfaz; los formatos imprimibles y PDF usan Inter.
 
 No introduzcas pesos tipográficos nuevos (light/black/italic).
 
-No cargues Satoshi desde la API de Fontshare. Es local (ITF Free Font License): no la conviertas, recortes ni modifiques.
+No cargues Alpino desde la API de Fontshare. Es local (ITF Free Font License): no la conviertas, recortes ni modifiques.
 
 No uses --primary para texto largo ni para fills decorativos. Solo acciones primarias y estados seleccionados.
 
@@ -322,8 +328,8 @@ Checklist rápida — el agente debe verificarla:
 □ ¿Los textos siguen la ladder ink → body → mute → faint?
 □ ¿Los botones usan el shape correcto según contexto (pill vs 6px)?
 □ ¿Las cards tienen hairline de 1px y, como mucho, sombra whisper/floating?
-□ ¿Los headings usan Satoshi 600 con tracking negativo?
-□ ¿Los textos, etiquetas y código usan Satoshi?
+□ ¿Los headings usan Alpino 600 con tracking negativo?
+□ ¿Los textos, etiquetas y código usan Alpino?
 □ ¿Marketing reserva el color para el hero y las ilustraciones, y el workspace usa solo la paleta activa?
 □ ¿Los controles interactivos tienen ≥44px de hit area?
 □ ¿El focus es visible y usa --primary del tema activo?
@@ -344,4 +350,4 @@ El cambio va a introducir una dependencia de UI (MUI, Chakra, Ant, etc.).
 
 El cambio contradice alguna regla de la sección 5.
 
-En caso de duda: menos es más. El sistema Satoshi es un ejercicio de resta. El agente debe restar antes que añadir.
+En caso de duda: menos es más. El sistema Alpino es un ejercicio de resta. El agente debe restar antes que añadir.

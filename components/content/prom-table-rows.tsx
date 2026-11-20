@@ -43,14 +43,12 @@ const MIN_CLASS = PROMOTION_TABLE_STYLE.supportingText
 export function DesktopTable({
   conCategoria,
   sinCategoria,
-  onDetalle,
   onPromover,
   onCapturarExamen,
   onDesempeño,
 }: {
   conCategoria: EmpleadoPromocion[]
   sinCategoria: EmpleadoPromocion[]
-  onDetalle: (emp: EmpleadoPromocion) => void
   onPromover: (emp: EmpleadoPromocion) => void
   onCapturarExamen: (emp: EmpleadoPromocion) => void
   onDesempeño: (emp: EmpleadoPromocion) => void
@@ -82,7 +80,6 @@ export function DesktopTable({
             <DesktopRow
               key={emp.id}
               emp={emp}
-              onDetalle={() => onDetalle(emp)}
               onPromover={() => onPromover(emp)}
               onCapturarExamen={() => onCapturarExamen(emp)}
               onDesempeño={() => onDesempeño(emp)}
@@ -101,7 +98,6 @@ export function DesktopTable({
             <DesktopRowInhabilitado
               key={emp.id}
               emp={emp}
-              onDetalle={() => onDetalle(emp)}
               onDesempeño={() => onDesempeño(emp)}
             />
           ))}
@@ -116,14 +112,12 @@ export function DesktopTable({
 export function MobileList({
   conCategoria,
   sinCategoria,
-  onDetalle,
   onPromover,
   onCapturarExamen,
   onDesempeño,
 }: {
   conCategoria: EmpleadoPromocion[]
   sinCategoria: EmpleadoPromocion[]
-  onDetalle: (emp: EmpleadoPromocion) => void
   onPromover: (emp: EmpleadoPromocion) => void
   onCapturarExamen: (emp: EmpleadoPromocion) => void
   onDesempeño: (emp: EmpleadoPromocion) => void
@@ -134,7 +128,6 @@ export function MobileList({
         <MobileRow
           key={emp.id}
           emp={emp}
-          onDetalle={() => onDetalle(emp)}
           onPromover={() => onPromover(emp)}
           onCapturarExamen={() => onCapturarExamen(emp)}
           onDesempeño={() => onDesempeño(emp)}
@@ -153,7 +146,6 @@ export function MobileList({
         <MobileCardInhabilitado
           key={emp.id}
           emp={emp}
-          onDetalle={() => onDetalle(emp)}
           onDesempeño={() => onDesempeño(emp)}
         />
       ))}
@@ -165,13 +157,11 @@ export function MobileList({
 
 function DesktopRow({
   emp,
-  onDetalle,
   onPromover,
   onCapturarExamen,
   onDesempeño,
 }: {
   emp: EmpleadoPromocion
-  onDetalle: () => void
   onPromover: () => void
   onCapturarExamen: () => void
   onDesempeño: () => void
@@ -317,7 +307,6 @@ function DesktopRow({
         <TableCell className="text-right">
           <PromAccionesMenu
             empleado={emp}
-            onDetalle={onDetalle}
             onPromover={onPromover}
             onCapturarExamen={onCapturarExamen}
             onDesempeño={onDesempeño}
@@ -331,11 +320,9 @@ function DesktopRow({
 
 function DesktopRowInhabilitado({
   emp,
-  onDetalle,
   onDesempeño,
 }: {
   emp: EmpleadoPromocion
-  onDetalle: () => void
   onDesempeño: () => void
 }) {
   const evalActual = ultimaEvaluacion(emp.evaluaciones)
@@ -378,7 +365,6 @@ function DesktopRowInhabilitado({
       <TableCell className="text-right">
           <PromAccionesMenu
             empleado={emp}
-            onDetalle={onDetalle}
             onDesempeño={onDesempeño}
           />
         </TableCell>
@@ -390,13 +376,11 @@ function DesktopRowInhabilitado({
 
 function MobileRow({
   emp,
-  onDetalle,
   onPromover,
   onCapturarExamen,
   onDesempeño,
 }: {
   emp: EmpleadoPromocion
-  onDetalle: () => void
   onPromover: () => void
   onCapturarExamen: () => void
   onDesempeño: () => void
@@ -428,7 +412,6 @@ function MobileRow({
         </div>
         <PromAccionesMenu
           empleado={emp}
-          onDetalle={onDetalle}
           onPromover={onPromover}
           onCapturarExamen={onCapturarExamen}
           onDesempeño={onDesempeño}
@@ -568,11 +551,9 @@ function UnavailableCell() {
 
 function MobileCardInhabilitado({
   emp,
-  onDetalle,
   onDesempeño,
 }: {
   emp: EmpleadoPromocion
-  onDetalle: () => void
   onDesempeño: () => void
 }) {
   const evalActual = ultimaEvaluacion(emp.evaluaciones)
@@ -588,7 +569,7 @@ function MobileCardInhabilitado({
             {emp.puesto}
           </div>
         </div>
-        <PromAccionesMenu empleado={emp} onDetalle={onDetalle} onDesempeño={onDesempeño} />
+        <PromAccionesMenu empleado={emp} onDesempeño={onDesempeño} />
       </div>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">

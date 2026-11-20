@@ -1,6 +1,14 @@
 @import "tailwindcss";
 @config "../tailwind.config.mts";
 
+@font-face {
+    font-family: "Inter Print";
+    src: url("/fonts/inter-variable.woff2") format("woff2");
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+}
+
 /* ─── Escala tipográfica (AGENTS.md §3.2) ────────────────
    Genera las utilidades text-<token>. Los nombres se registran en
    lib/theme/typography.ts para que cn() los reconozca como tamaños. */
@@ -55,6 +63,8 @@
 @layer base {
     :root {
         /* Theme overrides & scales */
+        --font-print: "Inter Print", Arial, sans-serif;
+        --font-sans-x-height-target: 0.5;
         --font-base-size: 16px;
         --density-scale: 1;
         --workspace-inset: 1rem;
@@ -135,8 +145,6 @@
         --hover-primary-opacity: 0.9;
         --hover-secondary-opacity: 0.8;
         --scrollbar-thumb-hover-opacity: 0.55;
-        --font-base-size: 16px;
-        --density-scale: 1;
 
         --alert-warning: 40 0% 9%;
         --alert-warning-foreground: 0 3% 98%;
@@ -235,6 +243,7 @@
 
     body {
         @apply text-foreground;
+        font-size-adjust: var(--font-sans-x-height-target);
     }
 }
 
@@ -848,8 +857,22 @@ input[type="color"]::-webkit-color-swatch {
     column-gap: 20px;
 }
 
+.print-area,
+.examen-print-root {
+    font-family: var(--font-print);
+    font-size-adjust: none;
+}
+
 /* ─── Print: Generador de Exámenes ─────────────────────── */
 @media print {
+    .print-area,
+    .print-area *,
+    .examen-print-root,
+    .examen-print-root * {
+        font-family: var(--font-print) !important;
+        font-size-adjust: none !important;
+    }
+
     /* Ocultar todo usando visibility para no romper el árbol del DOM */
     body * {
         visibility: hidden !important;

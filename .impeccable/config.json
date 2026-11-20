@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-11-20T17:39:19.380Z",
+        "reason": "El usuario pidió explícitamente Inter para todos los formatos imprimibles; Pally permanece en la interfaz."
+      }
+    ]
+  }
+}

@@ -1,342 +1,202 @@
 "use client"
 
-import React, { useMemo, useState } from "react"
-import { LoaderCircle, PencilLine, Plus, Search, SlidersHorizontal, Trash2, X } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { useMemo, useState } from "react"
+import { EllipsisVertical, PencilLine, Plus, Search, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { confirm } from "@/components/ui/confirm-dialog"
-import { useRole } from "@/lib/hooks"
 import { ReadOnlyBanner } from "@/components/read-only-banner"
-import {
-  useReglasPromocionCRUD,
-  type ReglaPromocionRow,
-} from "@/lib/hooks/useReglasPromocionCRUD"
-import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
+import { useRole } from "@/lib/hooks"
+import { useReglasPromocionCRUD, type ReglaPromocionRow } from "@/lib/hooks/useReglasPromocionCRUD"
+import { cn } from "@/lib/utils"
 import { PromReglaDialog } from "./prom-regla-dialog"
 
-interface Props {
-  onChange?: () => void
+/** Criterios mínimos de cada regla, en el orden en que se evalúan. */
+const CRITERIOS: { label: string; valor: (regla: ReglaPromocionRow) => string; resumen: (valor: string) => string }[] = [
+  { label: "Meses", valor: regla => String(regla.min_temporalidad_meses), resumen: valor => `${valor} meses` },
+  { label: "Examen", valor: regla => String(Number(regla.min_calificacion_examen)), resumen: valor => `Examen ${valor}` },
+  { label: "Cursos", valor: regla => `${Number(regla.min_porcentaje_cursos)}%`, resumen: valor => `Cursos ${valor}` },
+  { label: "Evaluación", valor: regla => String(Number(regla.min_calificacion_evaluacion)), resumen: valor => `Eval. ${valor}` },
+]
+
+interface AccionesProps {
+  regla: ReglaPromocionRow
+  disabled: boolean
+  onEdit: (regla: ReglaPromocionRow) => void
+  onDelete: (regla: ReglaPromocionRow) => void
 }
 
-export default function ReglasPromocionContent({ onChange }: Props) {
-  const { isReadOnly } = useRole()
-  const { reglas, loading, error, guardar, eliminar, toggleActivo } =
-    useReglasPromocionCRUD(onChange)
+function ReglaMenu({ regla, disabled, onEdit, onDelete }: AccionesProps) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button type="button" variant="ghost" size="icon" disabled={disabled} aria-label={`Acciones para ${regla.puesto}`}>
+          <EllipsisVertical aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onSelect={() => onEdit(regla)}><PencilLine aria-hidden="true" />Editar</DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => onDelete(regla)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+          <Trash2 aria-hidden="true" />Eliminar
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
+function Destino({ regla }: { regla: ReglaPromocionRow }) {
+  return regla.promocion_a
+    ? <>{regla.promocion_a}</>
+    : <span className="text-muted-foreground">Sin promoción</span>
+}
+
+function ReglasSkeleton() {
+  return (
+    <div role="status" aria-label="Cargando reglas" className="overflow-hidden rounded-xl border border-border">
+      {[0, 1, 2, 3, 4].map(row => (
+        <div key={row} aria-hidden="true" className="flex items-center gap-4 border-b border-border px-4 py-3 last:border-b-0">
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="h-4 w-1/4" />
+          <Skeleton className="ml-auto h-4 w-1/5" />
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/**
+ * Reglas de promoción: de qué puesto a cuál se promueve y con qué mínimos.
+ * Tabla en tablet y escritorio; lista compacta en celular.
+ */
+export default function ReglasPromocionContent() {
+  const { isReadOnly } = useRole()
+  const { reglas, loading, error, guardar, eliminar, toggleActivo } = useReglasPromocionCRUD()
   const [filter, setFilter] = useState("")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editing, setEditing] = useState<ReglaPromocionRow | null>(null)
+  const [dialog, setDialog] = useState<{ regla: ReglaPromocionRow | null } | null>(null)
 
   const filtered = useMemo(() => {
-    const q = filter.trim().toLowerCase()
-    if (!q) return reglas
-    return reglas.filter(
-      (r) =>
-        r.puesto.toLowerCase().includes(q) ||
-        (r.promocion_a?.toLowerCase().includes(q) ?? false),
-    )
+    const query = filter.trim().toLocaleLowerCase("es-MX")
+    if (!query) return reglas
+    return reglas.filter(regla => regla.puesto.toLocaleLowerCase("es-MX").includes(query)
+      || (regla.promocion_a?.toLocaleLowerCase("es-MX").includes(query) ?? false))
   }, [filter, reglas])
+  const inactivas = reglas.filter(regla => !regla.activo).length
 
-  const puestos = useMemo(() => reglas.map((r) => r.puesto), [reglas])
-
-  function openCreate() {
-    setEditing(null)
-    setDialogOpen(true)
-  }
-
-  function openEdit(regla: ReglaPromocionRow) {
-    setEditing(regla)
-    setDialogOpen(true)
-  }
-
-  async function handleEliminar(regla: ReglaPromocionRow) {
+  async function handleDelete(regla: ReglaPromocionRow) {
     const ok = await confirm({
       title: "Eliminar regla",
-      description: `¿Eliminar la regla de "${regla.puesto}"? Esta acción no se puede deshacer.`,
+      description: `Se eliminará la regla de «${regla.puesto}». Esta acción no se puede deshacer.`,
       tone: "destructive",
       confirmLabel: "Eliminar",
     })
     if (!ok) return
-    try {
-      await eliminar(regla.id)
-    } catch {
-      /* toast ya emitido en el hook */
-    }
+    // El hook ya avisa si falla.
+    await eliminar(regla.id).catch(() => undefined)
   }
 
-  async function handleToggle(regla: ReglaPromocionRow, activo: boolean) {
-    try {
-      await toggleActivo(regla.id, activo)
-    } catch {
-      /* toast ya emitido en el hook */
-    }
+  function toggle(regla: ReglaPromocionRow, activo: boolean) {
+    void toggleActivo(regla.id, activo).catch(() => undefined)
   }
 
-  return (
-    <TooltipProvider delayDuration={300}>
-      <div className="space-y-4">
-        <ReadOnlyBanner />
-
-        <div className="flex items-start gap-2">
-          <SlidersHorizontal aria-hidden="true" className={`mt-0.5 ${PROMOTION_ICON.control} shrink-0 text-muted-foreground`} />
-          <p className="text-sm text-muted-foreground">
-            Define los criterios mínimos (temporalidad, examen, cursos, evaluación)
-            para promover de un puesto a otro.
-          </p>
-        </div>
-
-        {error && (
-          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
-            {error}
-          </div>
-        )}
-
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <div className="relative flex-1 max-w-sm">
-            <Search aria-hidden="true" className={`absolute left-3 top-1/2 -translate-y-1/2 ${PROMOTION_ICON.control} text-muted-foreground`} />
-            <Input
-              placeholder="Filtrar por puesto..."
-              className={`pl-9 ${filter ? "pr-9" : ""}`}
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-            />
-            {filter && (
-              <button
-                type="button"
-                onClick={() => setFilter("")}
-                aria-label="Limpiar filtro"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X aria-hidden="true" className={PROMOTION_ICON.control} />
-              </button>
-            )}
-          </div>
-          <Button
-            size="icon"
-            onClick={openCreate}
-            disabled={isReadOnly}
-            aria-label="Nueva regla"
-            title="Nueva regla"
-          >
-            <Plus aria-hidden="true" className={PROMOTION_ICON.control} />
-          </Button>
-        </div>
-
-        {loading ? (
-          <div className="flex items-center justify-center py-20 text-muted-foreground">
-            <LoaderCircle aria-hidden="true" className={`mr-2 ${PROMOTION_ICON.feature} animate-spin`} />
-            Cargando reglas...
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-xl border border-dashed bg-background text-center">
-            <div className="bg-primary/10 p-4 rounded-md mb-3">
-              <SlidersHorizontal aria-hidden="true" className={`${PROMOTION_ICON.emptyState} text-primary`} />
-            </div>
-            <p className="text-base font-semibold text-foreground">
-              {reglas.length === 0 ? "Sin reglas" : "Sin coincidencias"}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-              {reglas.length === 0
-                ? "Crea la primera regla o importa un JSON desde la pestaña anterior."
-                : `Ninguna regla coincide con "${filter}".`}
-            </p>
-          </div>
-        ) : (
-          <>
-            {/* Desktop table */}
-            <div className="hidden md:block overflow-x-auto rounded-xl border">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-muted text-xs">
-                    <TableHead>Puesto</TableHead>
-                    <TableHead>Promoción a</TableHead>
-                    <TableHead className="text-center">Meses</TableHead>
-                    <TableHead className="text-center">Examen</TableHead>
-                    <TableHead className="text-center">Cursos</TableHead>
-                    <TableHead className="text-center">Evaluación</TableHead>
-                    <TableHead className="text-center">Activa</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filtered.map((r) => (
-                    <TableRow key={r.id} className={r.activo ? "" : "opacity-60"}>
-                      <TableCell className="font-medium">{r.puesto}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {r.promocion_a ?? (
-                          <span className="italic text-[11px]">Sin promoción</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {r.min_temporalidad_meses}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {Number(r.min_calificacion_examen)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {Number(r.min_porcentaje_cursos)}%
-                      </TableCell>
-                      <TableCell className="text-center">
-                        {Number(r.min_calificacion_evaluacion)}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Switch
-                          checked={r.activo}
-                          onCheckedChange={(v) => handleToggle(r, v)}
-                          disabled={isReadOnly}
-                          aria-label={`Activar regla de ${r.puesto}`}
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center justify-end gap-1">
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9"
-                                onClick={() => openEdit(r)}
-                                disabled={isReadOnly}
-                                aria-label={`Editar regla de ${r.puesto}`}
-                              >
-                                <PencilLine aria-hidden="true" className={PROMOTION_ICON.control} />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Editar</TooltipContent>
-                          </Tooltip>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 text-destructive hover:text-destructive"
-                                onClick={() => handleEliminar(r)}
-                                disabled={isReadOnly}
-                                aria-label={`Eliminar regla de ${r.puesto}`}
-                              >
-                                <Trash2 aria-hidden="true" className={PROMOTION_ICON.control} />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Eliminar</TooltipContent>
-                          </Tooltip>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Mobile cards */}
-            <div className="md:hidden space-y-2">
-              {filtered.map((r) => (
-                <div
-                  key={r.id}
-                  className={`rounded-xl border p-3 space-y-2 bg-card ${r.activo ? "" : "opacity-60"}`}
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold truncate">{r.puesto}</p>
-                      <p className="text-[11px] text-muted-foreground truncate">
-                        {r.promocion_a ? (
-                          <>→ {r.promocion_a}</>
-                        ) : (
-                          <span className="italic">Sin promoción</span>
-                        )}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={r.activo}
-                      onCheckedChange={(v) => handleToggle(r, v)}
-                      disabled={isReadOnly}
-                      aria-label={`Activar regla de ${r.puesto}`}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-4 gap-1 text-[11px]">
-                    <Stat label="Meses" value={String(r.min_temporalidad_meses)} />
-                    <Stat label="Examen" value={String(Number(r.min_calificacion_examen))} />
-                    <Stat label="Cursos" value={`${Number(r.min_porcentaje_cursos)}%`} />
-                    <Stat label="Eval." value={String(Number(r.min_calificacion_evaluacion))} />
-                  </div>
-
-                  <div className="flex items-center gap-2 pt-1">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-9 w-9"
-                      onClick={() => openEdit(r)}
-                      disabled={isReadOnly}
-                      aria-label="Editar"
-                      title="Editar"
-                    >
-                      <PencilLine aria-hidden="true" className={PROMOTION_ICON.control} />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 gap-1.5 text-destructive hover:text-destructive"
-                      onClick={() => handleEliminar(r)}
-                      disabled={isReadOnly}
-                      aria-label={`Eliminar regla de ${r.puesto}`}
-                    >
-                      <Trash2 aria-hidden="true" className={PROMOTION_ICON.control} />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2 pt-1">
-              <Badge variant="outline" className="text-[11px]">
-                {filtered.length} regla{filtered.length !== 1 ? "s" : ""}
-              </Badge>
-              {reglas.some((r) => !r.activo) && (
-                <Badge variant="outline" className="text-[11px] opacity-70">
-                  {reglas.filter((r) => !r.activo).length} inactiva
-                  {reglas.filter((r) => !r.activo).length !== 1 ? "s" : ""}
-                </Badge>
-              )}
-            </div>
-          </>
-        )}
-
-        {dialogOpen && (
-          <PromReglaDialog
-            open={dialogOpen}
-            regla={editing}
-            existingPuestos={puestos}
-            isReadOnly={isReadOnly}
-            onClose={() => setDialogOpen(false)}
-            onGuardar={guardar}
-          />
-        )}
-      </div>
-    </TooltipProvider>
+  const acciones = (regla: ReglaPromocionRow) => (
+    <ReglaMenu regla={regla} disabled={isReadOnly} onEdit={item => setDialog({ regla: item })} onDelete={item => void handleDelete(item)} />
   )
-}
+  const activa = (regla: ReglaPromocionRow) => (
+    <Switch checked={regla.activo} onCheckedChange={value => toggle(regla, value)} disabled={isReadOnly}
+      aria-label={`Regla de ${regla.puesto} ${regla.activo ? "activa" : "inactiva"}`} />
+  )
 
-function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md bg-muted px-2 py-1.5 text-center">
-      <p className="text-[10px] uppercase text-muted-foreground tracking-wide">{label}</p>
-      <p className="text-sm font-semibold">{value}</p>
+    <div className="grid gap-4">
+      <ReadOnlyBanner />
+
+      <div className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1 sm:max-w-sm">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
+          <Input type="search" placeholder="Buscar puesto" aria-label="Buscar regla por puesto" className="pl-9"
+            value={filter} onChange={event => setFilter(event.target.value)} />
+        </div>
+        <Button type="button" className="ml-auto shrink-0 max-sm:w-11 max-sm:px-0" disabled={isReadOnly}
+          onClick={() => setDialog({ regla: null })}>
+          <Plus aria-hidden="true" /><span className="max-sm:sr-only">Nueva regla</span>
+        </Button>
+      </div>
+
+      {error && <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-body-md text-destructive">{error}</p>}
+
+      {loading ? (
+        <ReglasSkeleton />
+      ) : filtered.length === 0 ? (
+        <p className="rounded-xl border border-dashed border-border px-4 py-10 text-center text-body-md text-muted-foreground">
+          {reglas.length === 0 ? "Aún no hay reglas. Crea la primera o impórtalas desde Categorías." : `Ninguna regla coincide con «${filter.trim()}».`}
+        </p>
+      ) : (
+        <>
+          {/* Tablet y escritorio */}
+          <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
+            <Table className="[&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm">
+              <TableHeader>
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col">Puesto</TableHead>
+                  <TableHead scope="col">Promoción a</TableHead>
+                  {CRITERIOS.map(criterio => <TableHead key={criterio.label} scope="col" className="w-24 text-right">{criterio.label}</TableHead>)}
+                  <TableHead scope="col" className="w-20 text-center">Activa</TableHead>
+                  <TableHead scope="col" className="w-14"><span className="sr-only">Acciones</span></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filtered.map(regla => (
+                  <TableRow key={regla.id} className={cn(!regla.activo && "text-muted-foreground")}>
+                    <TableCell className="text-label-sm">{regla.puesto}</TableCell>
+                    <TableCell className="text-body-md text-muted-foreground"><Destino regla={regla} /></TableCell>
+                    {CRITERIOS.map(criterio => (
+                      <TableCell key={criterio.label} className="text-right text-body-md tabular-nums">{criterio.valor(regla)}</TableCell>
+                    ))}
+                    <TableCell className="text-center">{activa(regla)}</TableCell>
+                    <TableCell className="text-right">{acciones(regla)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Celular: una fila por regla, mínimos en una línea */}
+          <ul className="divide-y divide-border rounded-xl border border-border bg-card md:hidden">
+            {filtered.map(regla => (
+              <li key={regla.id} className={cn("flex items-start gap-2 py-3 pl-4 pr-1", !regla.activo && "text-muted-foreground")}>
+                <div className="grid min-w-0 flex-1 gap-0.5">
+                  <p className="break-words text-label-sm">{regla.puesto}</p>
+                  <p className="break-words text-body-sm text-muted-foreground"><span aria-hidden="true">→ </span><Destino regla={regla} /></p>
+                  <p className="text-body-sm tabular-nums text-muted-foreground">
+                    {CRITERIOS.map(criterio => criterio.resumen(criterio.valor(regla))).join(" · ")}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-1 pt-1">
+                  {activa(regla)}
+                  {acciones(regla)}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="text-body-sm text-muted-foreground">
+            {filtered.length} {filtered.length === 1 ? "regla" : "reglas"}
+            {inactivas > 0 && ` · ${inactivas} ${inactivas === 1 ? "inactiva" : "inactivas"}`}
+          </p>
+        </>
+      )}
+
+      {dialog && (
+        <PromReglaDialog open regla={dialog.regla} existingPuestos={reglas.map(regla => regla.puesto)}
+          isReadOnly={isReadOnly} onClose={() => setDialog(null)} onGuardar={guardar} />
+      )}
     </div>
   )
 }

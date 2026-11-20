@@ -1,6 +1,7 @@
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 import { addReportFooter } from "@/lib/pdf-footer"
+import { PRINT_FONT_FAMILY, registerPrintFont } from "@/lib/print-font"
 import type { EmpleadoPromocion, AptitudStatus } from "./types"
 import {
     calcularAptitud,
@@ -168,10 +169,11 @@ function filtrosTexto(meta?: ExportMeta): string {
 // ════════════════════════════════════════════════════════════════════════════
 //  PDF
 // ════════════════════════════════════════════════════════════════════════════
-export function exportPromocionesPDF(empleados: EmpleadoPromocion[], meta?: ExportMeta) {
+export async function exportPromocionesPDF(empleados: EmpleadoPromocion[], meta?: ExportMeta) {
     const rows = buildRows(empleados)
     const kpis = computeKpis(empleados)
     const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" })
+    await registerPrintFont(doc)
     const pageW = doc.internal.pageSize.getWidth()
 
     // ── Banner ──────────────────────────────────────────────────────────────
@@ -181,10 +183,10 @@ export function exportPromocionesPDF(empleados: EmpleadoPromocion[], meta?: Expo
     doc.rect(0, 26, pageW, 1.2, "F")
 
     doc.setTextColor(255, 255, 255)
-    doc.setFont("helvetica", "bold")
+    doc.setFont(PRINT_FONT_FAMILY, "bold")
     doc.setFontSize(17)
     doc.text("Reporte de Promociones", 14, 13)
-    doc.setFont("helvetica", "normal")
+    doc.setFont(PRINT_FONT_FAMILY, "normal")
     doc.setFontSize(9.5)
     doc.setTextColor(210, 222, 245)
     doc.text("Viñoplastic · Planta Querétaro", 14, 20)
@@ -219,11 +221,11 @@ export function exportPromocionesPDF(empleados: EmpleadoPromocion[], meta?: Expo
         doc.setFillColor(...c.color)
         doc.roundedRect(x, cardY, 1.6, cardH, 0.8, 0.8, "F")
         doc.setTextColor(...c.color)
-        doc.setFont("helvetica", "bold")
+        doc.setFont(PRINT_FONT_FAMILY, "bold")
         doc.setFontSize(15)
         doc.text(String(c.value), x + 6, cardY + 8)
         doc.setTextColor(...BRAND.sub)
-        doc.setFont("helvetica", "normal")
+        doc.setFont(PRINT_FONT_FAMILY, "normal")
         doc.setFontSize(7.5)
         doc.text(c.label.toUpperCase(), x + 6, cardY + 13)
     })
@@ -254,6 +256,7 @@ export function exportPromocionesPDF(empleados: EmpleadoPromocion[], meta?: Expo
             cellPadding: { top: 2.5, bottom: 2.5, left: 2, right: 2 },
         },
         styles: {
+            font: PRINT_FONT_FAMILY,
             fontSize: 7.5,
             cellPadding: 2,
             textColor: BRAND.ink,

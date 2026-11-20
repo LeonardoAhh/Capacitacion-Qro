@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ChevronLeft, ChevronRight, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -8,11 +9,9 @@ import { cn } from "@/lib/utils"
 
 export function EmpleadoRow({
   record,
-  onRevisar,
   onImprimir,
 }: {
   record: NuevoIngreso
-  onRevisar: (record: NuevoIngreso) => void
   onImprimir: (numero: string) => void
 }) {
   const urgency = getUrgencyLevel(record)
@@ -47,15 +46,20 @@ export function EmpleadoRow({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <StatusBadge urgency={urgency} record={record} />
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-11 px-3 py-0 text-sm"
-            onClick={() => onRevisar(record)}
-            aria-label={`Ver detalle de ${record.nombre}`}
-          >
-            Revisar
-          </Button>
+          {record.numero ? (
+            <Button asChild variant="ghost" size="sm" className="h-11 px-3 py-0 text-sm">
+              <Link
+                href={`/recontratacion/${encodeURIComponent(record.numero)}`}
+                aria-label={`Revisar a ${record.nombre}`}
+              >
+                Revisar
+              </Link>
+            </Button>
+          ) : (
+            <Button variant="ghost" size="sm" className="h-11 px-3 py-0 text-sm" disabled title="Sin número asignado">
+              Revisar
+            </Button>
+          )}
           <Button
             size="sm"
             className="h-11 gap-2 px-3 py-0 text-sm"

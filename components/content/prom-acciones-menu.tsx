@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import {
   ArrowUpRight,
   ChartNoAxesColumnIncreasing,
@@ -22,7 +23,6 @@ import { calcularAptitud, isHabilitado } from "@/lib/promociones/utils"
 
 interface PromAccionesMenuProps {
   empleado: EmpleadoPromocion
-  onDetalle: () => void
   onPromover?: () => void
   onCapturarExamen?: () => void
   onDesempeño?: () => void
@@ -32,7 +32,6 @@ interface PromAccionesMenuProps {
 
 export function PromAccionesMenu({
   empleado,
-  onDetalle,
   onPromover,
   onCapturarExamen,
   onDesempeño,
@@ -60,9 +59,11 @@ export function PromAccionesMenu({
       </DropdownMenuTrigger>
 
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={onDetalle} data-testid="prom-accion-detalle">
-          <UserRoundSearch className={`${PROMOTION_ICON.control} text-muted-foreground`} aria-hidden="true" />
-          Ver detalle
+        <DropdownMenuItem asChild data-testid="prom-accion-detalle">
+          <Link href={`/promociones/${encodeURIComponent(empleado.id)}`}>
+            <UserRoundSearch className={`${PROMOTION_ICON.control} text-muted-foreground`} aria-hidden="true" />
+            Ver detalle
+          </Link>
         </DropdownMenuItem>
         {habilitado && onPrimaryAction && (
           <DropdownMenuItem onClick={onPrimaryAction} data-testid="prom-accion-primaria">

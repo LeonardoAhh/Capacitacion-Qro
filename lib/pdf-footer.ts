@@ -49,7 +49,7 @@ export function addReportFooter(
 
     for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i)
-        doc.setFont("helvetica", "normal")
+        doc.setFont(prevFont.fontName || "helvetica", "normal")
         doc.setFontSize(fontSize)
         doc.setTextColor(120, 120, 120)
         doc.text(left, margin, pageHeight - bottom, { align: "left" })

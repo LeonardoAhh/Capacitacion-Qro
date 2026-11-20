@@ -33,7 +33,6 @@
     padding: 6mm;
     background: var(--print-bg);
     color: var(--print-text);
-    font-family: inherit;
     font-size: var(--fs-base);
     line-height: 1.3;
 }

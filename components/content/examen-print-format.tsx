@@ -93,7 +93,7 @@ const ExamenPrintFormat = forwardRef<HTMLDivElement, ExamenPrintFormatProps>(
     const { empleado, preguntas, fecha } = examen
 
     return (
-      <div ref={ref} className="examen-print-root font-sans text-foreground bg-card print:text-black print:bg-white">
+      <div ref={ref} className="examen-print-root text-foreground bg-card print:text-black print:bg-white">
         <CabeceraExamen
           empleado={empleado}
           fecha={fecha}

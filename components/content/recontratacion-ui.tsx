@@ -1,4 +1,3 @@
-import type { ReactNode } from "react"
 import {
   CalendarClock,
   AlertCircle,
@@ -57,19 +56,9 @@ const URGENCY_PILL_BG: Record<"critical" | "warning", string> = {
 export function Dato({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex min-w-0 flex-col gap-1">
-      <dt className="font-sans text-xs font-medium uppercase text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="truncate text-sm font-medium text-foreground">{value}</dd>
+      <dt className="text-body-sm text-muted-foreground">{label}</dt>
+      <dd className="break-words text-label-sm text-foreground">{value}</dd>
     </div>
-  )
-}
-
-export function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h3 className="border-b border-border pb-2 font-sans text-sm font-medium uppercase text-foreground">
-      {children}
-    </h3>
   )
 }
 
