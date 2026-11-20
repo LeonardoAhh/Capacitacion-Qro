@@ -32,8 +32,8 @@ export default function Header({
   const pageLabel = getRouteLabel(pathname)
 
   return (
-    // Posición, altura y barra de estado: .workspace-header en globals.css.
-    <header className="workspace-header z-20 shrink-0 bg-card">
+    // Altura y barra de estado: .workspace-header en globals.css.
+    <header className="workspace-header sticky top-0 z-20 shrink-0 bg-card">
       <WorkspaceContainer fullWidth={fullWidth} className="flex h-full items-center gap-2 border-b border-border">
         {/* Los evaluadores no tienen barra lateral. */}
         {!isEvaluador && (

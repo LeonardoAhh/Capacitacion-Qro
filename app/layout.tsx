@@ -38,10 +38,12 @@ export const metadata: Metadata = {
   applicationName: "Vertx System",
   appleWebApp: {
     capable: true,
-    // "black-translucent" lets the app draw under the status bar; our sticky
-    // header already reserves env(safe-area-inset-top) so the header color
-    // shows through the bar.
-    statusBarStyle: "black-translucent",
+    // "default" keeps the page below an opaque status bar. With
+    // "black-translucent", iOS 26 draws its scroll-edge blur over the top
+    // ~40pt of the installed app, header included, and no page style can
+    // turn it off. env(safe-area-inset-top) is then 0, so the header's
+    // status-bar padding collapses on its own.
+    statusBarStyle: "default",
     title: "Vertx System",
     startupImage: "/icons/apple-touch-icon.png",
   },
