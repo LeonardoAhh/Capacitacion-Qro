@@ -1,71 +1,36 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { BellOff, BellRing } from "lucide-react"
+import { BellRing, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase/client"
-import { notify } from "@/lib/notify"
-import { activateKanbanPush, canUseKanbanPush, deactivateKanbanPush, hasCurrentVapidKey } from "@/lib/kanban-push"
+import type { KanbanPushState } from "@/lib/kanban-push"
 
-type PushState = "checking" | "unavailable" | "denied" | "inactive" | "active" | "saving"
+const HINT = "border-t border-border px-3 py-2 text-body-sm text-muted-foreground"
 
-export function KanbanPushControl({ userId }: { userId: string }) {
-  const [state, setState] = useState<PushState>("checking")
-
-  useEffect(() => {
-    let mounted = true
-    async function check() {
-      if (!canUseKanbanPush()) {
-        if (mounted) setState("unavailable")
-        return
-      }
-      if (Notification.permission === "denied") {
-        if (mounted) setState("denied")
-        return
-      }
-      const registration = await navigator.serviceWorker.getRegistration("/")
-      const subscription = await registration?.pushManager.getSubscription()
-      if (!subscription || !hasCurrentVapidKey(subscription)) {
-        if (mounted) setState("inactive")
-        return
-      }
-      const { data, error } = await supabase.from("push_subscriptions").select("id")
-        .eq("user_id", userId).eq("endpoint", subscription.endpoint).maybeSingle()
-      if (error) throw error
-      if (mounted) setState(data ? "active" : "inactive")
-    }
-    void check().catch(() => { if (mounted) setState("inactive") })
-    return () => { mounted = false }
-  }, [userId])
-
-  async function toggle() {
-    const wasActive = state === "active"
-    setState("saving")
-    try {
-      if (wasActive) await deactivateKanbanPush()
-      else await activateKanbanPush()
-      setState(wasActive ? "inactive" : "active")
-      notify.success(wasActive ? "Notificaciones desactivadas." : "Notificaciones activadas.")
-    } catch (error) {
-      setState(Notification.permission === "denied" ? "denied" : "inactive")
-      notify.error(error instanceof Error ? error.message : "No se pudieron configurar las notificaciones.")
-    }
+/**
+ * Pie del panel de avisos. Solo aparece cuando hay algo que hacer en este
+ * dispositivo; una vez activas, se desactivan desde el encabezado del panel.
+ */
+export function KanbanPushControl({ state, onActivate }: {
+  state: KanbanPushState | "checking" | "saving"
+  onActivate: () => void
+}) {
+  if (state === "needs-install") {
+    return <p className={HINT}>Para recibir notificaciones, agrega la app a tu pantalla de inicio.</p>
   }
+  if (state === "denied") {
+    return <p className={HINT}>Notificaciones bloqueadas. Permítelas en la configuración del navegador.</p>
+  }
+  if (state !== "inactive" && state !== "saving") return null
 
-  const isActive = state === "active"
-  if (state === "checking" || state === "unavailable") return null
-
-  const isDisabled = state === "saving" || state === "denied"
-  const label = state === "denied" ? "Notificaciones bloqueadas"
-    : state === "saving" ? "Configurando notificaciones…"
-    : isActive ? "Desactivar notificaciones" : "Activar notificaciones"
-
+  const saving = state === "saving"
   return (
     <div className="border-t border-border">
-      <Button type="button" variant="ghost" className="w-full justify-start rounded-none px-3 text-foreground"
-        disabled={isDisabled} onClick={() => void toggle()}>
-        {isActive ? <BellOff aria-hidden="true" /> : <BellRing aria-hidden="true" />}
-        {label}
+      <Button type="button" variant="ghost" className="w-full justify-start rounded-none px-3 text-body-sm text-foreground"
+        disabled={saving} aria-busy={saving || undefined} onClick={onActivate}>
+        {saving
+          ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          : <BellRing aria-hidden="true" />}
+        {saving ? "Activando…" : "Activar notificaciones en este dispositivo"}
       </Button>
     </div>
   )

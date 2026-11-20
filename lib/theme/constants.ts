@@ -37,9 +37,12 @@ export const THEME_STORAGE_KEYS = {
   reducedMotion: "reducedMotion",
 } as const
 
+// Color de la barra de estado / navegador: igual a --card, el fondo del header,
+// para que la barra y el header se vean como una sola superficie.
+// La meta theme-color no acepta variables CSS; actualizar junto con --card en globals.css.
 export const APP_THEME_COLORS: Record<ResolvedThemeMode, string> = {
-  light: "#f4f5f7",
-  dark: "#121418",
+  light: "#ffffff",
+  dark: "#1a1d23",
 }
 
 /**

@@ -6,7 +6,7 @@
       "schedule": "0 14 * * *"
     },
     {
-      "path": "/api/desempeno/push",
+      "path": "/api/push/diario",
       "schedule": "0 14 * * *"
     }
   ],

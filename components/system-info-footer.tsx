@@ -34,7 +34,7 @@ export function SystemInfoFooter({ variant = "sidebar", className }: {
   }, [reducedMotion])
 
   const version = <div className={cn("flex items-center gap-2", variant === "sidebar" && "justify-between")}>
-    <span>Versión del sistema</span>
+    <span></span>
     <span className="font-sans tabular-nums">{SYSTEM_VERSION}</span>
   </div>
 

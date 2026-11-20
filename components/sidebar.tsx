@@ -8,13 +8,12 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/compone
 import { cn } from "@/lib/utils"
 import { HOME_PATH, MOBILE_NAV_ID, NAV_SECTIONS, findActiveLeaf } from "@/lib/navigation"
 import { AppMark } from "@/components/app-transition"
-import { useRole } from "@/lib/hooks/useRole"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountMenu } from "@/components/account-menu"
 import { APP_NAME, BRAND_NAME } from "@/lib/constants/company"
+// Mismo límite que `md`; la visibilidad del panel sigue en CSS.
+import { DESKTOP_QUERY } from "@/lib/hooks/useMediaQuery"
 
-// Matches Tailwind's `md` boundary; layout visibility itself stays in CSS.
-const DESKTOP_QUERY = "(min-width: 48rem)"
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
 // Sobre la superficie compartida: hover neutro y selección con el tinte del tema.
@@ -79,6 +78,16 @@ export function useSidebar(): SidebarApi & {
   }
 }
 
+/** Nombre del sistema y de la empresa; compartido por el panel y el menú móvil. */
+function BrandText() {
+  return (
+    <span className="flex min-w-0 flex-col" title={`${APP_NAME} · ${BRAND_NAME}`}>
+      <span className="truncate text-label-sm text-foreground">{APP_NAME}</span>
+      <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
+    </span>
+  )
+}
+
 function SidebarBrand({
   onClose,
 }: {
@@ -96,10 +105,7 @@ function SidebarBrand({
         )}
       >
         <AppMark className="size-9 shrink-0" />
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate text-label-sm text-foreground">{APP_NAME}</span>
-          <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
-        </span>
+        <BrandText />
       </Link>
       {onClose && (
         <button
@@ -117,6 +123,7 @@ function SidebarBrand({
 
 /**
  * Full navigation tree shared by the desktop panel and mobile drawer.
+ * Dashboard no monta la barra lateral para evaluadores: aquí no se revisa el rol.
  */
 function NavTree({
   pathname,
@@ -209,7 +216,6 @@ export default function Sidebar({
   onToggleCollapse,
 }: SidebarProps) {
   const pathname = usePathname()
-  const { role } = useRole()
   const closeMobile = useCallback(() => setShowMobileSidebar(false), [setShowMobileSidebar])
 
   return (
@@ -231,11 +237,9 @@ export default function Sidebar({
 
             <SidebarBrand onClose={closeMobile} />
             <NavTree pathname={pathname} onNavigate={closeMobile} />
-            {role !== "evaluador" && (
-              <div className="safe-bottom-content shrink-0 px-3 py-2">
-                <AccountMenu variant="sidebar" onNavigate={closeMobile} />
-              </div>
-            )}
+            <div className="safe-bottom-content shrink-0 px-3 py-2">
+              <AccountMenu variant="sidebar" onNavigate={closeMobile} />
+            </div>
           </div>
         </DrawerContent>
       </Drawer>
@@ -251,12 +255,7 @@ export default function Sidebar({
           "mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center",
           isCollapsed ? "justify-center px-2" : "justify-between gap-1 pl-6 pr-2",
         )}>
-          {!isCollapsed && (
-            <span className="flex min-w-0 flex-col" title={`${APP_NAME} · ${BRAND_NAME}`}>
-              <span className="truncate text-label-sm text-foreground">{APP_NAME}</span>
-              <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
-            </span>
-          )}
+          {!isCollapsed && <BrandText />}
           <button
             type="button"
             onClick={onToggleCollapse}
@@ -272,11 +271,9 @@ export default function Sidebar({
           </button>
         </div>
         <NavTree pathname={pathname} isCollapsed={isCollapsed} />
-        {role !== "evaluador" && (
-          <div className="shrink-0 px-2 py-2">
-            <AccountMenu variant="sidebar" isCollapsed={isCollapsed} />
-          </div>
-        )}
+        <div className="shrink-0 px-2 py-2">
+          <AccountMenu variant="sidebar" isCollapsed={isCollapsed} />
+        </div>
       </aside>
     </>
   )

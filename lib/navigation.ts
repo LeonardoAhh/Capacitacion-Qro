@@ -82,6 +82,7 @@ export const NAV_SECTIONS: NavSection[] = [
  * but still need a display title in the header.
  */
 const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
+  "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
   [SETTINGS_PATH]: "Configuración",
@@ -107,6 +108,7 @@ const EXTRA_ROUTE_LABELS: Record<string, string> = {
 const ROUTE_PREFIX_LABELS = [
   { prefix: "/plantilla/actas/", label: "Actas administrativas" },
   { prefix: "/plantilla/incidencias/", label: "Incidencias" },
+  { prefix: "/plantilla/matriz/", label: "Matriz de capacitación" },
   { prefix: "/plantilla/incumplimientos/", label: "Incumplimientos" },
   { prefix: "/plantilla/retardos/", label: "Retardos" },
 ]

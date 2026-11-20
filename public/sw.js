@@ -1,4 +1,4 @@
-// TIMESTAMP: 2026-11-19T22:46:29.500Z
+// TIMESTAMP: 2026-11-20T14:54:19.383Z
 const CACHE_NAME = "vinoplastic-v5"
 const STATIC_CACHE = "vinoplastic-static-v5"
 const API_CACHE = "vinoplastic-api-v5"
@@ -112,9 +112,30 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, {
     body,
     tag,
+    lang: "es-MX",
     icon: "/icons/icon-192-any.png",
+    // Silueta monocromática para la barra de estado de Android.
+    badge: "/icons/badge-96.png",
+    timestamp: Date.now(),
     data: { url },
   }))
+})
+
+// El navegador puede renovar la suscripción (p. ej. Firefox). Se registra la nueva
+// sin que la persona tenga que volver a activar las notificaciones.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil((async () => {
+    const options = event.oldSubscription?.options
+    const subscription = event.newSubscription
+      ?? (options ? await self.registration.pushManager.subscribe(options) : null)
+    if (!subscription) return
+    await fetch("/api/kanban/push/subscription", {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(subscription.toJSON()),
+    })
+  })())
 })
 
 self.addEventListener("notificationclick", (event) => {

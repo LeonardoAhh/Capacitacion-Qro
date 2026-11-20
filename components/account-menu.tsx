@@ -23,7 +23,7 @@ import { LOGIN_PATH, SETTINGS_PATH } from "@/lib/navigation"
 import { SYSTEM_CREDIT, SYSTEM_VERSION } from "@/lib/constants/system"
 import { ROLE_LABELS } from "@/lib/constants/roles"
 import { supabase } from "@/lib/supabase/client"
-import { deactivateKanbanPush } from "@/lib/kanban-push"
+import { releaseKanbanPush } from "@/lib/kanban-push"
 import { confirmUnsavedChanges } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
 import { useSignOut } from "@/components/signout-overlay"
@@ -83,8 +83,9 @@ export function AccountMenu({ variant, isCollapsed = false, onNavigate }: Accoun
 
     setSigningOut(true)
     try {
+      // Deja de enviar a este dispositivo sin borrar el permiso: al volver a entrar se reactiva solo.
       try {
-        await deactivateKanbanPush()
+        await releaseKanbanPush()
       } catch (error) {
         console.warn("No se pudo retirar la suscripción push al cerrar sesión:", error)
       }

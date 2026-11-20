@@ -1,15 +1,12 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useEffect, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { useEffect } from "react"
 import Sidebar, { useSidebar } from "@/components/sidebar"
 import Header from "@/components/header"
 import { useRole } from "@/lib/hooks"
 import { isEvaluadorAllowedRoute } from "@/lib/hooks/useRole"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
-
-
 import { AppTransition } from "@/components/app-transition"
 
 interface DashboardProps {
@@ -39,12 +36,12 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     }
   }, [pathname, isEvaluador, roleLoading, router])
 
+  // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
   if (roleLoading) return <AppTransition message="Preparando tu espacio…" />
 
   return (
-    <div 
-      className="workspace-shell safe-top bg-background"
-    >
+    // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).
+    <div className="workspace-shell bg-background">
       {/* Skip link accesible */}
       <a
         href="#main-content"
@@ -72,7 +69,6 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             fullWidth={fullWidth}
             showMobileSidebar={showMobileSidebar}
             onOpenSidebar={openMobileSidebar}
-            showSidebarToggle={!isEvaluador}
           />
 
           <main

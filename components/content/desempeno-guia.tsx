@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { GraduationCap, X } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -19,12 +19,6 @@ export function DesempenoGuia({ open, onClose }: DesempenoGuiaProps) {
   const titleRef = useRef<HTMLHeadingElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
   const reducedMotion = useEvaluationReducedMotion();
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("guia-open", open);
-    return () => root.classList.remove("guia-open");
-  }, [open]);
 
   const handleClose = () => {
     onClose();

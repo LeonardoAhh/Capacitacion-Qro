@@ -31,6 +31,39 @@ export function pushConfig() {
   return { publicKey, privateKey, subject }
 }
 
+export type PushConfig = NonNullable<ReturnType<typeof pushConfig>>
+
+export interface DigestResult {
+  sent: number
+  expired: number
+  failed: number
+  skipped: number
+}
+
+/** Registro diario en push_sent_log para no repetir un resumen el mismo día. */
+interface DigestClaim {
+  ref_id: string
+  ref_type: string
+  days_before: number
+  sent_at: string
+}
+
+/** true si se apartó el envío; false si ya se había enviado hoy. */
+export async function claimDigest(db: SupabaseClient, claim: DigestClaim): Promise<boolean> {
+  const { error } = await db.from("push_sent_log").insert(claim)
+  if (error?.code === "23505") return false
+  if (error) throw new Error(error.message)
+  return true
+}
+
+/** Libera el registro si no se entregó nada, para reintentar en la siguiente ejecución. */
+export async function releaseDigest(db: SupabaseClient, claim: DigestClaim): Promise<void> {
+  const { error } = await db.from("push_sent_log").delete()
+    .eq("ref_id", claim.ref_id).eq("ref_type", claim.ref_type)
+    .eq("days_before", claim.days_before).eq("sent_at", claim.sent_at)
+  if (error) throw new Error(error.message)
+}
+
 function errorStatus(error: unknown) {
   if (typeof error === "object" && error !== null && "statusCode" in error && typeof error.statusCode === "number") {
     return error.statusCode
@@ -56,7 +89,7 @@ export async function sendPush(
   db: SupabaseClient,
   subscriptions: PushSubscriptionRow[],
   payload: string,
-  config: NonNullable<ReturnType<typeof pushConfig>>,
+  config: PushConfig,
 ) {
   let sent = 0
   let expired = 0

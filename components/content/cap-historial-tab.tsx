@@ -32,7 +32,6 @@ interface CapHistorialTabProps {
   onBulkImportActas: () => void
   onBulkImportRetardos?: () => void
   onBulkCreateEmployees: () => void
-  onViewEmployee: (emp: Employee) => void
   onEditEmployee: (emp: Employee) => void
   onAddCourses: (emp: Employee) => void
   onDeleteEmployee: (emp: Employee) => void
@@ -42,7 +41,7 @@ export function CapHistorialTab({
   employees, loadingEmployees, canEdit,
   newEmpSuccess, addCoursesSuccess,
   onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkImportRetardos, onBulkCreateEmployees,
-  onViewEmployee, onEditEmployee, onAddCourses, onDeleteEmployee,
+  onEditEmployee, onAddCourses, onDeleteEmployee,
 }: CapHistorialTabProps) {
   const [empSearch, setEmpSearch]         = useState("")
   const [empFilterDept, setEmpFilterDept] = useState("all")
@@ -244,9 +243,11 @@ export function CapHistorialTab({
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem className={employeeActionItemClass} onClick={() => onViewEmployee(emp)}>
-                                  <LayoutGrid />
-                                  <span>Matriz de capacitación</span>
+                                <DropdownMenuItem asChild className={employeeActionItemClass}>
+                                  <Link href={`/plantilla/matriz/${encodeURIComponent(emp.id)}`}>
+                                    <LayoutGrid />
+                                    <span>Matriz de capacitación</span>
+                                  </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem className={employeeActionItemClass} onClick={() => onAddCourses(emp)}>
                                   <BookPlus />

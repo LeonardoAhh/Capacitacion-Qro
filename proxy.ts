@@ -6,8 +6,8 @@ const PUBLIC_ROUTES = ['/login', '/guia-evaluador', '/manifest.webmanifest', '/s
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Supabase llama este webhook sin sesión; la ruta valida su secreto.
-  if (pathname === '/api/kanban/push' || pathname === '/api/desempeno/push') return NextResponse.next()
+  // Webhook de Supabase y cron de Vercel: llegan sin sesión y cada ruta valida su secreto.
+  if (pathname === '/api/kanban/push' || pathname === '/api/push/diario') return NextResponse.next()
 
   // Rutas públicas — dejar pasar siempre
   if (PUBLIC_ROUTES.some(r => pathname.startsWith(r))) {

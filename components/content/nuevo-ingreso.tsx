@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
+import Link from "next/link"
 import {
   Search, CheckCircle2, AlertCircle, Clock, Loader2,
-  UserPlus, X, FileUp, Upload,
+  UserPlus, X, FileUp, Upload, MessageSquareShare,
 } from "lucide-react"
 import { EvalBadge, ContratoTerminoBadge } from "@/components/content/shared/eval-badges"
 import { Button } from "@/components/ui/button"
@@ -45,11 +46,6 @@ const IngresosBulkImport = dynamic(
   () => import("@/components/content/ingresos-bulk-import").then((module) => module.IngresosBulkImport),
   { ssr: false, loading: dialogLoading },
 )
-const IngresosWhatsappModal = dynamic(
-  () => import("@/components/content/ingresos-whatsapp-modal").then((module) => module.IngresosWhatsappModal),
-  { ssr: false, loading: dialogLoading },
-)
-
 export default function NuevoIngresoContent() {
   const { isReadOnly } = useRole()
   const { loading, saving, error, fetchAll, updateRecord, deleteRecord, createRecord } = useNuevoIngreso()
@@ -70,14 +66,12 @@ export default function NuevoIngresoContent() {
 
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
   const [ingresosJsonOpen, setIngresosJsonOpen] = useState(false)
-  const [whatsappModalOpen, setWhatsappModalOpen] = useState(false)
   const [capEmployeeNamesLoading, setCapEmployeeNamesLoading] = useState(false)
   const [loadedDialogs, setLoadedDialogs] = useState({
     edit: false,
     create: false,
     incidencias: false,
     ingresos: false,
-    whatsapp: false,
   })
 
   const markDialogLoaded = useCallback((dialog: keyof typeof loadedDialogs) => {
@@ -251,12 +245,11 @@ export default function NuevoIngresoContent() {
           <div className="flex min-w-0 items-center justify-end gap-3">
             {!isReadOnly && (
               <div className="flex items-center gap-1.5 shrink-0">
-                <Button className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={() => {
-                  markDialogLoaded("whatsapp")
-                  setWhatsappModalOpen(true)
-                }} aria-label="Compartir Pendientes" title="Compartir Pendientes por WhatsApp">
-                  <span className="hidden sm:inline">Pendientes</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square-share h-4 w-4 sm:hidden"><path d="M21 12v3a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h7"/><path d="M16 3h5v5"/><path d="m21 3-6 6"/></svg>
+                <Button asChild className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline">
+                  <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes" title="Compartir pendientes">
+                    <span className="hidden sm:inline">Pendientes</span>
+                    <MessageSquareShare className="size-4 sm:hidden" aria-hidden="true" />
+                  </Link>
                 </Button>
                 <Button className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
                   <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando..." : "Incidencias"}</span>
@@ -546,10 +539,6 @@ export default function NuevoIngresoContent() {
         onImported={load}
       />}
 
-      {loadedDialogs.whatsapp && <IngresosWhatsappModal
-        open={whatsappModalOpen}
-        onClose={() => setWhatsappModalOpen(false)}
-      />}
     </>
   )
 }

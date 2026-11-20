@@ -45,9 +45,10 @@ export async function POST(request: Request) {
     .select("id,endpoint,p256dh,auth").eq("user_id", userId)
   if (subscriptionError) return Response.json({ error: "No se pudieron leer las suscripciones" }, { status: 500 })
 
+  // Título: quién y qué ("ANA te asignó"); cuerpo: la tarjeta. Breve para pantallas de bloqueo.
   const payload = JSON.stringify({
-    title: "Kanban",
-    body: `${textoAviso({ tipo: aviso.tipo as KanbanAviso["tipo"], actor_nombre: aviso.actor_nombre })}: «${aviso.titulo}»`,
+    title: textoAviso({ tipo: aviso.tipo as KanbanAviso["tipo"], actor_nombre: aviso.actor_nombre }),
+    body: aviso.titulo,
     url: aviso.tarjeta_id ? `/kanban?${PARAM_TARJETA}=${encodeURIComponent(aviso.tarjeta_id)}` : "/kanban",
     tag: `kanban-${aviso.id}`,
   })

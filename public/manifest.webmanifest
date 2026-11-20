@@ -2,11 +2,11 @@
   "name": "Capacitacion",
   "short_name": "Capacitacion",
   "description": "Sistema de gestion de capacitacion.",
-  "start_url": "/inicio",
+  "start_url": "/kanban",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fafafa",
-  "theme_color": "#fafafa",
+  "background_color": "#f4f5f7",
+  "theme_color": "#ffffff",
   "icons": [
     {
       "src": "/icons/icon.svg",

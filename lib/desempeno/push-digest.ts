@@ -11,8 +11,12 @@ export interface EvaluationPushRecord extends SeguimientoNuevoIngreso {
 
 export interface EvaluatorProfile {
   user_id: string
+  role: string
   departamentos: string[] | null
 }
+
+/** Dev y admin ven las evaluaciones de toda la empresa; los evaluadores, las suyas. */
+export const ROLES_EVALUACIONES_GLOBALES = ["dev", "admin"]
 
 export interface EvaluatorAssignment {
   evaluator_user_id: string
@@ -31,13 +35,14 @@ export function evaluationPushCounts(
   assignedNumbers: Set<string>,
   todayUtcDay: number,
 ) {
+  const global = ROLES_EVALUACIONES_GLOBALES.includes(profile.role)
   const departments = new Set((profile.departamentos ?? []).map(normalizeDepartamento))
   let vencidas = 0
   let proximas = 0
 
   for (const record of records) {
     if (!record.numero || record.tipo_contrato === "Indeterminado") continue
-    if (!assignedNumbers.has(record.numero) && !departments.has(normalizeDepartamento(record.departamento))) continue
+    if (!global && !assignedNumbers.has(record.numero) && !departments.has(normalizeDepartamento(record.departamento))) continue
 
     for (const hito of HITOS_NUEVO_INGRESO) {
       const fecha = record[hito.fecha]

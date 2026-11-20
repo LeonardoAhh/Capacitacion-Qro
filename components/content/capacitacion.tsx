@@ -1,12 +1,11 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import { Briefcase, BookOpen, ClipboardList, Upload } from "lucide-react"
+import { Briefcase, BookOpen, ClipboardList } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { motion } from "framer-motion"
 import { useCapacitacion, useRole } from "@/lib/hooks"
-import { getLatestEmployeeCourseAttempts } from "@/lib/hooks/useCapacitacion"
-import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse, EmployeeProgress } from "@/lib/hooks"
+import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
 import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { notify } from "@/lib/notify"
 
@@ -15,7 +14,6 @@ import { CapEditEmployeeDialog, type EditEmployeeForm } from "@/components/conte
 import { CapNewEmployeeDialog } from "@/components/redesign/cap-new-employee-dialog"
 import { CapAddCoursesDialog } from "@/components/content/cap-add-courses-dialog"
 import { CapPositionCoursesDialog } from "@/components/content/cap-position-courses-dialog"
-import { CapEmployeeProgressDialog } from "@/components/redesign/cap-employee-progress-dialog"
 import { CapNewPositionDialog } from "@/components/content/cap-new-position-dialog"
 import { CapNewCourseDialog } from "@/components/content/cap-new-course-dialog"
 import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog"
@@ -48,7 +46,7 @@ export default function CapacitacionContent() {
     parseJSON, importData,
     fetchDepartments, fetchPositions, fetchCourses, fetchPositionCourses,
     fetchAllPositionCourses, fetchAllEmployeeCourses,
-    fetchEmployees, fetchEmployeeCourses, fetchEmployeeProgress,
+    fetchEmployees,
     clearHistorial, deleteEmployee, createEmployeeManual, updateEmployee,
     addCoursesToEmployee, bulkImportCourseRecords,
     createPosition, createCourse, updateCourse,
@@ -91,13 +89,6 @@ export default function CapacitacionContent() {
   const [editCourseTarget, setEditCourseTarget] = useState<Course | null>(null)
   const [editCourseSaving, setEditCourseSaving] = useState(false)
 
-  // ── Employee-progress dialog ──────────────────────────────────────────────
-  const [empDlgOpen, setEmpDlgOpen] = useState(false)
-  const [selectedEmp, setSelectedEmp] = useState<Employee | null>(null)
-  const [selectedEmpCourses, setSelectedEmpCourses] = useState<EmployeeCourse[]>([])
-  const [empProgress, setEmpProgress] = useState<EmployeeProgress | null>(null)
-  const [loadingEmpDlg, setLoadingEmpDlg] = useState(false)
-  const [empDlgTab, setEmpDlgTab] = useState<'requeridos' | 'historial'>('requeridos')
 
   // ── Employee CRUD dialogs ─────────────────────────────────────────────────
   const [confirmClearOpen, setConfirmClearOpen] = useState(false)
@@ -316,17 +307,6 @@ export default function CapacitacionContent() {
   }, [invalidateCoursesTabData, updateCourse, loadCoursesData])
 
   // ── Employee handlers ─────────────────────────────────────────────────────
-  const handleViewEmployee = useCallback(async (emp: Employee) => {
-    setSelectedEmp(emp); setEmpDlgOpen(true)
-    setLoadingEmpDlg(true); setEmpProgress(null); setSelectedEmpCourses([])
-    setEmpDlgTab('requeridos')
-    try {
-      const courseHistory = fetchEmployeeCourses(emp.id)
-      const [c, p] = await Promise.all([courseHistory, fetchEmployeeProgress(emp, courseHistory)])
-      setSelectedEmpCourses(getLatestEmployeeCourseAttempts(c)); setEmpProgress(p)
-    } catch (err) { console.error(err) }
-    finally { setLoadingEmpDlg(false) }
-  }, [fetchEmployeeCourses, fetchEmployeeProgress])
 
   const handleSaveEditEmp = useCallback(async (form: EditEmployeeForm) => {
     if (!editEmpTarget) return
@@ -476,7 +456,6 @@ export default function CapacitacionContent() {
               onBulkImportActas={() => setActasImportOpen(true)}
               onBulkImportRetardos={() => setRetardosImportOpen(true)}
               onBulkCreateEmployees={() => setBulkCreateEmpOpen(true)}
-              onViewEmployee={handleViewEmployee}
               onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
               onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
               onDeleteEmployee={handleDeleteEmployee}
@@ -598,16 +577,6 @@ export default function CapacitacionContent() {
         onRemoveCourse={handleRemoveCourseFromPos}
       />
 
-      <CapEmployeeProgressDialog
-        employee={selectedEmp}
-        open={empDlgOpen}
-        loading={loadingEmpDlg}
-        courses={selectedEmpCourses}
-        progress={empProgress}
-        tab={empDlgTab}
-        onTabChange={(v) => setEmpDlgTab(v as 'requeridos' | 'historial')}
-        onClose={() => setEmpDlgOpen(false)}
-      />
 
       <CapNewPositionDialog
         open={newPosOpen}
