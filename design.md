@@ -1,8 +1,8 @@
 ## Overview
 
-The marketing surface follows the Alpino system's near-white canvas and near-black ink, with color reserved for the hero mesh gradient and illustration accents. The ViñoPlastic workspace supports the explicit light and dark palettes below; its theme changes colors only, preserving Alpino, geometry, spacing, and elevation.
+The marketing surface follows the Mona Sans system's near-white canvas and near-black ink, with color reserved for the hero mesh gradient and illustration accents. The ViñoPlastic workspace supports the explicit light and dark palettes below; its theme changes colors only, preserving Mona Sans, geometry, spacing, and elevation.
 
-Typography does the heavy lifting. **Alpino** is the only typeface throughout the interface, from tightly-tracked display headlines to labels and code. Buttons split into two shapes by context: the marketing CTAs are fully rounded black **pills** (`{rounded.pill}` — 100px, "Start Deploying" / "Get a Demo"), while nav and in-app controls use a tight 6px square (`{rounded.sm}`, "Sign Up" / "Log In"). The contrast between the rounded marketing pill and the square app button is itself a deliberate signal of which surface you're on.
+Typography does the heavy lifting. **Mona Sans** is the only typeface throughout the interface, from tightly-tracked display headlines to labels and code. Buttons split into two shapes by context: the marketing CTAs are fully rounded black **pills** (`{rounded.pill}` — 100px, "Start Deploying" / "Get a Demo"), while nav and in-app controls use a tight 6px square (`{rounded.sm}`, "Sign Up" / "Log In"). The contrast between the rounded marketing pill and the square app button is itself a deliberate signal of which surface you're on.
 
 Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on the near-white canvas, separated by a 1px hairline and, at most, a whisper-soft layered shadow. Workspace surfaces use the active theme's card and border tokens. Feature sections are built from precise grids of hairline cards, often holding thin node-graph or code-editor illustrations rendered in the same restrained palette.
 
@@ -10,7 +10,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 - Marketing uses a neutral ink ladder on a near-white canvas; workspace colors resolve from the selected light or dark palette.
 - The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) stays confined to the hero; the login has a separate, local SonarGrid illustration.
 - Two button shapes by context: rounded black **pills** (`{rounded.pill}`) for marketing CTAs, tight 6px squares (`{rounded.sm}`) for nav/app controls.
-- Alpino for all text, including tightly-tracked display type (`{typography.display-xl}` at -2.4px), uppercase technical eyebrows, and code.
+- Mona Sans for all text, including tightly-tracked display type (`{typography.display-xl}` at -2.4px), uppercase technical eyebrows, and code.
 - Hairline-bordered cards in precise grids; depth via 1px border + whisper shadow, never heavy elevation.
 - The classic Vercel gradient trio (develop/preview/ship) survives as a named accent system: `{colors.gradient-develop-start}`→end, preview, ship.
 - Color-block page rhythm: white hero with mesh gradient → logo strip → hairline feature-card grid → code-editor band → template cards → black-text CTA band → grey footer.
@@ -19,7 +19,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 > Source pages analyzed: the home page, the AI Gateway page, the customers page, and the pricing page. The ink/canvas/hairline trio recurs on every page; the accent blue (`{colors.link}`) surfaces on pricing, and the mesh-gradient stops live in the hero.
 
-**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #1c3a9c; dark mode uses grafito oscuro surfaces and `--primary` #9ec1ff. Typography (local Alpino), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
+**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #1c3a9c; dark mode uses grafito oscuro surfaces and `--primary` #9ec1ff. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
 
 | UI token | Light | Dark |
 |---|---|---|
@@ -37,7 +37,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 | Success | `#0070f3` | `#0070f3` |
 | Warning | `#f5a623` | `#f5a623` |
 
-Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Alpino, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
+Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).
@@ -73,7 +73,7 @@ These, blended together, form the hero's multi-stop mesh.
 ## Typography
 
 ### Font Family
-The system uses locally bundled **Alpino** for UI, prose, labels, and code. The same local font asset is reused by application error surfaces. Printable formats and generated PDFs use locally bundled **Inter**.
+The system uses locally bundled **Mona Sans** for UI, prose, labels, and code. The same local font asset is reused by application error surfaces. Printable formats and generated PDFs use locally bundled **Inter**.
 
 ### Hierarchy
 
@@ -85,22 +85,21 @@ The system uses locally bundled **Alpino** for UI, prose, labels, and code. The 
 | `{typography.heading-lg}` | 32px | 600 | 40px | -1.28px | Major section headings |
 | `{typography.heading-md}` | 20px | 600 | 28px | -0.4px | Sub-section / card headings |
 | `{typography.label-sm}` | 14px | 500 | 20px | -0.28px | Strong labels, nav emphasis |
-| `{typography.eyebrow}` | 12px | 500 | 16px | 0 | Uppercase Alpino section labels |
+| `{typography.eyebrow}` | 12px | 500 | 16px | 0 | Uppercase Mona Sans section labels |
 | `{typography.body-lg}` | 16px | 400 | 24px | 0 | Lead paragraphs, large body |
 | `{typography.body-md}` | 14px | 400 | 20px | 0 | Default body, nav links, table cells |
 | `{typography.body-sm}` | 12px | 400 | 16px | 0 | Captions, footnotes, metadata |
 | `{typography.button-lg}` | 16px | 500 | 20px | 0 | Marketing pill button labels |
 | `{typography.button-md}` | 14px | 500 | 20px | 0 | Nav / app button labels |
-| `{typography.code}` | 14px | 400 | 20px | 0 | Code blocks and inline code (Alpino) |
+| `{typography.code}` | 14px | 400 | 20px | 0 | Code blocks and inline code (Mona Sans) |
 
 ### Principles
 - Display type is defined by tight negative tracking — the larger the heading, the tighter (-2.4px at hero scale, -1.28px at section scale). Body type sits at neutral spacing.
 - Weight is binary: 600 for headings and 500 for buttons/labels; everything else is 400. There is no light or black weight, and no italic.
-- Alpino is used consistently for interface headings, body copy, labels, and code. Printable formats and PDFs use Inter.
-- Alpino has a smaller lowercase x-height than the previous interface font (399/1000 versus 500/1000 in the locally bundled font files). The UI sets `font-size-adjust` through `--font-sans-x-height-target` (0.5) to retain the intended apparent text size without changing spacing tokens. Larger glyphs can change line wrapping. Printable formats reset this adjustment for Inter.
+- Mona Sans is used consistently for interface headings, body copy, labels, and code. Printable formats and PDFs use Inter.
 
 ### Font License
-Alpino is self-hosted under the ITF Free Font License from Fontshare (`public/fonts/Alpino-FFL.txt`) and loaded through `next/font/local` as three roman files: Regular (400), Medium (500), and Bold (used for CSS weights 600–700). The license forbids modifying, subsetting or converting the font files. Keep heading weight at 600 and preserve the negative display tracking.
+Mona Sans is self-hosted under the SIL Open Font License (`public/fonts/MonaSans-OFL.txt`) from GitHub and loaded through `next/font/local` as three roman files: Regular (400), Medium (500), and Bold (used for CSS weights 600–700). Keep heading weight at 600 and preserve the negative display tracking.
 
 Inter is self-hosted for print under the SIL Open Font License (`public/fonts/Inter-OFL.txt`). Browser printing uses its variable WOFF2 file; generated PDFs embed the regular and bold TTF files.
 
@@ -227,7 +226,7 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, ink text `{colors.ink}`, type `{typography.body-md}`, rounded `{rounded.lg}`, padding `{spacing.xl}`.
 
 **`code-block`** — code / terminal surface
-- Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, Alpino code `{typography.code}`, rounded `{rounded.md}`, padding `{spacing.md}`. Syntax rendered in the ink-and-accent palette.
+- Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, Mona Sans code `{typography.code}`, rounded `{rounded.md}`, padding `{spacing.md}`. Syntax rendered in the ink-and-accent palette.
 
 ### Bands
 
@@ -252,7 +251,7 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - In marketing, confine color to the hero mesh gradient and small illustration accents; in the workspace, use the active theme palette and reserve its primary for actions and selected states.
 - Use the two button shapes by context: black pill (`{components.button-primary}`) for marketing CTAs, 6px square (`{components.button-primary-sm}`) for nav/app.
 - Define cards and inputs with a 1px hairline (`{colors.hairline}`) before any shadow — flat is the default.
-- Use Alpino for all typography. Set display headings at weight 600 with tight negative tracking; keep section labels uppercase.
+- Use Mona Sans for all typography. Set display headings at weight 600 with tight negative tracking; keep section labels uppercase.
 - Step the grey text ladder deliberately: `{colors.ink}` → `{colors.body}` → `{colors.mute}` → `{colors.faint}`.
 
 ### Don't
@@ -261,4 +260,4 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Don't pile on shadows — depth is a 1px hairline plus, at most, a finely-layered low-alpha shadow stack.
 - Don't set marketing body copy in pure black (`#000000`) — the brand's ink is #171717 and body steps to `{colors.body}`. Workspace text uses the active theme's foreground tokens.
 - Don't add a second decorative system to the shared chrome. The login illustration is the approved exception: a theme-colored SonarGrid confined to its visual panel; other surfaces keep the established ink-on-white treatment.
-- Don't loosen the display tracking — large Alpino headings carry tight negative letter-spacing by design.
+- Don't loosen the display tracking — large Mona Sans headings carry tight negative letter-spacing by design.
