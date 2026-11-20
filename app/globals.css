@@ -289,10 +289,27 @@ body {
  * reserva la barra de estado con su propio fondo; así en iOS (barra
  * translúcida) el contenido nunca pasa por debajo, y en Android, donde
  * env() vale 0, no queda ningún espacio extra.
+ *
+ * Va con position: fixed (no sticky) a todo el ancho y con fondo sólido:
+ * iOS 26 solo cambia su desenfoque del borde superior por un color plano
+ * cuando arriba encuentra una caja fija así. Con sticky, el desenfoque
+ * cubría el header aun sin hacer scroll.
  */
 .workspace-header {
+    position: fixed;
+    inset-inline: 0;
+    top: 0;
     padding-top: env(safe-area-inset-top, 0px);
     height: calc(var(--workspace-header-height) + env(safe-area-inset-top, 0px));
+}
+
+/* El header fijo sale del flujo: el contenido arranca debajo de él. */
+.workspace-frame:has(> .workspace-header) {
+    padding-top: calc(var(--workspace-header-height) + env(safe-area-inset-top, 0px));
+}
+
+html:has(.workspace-header) {
+    scroll-padding-top: calc(var(--workspace-header-height) + env(safe-area-inset-top, 0px));
 }
 
 @media (min-width: 768px) {
@@ -312,8 +329,13 @@ body {
 
     /* Escritorio: la barra de estado la reserva el contenedor; el header vuelve a su altura. */
     .workspace-header {
+        position: sticky;
         padding-top: 0;
         height: var(--workspace-header-height);
+    }
+
+    .workspace-frame:has(> .workspace-header) {
+        padding-top: 0;
     }
 
     .workspace-panel {
