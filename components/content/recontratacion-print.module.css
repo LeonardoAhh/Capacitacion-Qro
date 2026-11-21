@@ -118,11 +118,12 @@
     align-items: center; /* centrado vertical del texto */
 }
 
+/* Las etiquetas pueden partirse en dos líneas: con nowrap, una fuente más
+   ancha empujaba la ficha fuera de la hoja. */
 .infoLabel {
     font-weight: 700;
     background: var(--print-cell-fill);
     border-right: 1px solid var(--print-border);
-    white-space: nowrap;
 }
 
 .infoValue {
@@ -167,12 +168,14 @@
     vertical-align: middle;
 }
 
+/* Encabezados con salto de línea permitido: así la tabla nunca es más ancha
+   que la hoja, sin importar la fuente de impresión. */
 .table th {
     font-weight: 700;
     font-size: var(--fs-xs);
     text-transform: uppercase;
     background: var(--print-cell-fill);
-    white-space: nowrap;
+    line-height: 1.2;
 }
 
 .table tbody td {
@@ -280,11 +283,17 @@
    IMPRESIÓN
 =================================================== */
 @media print {
+    /* Los márgenes los pone @page (globals.css). Con 8.5in fijos la hoja era
+       más ancha que el área imprimible y el navegador reducía todo. */
     .printRoot.printRoot {
-        width: 8.5in !important;
-        max-width: 8.5in !important;
+        width: 100% !important;
+        max-width: none !important;
         padding: 0 !important;
-        margin: 0 auto !important;
+        margin: 0 !important;
+    }
+
+    .sheet {
+        padding: 0;
     }
 
     .printRoot,

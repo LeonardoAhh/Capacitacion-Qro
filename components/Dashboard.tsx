@@ -8,6 +8,8 @@ import { useRole } from "@/lib/hooks"
 import { isEvaluadorAllowedRoute } from "@/lib/hooks/useRole"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { AppTransition } from "@/components/app-transition"
+import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
+import { HOME_PATH, SAFETY_HOME_PATH, type WorkspaceId } from "@/lib/navigation"
 
 interface DashboardProps {
   content?: ReactNode
@@ -28,6 +30,14 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
   const pathname = usePathname()
   const router = useRouter()
   const { isEvaluador, loading: roleLoading } = useRole()
+  const [workspace, setWorkspace] = useActiveWorkspace()
+
+  const handleWorkspaceChange = (nextWorkspace: WorkspaceId) => {
+    if (nextWorkspace === workspace) return
+    setWorkspace(nextWorkspace)
+    const targetPath = nextWorkspace === "safety" ? SAFETY_HOME_PATH : HOME_PATH
+    if (pathname !== targetPath) router.push(targetPath)
+  }
 
   useEffect(() => {
     if (roleLoading || !isEvaluador) return
@@ -37,7 +47,8 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
   }, [pathname, isEvaluador, roleLoading, router])
 
   // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
-  if (roleLoading) return <AppTransition message="Preparando tu espacio…" />
+  // El espacio de trabajo solo falta al hidratar; al navegar entre páginas ya está.
+  if (roleLoading || !workspace) return <AppTransition message="Preparando tu espacio…" />
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).
@@ -59,6 +70,8 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             setShowMobileSidebar={setShowMobileSidebar}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebar}
+            workspace={workspace}
+            onWorkspaceChange={handleWorkspaceChange}
           />
         )}
 
@@ -76,7 +89,8 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             className="min-w-0 flex-1 safe-right safe-bottom-content"
           >
             <WorkspaceContainer fullWidth={fullWidth} className="py-5 sm:py-6 lg:py-8">
-              <div className="min-w-0 space-y-6">
+              {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
+              <div className="surface-enter min-w-0 space-y-6">
                 {content}
               </div>
             </WorkspaceContainer>

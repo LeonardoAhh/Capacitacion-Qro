@@ -5,6 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
+import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import {
   BadgeCheck,
   Cake,
@@ -20,6 +21,8 @@ import {
   UsersRound,
 } from "lucide-react"
 
+export { SAFETY_HOME_PATH } from "@/lib/workspace-paths"
+
 export interface NavLeaf {
   label: string
   href: string
@@ -33,9 +36,18 @@ export interface NavSection {
   pinned?: boolean
 }
 
+export type WorkspaceId = "training" | "safety"
+
+export const WORKSPACE_OPTIONS: ReadonlyArray<{ id: WorkspaceId; label: string }> = [
+  { id: "training", label: "Capacitación" },
+  { id: "safety", label: "Seguridad e Higiene" },
+]
+
+export const WORKSPACE_STORAGE_KEY = "workspace-active"
+
 export const HOME_PATH = "/inicio"
-/** Destino al iniciar sesión (dev y admin); los evaluadores van a Desempeño. */
-export const POST_LOGIN_PATH = "/kanban"
+/** Selección posterior al login para dev/admin; evaluadores van a Desempeño. */
+export const POST_LOGIN_PATH = WORKSPACE_SELECTION_PATH
 export const LOGIN_PATH = "/login"
 export const SETTINGS_PATH = "/settings"
 export const ASSIGNMENTS_PATH = "/asignaciones"
@@ -47,7 +59,7 @@ export const NAV_SECTIONS: NavSection[] = [
     pinned: true,
     items: [
       { label: "Inicio", href: HOME_PATH, icon: LayoutDashboard },
-      { label: "Kanban", href: "/kanban", icon: SquareKanban },
+      { label: "Kanban", href: TRAINING_WORKSPACE_PATH, icon: SquareKanban },
     ],
   },
   {
@@ -77,11 +89,26 @@ export const NAV_SECTIONS: NavSection[] = [
   },
 ]
 
+export const SAFETY_NAV_SECTIONS: NavSection[] = [
+  {
+    label: "Home",
+    pinned: true,
+    items: [
+      { label: "Home", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
+    ],
+  },
+]
+
+export function getWorkspaceNavSections(workspace: WorkspaceId): NavSection[] {
+  return workspace === "safety" ? SAFETY_NAV_SECTIONS : NAV_SECTIONS
+}
+
 /**
  * Routes that live outside the sidebar menu (public pages, standalone tools)
  * but still need a display title in the header.
  */
 const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
+  [SAFETY_HOME_PATH]: "Home",
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",

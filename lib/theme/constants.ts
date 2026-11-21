@@ -12,6 +12,12 @@ export type Density = "comfortable" | "compact"
 export type ResolvedThemeMode = "light" | "dark"
 export type ThemeMode = ResolvedThemeMode | "system"
 
+export const THEME_MODE_LABELS: Record<ThemeMode, string> = {
+  light: "Claro",
+  dark: "Oscuro",
+  system: "Automático",
+}
+
 export function isThemeMode(value: string | null): value is ThemeMode {
   return value === "light" || value === "dark" || value === "system"
 }

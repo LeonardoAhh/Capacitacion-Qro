@@ -13,6 +13,7 @@ import { LoginSubmitButton, type LoginSubmitStatus } from "@/components/login-su
 import LoginWelcome from "@/components/login-welcome"
 import { LOGIN, loginStyles } from "@/lib/login/presentation"
 import { POST_LOGIN_PATH } from "@/lib/navigation"
+import { APP_TRANSITION_EXIT_MS, useAppReducedMotion } from "@/components/app-transition"
 
 export default function LoginForm() {
   const [email, setEmail] = useState("")
@@ -23,6 +24,7 @@ export default function LoginForm() {
 
   const router = useRouter()
   const searchParams = useSearchParams()
+  const reducedMotion = useAppReducedMotion()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,7 +57,9 @@ export default function LoginForm() {
         : POST_LOGIN_PATH
       setSubmitStatus("success")
 
-      router.push("/auth/redirect?to=" + encodeURIComponent(rawRedirect))
+      // Deja que la tarjeta termine de salir (login-shell) antes de cambiar de pantalla.
+      const destination = "/auth/redirect?to=" + encodeURIComponent(rawRedirect)
+      window.setTimeout(() => router.push(destination), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
     } catch {
       setErrorMessage(LOGIN.error)
       setSubmitStatus("error")
@@ -65,7 +69,7 @@ export default function LoginForm() {
   return (
     <div className={loginStyles.form}>
       <LoginWelcome />
-      <form onSubmit={handleLogin} className={loginStyles.fields} noValidate aria-labelledby="login-title" aria-describedby="login-description">
+      <form onSubmit={handleLogin} data-status={submitStatus} className={`${loginStyles.fields} login-autofill`} noValidate aria-labelledby="login-title" aria-describedby="login-description">
         <div className={loginStyles.field}>
           <Label htmlFor="email">{LOGIN.email}</Label>
           <Input

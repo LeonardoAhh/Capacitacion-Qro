@@ -1,9 +1,12 @@
 /** Shared copy for the login screen and its accessible status messages. */
 export const LOGIN = {
+  brandLineOne: "ViñoPlastic",
+  brandLineTwo: "Querétaro",
+  tagline: "Un espacio para nuestro equipo.",
   title: "Inicia sesión",
-  description: "Accede con tu cuenta de Capacitación.",
+  description: "Accede con tu cuenta de ViñoPlastic.",
   pageTitle: "Iniciar sesión",
-  pageDescription: "Accede al sistema de Capacitación.",
+  pageDescription: "Accede a la plataforma de ViñoPlastic.",
   loading: "Cargando…",
   email: "Correo electrónico",
   emailPlaceholder: "Ingresa tu correo electrónico",

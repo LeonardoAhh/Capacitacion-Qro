@@ -88,7 +88,7 @@
         --popover: 0 0% 100%;
         --popover-foreground: 217.5 16.67% 9.41%;
 
-        --primary: 225.94 69.57% 36.08%;
+        --primary: 215.29 19.32% 34.51%;
         --primary-foreground: 0 0% 100%;
         --brand-accent: var(--primary);
         --brand-accent-text: var(--primary);
@@ -100,8 +100,8 @@
         --muted: 216 15.15% 93.53%;
         --muted-foreground: 218.18 15.94% 27.06%;
 
-        --accent: 219.23 61.9% 91.76%;
-        --accent-foreground: 223.82 71.2% 24.51%;
+        --accent: var(--secondary);
+        --accent-foreground: var(--foreground);
 
         --destructive: 0 66.28% 33.73%;
         --destructive-foreground: 0 0% 100%;
@@ -110,7 +110,7 @@
         --input: 216.92 10.83% 52.94%;
         --ring: var(--primary);
 
-        --chart-1: 225.94 69.57% 36.08%;
+        --chart-1: var(--primary);
         --chart-2: 217.22 91.22% 59.8%;
         --chart-3: 215.29 19.32% 34.51%;
         --chart-4: 192.92 82.28% 30.98%;
@@ -121,8 +121,8 @@
         --sidebar-foreground: var(--foreground);
         --sidebar-primary: var(--primary);
         --sidebar-primary-foreground: var(--primary-foreground);
-        --sidebar-accent: 220 55.56% 89.41%;
-        --sidebar-accent-foreground: 223.82 71.2% 24.51%;
+        --sidebar-accent: var(--secondary);
+        --sidebar-accent-foreground: var(--foreground);
         --sidebar-border: 216.92 13.68% 81.37%;
         --sidebar-ring: var(--primary);
 
@@ -130,6 +130,7 @@
         --success-foreground: 0 0% 98%;
         --warning: 37.43 91.78% 54.9%;
         --warning-foreground: 217.5 16.67% 9.41%;
+        --urgency-low: 152 48% 30%;
         --info: 200 60% 46%;
         --info-foreground: 0 0% 98%;
 
@@ -170,7 +171,7 @@
         --popover: 220 14.75% 11.96%;
         --popover-foreground: 214.29 22.58% 93.92%;
 
-        --primary: 218.35 100% 80.98%;
+        --primary: 212.73 26.83% 83.92%;
         --primary-foreground: 224 60% 9.8%;
         --brand-accent: var(--primary);
         --brand-accent-text: var(--primary);
@@ -182,8 +183,8 @@
         --muted: 218.18 14.67% 14.71%;
         --muted-foreground: 216 16.39% 76.08%;
 
-        --accent: 222.22 46.55% 22.75%;
-        --accent-foreground: 219.55 100% 91.37%;
+        --accent: var(--secondary);
+        --accent-foreground: var(--foreground);
 
         --destructive: 0 100% 80.39%;
         --destructive-foreground: 0 68% 9.8%;
@@ -192,7 +193,7 @@
         --input: 217.78 11.59% 54.31%;
         --ring: var(--primary);
 
-        --chart-1: 218.35 100% 80.98%;
+        --chart-1: var(--primary);
         --chart-2: 213.12 93.9% 67.84%;
         --chart-3: 215 20.22% 65.1%;
         --chart-4: 187.94 85.71% 53.33%;
@@ -202,13 +203,14 @@
         --sidebar-foreground: var(--foreground);
         --sidebar-primary: var(--primary);
         --sidebar-primary-foreground: var(--primary-foreground);
-        --sidebar-accent: 222 48.08% 20.39%;
-        --sidebar-accent-foreground: 219.55 100% 91.37%;
+        --sidebar-accent: var(--secondary);
+        --sidebar-accent-foreground: var(--foreground);
         --sidebar-border: 217.5 12.9% 24.31%;
         --sidebar-ring: var(--primary);
 
         --info: 200 70% 62%;
         --info-foreground: 220 14.29% 8.24%;
+        --urgency-low: 152 48% 70%;
     }
 
     @media (min-width: 768px) {
@@ -311,7 +313,7 @@ body {
     /* Escritorio: la barra de estado la reserva el contenedor; el header vuelve a su altura. */
     .workspace-header {
         padding-top: 0;
-        height: var(--workspace-header-height);
+        height: calc(var(--workspace-header-height) + 1rem);
     }
 
     .workspace-panel {
@@ -490,6 +492,13 @@ input[type="date"] {
     appearance: none;
     min-height: 0;
     line-height: normal;
+}
+
+/* Chrome/Safari autofill: conserva la superficie del formulario y una marca interior sin alterar el layout. */
+.login-autofill input:is(:autofill, :-webkit-autofill) {
+    box-shadow: inset 0 0 0 2px hsl(var(--input) / 0.5), inset 0 0 0 100vmax hsl(var(--card));
+    -webkit-text-fill-color: hsl(var(--foreground));
+    caret-color: hsl(var(--foreground));
 }
 
 input[type="color"]::-webkit-color-swatch-wrapper {
@@ -815,6 +824,24 @@ input[type="color"]::-webkit-color-swatch {
         right: 0;
         margin-inline: auto;
     }
+}
+
+/*
+ * Entrada suave de superficies (contenido de cada página, selección de
+ * espacio). "backwards" solo aplica el estado inicial antes de empezar: al
+ * terminar no fija estilos, así una transición de salida puede actuar y un
+ * hijo position: fixed no queda atado al transform. Movimiento reducido: las
+ * reglas de abajo la dejan en 0.01ms.
+ */
+@keyframes surface-enter {
+    from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+    }
+}
+
+.surface-enter {
+    animation: surface-enter 320ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
 }
 
 /* Reduced Motion — app setting (toggle via .reduce-motion on <html>) */

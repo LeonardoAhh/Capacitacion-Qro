@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowRight, BookOpen } from "lucide"
+import { ArrowRight, LayoutGrid } from "lucide"
 import { motion } from "framer-motion"
 import { MorphIcon } from "morphicons/react"
 import { useAppReducedMotion } from "@/components/app-transition"
@@ -38,7 +38,7 @@ export default function LoginAccessButton({ onContinue }: LoginAccessButtonProps
           transition={{ duration: reducedMotion ? 0 : 0.2 }}
         >
           <MorphIcon
-            icon={isActive ? ArrowRight : BookOpen}
+            icon={isActive ? ArrowRight : LayoutGrid}
             size={16}
             strokeWidth={2}
             spring="snappy"

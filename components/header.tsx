@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { useRole } from "@/lib/hooks"
 import { getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
-import { AccountMenu } from "@/components/account-menu"
+import { EvaluatorHeaderActions } from "@/components/EvaluatorHeaderActions"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
 
@@ -67,11 +67,7 @@ export default function Header({
 
         <KanbanAvisos />
 
-        {isEvaluador && (
-          <div className="shrink-0">
-            <AccountMenu variant="header" />
-          </div>
-        )}
+        {isEvaluador && <EvaluatorHeaderActions />}
       </WorkspaceContainer>
     </header>
   )

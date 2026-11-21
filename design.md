@@ -8,7 +8,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 **Key Characteristics:**
 - Marketing uses a neutral ink ladder on a near-white canvas; workspace colors resolve from the selected light or dark palette.
-- The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) stays confined to the hero; the login has a separate, local SonarGrid illustration.
+- The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) stays confined to the hero; login and workspace selection share a local Ink Ridges illustration in the active theme's neutral palette.
 - Two button shapes by context: rounded black **pills** (`{rounded.pill}`) for marketing CTAs, tight 6px squares (`{rounded.sm}`) for nav/app controls.
 - Mona Sans for all text, including tightly-tracked display type (`{typography.display-xl}` at -2.4px), uppercase technical eyebrows, and code.
 - Hairline-bordered cards in precise grids; depth via 1px border + whisper shadow, never heavy elevation.
@@ -19,17 +19,17 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 > Source pages analyzed: the home page, the AI Gateway page, the customers page, and the pricing page. The ink/canvas/hairline trio recurs on every page; the accent blue (`{colors.link}`) surfaces on pricing, and the mesh-gradient stops live in the hero.
 
-**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #1c3a9c; dark mode uses grafito oscuro surfaces and `--primary` #9ec1ff. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
+**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #475569; dark mode uses grafito oscuro surfaces and `--primary` #cbd5e1. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
 
 | UI token | Light | Dark |
 |---|---|---|
 | Background | `#f4f5f7` | `#121418` |
 | Foreground | `#14171c` | `#eceff3` |
 | Card / popover | `#ffffff` | `#1a1d23` |
-| Primary / ring | `#1c3a9c` | `#9ec1ff` |
+| Primary / ring | `#475569` | `#cbd5e1` |
 | Secondary | `#e4e7ec` | `#262b33` |
 | Muted | `#eceef1` | `#20242b` |
-| Accent | `#dde6f7` | `#1f2f55` |
+| Accent | `#e4e7ec` | `#262b33` |
 | Destructive | `#8f1d1d` | `#ff9b9b` |
 | Border | `#c9ced6` | `#363c46` |
 | Input | `#7a8494` | `#7d8798` |
@@ -41,7 +41,7 @@ Chart and sidebar semantic colors are defined as theme tokens in `app/globals.cs
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).
-- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links, pricing highlights, focus signals. Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
+- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links and pricing highlights. Workspace focus rings use the active theme's graphite primary. Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
 - **Violet** (`{colors.violet}` — #7928ca), **Cyan** (`{colors.cyan}` — #50e3c2), **Pink** (`{colors.pink}` — #ff0080), **Magenta** (`{colors.magenta}` — #eb367f): the chromatic accent family, used sparingly for illustration accents and as mesh-gradient stops, never as chrome fills.
 
 ### Surface
@@ -156,7 +156,7 @@ The hero mesh gradient is a CSS/SVG composition that scales fluidly. Feature ill
 Depth is deliberately minimal. The system prefers a crisp 1px hairline plus the near-white-on-white surface step to a shadow; when a surface floats, it uses a finely-layered, very-low-alpha shadow stack rather than a single heavy drop.
 
 ### Decorative Depth
-The hero **mesh gradient** is a soft multi-stop bloom of the brand accent colors against the white canvas. The login's SonarGrid is confined to its illustration panel and follows the active theme. Feature illustrations (ink node-graphs, code editors) add a sense of product depth without color. No glows, no heavy gradients elsewhere.
+The hero **mesh gradient** is a soft multi-stop bloom of the brand accent colors against the white canvas. Login and workspace selection share Ink Ridges as a local background; its paper and ink follow the active theme. Feature illustrations (ink node-graphs, code editors) add a sense of product depth without color. No glows, no heavy gradients elsewhere.
 
 ## Shapes
 
@@ -259,5 +259,5 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Don't mix the button shapes within one context — marketing CTAs stay pills, app/nav controls stay 6px squares.
 - Don't pile on shadows — depth is a 1px hairline plus, at most, a finely-layered low-alpha shadow stack.
 - Don't set marketing body copy in pure black (`#000000`) — the brand's ink is #171717 and body steps to `{colors.body}`. Workspace text uses the active theme's foreground tokens.
-- Don't add a second decorative system to the shared chrome. The login illustration is the approved exception: a theme-colored SonarGrid confined to its visual panel; other surfaces keep the established ink-on-white treatment.
+- Don't add a second decorative system to the shared chrome. Ink Ridges is the approved exception on login and workspace selection only; other surfaces keep the established ink-on-white treatment.
 - Don't loosen the display tracking — large Mona Sans headings carry tight negative letter-spacing by design.

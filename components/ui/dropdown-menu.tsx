@@ -30,7 +30,7 @@ const SLIDE_CLASSES =
 
 // ─── Shared panel classes (content + sub-content) ────────────────────────────
 const PANEL_CLASSES = cn(
-  "z-50 min-w-[8rem] overflow-hidden p-1",
+  "z-50 min-w-[8rem] overflow-hidden p-2",
   "ui-floating-surface bg-popover text-body-md text-popover-foreground",
   ANIMATE_CLASSES,
   SLIDE_CLASSES,
@@ -47,7 +47,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex min-h-11 cursor-pointer select-none items-center gap-2 rounded-md px-2 outline-none",
+      "flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -104,7 +104,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-11 cursor-pointer select-none items-center gap-2 rounded-md px-2 outline-none",
+      "relative flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",

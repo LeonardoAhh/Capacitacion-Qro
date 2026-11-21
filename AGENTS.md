@@ -10,7 +10,7 @@ App autenticada (workspace): panel elevado con sidebar, header sticky, data grid
 
 Marketing conserva la estética ink-on-white: casi todo es neutro, un solo gradiente decorativo, tipografía apretada y bordes de 1px. El workspace ofrece las paletas clara y oscura definidas abajo; conserva sus colores semánticos para acciones y estados.
 
-Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es #1c3a9c en claro y #9ec1ff en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
+Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es #475569 en claro y #cbd5e1 en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
 La preferencia de tema admite claro, oscuro y sistema. Sistema sigue la preferencia de color del dispositivo y se aplica antes de hidratar; si cambia mientras está seleccionado, la interfaz se actualiza sin reemplazar esa preferencia.
 
 2. Stack esperado
@@ -40,30 +40,30 @@ css
 --foreground:        #14171c;
 --card:              #ffffff;
 --popover:           #ffffff;
---primary:           #1c3a9c;
+--primary:           #475569;
 --primary-foreground:#ffffff;
 --secondary:         #e4e7ec;
 --muted:             #eceef1;
 --muted-foreground:  #3a4250;
---accent:            #dde6f7;
---accent-foreground: #122a6b;
+--accent:            #e4e7ec;
+--accent-foreground: #14171c;
 --destructive:       #8f1d1d;
 --border:            #c9ced6;
 --input:             #7a8494;
---ring:              #1c3a9c;
+--ring:              #475569;
 --sidebar:           var(--background);
---chart-1:           #1c3a9c;
+--chart-1:           #475569;
 --chart-2:           #3b82f6;
 --chart-3:           #475569;
 --chart-4:           #0e7490;
 --chart-5:           #64748b;
 --sidebar-foreground:var(--foreground);
---sidebar-primary:   #1c3a9c;
+--sidebar-primary:   #475569;
 --sidebar-primary-foreground: #ffffff;
---sidebar-accent:    #d5dff3;
---sidebar-accent-foreground: #122a6b;
+--sidebar-accent:    #e4e7ec;
+--sidebar-accent-foreground: #14171c;
 --sidebar-border:    #c9ced6;
---sidebar-ring:      #1c3a9c;
+--sidebar-ring:      #475569;
 --success:           #0070f3;
 --warning:           #f5a623;
 
@@ -72,30 +72,30 @@ css
 --foreground:        #eceff3;
 --card:              #1a1d23;
 --popover:           #1a1d23;
---primary:           #9ec1ff;
+--primary:           #cbd5e1;
 --primary-foreground:#0a1228;
 --secondary:         #262b33;
 --muted:             #20242b;
 --muted-foreground:  #b8c0cc;
---accent:            #1f2f55;
---accent-foreground: #d3e2ff;
+--accent:            #262b33;
+--accent-foreground: #eceff3;
 --destructive:       #ff9b9b;
 --border:            #363c46;
 --input:             #7d8798;
---ring:              #9ec1ff;
+--ring:              #cbd5e1;
 --sidebar:           var(--background);
---chart-1:           #9ec1ff;
+--chart-1:           #cbd5e1;
 --chart-2:           #60a5fa;
 --chart-3:           #94a3b8;
 --chart-4:           #22d3ee;
 --chart-5:           #cbd5e1;
 --sidebar-foreground:var(--foreground);
---sidebar-primary:   #9ec1ff;
+--sidebar-primary:   #cbd5e1;
 --sidebar-primary-foreground: #0a1228;
---sidebar-accent:    #1b2a4d;
---sidebar-accent-foreground: #d3e2ff;
+--sidebar-accent:    #262b33;
+--sidebar-accent-foreground: #eceff3;
 --sidebar-border:    #363c46;
---sidebar-ring:      #9ec1ff;
+--sidebar-ring:      #cbd5e1;
 
 /* Links / acento */
 --link:              #0070f3;
@@ -201,11 +201,11 @@ Botones
 Componente	Apariencia	Cuándo
 ButtonPrimary (pill)	Fondo var(--ink), texto blanco, radius: 100px, padding 0 14px, button-lg	CTAs de marketing ("Start Deploying", "Deploy")
 ButtonSecondary (pill)	Fondo canvas-elevated, texto ink, hairline, radius: 100px, button-lg	CTA secundaria de marketing ("Get a Demo")
-ButtonPrimarySm	Fondo --primary (azul del tema), texto de alto contraste, radius: 6px, button-md	CTA compacto de nav/app ("Sign Up")
+ButtonPrimarySm	Fondo --primary (grafito del tema), texto de alto contraste, radius: 6px, button-md	CTA compacto de nav/app ("Sign Up")
 ButtonGhostSm	Fondo canvas-elevated, texto ink, hairline, radius: 6px, button-md	Secundario en nav/app ("Log In", "Ask AI")
 ButtonCategoryPill	Fondo canvas-elevated, texto ink, radius: 64px, button-md	Tabs de categoría
 ButtonIcon	Fondo canvas-elevated, texto ink, hairline, radius: 6px	Controles de icono funcionales
-Regla dura: marketing = pill neutro de tinta. Nav/app = cuadrado 6px azul (--primary). No mezcles las dos formas en el mismo contexto.
+Regla dura: marketing = pill neutro de tinta. Nav/app = cuadrado 6px grafito (--primary). No mezcles las dos formas en el mismo contexto.
 
 Inputs
 TextInput: fondo canvas-elevated, texto ink, 1px solid var(--hairline), radius: 6px, padding 8px 12px, body-md.
@@ -262,7 +262,7 @@ No apiles sombras. Hairline + (como máximo) una sombra fina en capas.
 
 En marketing, no uses #000000: la tinta es #171717 y el body es #4d4d4d. En el workspace, usa el foreground de la paleta activa.
 
-No añadas un segundo sistema decorativo. Excepción aprobada: el panel ilustrativo del login usa SonarGrid con el color primario del tema; no lo extiendas al chrome ni a otras rutas.
+No añadas un segundo sistema decorativo. Excepción aprobada: login y selección de workspace comparten Ink Ridges con los colores neutros del tema; no lo extiendas al chrome ni a otras rutas.
 
 No aflojes el tracking de los headings grandes.
 
