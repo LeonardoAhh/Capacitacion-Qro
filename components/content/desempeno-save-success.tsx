@@ -27,7 +27,7 @@ export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, o
   if (!visible) return null
   const approved = calificacion !== undefined && calificacion >= UMBRAL_CALIFICACION_APROBATORIA
   return <Card ref={cardRef} tabIndex={-1} role="status" aria-live="polite" className="border-border bg-card outline-none print:hidden">
-    <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+    <CardContent className="flex flex-col gap-4 p-(--card-padding) sm:flex-row sm:items-center sm:justify-between">
       <div className="flex min-w-0 items-start gap-3">
         <CheckCircle2 className="mt-1 size-5 shrink-0 text-foreground" aria-hidden="true" />
         <div className="min-w-0">
@@ -37,8 +37,8 @@ export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, o
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0">
-        <Button type="button" variant="outline" onClick={onNew} className="min-h-11"><UserRoundPlus className="mr-2 size-4" />Evaluar otra persona</Button>
-        <Button type="button" onClick={onPrint} className="min-h-11"><Printer className="mr-2 size-4" />Imprimir</Button>
+        <Button type="button" variant="outline" onClick={onNew} className="min-h-(--control-height)"><UserRoundPlus className="mr-2 size-4" />Evaluar otra persona</Button>
+        <Button type="button" onClick={onPrint} className="min-h-(--control-height)"><Printer className="mr-2 size-4" />Imprimir</Button>
       </div>
     </CardContent>
   </Card>

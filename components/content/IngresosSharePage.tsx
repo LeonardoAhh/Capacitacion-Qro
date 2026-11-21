@@ -102,8 +102,8 @@ export function IngresosSharePage() {
   }
 
   return (
-    <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
-      <div className="grid min-w-0 gap-6">
+    <div className="grid min-w-0 gap-6 dense:gap-4 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-6 dense:gap-4">
         <section aria-labelledby="share-mensaje" className="grid gap-4">
           <h2 id="share-mensaje" className={SECTION_TITLE}>Mensaje</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
@@ -129,7 +129,7 @@ export function IngresosSharePage() {
             filterTurno={filterTurno} onTurnoChange={setFilterTurno}
             urgencySort={urgencySort} onUrgencySortChange={setUrgencySort}
             incluirTodas={topic === "evals" ? incluirTodas : undefined} onIncluirTodasChange={setIncluirTodas} />
-          <div className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex min-h-(--control-height) flex-wrap items-center gap-x-3 gap-y-2">
             <p className="text-body-md text-foreground">
               <span className="tabular-nums">{employees.length}</span> de <span className="tabular-nums">{filtered.length}</span> empleados
             </p>

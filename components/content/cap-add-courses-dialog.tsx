@@ -122,7 +122,7 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
                         <div className="min-w-0 flex-1 space-y-2">
                           <label htmlFor={courseId} className="text-sm font-medium text-foreground">Curso {rowNumber}</label>
                           <Select value={row.course_id} onValueChange={v => updateRow(row.id, 'course_id', v)}>
-                            <SelectTrigger id={courseId} className="min-w-0 text-sm" title={row.course_name || undefined}><SelectValue placeholder="Selecciona un curso" /></SelectTrigger>
+                            <SelectTrigger id={courseId} className="min-w-0" title={row.course_name || undefined}><SelectValue placeholder="Selecciona un curso" /></SelectTrigger>
                             <SelectContent matchTriggerWidth className="max-h-60">
                               {courses.map(c => <SelectItem key={c.id} value={c.id} className="text-sm" title={c.name}>{c.name}</SelectItem>)}
                             </SelectContent>

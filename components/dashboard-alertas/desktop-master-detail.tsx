@@ -39,14 +39,14 @@ export function MasterDetailEvals({ items, vencida, evalNum, onCalificar }: Mast
             <div className="flex flex-1 flex-col overflow-hidden rounded-b-xl border-t min-h-0">
                 <div className="scrollbar-thin flex-1 divide-y overflow-y-auto min-h-0">
                     {items.length === 0 ? (
-                        <p className="px-4 py-6 text-center text-sm text-muted-foreground">
+                        <p className="px-4 py-6 dense:py-4 text-center text-sm text-muted-foreground">
                             Sin resultados.
                         </p>
                     ) : items.map(item => (
                         <button
                             key={item.id}
                             onClick={() => openCalificacion(item)}
-                            className="flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                            className="flex min-h-(--control-height) w-full items-center gap-3 px-4 py-3 dense:py-2 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                         >
                             {/* Nombre + meta */}
                             <div className="min-w-0 flex-1">

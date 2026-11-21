@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-context"
+import { isDensity } from "@/lib/theme/constants"
 import { SettingsGroup, SettingsRow, SettingsSectionHeader } from "./SettingsPrimitives"
 
 export function AppearanceSettings() {
@@ -41,7 +42,7 @@ export function AppearanceSettings() {
               }
             }}
           >
-            <SelectTrigger id="theme-mode" className="min-h-11 w-full sm:w-40">
+            <SelectTrigger id="theme-mode" className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -64,7 +65,7 @@ export function AppearanceSettings() {
               }
             }}
           >
-            <SelectTrigger id="font-size" className="min-h-11 w-full sm:w-40">
+            <SelectTrigger id="font-size" className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -77,19 +78,20 @@ export function AppearanceSettings() {
 
         <SettingsRow
           label="Densidad"
-          description="Elige cuánto espacio hay entre los elementos."
+          description="Automática compacta la vista en monitores de poca altura."
           htmlFor="display-density"
         >
           <Select
             value={density}
             onValueChange={(value) => {
-              if (value === "comfortable" || value === "compact") setDensity(value)
+              if (isDensity(value)) setDensity(value)
             }}
           >
-            <SelectTrigger id="display-density" className="min-h-11 w-full sm:w-40">
+            <SelectTrigger id="display-density" className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="auto">Automática</SelectItem>
               <SelectItem value="comfortable">Cómoda</SelectItem>
               <SelectItem value="compact">Compacta</SelectItem>
             </SelectContent>
@@ -116,7 +118,7 @@ export function AppearanceSettings() {
         <Button
           type="button"
           variant="outline"
-          className="min-h-11 gap-2"
+          className="gap-2"
           onClick={resetTheme}
         >
           <RotateCcw className="size-4" aria-hidden="true" />

@@ -50,7 +50,7 @@ function Evaluaciones({ empleado }: { empleado: EmpleadoPromocion }) {
   return (
     <ul className={cn(PANEL, "divide-y divide-border")}>
       {ordenadas.map((evaluacion, index) => (
-        <li key={`${evaluacion.fecha}-${index}`} className="flex min-h-11 items-center gap-3 px-4 py-2">
+        <li key={`${evaluacion.fecha}-${index}`} className="flex min-h-(--control-height) items-center gap-3 px-4 py-2">
           <div className="grid min-w-0 flex-1 gap-0.5">
             <p className="text-body-md tabular-nums text-foreground">
               {formatDate(evaluacion.fecha)}{evaluacion.periodo && <span className="text-muted-foreground"> · {evaluacion.periodo}</span>}
@@ -73,7 +73,7 @@ function Cursos({ empleado }: { empleado: EmpleadoPromocion }) {
   return (
     <ul className={cn(PANEL, "divide-y divide-border")}>
       {empleado.cursosRequeridos.map(curso => (
-        <li key={curso.nombre} className="flex min-h-11 items-center gap-3 px-4 py-2">
+        <li key={curso.nombre} className="flex min-h-(--control-height) items-center gap-3 px-4 py-2">
           {curso.completado
             ? <CircleCheck className="size-4 shrink-0 text-success" aria-hidden="true" />
             : <CircleX className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
@@ -127,7 +127,7 @@ export function PromDetallePage({ empleadoId }: { empleadoId: string }) {
   const completados = empleado.cursosRequeridos.filter(curso => curso.completado).length
   const total = empleado.cursosRequeridos.length
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 dense:gap-4">
       <header className="flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
         <div className="grid min-w-0 gap-1">
           {empleado.numero && <p className="text-body-sm tabular-nums text-muted-foreground">Núm. {empleado.numero}</p>}
@@ -140,8 +140,8 @@ export function PromDetallePage({ empleadoId }: { empleadoId: string }) {
         <AptitudBadge status={calcularAptitud(empleado)} />
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-2">
-        <div className="grid gap-6">
+      <div className="grid items-start gap-6 dense:gap-4 lg:grid-cols-2">
+        <div className="grid gap-6 dense:gap-4">
           <section aria-labelledby="detalle-criterios" className="grid gap-3">
             <h3 id="detalle-criterios" className={SECTION_TITLE}>Criterios de promoción</h3>
             <Criterios empleado={empleado} />

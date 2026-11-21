@@ -29,11 +29,11 @@ function EvaluationLoadingSkeleton() {
       <span className="sr-only">Cargando evaluación del empleado</span>
       <div aria-hidden="true" className="space-y-4">
         <div className="flex flex-wrap gap-2">
-          <Skeleton className="h-11 w-24" />
-          <Skeleton className="h-11 w-28" />
-          <Skeleton className="h-11 w-24" />
+          <Skeleton className="h-(--control-height) w-24" />
+          <Skeleton className="h-(--control-height) w-28" />
+          <Skeleton className="h-(--control-height) w-24" />
         </div>
-        <div className="rounded-xl border bg-card p-4 sm:p-6">
+        <div className="rounded-xl border bg-card p-4 sm:p-(--card-padding)">
           <div className="space-y-3">
             <Skeleton className="h-4 w-full max-w-2xl" />
             <Skeleton className="h-4 w-3/4 max-w-xl" />

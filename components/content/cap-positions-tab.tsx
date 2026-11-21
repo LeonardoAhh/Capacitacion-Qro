@@ -51,14 +51,14 @@ export function CapPositionsTab({
             <h2 className="text-xl font-semibold leading-7 tracking-tight text-foreground">Puestos registrados</h2>
           </div>
           {!isReadOnly && (
-            <Button onClick={onNewPosition} className="h-11 min-h-11 px-3 py-0 text-sm font-medium" aria-label="Nuevo puesto" title="Nuevo puesto">
+            <Button onClick={onNewPosition} className="h-(--control-height) px-3 py-0 text-sm font-medium" aria-label="Nuevo puesto" title="Nuevo puesto">
               <span className="hidden sm:inline">Nuevo puesto</span>
               <Plus className="h-4 w-4 sm:hidden" />
             </Button>
           )}
         </div>
       </div>
-      <div className="p-6 space-y-6">
+      <div className="p-(--card-padding) space-y-6 dense:space-y-4">
         <div className="flex flex-col sm:flex-row items-center gap-4">
           <div className="relative flex-1 w-full">
             <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
@@ -66,14 +66,14 @@ export function CapPositionsTab({
               value={posSearch}
               onChange={e => setPosSearch(e.target.value)}
               placeholder="Buscar puesto..."
-              className={`h-11 pl-9 text-sm ${posSearch ? "pr-11" : ""}`}
+              className={`pl-9 ${posSearch ? "pr-11" : ""}`}
             />
             {posSearch && (
               <button
                 type="button"
                 aria-label="Limpiar búsqueda"
                 onClick={() => setPosSearch("")}
-                className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <X className="size-4" aria-hidden="true" />
               </button>
@@ -81,7 +81,7 @@ export function CapPositionsTab({
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
             <Select value={selectedDept} onValueChange={setSelectedDept}>
-              <SelectTrigger className="h-11 flex-1 text-sm sm:w-48 sm:flex-none">
+              <SelectTrigger className="flex-1 sm:w-48 sm:flex-none">
                 <SelectValue placeholder="Departamento" />
               </SelectTrigger>
               <SelectContent>
@@ -133,7 +133,7 @@ export function CapPositionsTab({
                       <TableCell className="text-center p-2">
                         <Button
                           variant="ghost" size="sm"
-                          className="mx-auto h-11 min-h-11 px-3 py-0 text-sm"
+                          className="mx-auto h-(--control-height) px-3 py-0 text-sm"
                           onClick={() => onViewCourses(pos)}
                         >
                           <BookOpen className="h-4 w-4" />

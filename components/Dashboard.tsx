@@ -88,7 +88,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             id="main-content"
             className="min-w-0 flex-1 safe-right safe-bottom-content"
           >
-            <WorkspaceContainer fullWidth={fullWidth} className="py-5 sm:py-6 lg:py-8">
+            <WorkspaceContainer fullWidth={fullWidth} className="py-(--workspace-content-padding-y)">
               {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
               <div className="surface-enter min-w-0 space-y-6">
                 {content}

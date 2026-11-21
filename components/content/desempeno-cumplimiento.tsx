@@ -23,7 +23,7 @@ const dateFormatter = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: 
 function Metric({ label, value, detail, loading }: { label: string; value: number; detail: string; loading: boolean }) {
   return (
     <Card className="min-w-0">
-      <CardContent className="space-y-2 p-6">
+      <CardContent className="space-y-2 p-(--card-padding)">
         <p className="text-xs text-muted-foreground">{label}</p>
         {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-semibold leading-8 tabular-nums">{value}</p>}
         {loading ? <Skeleton className="h-4 w-24" /> : <p className="text-xs text-muted-foreground">{detail}</p>}
@@ -89,7 +89,7 @@ function EmployeeRow({
             <span className="text-sm font-medium tabular-nums">{employee.calificacionFinal}%</span>
           )}
           {hasEvaluation && !isReadOnly && (
-            <div className="flex min-h-11 items-center gap-2">
+            <div className="flex min-h-(--control-height) items-center gap-2">
               <Switch id={`physical-${employee.id}`} checked={employee.fisicoEntregado} disabled={saving} onCheckedChange={(checked) => onPhysical(employee.numero, checked)} aria-label={`Formato físico recibido de ${employee.nombre}`} />
               <label htmlFor={`physical-${employee.id}`} className="cursor-pointer whitespace-nowrap text-sm text-muted-foreground">Físico recibido</label>
             </div>
@@ -98,14 +98,14 @@ function EmployeeRow({
             <span className="text-xs text-muted-foreground">Físico {employee.fisicoEntregado ? "recibido" : "pendiente"}</span>
           )}
           {canMarkManual && !isReadOnly && (
-            <div className="flex min-h-11 items-center">
+            <div className="flex min-h-(--control-height) items-center">
               {pendingManual === null ? (
                 <Switch checked={employee.estatus === "manual"} disabled={saving} onCheckedChange={setPendingManual} aria-label={`${employee.estatus === "manual" ? "Quitar" : "Registrar"} entrega manual de ${employee.nombre}`} />
               ) : (
                 <Button
                   type="button"
                   size="sm"
-                  className="min-h-11"
+                  className="min-h-(--control-height)"
                   autoFocus
                   disabled={saving}
                   onClick={confirmManual}
@@ -144,7 +144,7 @@ function Department({
   const Icon = expanded ? ChevronDown : ChevronRight
   return (
     <Card className="overflow-hidden">
-      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-16 w-full min-w-0 items-center gap-3 px-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-16 dense:min-h-12 w-full min-w-0 items-center gap-3 px-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
         <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="min-w-0 flex-1">
           <span className="block truncate text-sm font-medium text-foreground">{group.departamento}</span>
@@ -196,18 +196,18 @@ export default function DesempenoCumplimientoContent() {
   const filtersActive = Boolean(search.trim() || statusFilter !== "all")
 
   return (
-    <div className="min-w-0 space-y-6">
+    <div className="min-w-0 space-y-6 dense:space-y-4">
       {isReadOnly && <ReadOnlyBanner />}
 
       <Card>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-6">
+        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-(--card-padding)">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Periodo asignado automáticamente</p>
             <p className="text-base font-semibold">{periodo}</p>
           </div>
           <div className="inline-flex rounded-md border border-border bg-muted p-1" role="group" aria-label="Modalidad de evaluación">
-            <Button size="sm" variant={mode === "semestrales" ? "outline" : "ghost"} className="min-h-10" aria-pressed={mode === "semestrales"} disabled={saving} onClick={() => setMode("semestrales")}>Semestral</Button>
-            <Button size="sm" variant={mode === "mensuales" ? "outline" : "ghost"} className="min-h-10" aria-pressed={mode === "mensuales"} disabled={saving} onClick={() => setMode("mensuales")}>Mensual</Button>
+            <Button size="sm" variant={mode === "semestrales" ? "outline" : "ghost"} className="min-h-10 dense:min-h-(--control-height-sm)" aria-pressed={mode === "semestrales"} disabled={saving} onClick={() => setMode("semestrales")}>Semestral</Button>
+            <Button size="sm" variant={mode === "mensuales" ? "outline" : "ghost"} className="min-h-10 dense:min-h-(--control-height-sm)" aria-pressed={mode === "mensuales"} disabled={saving} onClick={() => setMode("mensuales")}>Mensual</Button>
           </div>
         </CardContent>
       </Card>
@@ -238,10 +238,10 @@ export default function DesempenoCumplimientoContent() {
           <div className="flex w-full flex-wrap gap-2 sm:w-auto">
             <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
               <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-              <Input type="search" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" className="h-11 pl-9" />
+              <Input type="search" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" className="h-(--control-height) pl-9" />
             </div>
             <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-              <SelectTrigger className="h-11 w-full sm:w-40" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="h-(--control-height) w-full sm:w-40" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="entregada">Entregadas</SelectItem>

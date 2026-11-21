@@ -160,7 +160,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
         onClose={() => onOpenChange(false)}
       />
 
-      <div className="overflow-y-auto p-5 sm:p-6 space-y-6 bg-card">
+      <div className="overflow-y-auto p-5 sm:p-(--card-padding) space-y-6 dense:space-y-4 bg-card">
         <div className="space-y-2">
           <label className="text-sm font-medium text-ink">Curso</label>
           <Popover
@@ -176,7 +176,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
                 variant="outline"
                 role="combobox"
                 aria-expanded={coursePickerOpen}
-                className="h-11 w-full min-w-0 justify-between bg-transparent px-3 text-base font-normal shadow-none"
+                className="h-(--control-height) w-full min-w-0 justify-between bg-transparent px-3 text-base font-normal shadow-none"
               >
                 <span className="min-w-0 truncate text-left">
                   {selectedCourseName || "Selecciona un curso..."}
@@ -196,7 +196,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
                   value={courseSearch}
                   onChange={event => setCourseSearch(event.target.value)}
                   placeholder="Buscar curso..."
-                  className="h-9 pl-9 shadow-none"
+                  className="h-(--control-height-sm) pl-9"
                 />
               </div>
               <div className="max-h-60 overflow-y-auto p-1">

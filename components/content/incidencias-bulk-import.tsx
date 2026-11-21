@@ -7,6 +7,7 @@ import {
   Loader2, Users, ChevronDown, ChevronUp,
 } from "lucide-react"
 import { ResponsiveShell, ModalHeader, ModalFooter } from "@/components/ui/responsive-shell"
+import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -285,7 +286,7 @@ export function IncidenciasBulkImport({
         title="Importar Incidencias"
         subtitle="Carga masiva de incidencias por empleado y mes vía archivo JSON."
       />
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-(--card-padding) space-y-4">
 
         <div className="space-y-4">
           {/* Upload + text area */}
@@ -314,11 +315,12 @@ export function IncidenciasBulkImport({
             )}
           </div>
 
-          <textarea
+          <Textarea
+            aria-label="JSON de incidencias"
             value={jsonText}
             onChange={(e) => { setJsonText(e.target.value); setParseResult(null); setImportSuccess(false) }}
             placeholder={`[\n  {\n    "numero_empleado": "123",\n    "mes": "2025-01",\n    "FALTA INJUSTIFICADA": 2,\n    "VACACIÓN": 1\n  },\n  {\n    "numero_empleado": "456",\n    "mes": "2025-01",\n    "INCAPACIDAD": 3\n  }\n]`}
-            className="w-full h-36 text-xs font-sans bg-muted rounded-md border border-border p-3 resize-y scrollbar-thin focus:outline-none focus:ring-2 focus:ring-ring"
+            className="min-h-36 resize-y font-sans scrollbar-thin"
           />
 
           <Button

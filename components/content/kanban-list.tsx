@@ -43,7 +43,7 @@ export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
   const { ver } = useKanbanAcciones()
   return (
     <div className="overflow-hidden rounded-xl border border-border">
-      <Table aria-label={tarjetas.length ? "Tarjetas" : "Tarjetas, sin registros"} className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm">
+      <Table aria-label={tarjetas.length ? "Tarjetas" : "Tarjetas, sin registros"} className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead scope="col">Tarjeta</TableHead>

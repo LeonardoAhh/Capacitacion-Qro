@@ -184,14 +184,14 @@ export default function PromocionesContent({
             placeholder="Buscar empleado, puesto, número..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className={`h-11 w-full pl-9 text-sm ${busqueda ? "pr-11" : ""}`}
+            className={`h-(--control-height) w-full pl-9 text-sm ${busqueda ? "pr-11" : ""}`}
           />
           {busqueda && (
             <button
               type="button"
               aria-label="Limpiar búsqueda"
               onClick={() => setBusqueda("")}
-              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X aria-hidden="true" className={PROMOTION_ICON.control} />
             </button>
@@ -199,7 +199,7 @@ export default function PromocionesContent({
         </div>
         <div className="flex shrink-0 items-center gap-2">
             <Select value={filtroDept} onValueChange={setFiltroDept}>
-              <SelectTrigger className="h-11 w-[140px] text-sm">
+              <SelectTrigger className="h-(--control-height) w-[140px] text-sm">
                 <SelectValue placeholder="Departamento" />
               </SelectTrigger>
               <SelectContent>
@@ -210,7 +210,7 @@ export default function PromocionesContent({
               </SelectContent>
             </Select>
             <Select value={filtroPuesto} onValueChange={setFiltroPuesto}>
-              <SelectTrigger className="h-11 w-[150px] text-sm">
+              <SelectTrigger className="h-(--control-height) w-[150px] text-sm">
                 <SelectValue placeholder="Puesto" />
               </SelectTrigger>
               <SelectContent>
@@ -221,7 +221,7 @@ export default function PromocionesContent({
               </SelectContent>
             </Select>
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger className="h-11 w-[130px] text-sm">
+              <SelectTrigger className="h-(--control-height) w-[130px] text-sm">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
@@ -238,7 +238,7 @@ export default function PromocionesContent({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-11 w-11"
+                className="size-(--control-height)"
                 onClick={() => { setBusqueda(""); setFiltroDept("todos"); setFiltroStatus("todos"); setFiltroPuesto("todos") }}
                 aria-label="Limpiar filtros"
                 title="Limpiar filtros"
@@ -251,7 +251,7 @@ export default function PromocionesContent({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 min-h-11 gap-1.5 px-3 text-sm"
+                  className="h-(--control-height) gap-1.5 px-3 text-sm"
                   disabled={exporting || todosOrdenados.length === 0}
                   data-testid="promociones-export-trigger"
                 >
@@ -275,7 +275,7 @@ export default function PromocionesContent({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button asChild variant="outline" size="sm" className="h-11 min-h-11 gap-1.5 px-3 text-sm">
+            <Button asChild variant="outline" size="sm" className="h-(--control-height) gap-1.5 px-3 text-sm">
               <Link href="/promociones/reglas">
                 <SlidersHorizontal aria-hidden="true" className={PROMOTION_ICON.control} />
                 <span>Reglas</span>

@@ -229,14 +229,14 @@ export default function NuevoIngresoContent() {
               placeholder="Buscar empleado..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className={`h-11 text-sm border border-input bg-muted pl-9 text-foreground shadow-none ${search ? 'pr-11' : ''}`}
+              className={`pl-9 ${search ? 'pr-11' : ''}`}
             />
             {search && (
               <button
                 type="button"
                 aria-label="Limpiar búsqueda"
                 onClick={() => setSearch('')}
-                className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <X className="h-4 w-4" aria-hidden="true" />
               </button>
@@ -245,26 +245,26 @@ export default function NuevoIngresoContent() {
           <div className="flex min-w-0 items-center justify-end gap-3">
             {!isReadOnly && (
               <div className="flex items-center gap-1.5 shrink-0">
-                <Button asChild className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline">
+                <Button asChild className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline">
                   <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes" title="Compartir pendientes">
                     <span className="hidden sm:inline">Pendientes</span>
                     <MessageSquareShare className="size-4 sm:hidden" aria-hidden="true" />
                   </Link>
                 </Button>
-                <Button className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
+                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
                   <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando..." : "Incidencias"}</span>
                   {capEmployeeNamesLoading
                     ? <Loader2 className="h-4 w-4 animate-spin" />
                     : <FileUp className="h-4 w-4 sm:hidden" />}
                 </Button>
-                <Button className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={() => {
+                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={() => {
                   markDialogLoaded("ingresos")
                   setIngresosJsonOpen(true)
                 }} aria-label="Importar empleados desde JSON" title="Importar empleados desde JSON">
                   <span className="hidden sm:inline">Cargar</span>
                   <Upload className="h-4 w-4 sm:hidden" />
                 </Button>
-                <Button className="h-11 min-h-11 w-11 p-0 sm:w-auto sm:px-3" onClick={() => {
+                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" onClick={() => {
                   markDialogLoaded("create")
                   setNuevoOpen(true)
                 }} aria-label="Nuevo Empleado" title="Nuevo Empleado">
@@ -280,7 +280,7 @@ export default function NuevoIngresoContent() {
           {/* Filters — flex wrap, 2 por fila en móvil */}
           <div className="flex flex-wrap gap-2">
             <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="h-11 flex-1 min-w-[140px] bg-muted text-foreground text-sm">
+              <SelectTrigger className="flex-1 min-w-[140px]">
                 <SelectValue placeholder="Departamentos" />
               </SelectTrigger>
               <SelectContent className="bg-card">
@@ -289,7 +289,7 @@ export default function NuevoIngresoContent() {
               </SelectContent>
             </Select>
             <Select value={filterContrato} onValueChange={setFilterContrato}>
-              <SelectTrigger className="h-11 flex-1 min-w-[140px] bg-muted text-foreground text-sm">
+              <SelectTrigger className="flex-1 min-w-[140px]">
                 <SelectValue placeholder="Tipo contrato" />
               </SelectTrigger>
               <SelectContent className="bg-card">
@@ -299,7 +299,7 @@ export default function NuevoIngresoContent() {
               </SelectContent>
             </Select>
             <Select value={filterTurno} onValueChange={setFilterTurno}>
-              <SelectTrigger className="h-11 flex-1 min-w-[140px] bg-muted text-foreground text-sm">
+              <SelectTrigger className="flex-1 min-w-[140px]">
                 <SelectValue placeholder="Turnos" />
               </SelectTrigger>
               <SelectContent className="bg-card">
@@ -308,7 +308,7 @@ export default function NuevoIngresoContent() {
               </SelectContent>
             </Select>
             <Select value={filterRG} onValueChange={setFilterRG}>
-              <SelectTrigger className="h-11 flex-1 min-w-[140px] bg-muted text-foreground text-sm">
+              <SelectTrigger className="flex-1 min-w-[140px]">
                 <SelectValue placeholder="Plan de Formación" />
               </SelectTrigger>
               <SelectContent className="bg-card">

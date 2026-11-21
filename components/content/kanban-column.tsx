@@ -70,7 +70,7 @@ export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onDropC
         dragOver ? "outline outline-primary" : "outline-transparent",
       )}
     >
-      <header className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-card pl-3 pr-1">
+      <header className="flex min-h-(--control-height) items-center gap-2 rounded-md border border-border bg-card pl-3 pr-1">
         <h2 id={titleId} className="text-label-sm text-foreground">{label}</h2>
         <span className="text-body-sm tabular-nums text-muted-foreground">
           {tarjetas.length}<span className="sr-only"> {tarjetas.length === 1 ? "tarjeta" : "tarjetas"}</span>

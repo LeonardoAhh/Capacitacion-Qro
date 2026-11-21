@@ -85,7 +85,7 @@ export function CapHistorialTab({
             <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-11 min-h-11 px-3 py-0 text-sm font-medium" aria-label="Abrir opciones de carga" title="Abrir opciones de carga">
+                  <Button variant="outline" className="h-(--control-height) px-3 py-0 text-sm font-medium" aria-label="Abrir opciones de carga" title="Abrir opciones de carga">
                     <span>Importar</span>
                     <ChevronDown className="ml-1 size-4" aria-hidden="true" />
                   </Button>
@@ -95,28 +95,28 @@ export function CapHistorialTab({
                     <h3 className="text-sm font-semibold text-foreground">Cargar información</h3>
                   </div>
                   <div className="grid gap-1">
-                    <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImport}>
+                    <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImport}>
                       <Layers className="size-4" aria-hidden="true" />
                       Cursos
                     </Button>
-                    <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkCreateEmployees}>
+                    <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkCreateEmployees}>
                       <Users className="size-4" aria-hidden="true" />
                       Empleados
                     </Button>
                     {canEdit && (
-                      <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImportIncumplimientos}>
+                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportIncumplimientos}>
                         <ShieldAlert className="size-4" aria-hidden="true" />
                         Incumplimientos
                       </Button>
                     )}
                     {canEdit && (
-                      <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImportActas}>
+                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportActas}>
                         <FileText className="size-4" aria-hidden="true" />
                         Actas
                       </Button>
                     )}
                     {canEdit && onBulkImportRetardos && (
-                      <Button variant="ghost" className="min-h-11 justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
+                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
                         <AlarmClock className="size-4" aria-hidden="true" />
                         Retardos
                       </Button>
@@ -124,7 +124,7 @@ export function CapHistorialTab({
                   </div>
                 </PopoverContent>
               </Popover>
-              <Button className="h-11 min-h-11 min-w-11 px-3 py-0 text-sm font-medium" onClick={onNewEmployee} aria-label="Nuevo empleado" title="Nuevo empleado">
+              <Button className="h-(--control-height) min-w-(--control-height) px-3 py-0 text-sm font-medium" onClick={onNewEmployee} aria-label="Nuevo empleado" title="Nuevo empleado">
                 <span className="hidden lg:inline">Nuevo empleado</span>
                 <UserPlus className="h-4 w-4 lg:hidden" aria-hidden="true" />
               </Button>
@@ -132,7 +132,7 @@ export function CapHistorialTab({
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-(--card-padding) space-y-6 dense:space-y-4">
           <div className="flex flex-col sm:flex-row items-center gap-4">
             {/* Search */}
             <div className="relative flex-1 w-full">
@@ -141,14 +141,14 @@ export function CapHistorialTab({
                 value={empSearch}
                 onChange={e => setEmpSearch(e.target.value)}
                 placeholder="Buscar empleado..."
-                className={`h-11 pl-9 text-sm ${empSearch ? "pr-11" : ""}`}
+                className={`pl-9 ${empSearch ? "pr-11" : ""}`}
               />
               {empSearch && (
                 <button
                   type="button"
                   aria-label="Limpiar búsqueda"
                   onClick={() => setEmpSearch("")}
-                  className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="size-4" aria-hidden="true" />
                 </button>
@@ -157,7 +157,7 @@ export function CapHistorialTab({
             {/* Filters row */}
             <div className="flex items-center gap-3 w-full sm:w-auto shrink-0">
               <Select value={empFilterDept} onValueChange={setEmpFilterDept}>
-                <SelectTrigger className="h-11 flex-1 text-sm sm:w-48 sm:flex-none">
+                <SelectTrigger className="flex-1 sm:w-48 sm:flex-none">
                   <SelectValue placeholder="Departamento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -168,7 +168,7 @@ export function CapHistorialTab({
                 </SelectContent>
               </Select>
               <Select value={empFilterTurno} onValueChange={setEmpFilterTurno}>
-                <SelectTrigger className="h-11 flex-1 text-sm sm:w-40 sm:flex-none">
+                <SelectTrigger className="flex-1 sm:w-40 sm:flex-none">
                   <SelectValue placeholder="Turno" />
                 </SelectTrigger>
                 <SelectContent>
@@ -238,7 +238,7 @@ export function CapHistorialTab({
                           <div className="flex items-center justify-end gap-1">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-11 w-11" aria-label={`Más opciones para ${emp.nombre}`}>
+                                <Button variant="ghost" size="icon" className="size-(--control-height)" aria-label={`Más opciones para ${emp.nombre}`}>
                                   <EllipsisVertical className="text-muted-foreground" />
                                 </Button>
                               </DropdownMenuTrigger>

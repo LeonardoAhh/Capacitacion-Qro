@@ -19,7 +19,7 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
     <fieldset
       aria-invalid={showError && pending}
       data-competency-pending={pending ? "true" : undefined}
-      className="grid min-w-0 gap-3 p-6 @md:grid-cols-[minmax(0,1fr)_auto] @md:items-center @md:gap-4"
+      className="grid min-w-0 gap-3 p-(--card-padding) @md:grid-cols-[minmax(0,1fr)_auto] @md:items-center @md:gap-4"
     >
       <legend className="sr-only">{item.nombre}</legend>
       <div className="min-w-0 space-y-1">
@@ -31,7 +31,7 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
           key={valor}
           title={`${valor}: ${etiqueta}`}
           className={cn(
-            "relative flex min-h-11 min-w-11 cursor-pointer items-center justify-center rounded-md text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
+            "relative flex min-h-(--control-height) min-w-(--control-height) cursor-pointer items-center justify-center rounded-md text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
             item.evaluada && item.calificacion === valor
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-card/70 hover:text-foreground",

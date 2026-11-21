@@ -65,7 +65,7 @@ function PercentageControl({ id, label, value, noAplica, automatic, helpId, show
       }}
       disabled={noAplica || automatic} readOnly={automatic} aria-describedby={helpId}
       aria-invalid={showError && pending} className={cn("w-20 shrink-0 font-medium tabular-nums", showError && pending && "border-destructive")} />
-    {!automatic && <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-muted">
+    {!automatic && <label className="inline-flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-muted">
       <input type="checkbox" checked={noAplica === true} onChange={(event) => onChange("", event.target.checked)} className="size-4 accent-primary" />
       No aplica
     </label>}
@@ -88,9 +88,9 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
   const validation = validarEvaluacion(data);
   const requiereCompromisos = context.ponderacion.calificacionFinal < UMBRAL_CALIFICACION_APROBATORIA;
 
-  if (!canEdit) return <div className="space-y-6 print:space-y-6">
+  if (!canEdit) return <div className="space-y-6 dense:space-y-4 print:space-y-6">
     <EmployeeCard context={context} /><ObjectivesCard context={context} /><ResponsibilitiesCard context={context} /><CompetenciesCard context={context} />
-    <div className="grid gap-6 md:grid-cols-2"><CommitmentsCard context={context} /><ScoreCard context={context} /></div>
+    <div className="grid gap-6 dense:gap-4 md:grid-cols-2"><CommitmentsCard context={context} /><ScoreCard context={context} /></div>
   </div>;
 
   const submit = (event: React.FormEvent) => {
@@ -99,7 +99,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
     if (validation.valida && !guardarDisabled && !saving) onGuardar?.();
   };
 
-  return <form className="space-y-6 print:hidden" onSubmit={submit} noValidate>
+  return <form className="space-y-6 dense:space-y-4 print:hidden" onSubmit={submit} noValidate>
     <p id={percentageHelpId} className="sr-only">Ingresa un porcentaje entero de 0 a 100 o marca No aplica.</p>
     <p id={automaticHelpId} className="sr-only">Calculado por el sistema para el periodo seleccionado.</p>
 
@@ -161,7 +161,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
 
     {activeView === 5 && <div className="space-y-4">
       <StepHeading context={context} title="Revisión y compromisos" description="Revisa el resultado y registra los acuerdos de seguimiento antes de guardar." />
-      <Card><CardContent className="space-y-4 p-6">
+      <Card><CardContent className="space-y-4 p-(--card-padding)">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
           <h3 className="text-label-sm text-muted-foreground">Calificación del periodo</h3>
           <p className="text-heading-lg tabular-nums text-foreground" aria-live="polite" aria-atomic="true">{context.ponderacion.calificacionFinal}%</p>

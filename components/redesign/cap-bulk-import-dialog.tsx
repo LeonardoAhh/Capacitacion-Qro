@@ -65,7 +65,7 @@ export function CapBulkImportDialog({
         onClose={() => onOpenChange(false)}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-card p-5 sm:p-6">
+      <div className="min-h-0 flex-1 overflow-y-auto bg-card p-5 sm:p-(--card-padding)">
           {success !== null && (
             <Alert className="mb-6 border-success/30 bg-success/10">
               <CheckCircle2 className="h-5 w-5 text-success" />
@@ -116,7 +116,7 @@ export function CapBulkImportDialog({
 
           {/* FASE 2: Preview Editable */}
           {rows.length > 0 && (
-            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="space-y-6 dense:space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-3">
                   <Badge variant="outline" className="text-sm font-medium px-3 py-1 bg-background">
@@ -155,7 +155,7 @@ export function CapBulkImportDialog({
                               <Input
                                 value={row.numero}
                                 onChange={e => onUpdateRow(row.id, 'numero', e.target.value)}
-                                className={`h-9 font-sans text-sm shadow-none rounded-md border-border/60 bg-transparent ${noEmp ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+                                className={`h-(--control-height-sm) font-sans ${noEmp ? 'border-destructive focus-visible:ring-destructive' : ''}`}
                                 aria-label={`Número de empleado fila ${row.id}`}
                               />
                               {noEmp && (
@@ -166,7 +166,7 @@ export function CapBulkImportDialog({
                             </TableCell>
                             <TableCell className="p-2 align-middle">
                               <Select value={row.courseId ?? ''} onValueChange={v => onSelectCourse(row.id, v)}>
-                                <SelectTrigger className="h-9 min-w-0 text-sm shadow-none rounded-md border-border/60 bg-transparent [&>span]:min-w-0 [&>span]:truncate" aria-label={`Curso fila ${row.id}`}>
+                                <SelectTrigger className="h-(--control-height-sm) min-w-0 [&>span]:min-w-0 [&>span]:truncate" aria-label={`Curso fila ${row.id}`}>
                                   <SelectValue placeholder={row.cursoRaw || 'Selecciona curso'} />
                                 </SelectTrigger>
                                 <SelectContent className="w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)] max-h-[40vh]">
@@ -186,7 +186,7 @@ export function CapBulkImportDialog({
                                 type="date"
                                 value={row.fecha}
                                 onChange={e => onUpdateRow(row.id, 'fecha', e.target.value)}
-                                className="h-9 text-sm shadow-none rounded-md border-border/60 bg-transparent"
+                                className="h-(--control-height-sm)"
                                 aria-label={`Fecha fila ${row.id}`}
                               />
                             </TableCell>
@@ -195,7 +195,7 @@ export function CapBulkImportDialog({
                                 type="number" min="0" max="100"
                                 value={row.calificacion}
                                 onChange={e => onUpdateRow(row.id, 'calificacion', e.target.value)}
-                                className="h-9 text-sm shadow-none rounded-md border-border/60 bg-transparent text-center"
+                                className="h-(--control-height-sm) text-center"
                                 aria-label={`Calificación fila ${row.id}`}
                               />
                             </TableCell>

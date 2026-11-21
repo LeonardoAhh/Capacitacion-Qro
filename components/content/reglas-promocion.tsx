@@ -141,7 +141,7 @@ export default function ReglasPromocionContent() {
         <>
           {/* Tablet y escritorio */}
           <div className="hidden overflow-x-auto rounded-xl border border-border md:block">
-            <Table className="[&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm">
+            <Table className="[&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <TableHead scope="col">Puesto</TableHead>

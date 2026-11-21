@@ -9,6 +9,25 @@
     font-display: swap;
 }
 
+/*
+ * Densidad compacta. Aplica en escritorio con poca altura (p. ej. monitores
+ * 1600×900 de planta) salvo que el usuario elija "Cómoda", y siempre que elija
+ * "Compacta" (Configuración › Apariencia; clases en <html>, lib/theme/constants).
+ * Sirve para los tokens de :root y como utilidad: `dense:gap-2`.
+ */
+@custom-variant dense {
+    @media (min-width: 48rem) and (max-height: 56.25rem) {
+        &:where(:root:not(.density-comfortable), :root:not(.density-comfortable) *) {
+            @slot;
+        }
+    }
+    @media (min-width: 48rem) {
+        &:where(.density-compact, .density-compact *) {
+            @slot;
+        }
+    }
+}
+
 /* ─── Escala tipográfica (AGENTS.md §3.2) ────────────────
    Genera las utilidades text-<token>. Los nombres se registran en
    lib/theme/typography.ts para que cn() los reconozca como tamaños. */
@@ -65,7 +84,6 @@
         /* Theme overrides & scales */
         --font-print: "Inter Print", Arial, sans-serif;
         --font-base-size: 16px;
-        --density-scale: 1;
         --workspace-inset: 1rem;
         --workspace-sidebar-width: 15rem;
         --workspace-sidebar-collapsed-width: 4.5rem;
@@ -75,6 +93,20 @@
         --evaluation-summary-max-width: 60rem;
         --notice-width: 22rem;
         --notice-edge: 1rem;
+        /*
+         * Densidad de controles y superficies. Las primitivas (Button, Input,
+         * Select, Tabs, menús, Table, Card) leen estas medidas; en pantallas
+         * bajas se compactan abajo sin tocar cada página. Una clase de altura
+         * o padding puesta en una página sigue mandando sobre estos valores.
+         */
+        --control-height: 2.75rem;
+        --control-height-sm: 2.25rem;
+        --menu-item-height: 2.75rem;
+        --table-head-height: 3rem;
+        --table-cell-padding-x: 1rem;
+        --table-cell-padding-y: 1rem;
+        --card-padding: 1.5rem;
+        --workspace-content-padding-y: 1.25rem;
         /* Elevación nivel 2 — Floating (design.md) y velo de modales. */
         --floating-shadow: 0 2px 2px hsl(0 0% 0% / 0.04), 0 8px 16px -4px hsl(0 0% 0% / 0.06);
         --overlay-scrim: hsl(0 0% 0% / 0.4);
@@ -153,9 +185,34 @@
         --header-height: 50px;
     }
 
+    @media (min-width: 640px) {
+        :root {
+            --workspace-content-padding-y: 1.5rem;
+        }
+    }
+
     @media (min-width: 1024px) {
         :root {
             --workspace-inset: 1.5rem;
+            --workspace-content-padding-y: 2rem;
+        }
+    }
+
+    /*
+     * Densidad compacta (variante `dense`): más contenido sin scroll.
+     * Los controles quedan en 36px, por encima del mínimo de 24px de WCAG.
+     */
+    :root {
+        @variant dense {
+            --workspace-inset: 1rem;
+            --control-height: 2.25rem;
+            --control-height-sm: 2rem;
+            --menu-item-height: 2.25rem;
+            --table-head-height: 2.5rem;
+            --table-cell-padding-x: 0.75rem;
+            --table-cell-padding-y: 0.5rem;
+            --card-padding: 1rem;
+            --workspace-content-padding-y: 1rem;
         }
     }
 

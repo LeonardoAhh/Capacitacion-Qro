@@ -183,13 +183,13 @@ export function EmployeeDayCountImportDialog({
         subtitle={description}
         onClose={() => closeDialog(false)}
       />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card p-4 sm:p-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card p-4 sm:p-(--card-padding)">
         <p className="text-sm text-muted-foreground">{note}</p>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
             variant="outline"
-            className="min-h-11"
+            className="min-h-(--control-height)"
             onClick={() => fileInputRef.current?.click()}
             disabled={saving}
           >
@@ -251,7 +251,7 @@ export function EmployeeDayCountImportDialog({
         <Button
           type="button"
           variant="outline"
-          className="min-h-11"
+          className="min-h-(--control-height)"
           onClick={() => closeDialog(false)}
           disabled={saving}
         >
@@ -259,7 +259,7 @@ export function EmployeeDayCountImportDialog({
         </Button>
         <Button
           type="button"
-          className="min-h-11"
+          className="min-h-(--control-height)"
           onClick={() => void handleImport()}
           disabled={!preview || saving || validating || Boolean(validationError)}
         >

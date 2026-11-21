@@ -16,7 +16,7 @@ export function ObjectivesCatalog({ context }: { context: SavedEvaluationsContex
   const { puesto, objetivos, hasPuestoObjetivos } = context;
   return (
     <details className="group rounded-xl border bg-card text-card-foreground print:hidden">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-(--control-height) cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
         <Target className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
         <span className="min-w-0 flex-1 space-y-1">
           <span className="block text-label-sm">{COPY.title}</span>

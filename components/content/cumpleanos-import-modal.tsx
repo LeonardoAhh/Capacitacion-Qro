@@ -285,7 +285,7 @@ export function CumpleanosImportModal({
         onClose={closeDialog}
       />
 
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6">
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-(--card-padding)">
         {error && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
@@ -325,7 +325,7 @@ export function CumpleanosImportModal({
 
             <Button
               variant="outline"
-              className="min-h-11 w-full justify-start gap-3 border-dashed border-border px-3 py-0 text-sm"
+              className="min-h-(--control-height) w-full justify-start gap-3 border-dashed border-border px-3 py-0 text-sm"
               onClick={() => fileRef.current?.click()}
               disabled={loading}
             >
@@ -467,7 +467,7 @@ export function CumpleanosImportModal({
       </div>
 
       <ModalFooter
-        className="[&>div>button]:h-11"
+        className="[&>div>button]:h-(--control-height)"
         onCancel={step === "preview" ? reset : closeDialog}
         cancelLabel={step === "preview" ? "Volver" : step === "done" ? "Cerrar" : "Cancelar"}
         onConfirm={step === "preview" ? handleSave : undefined}

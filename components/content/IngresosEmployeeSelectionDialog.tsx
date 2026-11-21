@@ -70,7 +70,7 @@ export function IngresosEmployeeSelectionDialog({
           <Input id={searchId} type="search" placeholder="Buscar por nombre o número" autoComplete="off"
             value={query} maxLength={SEARCH_MAX_LENGTH} className="pl-9" onChange={event => setQuery(event.target.value)} />
         </div>
-        <label htmlFor={allId} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-label-sm text-foreground hover:bg-muted">
+        <label htmlFor={allId} className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md px-2 text-label-sm text-foreground hover:bg-muted">
           <Checkbox id={allId} checked={todos ? true : seleccionadosVisibles > 0 ? "indeterminate" : false}
             onCheckedChange={toggleVisibles} disabled={!visibles.length} />
           {query.trim() ? "Todos los resultados" : "Todos"}
@@ -88,7 +88,7 @@ export function IngresosEmployeeSelectionDialog({
               const meta = [employee.departamento, employee.turno ? etiquetaTurno(employee.turno) : null].filter(Boolean).join(" · ")
               return (
                 <li key={employee.dbId}>
-                  <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-muted">
+                  <label htmlFor={id} className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md px-2 py-2 hover:bg-muted">
                     <Checkbox id={id} checked={draftIds.has(employee.dbId)} onCheckedChange={() => toggle(employee.dbId)} />
                     <span className="grid min-w-0 flex-1">
                       <span className="truncate text-label-sm text-foreground">

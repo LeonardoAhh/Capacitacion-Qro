@@ -8,7 +8,19 @@
  */
 
 export type FontSize = "small" | "medium" | "large"
-export type Density = "comfortable" | "compact"
+/** auto: compacta solo en escritorio con poca altura (globals.css, variante `dense`). */
+export type Density = "auto" | "comfortable" | "compact"
+
+export function isDensity(value: string | null): value is Density {
+  return value === "auto" || value === "comfortable" || value === "compact"
+}
+
+/** Clase en <html> de cada densidad; "auto" no lleva clase y lo decide la pantalla. */
+export const DENSITY_CLASSES: Record<Density, string | null> = {
+  auto: null,
+  comfortable: "density-comfortable",
+  compact: "density-compact",
+}
 export type ResolvedThemeMode = "light" | "dark"
 export type ThemeMode = ResolvedThemeMode | "system"
 
@@ -28,18 +40,16 @@ export const FONT_SIZE_MAP: Record<FontSize, string> = {
   large: "18px",
 }
 
-export const DENSITY_SCALE_MAP: Record<Density, string> = {
-  comfortable: "1",
-  compact: "1",
-}
-
 // localStorage persistence keys. Written/read by both the bootstrap script
 // (before hydration) and ThemeProvider effects — change together via this map.
 export const THEME_STORAGE_KEYS = {
   colorMode: "theme",
   legacyAccentColor: "accentColor",
   fontSize: "fontSize",
-  density: "density",
+  density: "densityMode",
+  // Antes solo había cómoda/compacta y la cómoda se guardaba sola: de esa
+  // clave solo se conserva "compact"; lo demás pasa a "auto".
+  legacyDensity: "density",
   reducedMotion: "reducedMotion",
 } as const
 
@@ -60,7 +70,7 @@ export const APP_THEME_COLORS: Record<ResolvedThemeMode, string> = {
 export function buildThemeBootstrapScript(): string {
   const fontSizes = JSON.stringify(FONT_SIZE_MAP)
   const themeColors = JSON.stringify(APP_THEME_COLORS)
-  const compactScale = DENSITY_SCALE_MAP.compact
+  const densityClasses = JSON.stringify(DENSITY_CLASSES)
   const k = JSON.stringify(THEME_STORAGE_KEYS)
 
   return `(function(){try{
@@ -81,8 +91,11 @@ export function buildThemeBootstrapScript(): string {
   d.style.removeProperty("--ring");
   var f=localStorage.getItem(k.fontSize);
   if(f&&fs[f])d.style.setProperty("--font-base-size",fs[f]);
+  var dc=${densityClasses};
   var dn=localStorage.getItem(k.density);
-  if(dn==="compact"){d.classList.add("density-compact");d.style.setProperty("--density-scale","${compactScale}");}
+  var ld=localStorage.getItem(k.legacyDensity);
+  if(ld!==null){if(dn===null&&ld==="compact"){dn="compact";localStorage.setItem(k.density,dn);}localStorage.removeItem(k.legacyDensity);}
+  if(dn&&dc[dn])d.classList.add(dc[dn]);
   if(localStorage.getItem(k.reducedMotion)==="true")d.classList.add("reduce-motion");
   localStorage.setItem(k.colorMode,p);
 }catch(e){}})();`

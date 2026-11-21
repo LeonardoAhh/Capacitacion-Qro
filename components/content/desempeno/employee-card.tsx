@@ -26,7 +26,7 @@ export function EmployeeCard({
   return <>
     {/* ── Header ── */}
     <Card className="@container">
-      <CardHeader className="space-y-3 p-6">
+      <CardHeader className="space-y-3 p-(--card-padding)">
         <p className="text-xs leading-4 text-muted-foreground">
           <span className="font-medium text-foreground">Instrucciones para el evaluador:</span> {DESEMPENO.instructions}
       </p>
@@ -48,7 +48,7 @@ export function EmployeeCard({
       </div>
     </CardHeader>
 
-      <CardContent className="space-y-4 p-6 pt-0">
+      <CardContent className="space-y-4 p-(--card-padding) pt-0">
         <div className="grid grid-cols-1 gap-x-6 gap-y-4 @lg:grid-cols-2">
           <InfoField label={DESEMPENO.fields.employeeNumber}>
             <span className="text-base font-medium leading-6">{data.numero_empleado || "—"}</span>

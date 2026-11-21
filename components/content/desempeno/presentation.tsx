@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /** Uses the application's rem spacing, density, font scale and semantic colors. */
 export const evaluationStyles = {
-  page: "w-full min-w-0 space-y-6",
+  page: "w-full min-w-0 space-y-6 dense:space-y-4",
   stack: "space-y-4",
   sectionTitle: "text-heading-md text-foreground",
   description: "text-body-md text-muted-foreground",

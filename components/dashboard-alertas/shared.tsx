@@ -49,7 +49,7 @@ export function Metrica({ label, valor, onClick, loading }: MetricaProps) {
             disabled={loading || valor === 0}
             aria-label={`${label}: ${valor}`}
             className={`
-        group flex min-h-11 items-center gap-2.5 rounded-md px-3 py-0 text-left transition-colors
+        group flex min-h-(--control-height) items-center gap-2.5 rounded-md px-3 py-0 text-left transition-colors
         ${valor > 0 && !loading
                     ? `cursor-pointer hover:opacity-90 ${solidBg}`
                     : "cursor-default bg-muted text-muted-foreground opacity-75"
@@ -234,7 +234,7 @@ export function CalificacionModal({
                                 size="sm"
                                 onClick={deferredClose}
                                 disabled={saving}
-                                className="h-11 min-h-11 px-3 py-0 text-sm text-muted-foreground"
+                                className="h-(--control-height) px-3 py-0 text-sm text-muted-foreground"
                             >
                                 <X size={14} />
                                 Cerrar
@@ -244,7 +244,7 @@ export function CalificacionModal({
                                 size="sm"
                                 onClick={handleGuardar}
                                 disabled={saving}
-                                className="h-11 min-h-11 gap-2 px-3 py-0 text-sm"
+                                className="h-(--control-height) gap-2 px-3 py-0 text-sm"
                             >
                                 {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                                 Guardar
@@ -274,7 +274,7 @@ export function CalificacionModal({
                                     onClick={() => adjust(-1)}
                                     disabled={saving || cal <= 0}
                                     aria-label="Restar calificación"
-                                    className="h-11 w-11 rounded-md"
+                                    className="size-(--control-height) rounded-md"
                                 >
                                     <Minus size={18} />
                                 </Button>
@@ -298,7 +298,7 @@ export function CalificacionModal({
                                     onClick={() => adjust(1)}
                                     disabled={saving || cal >= 100}
                                     aria-label="Sumar calificación"
-                                    className="h-11 w-11 rounded-md"
+                                    className="size-(--control-height) rounded-md"
                                 >
                                     <Plus size={18} />
                                 </Button>
@@ -321,7 +321,7 @@ export function FilaEval({ item, evalNum, colorDias, colorBadge, badgeLabel, onC
     }
 
     return (
-        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-4 transition-colors">
+        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-4 dense:p-3 transition-colors">
             <div className="flex items-start justify-between gap-2.5">
                 <p className="text-sm font-semibold leading-snug text-foreground">{item.nombre}</p>
                 <span className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-medium ${colorDias} bg-current/10`}>
@@ -341,7 +341,7 @@ export function FilaEval({ item, evalNum, colorDias, colorBadge, badgeLabel, onC
             <button
                 type="button"
                 onClick={openModal}
-                className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-(--control-height) w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
                 <Pencil size={14} aria-hidden="true" /> Calificar
             </button>
@@ -377,7 +377,7 @@ export function FilaFecha({ item, colorBadge, colorDias, onEntregado, onIndeterm
     }
 
     return (
-        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-4 transition-colors">
+        <div className="flex flex-col gap-2 rounded-md border border-border bg-card p-4 dense:p-3 transition-colors">
             <div className="flex items-start justify-between gap-2.5">
                 <p className="text-sm font-semibold leading-snug text-foreground">{item.nombre}</p>
                 <span className={`shrink-0 rounded-md px-2 py-0.5 text-xs font-medium ${colorDias} bg-current/10`}>
@@ -399,7 +399,7 @@ export function FilaFecha({ item, colorBadge, colorDias, onEntregado, onIndeterm
                     type="button"
                     onClick={() => handle(onEntregado!)}
                     disabled={saving}
-                    className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                    className="inline-flex min-h-(--control-height) w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                     <CheckCircle2 size={14} aria-hidden="true" /> {saving ? "Guardando…" : "Marcar entregado"}
                 </button>
@@ -410,7 +410,7 @@ export function FilaFecha({ item, colorBadge, colorDias, onEntregado, onIndeterm
                     type="button"
                     onClick={() => handle(onIndeterminado!)}
                     disabled={saving}
-                    className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                    className="inline-flex min-h-(--control-height) w-fit items-center gap-2 rounded-md px-3 py-0 text-sm font-medium text-primary transition-colors hover:bg-primary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                 >
                     <CheckCircle2 size={14} aria-hidden="true" /> {saving ? "Guardando…" : "Marcar como Indeterminado"}
                 </button>
@@ -441,7 +441,7 @@ export function MasterListItem({ nombre, meta, diasLabel, fechaLabel, selected, 
             type="button"
             onClick={onSelect}
             aria-pressed={selected}
-            className={`group relative flex min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? selectedBg : "hover:bg-muted/40"
+            className={`group relative flex min-h-(--control-height) w-full items-center gap-3 px-4 py-3 dense:py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring ${selected ? selectedBg : "hover:bg-muted/40"
                 }`}
         >
             {selected && (
@@ -464,7 +464,7 @@ export function MasterListItem({ nombre, meta, diasLabel, fechaLabel, selected, 
 
 export function MasterEmpty({ mensaje }: { mensaje: string }) {
     return (
-        <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-muted-foreground">
+        <div className="flex h-full flex-col items-center justify-center gap-2 p-6 dense:p-4 text-muted-foreground">
             <CheckCircle2 className="h-10 w-10 opacity-40" />
             <p className="text-sm">{mensaje}</p>
         </div>

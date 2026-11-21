@@ -58,7 +58,7 @@ export function CapCoursesTab({
           </div>
           <div className="flex flex-wrap items-center gap-2 sm:flex-nowrap sm:gap-3">
             <Button
-              className="h-11 min-h-11 px-3 py-0 text-sm font-medium"
+              className="h-(--control-height) px-3 py-0 text-sm font-medium"
               onClick={() => setAuditOpen(true)}
               aria-label="Auditoría Global"
               title="Auditoría Global"
@@ -66,7 +66,7 @@ export function CapCoursesTab({
               Auditoría
             </Button>
             <Button
-              className="h-11 min-h-11 px-3 py-0 text-sm font-medium"
+              className="h-(--control-height) px-3 py-0 text-sm font-medium"
               onClick={() => setPreviewOpen(true)}
               aria-label="Descargar reporte Excel"
               title="Descargar Excel"
@@ -74,28 +74,28 @@ export function CapCoursesTab({
               Reporte
             </Button>
             {!isReadOnly && (
-              <Button onClick={onNewCourse} className="h-11 min-h-11 px-3 py-0 text-sm font-medium" aria-label="Nuevo curso" title="Nuevo curso">
+              <Button onClick={onNewCourse} className="h-(--control-height) px-3 py-0 text-sm font-medium" aria-label="Nuevo curso" title="Nuevo curso">
                 Nuevo curso
               </Button>
             )}
           </div>
         </div>
       </div>
-      <div className="p-6 space-y-6">
+      <div className="p-(--card-padding) space-y-6 dense:space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input
             value={courseSearch}
             onChange={e => { setCourseSearch(e.target.value); setCoursePage(1) }}
             placeholder="Buscar curso..."
-            className={`h-11 pl-9 text-sm ${courseSearch ? "pr-11" : ""}`}
+            className={`pl-9 ${courseSearch ? "pr-11" : ""}`}
           />
           {courseSearch && (
             <button
               type="button"
               aria-label="Limpiar búsqueda"
               onClick={() => setCourseSearch("")}
-              className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <X className="size-4" aria-hidden="true" />
             </button>
@@ -148,7 +148,7 @@ export function CapCoursesTab({
                           <button
                             type="button"
                             key={course.id}
-                            className="flex min-h-11 w-full items-center gap-3 rounded-md border border-border bg-card px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            className="flex min-h-(--control-height) w-full items-center gap-3 rounded-md border border-border bg-card px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             onClick={() => setSelectedCourseId(course.id)}
                           >
                             <BookOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />

@@ -41,7 +41,7 @@ export function IngresosSharePreview({
 
   return (
     <section aria-labelledby="share-preview-title" className="flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card lg:absolute lg:inset-0">
-      <header className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1 border-b border-border py-1 pl-4 pr-1">
+      <header className="flex min-h-(--control-height) flex-wrap items-center gap-x-3 gap-y-1 border-b border-border py-1 pl-4 pr-1">
         <h2 id="share-preview-title" className="text-eyebrow uppercase text-muted-foreground">Vista previa</h2>
         <div className="flex items-center gap-1.5">
           <Badge variant="secondary" size="sm" aria-label={`${employeeCount} empleados`}>

@@ -51,7 +51,7 @@ function BarTooltip({ active, payload, label }: { active?: boolean; payload?: Ba
 // ── Skeleton ──────────────────────────────────────────────────────────────────
 function SkeletonContent() {
   return (
-    <div className="space-y-5">
+    <div className="space-y-5 dense:space-y-4">
       <div className="flex justify-center">
         <div className="relative w-[120px] h-[120px]">
           <Skeleton className="w-full h-full rounded-full" />

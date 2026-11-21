@@ -6,7 +6,7 @@ type SavedEvaluation = NonNullable<EvaluationSearchContext["existingEvaluation"]
 
 export function ExistingEvaluationNotice({ evaluation }: { evaluation: SavedEvaluation }) {
   return <Card role="status" className="bg-card">
-    <CardContent className="flex flex-wrap items-center gap-4 p-6">
+    <CardContent className="flex flex-wrap items-center gap-4 p-(--card-padding)">
       <span className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-muted/40" aria-hidden="true">
         <CheckCircle2 className="size-5" />
       </span>

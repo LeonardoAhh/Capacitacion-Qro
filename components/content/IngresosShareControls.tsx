@@ -60,7 +60,7 @@ interface ShareFiltersProps {
 function SwitchRow({ label, checked, onCheckedChange }: { label: string; checked: boolean; onCheckedChange: (value: boolean) => void }) {
   const id = useId()
   return (
-    <div className="flex min-h-11 items-center justify-between gap-4">
+    <div className="flex min-h-(--control-height) items-center justify-between gap-4">
       <Label htmlFor={id} className="cursor-pointer">{label}</Label>
       <Switch id={id} checked={checked} onCheckedChange={onCheckedChange} />
     </div>

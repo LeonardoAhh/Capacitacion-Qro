@@ -22,7 +22,7 @@ type Estado =
 
 const SECTION_TITLE = "text-eyebrow uppercase text-muted-foreground"
 const PANEL = "overflow-x-auto rounded-xl border border-border bg-card"
-const TABLE = "[&_td]:px-3 [&_td]:py-2 [&_th]:h-11 [&_th]:px-3 [&_th]:text-body-sm"
+const TABLE = "[&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm"
 
 function Vacio() {
   return <span className="text-muted-foreground" aria-label="Sin valor">—</span>
@@ -82,7 +82,7 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
 
   const { data } = estado
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 dense:gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="grid min-w-0 gap-1">
           <p className="text-body-sm tabular-nums text-muted-foreground">Núm. {data.numero}</p>
@@ -101,7 +101,7 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
 
       <section aria-labelledby="reco-datos" className="grid gap-3">
         <h3 id="reco-datos" className={SECTION_TITLE}>Datos generales</h3>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-4 sm:grid-cols-3">
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-4 dense:gap-y-3 dense:p-3 sm:grid-cols-3">
           <Dato label="Departamento" value={data.departamento || "—"} />
           <Dato label="Turno" value={data.turno || "—"} />
           <Dato label="Jefe directo" value={data.jefeDirecto || "—"} />

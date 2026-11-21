@@ -87,7 +87,7 @@ function BirthdayRow({ entry, canEdit, selected, sending, onToggle, onSend }: Bi
         {canEdit && (
           <label
             htmlFor={selectionId}
-            className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 has-[:disabled]:cursor-not-allowed"
+            className="grid size-(--control-height) shrink-0 cursor-pointer place-items-center rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 has-[:disabled]:cursor-not-allowed"
           >
             <Checkbox
               id={selectionId}
@@ -143,7 +143,7 @@ function BirthdayRow({ entry, canEdit, selected, sending, onToggle, onSend }: Bi
             <Button
               variant="ghost"
               size="icon"
-              className="size-11"
+              className="size-(--control-height)"
               disabled={!canSend || sending}
               onClick={() => onSend(entry)}
               aria-label={
@@ -399,10 +399,10 @@ export default function CumpleanosContent() {
   if (error) {
     return (
       <Card role="alert">
-        <CardContent className="flex flex-col items-start gap-4 p-6 sm:flex-row sm:items-center">
+        <CardContent className="flex flex-col items-start gap-4 p-(--card-padding) sm:flex-row sm:items-center">
           <AlertCircle className="size-5 shrink-0 text-destructive" aria-hidden="true" />
           <p className="flex-1 text-sm">No se pudo cargar la información de cumpleaños.</p>
-          <Button variant="outline" size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" onClick={() => void recargar()}>
+          <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => void recargar()}>
             <RefreshCw aria-hidden="true" />
             Reintentar
           </Button>
@@ -468,13 +468,13 @@ export default function CumpleanosContent() {
             onChange={(event) => handleSearchChange(event.target.value)}
             placeholder="Buscar colaborador"
             aria-label="Buscar por nombre, número o correo"
-            className="h-11 pl-9 pr-11 text-sm"
+            className="h-(--control-height) pl-9 pr-11 text-sm"
           />
           {searchQuery && (
             <button
               type="button"
               onClick={() => handleSearchChange("")}
-              className="absolute right-0 top-1/2 grid size-11 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="absolute right-0 top-1/2 grid size-(--control-height) -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               aria-label="Limpiar búsqueda"
             >
               <X className="size-4" aria-hidden="true" />
@@ -482,9 +482,9 @@ export default function CumpleanosContent() {
           )}
         </div>
 
-        <div className="min-h-11 md:ml-1">
+        <div className="min-h-(--control-height) md:ml-1">
           {canEdit && selectable.length > 0 && (
-            <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-2 text-sm focus-within:ring-2 focus-within:ring-ring">
+            <label className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md px-2 text-sm focus-within:ring-2 focus-within:ring-ring">
               <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Seleccionar todos los colaboradores disponibles" />
               <span aria-live="polite">
                 {selectedCount > 0 ? `${selectedCount} seleccionados` : "Seleccionar todos"}
@@ -495,18 +495,18 @@ export default function CumpleanosContent() {
 
         <div className="flex flex-wrap items-center gap-2 md:ml-auto">
           {selectedCount > 0 && (
-            <Button size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" disabled={sendingBulk} onClick={() => void handleSendSelected()}>
+            <Button size="sm" className="h-(--control-height) px-3 py-0 text-sm" disabled={sendingBulk} onClick={() => void handleSendSelected()}>
               {sendingBulk ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
               Enviar {selectedCount} {selectedCount === 1 ? "correo" : "correos"}
             </Button>
           )}
           {canEdit && (
-            <Button variant="outline" size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
+            <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
               <FileJson aria-hidden="true" />
               Empleados
             </Button>
           )}
-          <Button variant="outline" size="icon" className="size-11" onClick={() => void recargar()} aria-label="Actualizar cumpleaños">
+          <Button variant="outline" size="icon" className="size-(--control-height)" onClick={() => void recargar()} aria-label="Actualizar cumpleaños">
             <RefreshCw aria-hidden="true" />
           </Button>
         </div>
@@ -525,7 +525,7 @@ export default function CumpleanosContent() {
               </p>
             </div>
             {canEdit && (
-              <Button variant="outline" size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
+              <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
                 Importar información
               </Button>
             )}
@@ -543,7 +543,7 @@ export default function CumpleanosContent() {
                 No encontramos colaboradores que coincidan con “{searchQuery.trim()}”.
               </p>
             </div>
-            <Button variant="outline" size="sm" className="h-11 min-h-11 px-3 py-0 text-sm" onClick={() => handleSearchChange("")}>
+            <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => handleSearchChange("")}>
               Limpiar búsqueda
             </Button>
           </CardContent>

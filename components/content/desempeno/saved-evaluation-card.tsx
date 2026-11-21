@@ -36,7 +36,7 @@ export function SavedEvaluationCard({ evaluation: ev, actions }: { evaluation: E
 
   return (
     <article aria-labelledby={titleId} className="overflow-hidden rounded-xl border border-border bg-card">
-      <div className="flex flex-wrap items-start justify-between gap-3 p-6">
+      <div className="flex flex-wrap items-start justify-between gap-3 p-(--card-padding)">
         <div className="min-w-0 space-y-1">
           <h3 id={titleId} className="break-words text-sm font-medium leading-5 text-foreground">{ev.periodo || SAVED_DETAIL.noPeriod}{ev.hito_nuevo_ingreso ? ` · ${HITOS_NUEVO_INGRESO[ev.hito_nuevo_ingreso - 1].etiqueta}` : ""}</h3>
           <p className="text-xs leading-4 text-muted-foreground">

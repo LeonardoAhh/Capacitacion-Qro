@@ -24,7 +24,7 @@ const ORIGEN_BADGE_CLASS: Record<LftOrigen, string> = {
 export function LftSkeletonCard() {
   return (
     <li
-      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4"
+      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3"
       aria-hidden="true"
     >
       <Skeleton className="h-4 w-3/4" />
@@ -46,7 +46,7 @@ export function CandidatoCard({ candidato }: { candidato: LftCandidato }) {
 
   return (
     <li
-      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 transition-colors hover:bg-accent/20"
+      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3 transition-colors hover:bg-accent/20"
       data-testid={`lft-card-${candidato.numero}`}
       aria-label={`${candidato.nombre}, candidato a baja por LFT Art. 47`}
     >
@@ -93,7 +93,7 @@ export function CandidatoCard({ candidato }: { candidato: LftCandidato }) {
       <Button
         variant="ghost"
         size="sm"
-        className="-mx-1 h-11 justify-start gap-2 px-3 py-0 text-sm text-muted-foreground hover:text-foreground"
+        className="-mx-1 h-(--control-height) justify-start gap-2 px-3 py-0 text-sm text-muted-foreground hover:text-foreground"
         onClick={() => setExpanded((value) => !value)}
         aria-expanded={expanded}
         aria-controls={fechasId}

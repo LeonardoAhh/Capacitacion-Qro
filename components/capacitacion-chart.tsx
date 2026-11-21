@@ -179,8 +179,9 @@ export default function CapacitacionChart() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
             >
-              <div role="img" aria-label="Capacitaciones completadas por mes y año">
-                <ResponsiveContainer width="100%" height={300}>
+              {/* Alto por clase para que la densidad compacta lo reduzca. */}
+              <div role="img" aria-label="Capacitaciones completadas por mes y año" className="h-75 dense:h-56">
+                <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                     <CartesianGrid
                       strokeDasharray="3 3"

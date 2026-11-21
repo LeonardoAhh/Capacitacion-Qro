@@ -18,7 +18,7 @@ export function PercentageCriterionCard({
 }: PercentageCriterionCardProps) {
   return <Card className="@container h-full">
     {/* Compacta: texto a la izquierda y captura a la derecha cuando la tarjeta mide ≥ 28rem; si no, apila. */}
-    <fieldset className="grid h-full min-w-0 gap-3 p-6 @md:grid-cols-[minmax(0,1fr)_auto] @md:items-center @md:gap-4">
+    <fieldset className="grid h-full min-w-0 gap-3 p-(--card-padding) @md:grid-cols-[minmax(0,1fr)_auto] @md:items-center @md:gap-4">
       <legend className="sr-only">{title}</legend>
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">

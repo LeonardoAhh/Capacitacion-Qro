@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Check, X, Trash2 } from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -84,7 +84,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
             <div className="min-w-0 space-y-1">
               <Label htmlFor="edit-departamento" className="text-xs font-medium">Departamento</Label>
               <Select value={departamento} onValueChange={setDepartamento}>
-                <SelectTrigger id="edit-departamento" className="bg-muted"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
+                <SelectTrigger id="edit-departamento"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
                   {Object.keys(CATALOGO_ORGANIZACIONAL).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                   {departamento && !catalogoDepartamento && <SelectItem value={departamento}>{departamento}</SelectItem>}
@@ -94,7 +94,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
             <div className="min-w-0 space-y-1">
               <Label htmlFor="edit-area" className="text-xs font-medium">Área</Label>
               <Select value={form.area ?? ''} onValueChange={v => set('area', v)} disabled={!departamento}>
-                <SelectTrigger id="edit-area" className="bg-muted"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
+                <SelectTrigger id="edit-area"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
                   {areasDisponibles.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                   {form.area && !areasDisponibles.includes(form.area) && <SelectItem value={form.area}>{form.area}</SelectItem>}
@@ -108,7 +108,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
             <div className="space-y-1">
               <Label className="text-xs font-medium">Puesto</Label>
               <Select value={form.puesto ?? ''} onValueChange={v => set('puesto', v)}>
-                <SelectTrigger className="bg-muted"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
                   {puestosDisponibles.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   {form.puesto && !puestosDisponibles.includes(form.puesto) && <SelectItem value={form.puesto}>{form.puesto}</SelectItem>}
@@ -118,7 +118,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
             <div className="space-y-1">
               <Label className="text-xs font-medium">Turno</Label>
               <Select value={form.turno ?? ''} onValueChange={v => set('turno', v)}>
-                <SelectTrigger className="bg-muted"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card">
                   {TURNOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
@@ -148,7 +148,6 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
                     if (Number.isNaN(n)) return
                     set(key, Math.max(0, Math.min(100, n)))
                   }}
-                  className="text-base md:text-sm bg-muted"
                 />
               </div>
             ))}
@@ -159,7 +158,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
             <div className="space-y-1">
               <Label className="text-xs font-medium">Tipo de contrato</Label>
               <Select value={form.tipo_contrato ?? record.tipo_contrato} onValueChange={v => set('tipo_contrato', v as TipoContrato)}>
-                <SelectTrigger className="bg-muted"><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-card">
                   <SelectItem value="A prueba">A prueba</SelectItem>
                   <SelectItem value="Indeterminado">Indeterminado</SelectItem>
@@ -172,7 +171,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
                 <span className="block font-normal text-muted-foreground text-[11px]">Vence: {formatDate(record.fecha_vencimiento_rg)}</span>
               </Label>
               <Select value={form.rg_rec_048 ?? record.rg_rec_048} onValueChange={v => set('rg_rec_048', v as EstadoRG)}>
-                <SelectTrigger className="bg-muted"><SelectValue /></SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-card">
                   <SelectItem value="Pendiente">Pendiente</SelectItem>
                   <SelectItem value="Entregado">Entregado</SelectItem>
@@ -200,7 +199,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               if (ok) onDelete(record.id)
             }}
             disabled={saving}
-            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-sm font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+            className="flex min-h-(--control-height) w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-sm font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Trash2 className="h-4 w-4" />
             Eliminar empleado

@@ -148,12 +148,12 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
               <FormField id="numero" label="N.N">
                 <Input id="numero" value={form.numero}
                   onChange={e => set('numero', e.target.value)}
-                  placeholder="001" className="bg-muted" />
+                  placeholder="001"  />
               </FormField>
               <FormField id="nombre" label="Nombre completo" required>
                 <Input id="nombre" value={form.nombre}
                   onChange={e => set('nombre', e.target.value)}
-                  placeholder="PÉREZ GARCÍA JUAN" className="bg-muted" />
+                  placeholder="PÉREZ GARCÍA JUAN"  />
               </FormField>
             </div>
           </fieldset>
@@ -164,7 +164,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
             <div className="grid grid-cols-2 gap-3">
               <FormField id="departamento" label="Departamento" required>
                 <Select value={form.departamento} onValueChange={setDepartamento}>
-                  <SelectTrigger id="departamento" className="bg-muted">
+                  <SelectTrigger id="departamento">
                     <SelectValue placeholder="Selecciona..." />
                   </SelectTrigger>
                   <SelectContent className="bg-card max-h-56">
@@ -174,7 +174,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
               </FormField>
               <FormField id="area" label="Área" required>
                 <Select value={form.area} onValueChange={v => set('area', v)} disabled={!form.departamento}>
-                  <SelectTrigger id="area" className="bg-muted">
+                  <SelectTrigger id="area">
                     <SelectValue placeholder={form.departamento ? "Selecciona..." : "Elige depto"} />
                   </SelectTrigger>
                   <SelectContent className="bg-card max-h-56">
@@ -186,7 +186,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
             <div className="grid grid-cols-2 gap-3">
               <FormField id="puesto" label="Puesto" required>
                 <Select value={form.puesto} onValueChange={v => set('puesto', v)} disabled={!form.departamento}>
-                  <SelectTrigger id="puesto" className="bg-muted">
+                  <SelectTrigger id="puesto">
                     <SelectValue placeholder={form.departamento ? "Selecciona..." : "Elige depto"} />
                   </SelectTrigger>
                   <SelectContent className="bg-card max-h-56">
@@ -196,7 +196,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
               </FormField>
               <FormField id="turno" label="Turno" required>
                 <Select value={form.turno} onValueChange={v => set('turno', v)}>
-                  <SelectTrigger id="turno" className="bg-muted">
+                  <SelectTrigger id="turno">
                     <SelectValue placeholder="Selecciona..." />
                   </SelectTrigger>
                   <SelectContent className="bg-card max-h-56">
@@ -210,10 +210,10 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
                 <Input id="fecha_ingreso" type="date"
                   value={form.fecha_ingreso}
                   onChange={e => set('fecha_ingreso', e.target.value)}
-                  className="text-base md:text-sm bg-muted" />
+                   />
               </FormField>
               <FormField id="jefe_area" label="Jefe de área">
-                <div className="flex h-10 min-w-0 items-center overflow-hidden rounded-md border bg-muted/50 px-3 text-sm text-muted-foreground" title={form.jefe_area || undefined}>
+                <div className="flex h-(--control-height) min-w-0 items-center overflow-hidden rounded-md border bg-muted/50 px-3 text-sm text-muted-foreground" title={form.jefe_area || undefined}>
                   <span className={`min-w-0 truncate ${form.jefe_area ? '' : 'italic opacity-50'}`}>
                     {form.jefe_area || 'Se asigna por departamento'}
                   </span>

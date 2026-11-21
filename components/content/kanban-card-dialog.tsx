@@ -176,7 +176,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
   return (
     <ResponsiveShell open onClose={onClose} size="sm" title={title}>
       <ModalHeader title={title} onClose={onClose} />
-      <form className="grid min-h-0 gap-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5"
+      <form className="grid min-h-0 gap-4 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 dense:px-4 dense:py-4"
         onSubmit={event => {
           event.preventDefault()
           if (step === 1) handleContinue()
@@ -205,7 +205,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
                 aria-labelledby="kanban-tipo-label" className="grid grid-cols-2 gap-2">
                 {KANBAN_TIPOS.map(opcion => (
                   <label key={opcion.tipo} htmlFor={`kanban-tipo-${opcion.tipo}`}
-                    className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground hover:bg-muted has-[[data-state=checked]]:border-primary">
+                    className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground hover:bg-muted has-[[data-state=checked]]:border-primary">
                     <RadioGroupItem id={`kanban-tipo-${opcion.tipo}`} value={opcion.tipo} />
                     {opcion.label}
                   </label>
@@ -222,7 +222,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
 
             <div className={FIELD}>
               <Label htmlFor="kanban-descripcion">Descripción <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-              <Textarea id="kanban-descripcion" rows={2} className="min-h-11 resize-none field-sizing-content"
+              <Textarea id="kanban-descripcion" rows={2} className="min-h-(--control-height) resize-none field-sizing-content"
                 value={form.descripcion} maxLength={MAX_DESCRIPCION}
                 onChange={event => update("descripcion", limpiarAlEscribir(event.target.value, true))}
                 onBlur={event => update("descripcion", normalizarTexto(event.target.value, true))} />

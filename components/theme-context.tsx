@@ -3,9 +3,10 @@
 import type React from "react"
 import { createContext, startTransition, useCallback, useContext, useEffect, useState } from "react"
 import {
-  DENSITY_SCALE_MAP,
+  DENSITY_CLASSES,
   FONT_SIZE_MAP,
   APP_THEME_COLORS,
+  isDensity,
   isThemeMode,
   THEME_STORAGE_KEYS,
   type Density,
@@ -34,7 +35,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [themeMode, setThemeModeState] = useState<ThemeMode>("system")
   const [systemPrefersDark, setSystemPrefersDark] = useState(false)
   const [fontSize, setFontSizeState] = useState<FontSize>("medium")
-  const [density, setDensityState] = useState<Density>("comfortable")
+  const [density, setDensityState] = useState<Density>("auto")
   const [reducedMotion, setReducedMotionState] = useState(false)
 
   const setThemeMode = useCallback((mode: ThemeMode) => setThemeModeState(mode), [])
@@ -65,9 +66,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       if (storedFontSize === "small" || storedFontSize === "medium" || storedFontSize === "large") {
         setFontSize(storedFontSize)
       }
-      if (storedDensity === "comfortable" || storedDensity === "compact") {
-        setDensity(storedDensity)
-      }
+      if (isDensity(storedDensity)) setDensity(storedDensity)
       setReducedMotion(
         storedReducedMotion !== null ? storedReducedMotion === "true" : prefersReducedMotion,
       )
@@ -96,8 +95,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!initialized) return
-    document.documentElement.style.setProperty("--density-scale", DENSITY_SCALE_MAP[density])
-    document.documentElement.classList.toggle("density-compact", density === "compact")
+    for (const [value, className] of Object.entries(DENSITY_CLASSES)) {
+      if (className) document.documentElement.classList.toggle(className, value === density)
+    }
     localStorage.setItem(THEME_STORAGE_KEYS.density, density)
   }, [density, initialized])
 
@@ -110,7 +110,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const resetTheme = useCallback(() => {
     setThemeMode("light")
     setFontSize("medium")
-    setDensity("comfortable")
+    setDensity("auto")
     setReducedMotion(false)
     Object.values(THEME_STORAGE_KEYS).forEach((key) => localStorage.removeItem(key))
   }, [setDensity, setFontSize, setReducedMotion, setThemeMode])

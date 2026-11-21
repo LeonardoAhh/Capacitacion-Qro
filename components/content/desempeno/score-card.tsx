@@ -11,7 +11,7 @@ export function ScoreCard({
     ponderacion
   } = context;
   return <Card className="text-center">
-    <CardContent className="p-6">
+    <CardContent className="p-(--card-padding)">
       <div className="text-display-xl tabular-nums text-foreground" aria-live="polite" aria-atomic="true">
         {ponderacion.calificacionFinal}%
       </div>

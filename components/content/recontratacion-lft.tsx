@@ -120,7 +120,7 @@ export default function RecontratacionLft() {
                 placeholder="Nombre, número, puesto…"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                className={cn("h-11 bg-card pl-10 text-sm", search && "pr-12")}
+                className={cn("h-(--control-height) bg-card pl-10 text-sm", search && "pr-12")}
                 data-testid="lft-search-input"
               />
               {search && (
@@ -128,7 +128,7 @@ export default function RecontratacionLft() {
                   type="button"
                   aria-label="Limpiar búsqueda"
                   onClick={() => setSearch("")}
-                  className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="size-4" aria-hidden="true" />
                 </button>
@@ -140,7 +140,7 @@ export default function RecontratacionLft() {
               onValueChange={(value) => setFilterOrigen(value as "all" | LftOrigen)}
             >
               <SelectTrigger
-                className="h-11 w-full gap-2 bg-card text-sm md:w-40"
+                className="h-(--control-height) w-full gap-2 bg-card text-sm md:w-40"
                 aria-label="Filtrar por origen"
                 data-testid="lft-filter-origen"
               >
@@ -156,7 +156,7 @@ export default function RecontratacionLft() {
 
             <Select value={filterDept} onValueChange={setFilterDept}>
               <SelectTrigger
-                className="h-11 w-full gap-2 bg-card text-sm md:w-48"
+                className="h-(--control-height) w-full gap-2 bg-card text-sm md:w-48"
                 aria-label="Filtrar por departamento"
                 data-testid="lft-filter-depto"
               >
@@ -175,7 +175,7 @@ export default function RecontratacionLft() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-11 gap-2 px-3 py-0 text-sm md:ml-auto"
+                className="h-(--control-height) gap-2 px-3 py-0 text-sm md:ml-auto"
                 onClick={clearFilters}
                 aria-label="Limpiar todos los filtros"
                 data-testid="lft-clear-filters"
@@ -213,7 +213,7 @@ export default function RecontratacionLft() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-11 gap-2 px-3 py-0 text-sm"
+                  className="h-(--control-height) gap-2 px-3 py-0 text-sm"
                   onClick={clearFilters}
                 >
                   Quitar filtros

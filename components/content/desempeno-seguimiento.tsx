@@ -126,7 +126,7 @@ function EvalCard({ row }: { row: EvalRow }) {
       className="bg-card border-border/60 hover:border-border transition-colors"
       aria-label={`Evaluación de ${row.nombre ?? row.numero_empleado}`}
     >
-      <CardContent className="p-6 space-y-3">
+      <CardContent className="p-(--card-padding) space-y-3">
         {/* Top: employee + score */}
         <div className="flex items-start gap-3">
           <div className="flex-1 min-w-0">
@@ -190,13 +190,13 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
           </caption>
           <thead>
             <tr className="border-b border-border bg-muted/40 text-left">
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground">Empleado</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground">Tipo / Período</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground text-center">Calif.</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground">Compromisos</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground">Revisión</th>
-              <th scope="col" className="px-4 py-3 font-semibold text-muted-foreground">Evaluador</th>
-              <th scope="col" className="px-4 py-3">
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Empleado</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Tipo / Período</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground text-center">Calif.</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Compromisos</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Revisión</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Evaluador</th>
+              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2">
                 <span className="sr-only">Acciones</span>
               </th>
             </tr>
@@ -205,7 +205,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
             <tbody className="divide-y divide-border">
               {rows.map(row => (
               <tr key={row.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 dense:px-3 dense:py-2">
                   <p className="font-medium text-foreground">
                     {row.nombre ?? row.numero_empleado}
                   </p>
@@ -213,7 +213,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                     {row.puesto ?? "—"} · N.º {row.numero_empleado}
                   </p>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-4 py-3 dense:px-3 dense:py-2">
                   <div className="flex flex-col gap-1">
                     <Badge variant="secondary" className="w-fit text-xs">
                       {TIPO_LABEL[row.tipo] ?? row.tipo}
@@ -223,10 +223,10 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                     )}
                   </div>
                 </td>
-                <td className="px-4 py-3 text-center">
+                <td className="px-4 py-3 dense:px-3 dense:py-2 text-center">
                   <ScoreBadge score={row.calificacion_final} />
                 </td>
-                <td className="px-4 py-3 max-w-xs">
+                <td className="px-4 py-3 dense:px-3 dense:py-2 max-w-xs">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="text-sm text-foreground line-clamp-2 whitespace-pre-line cursor-help">
@@ -238,10 +238,10 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                     </TooltipContent>
                   </Tooltip>
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap">
+                <td className="px-4 py-3 dense:px-3 dense:py-2 whitespace-nowrap">
                   <RevisionPill fechaRevision={row.fecha_revision} />
                 </td>
-                <td className="px-4 py-3 text-muted-foreground max-w-[10rem]">
+                <td className="px-4 py-3 dense:px-3 dense:py-2 text-muted-foreground max-w-[10rem]">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <p className="truncate cursor-help">
@@ -253,7 +253,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                     </TooltipContent>
                   </Tooltip>
                 </td>
-                <td className="px-4 py-3 text-right">
+                <td className="px-4 py-3 dense:px-3 dense:py-2 text-right">
                   <Button asChild size="sm" variant="outline" className="h-8 text-xs gap-1">
                     <Link
                       href={`/desempeno?n=${encodeURIComponent(row.numero_empleado)}`}
@@ -528,7 +528,7 @@ export default function DesempenoSeguimiento() {
           <span className="sr-only">Cargando evaluaciones…</span>
           {Array.from({ length: 5 }).map((_, i) => (
             <Card key={i} className="bg-card">
-              <CardContent className="p-6 space-y-3">
+              <CardContent className="p-(--card-padding) space-y-3">
                 <div className="flex items-start gap-3">
                   <div className="flex-1 space-y-2">
                     <Skeleton className="h-4 w-2/3" />

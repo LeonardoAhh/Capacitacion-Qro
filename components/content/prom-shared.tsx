@@ -89,7 +89,7 @@ export function SummaryCard({
 }) {
   return (
     <Card className="border">
-      <CardContent className="flex items-center gap-4 p-6">
+      <CardContent className="flex items-center gap-4 p-(--card-padding)">
         <div className={`p-3 rounded-xl ${color}`}>
           <Icon aria-hidden="true" className={PROMOTION_ICON.feature} />
         </div>

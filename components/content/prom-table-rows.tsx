@@ -56,7 +56,7 @@ export function DesktopTable({
   return (
     <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
       <Table aria-label={PROMOTION_TABLE_COPY.accessibleName} className="min-w-[64rem] [&_td]:!px-4 [&_td]:!py-2">
-        <TableHeader className="[&_th]:h-11 [&_th]:py-0 [&_th]:text-sm [&_th]:font-medium">
+        <TableHeader className="[&_th]:h-(--table-head-height) [&_th]:py-0 [&_th]:text-sm [&_th]:font-medium">
           <TableRow className="bg-muted">
             <TableHead>{PROMOTION_TABLE_COPY.employee}</TableHead>
             <TableHead>{PROMOTION_TABLE_COPY.department}</TableHead>

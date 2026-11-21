@@ -17,7 +17,7 @@ export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
 
   return (
     <section aria-labelledby="kanban-mi-dia" className="rounded-xl border border-border bg-card">
-      <header className="flex min-h-11 items-center gap-2 border-b border-border px-3">
+      <header className="flex min-h-(--control-height) items-center gap-2 border-b border-border px-3">
         <Sun className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <h2 id="kanban-mi-dia" className="text-label-sm text-foreground">Mi día</h2>
         <span className="ml-auto text-body-sm tabular-nums text-muted-foreground">
@@ -28,7 +28,7 @@ export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
         {tarjetas.map(tarjeta => {
           const concluida = tarjeta.estado === "concluido"
           return (
-            <li key={tarjeta.id} className="flex min-h-11 items-center gap-3 pl-3 pr-1">
+            <li key={tarjeta.id} className="flex min-h-(--control-height) items-center gap-3 pl-3 pr-1">
               <button type="button" onClick={() => ver(tarjeta)}
                 className={cn(
                   "min-w-0 flex-1 truncate rounded-sm text-left text-body-md",

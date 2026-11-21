@@ -47,7 +47,7 @@ const DropdownMenuSubTrigger = React.forwardRef<
   <DropdownMenuPrimitive.SubTrigger
     ref={ref}
     className={cn(
-      "flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
+      "flex min-h-(--menu-item-height) cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground data-[state=open]:bg-accent data-[state=open]:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -104,7 +104,7 @@ const DropdownMenuItem = React.forwardRef<
   <DropdownMenuPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-11 cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
+      "relative flex min-h-(--menu-item-height) cursor-pointer select-none items-center gap-3 rounded-md px-3 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       "[&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
@@ -125,7 +125,7 @@ const DropdownMenuCheckboxItem = React.forwardRef<
   <DropdownMenuPrimitive.CheckboxItem
     ref={ref}
     className={cn(
-      "relative flex min-h-11 cursor-pointer select-none items-center rounded-md pl-8 pr-2 outline-none",
+      "relative flex min-h-(--menu-item-height) cursor-pointer select-none items-center rounded-md pl-8 pr-2 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
@@ -152,7 +152,7 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex min-h-11 cursor-pointer select-none items-center rounded-md pl-8 pr-2 outline-none",
+      "relative flex min-h-(--menu-item-height) cursor-pointer select-none items-center rounded-md pl-8 pr-2 outline-none",
       "transition-colors focus:bg-accent focus:text-accent-foreground",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,

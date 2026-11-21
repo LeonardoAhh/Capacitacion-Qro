@@ -8,7 +8,7 @@ import { agruparPorDepto, type ListaEvalsProps, type ListaFechasProps } from "./
 
 function EmptyState({ mensaje }: { mensaje: string }) {
     return (
-        <div className="flex flex-col items-center justify-center py-8 text-muted-foreground gap-2">
+        <div className="flex flex-col items-center justify-center py-8 dense:py-6 text-muted-foreground gap-2">
             <CheckCircle2 className="h-8 w-8 opacity-40" />
             <p className="text-sm">{mensaje}</p>
         </div>
@@ -86,7 +86,7 @@ export function ListaFechasPorDepto({
             </div>
 
             <div className="hidden flex-1 overflow-y-auto scrollbar-thin sm:block">
-                <div className="space-y-3 p-4">
+                <div className="space-y-3 p-4 dense:space-y-2 dense:p-3">
                     {grupos.map(([depto, miembros]) => (
                         <div key={depto}>
                             <DeptoHeader nombre={depto} count={miembros.length} />

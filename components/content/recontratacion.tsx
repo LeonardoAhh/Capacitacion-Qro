@@ -91,7 +91,7 @@ export default function RecontratacionContent() {
         <TabsTrigger
           value="vencimientos"
           data-testid="tab-vencimientos"
-          className="min-h-11 gap-2 px-3 py-0 text-sm"
+          className="min-h-(--control-height) gap-2 px-3 py-0 text-sm"
         >
           <FileCheck2 className="size-4" aria-hidden="true" />
           <span>Vencimientos</span>
@@ -99,7 +99,7 @@ export default function RecontratacionContent() {
         <TabsTrigger
           value="lft"
           data-testid="tab-lft"
-          className="min-h-11 gap-2 px-3 py-0 text-sm"
+          className="min-h-(--control-height) gap-2 px-3 py-0 text-sm"
         >
           <ShieldAlert className="size-4" aria-hidden="true" />
           <span>Baja LFT Art. 47</span>
@@ -164,7 +164,7 @@ export default function RecontratacionContent() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-11 gap-2 px-3 py-0 text-sm"
+                    className="h-(--control-height) gap-2 px-3 py-0 text-sm"
                     onClick={clearFilters}
                   >
                     Quitar filtros

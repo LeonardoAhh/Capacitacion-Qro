@@ -20,7 +20,7 @@ export function EmpleadoRow({
   return (
     <li
       className={cn(
-        "flex min-w-0 flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4",
+        "flex min-w-0 flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3",
         "transition-colors hover:bg-accent/20",
       )}
       aria-label={`${record.nombre}. ${ariaDescription}`}
@@ -47,7 +47,7 @@ export function EmpleadoRow({
         <StatusBadge urgency={urgency} record={record} />
         <div className="flex shrink-0 items-center gap-2">
           {record.numero ? (
-            <Button asChild variant="ghost" size="sm" className="h-11 px-3 py-0 text-sm">
+            <Button asChild variant="ghost" size="sm" className="h-(--control-height) px-3 py-0 text-sm">
               <Link
                 href={`/recontratacion/${encodeURIComponent(record.numero)}`}
                 aria-label={`Revisar a ${record.nombre}`}
@@ -56,13 +56,13 @@ export function EmpleadoRow({
               </Link>
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" className="h-11 px-3 py-0 text-sm" disabled title="Sin número asignado">
+            <Button variant="ghost" size="sm" className="h-(--control-height) px-3 py-0 text-sm" disabled title="Sin número asignado">
               Revisar
             </Button>
           )}
           <Button
             size="sm"
-            className="h-11 gap-2 px-3 py-0 text-sm"
+            className="h-(--control-height) gap-2 px-3 py-0 text-sm"
             onClick={() => record.numero && onImprimir(record.numero)}
             disabled={!record.numero}
             aria-label={record.numero ? `Imprimir formato de ${record.nombre}` : "Sin número asignado"}
@@ -80,7 +80,7 @@ export function EmpleadoRow({
 export function SkeletonRow() {
   return (
     <li
-      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4"
+      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3"
       aria-hidden="true"
     >
       <div className="space-y-2">
@@ -95,8 +95,8 @@ export function SkeletonRow() {
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24 rounded-md" />
         <div className="flex gap-2">
-          <Skeleton className="h-11 w-20 rounded-md" />
-          <Skeleton className="h-11 w-24 rounded-md" />
+          <Skeleton className="h-(--control-height) w-20 rounded-md" />
+          <Skeleton className="h-(--control-height) w-24 rounded-md" />
         </div>
       </div>
     </li>
@@ -130,7 +130,7 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          className="h-11 gap-2 px-3 py-0 text-sm"
+          className="h-(--control-height) gap-2 px-3 py-0 text-sm"
           disabled={page <= 1}
           onClick={onPrev}
           aria-label="Página anterior"
@@ -144,7 +144,7 @@ export function Pagination({
         <Button
           variant="outline"
           size="sm"
-          className="h-11 gap-2 px-3 py-0 text-sm"
+          className="h-(--control-height) gap-2 px-3 py-0 text-sm"
           disabled={page >= pageCount}
           onClick={onNext}
           aria-label="Página siguiente"

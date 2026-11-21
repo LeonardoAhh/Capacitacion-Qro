@@ -319,7 +319,7 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
         subtitle="Importa empleados desde JSON"
         onClose={handleClose}
       />
-      <div className="flex-1 space-y-5 overflow-y-auto bg-card p-5 sm:p-6">
+      <div className="flex-1 space-y-5 overflow-y-auto bg-card p-5 sm:p-(--card-padding)">
 
         {error && (
           <Alert variant="destructive">
