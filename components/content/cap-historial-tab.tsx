@@ -210,7 +210,7 @@ export function CapHistorialTab({
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               {employees.length === 0
-                ? 'Sin empleados registrados. Usa el botón "Nuevo empleado" para agregar.'
+                ? (canEdit ? 'Sin empleados registrados. Usa el botón "Nuevo empleado" para agregar.' : "Sin empleados registrados.")
                 : "No se encontraron empleados con esa búsqueda."}
             </div>
           ) : (

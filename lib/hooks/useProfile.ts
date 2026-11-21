@@ -17,6 +17,8 @@ export interface UserProfile {
   displayName: string
   email: string
   avatar: string
+  /** Puesto que se muestra en el menú de cuenta; lo captura el dev en Supabase. */
+  puesto: string
   language: string
   dateFormat: string
   skills: string[]
@@ -68,6 +70,7 @@ function toProfile(row: ProfileRow, skills: string[] = []): UserProfile {
     displayName: row.display_name,
     email: row.email,
     avatar: row.avatar_url || '',
+    puesto: row.puesto?.trim() || '',
     language: row.language || 'en',
     dateFormat: row.date_format || 'mm-dd-yyyy',
     skills,

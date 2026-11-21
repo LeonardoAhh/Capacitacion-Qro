@@ -1,8 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ChevronDown, CircleUserRound, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,22 +21,11 @@ import { cn } from "@/lib/utils"
 import { useLogout } from "@/components/use-logout"
 import { useTheme } from "@/components/theme-context"
 import { THEME_MODE_LABELS } from "@/lib/theme/constants"
-import { SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
+import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
 
 type AccountMenuProps = {
   isCollapsed?: boolean
   onNavigate?: () => void
-}
-
-function AccountAvatar({ src, initials, className }: { src?: string | null; initials: string; className?: string }) {
-  return (
-    <Avatar className={cn("size-8 shrink-0 rounded-full border border-border", className)}>
-      <AvatarImage src={src || undefined} alt="" />
-      <AvatarFallback className="rounded-full bg-primary text-xs font-medium text-primary-foreground">
-        {initials}
-      </AvatarFallback>
-    </Avatar>
-  )
 }
 
 export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProps) {
@@ -47,11 +35,10 @@ export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProp
   const { signingOut, logout } = useLogout()
   const { themeMode, setThemeMode } = useTheme()
 
-  const initials = profile
-    ? `${profile.firstName?.[0] ?? ""}${profile.lastName?.[0] ?? ""}`.toUpperCase() || "U"
-    : user?.email?.[0]?.toUpperCase() ?? "U"
   const displayName = profile?.displayName || user?.email?.split("@")[0] || "Usuario"
-  const roleLabel = roleLoading ? null : ROLE_LABELS[role]
+  // El puesto describe mejor a la persona; sin puesto capturado se muestra el rol.
+  // Se espera al perfil para no mostrar el rol y luego cambiarlo por el puesto.
+  const roleLabel = profile && !roleLoading ? profile.puesto || ROLE_LABELS[role] : null
   const accountLabel = roleLabel ? `Cuenta de ${displayName}, ${roleLabel}` : `Cuenta de ${displayName}`
 
   return (
@@ -63,19 +50,23 @@ export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProp
             aria-label={accountLabel}
             title={isCollapsed ? accountLabel : undefined}
             className={cn(
-              "flex min-h-11 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-              isCollapsed ? "w-full justify-center px-0" : "w-full gap-3 px-2.5",
+              "flex min-h-11 min-w-0 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+              isCollapsed ? "w-full justify-center px-0" : "w-full gap-2 px-2.5",
             )}
           >
-            <AccountAvatar src={profile?.avatar} initials={initials} />
-            {!isCollapsed && (
-              <span className="flex min-w-0 flex-1 flex-col text-left">
-                <span className="truncate text-label-sm text-foreground">{displayName}</span>
-                {roleLabel && <span className="truncate text-body-sm text-muted-foreground">{roleLabel}</span>}
+            {isCollapsed ? (
+              <span className={cn("flex shrink-0 items-center justify-center", SIDEBAR_ICON_BOX)} aria-hidden="true">
+                <CircleUserRound className={SIDEBAR_ICON} />
               </span>
-            )}
-            {!isCollapsed && (
-              <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            ) : (
+              <>
+                {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
+                <span className="flex min-w-0 flex-1 flex-col text-left">
+                  <span className="truncate text-label-sm text-foreground">{displayName}</span>
+                  <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
+                </span>
+                <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+              </>
             )}
           </button>
         </DropdownMenuTrigger>
