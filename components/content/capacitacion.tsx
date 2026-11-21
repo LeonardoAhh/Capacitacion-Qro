@@ -37,7 +37,7 @@ import { useBulkImport } from "@/lib/hooks/useBulkImport"
 import { useJsonImport } from "@/lib/hooks/useJsonImport"
 
 export default function CapacitacionContent() {
-  const { canEdit, isReadOnly } = useRole()
+  const { canEdit, isReadOnly, employeesOnly } = useRole()
   const { replaceMonths: replaceActasMonths } = useActasSeguimiento()
   const { replaceMonths: replaceIncumplimientosMonths } = useReglamentoIncumplimientos()
   const { replaceMonths: replaceRetardosMonths } = useRegistrosPorDia(RETARDOS_CONFIG)
@@ -401,46 +401,53 @@ export default function CapacitacionContent() {
     <>
       <ReadOnlyBanner />
       <Tabs defaultValue="historial" onValueChange={handleTabChange}>
-        <TabsList className="mb-6 flex h-12 w-full rounded-md bg-muted p-1">
-          <TabsTrigger value="historial" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
-            <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
-          </TabsTrigger>
-          <TabsTrigger value="cursos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
-            <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
-          </TabsTrigger>
-          <TabsTrigger value="puestos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
-            <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
-          </TabsTrigger>
-        </TabsList>
+        {/* Puestos y cursos no aplican a roles que solo consultan empleados: sin pestañas. */}
+        {!employeesOnly && (
+          <TabsList className="mb-6 flex h-12 w-full rounded-md bg-muted p-1">
+            <TabsTrigger value="historial" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+              <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
+            </TabsTrigger>
+            <TabsTrigger value="cursos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+              <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
+            </TabsTrigger>
+            <TabsTrigger value="puestos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+              <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
+            </TabsTrigger>
+          </TabsList>
+        )}
 
-        <TabsContent value="puestos" className="mt-0 outline-none">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-            <CapPositionsTab
-              departments={departments}
-              positions={positions}
-              loadingPositions={loadingPositions}
-              isReadOnly={isReadOnly}
-              onNewPosition={() => setNewPosOpen(true)}
-              onViewCourses={handleViewCourses}
-            />
-          </motion.div>
-        </TabsContent>
+        {!employeesOnly && (
+          <>
+            <TabsContent value="puestos" className="mt-0 outline-none">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                <CapPositionsTab
+                  departments={departments}
+                  positions={positions}
+                  loadingPositions={loadingPositions}
+                  isReadOnly={isReadOnly}
+                  onNewPosition={() => setNewPosOpen(true)}
+                  onViewCourses={handleViewCourses}
+                />
+              </motion.div>
+            </TabsContent>
 
-        <TabsContent value="cursos" className="mt-0 outline-none">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-            <CapCoursesTab
-              courses={courses}
-              loadingCourses={loadingCourses}
-              isReadOnly={isReadOnly}
-              positions={positions}
-              positionCourses={positionCourses}
-              employees={employees}
-              empCourses={empCourses}
-              onNewCourse={() => setNewCourseOpen(true)}
-              onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
-            />
-          </motion.div>
-        </TabsContent>
+            <TabsContent value="cursos" className="mt-0 outline-none">
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                <CapCoursesTab
+                  courses={courses}
+                  loadingCourses={loadingCourses}
+                  isReadOnly={isReadOnly}
+                  positions={positions}
+                  positionCourses={positionCourses}
+                  employees={employees}
+                  empCourses={empCourses}
+                  onNewCourse={() => setNewCourseOpen(true)}
+                  onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
+                />
+              </motion.div>
+            </TabsContent>
+          </>
+        )}
 
         <TabsContent value="historial" className="mt-0 outline-none">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>

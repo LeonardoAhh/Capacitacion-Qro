@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { ROLE_POLICIES, toAppRole } from "@/lib/constants/roles"
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
@@ -46,14 +47,14 @@ export async function DELETE(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Role-gate: only 'dev' users can reset a consulta.
+  // Solo quien edita Capacitación (dev y analista) puede reiniciar una consulta.
   // Defence-in-depth on top of the delete policy on whatsapp_consultas.
   const { data: profile } = await supabase
     .from("profiles")
     .select("role")
     .eq("user_id", user.id)
     .maybeSingle()
-  if (profile?.role !== "dev") {
+  if (!ROLE_POLICIES[toAppRole(profile?.role)].canEdit) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
 

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils"
 import { BRAND_NAME, APP_NAME } from "@/lib/constants/company"
 import { WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { AppMark } from "@/components/app-transition"
+import { useRole } from "@/lib/hooks/useRole"
 import { SIDEBAR_MENU_ITEM } from "@/components/sidebar-density"
 
 interface WorkspaceSwitcherProps {
@@ -31,6 +32,8 @@ export function WorkspaceSwitcher({
   const workspaceLabel = workspace === "safety" ? "Seguridad e Higiene" : APP_NAME
   const WorkspaceIcon = workspace === "safety" ? HardHat : GraduationCap
 
+  // Los espacios que el rol no tiene se ven, pero deshabilitados.
+  const { workspaces } = useRole()
   const handleWorkspaceChange = (nextWorkspace: WorkspaceId) => {
     onWorkspaceChange(nextWorkspace)
     onClose?.()
@@ -75,6 +78,7 @@ export function WorkspaceSwitcher({
           return (
             <DropdownMenuItem
               key={option.id}
+              disabled={!workspaces.includes(option.id)}
               onSelect={() => handleWorkspaceChange(option.id)}
               aria-current={isActive ? "true" : undefined}
               className={cn(

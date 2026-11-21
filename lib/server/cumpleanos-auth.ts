@@ -4,14 +4,14 @@ import { createServerClient } from "@supabase/ssr"
 import { createClient, type SupabaseClient } from "@supabase/supabase-js"
 import { cookies } from "next/headers"
 
-type BirthdayRole = "dev" | "admin"
+import { toAppRole, type AppRole } from "@/lib/constants/roles"
 
 type BirthdayAccess =
-  | { authorized: true; db: SupabaseClient; userId: string; role: BirthdayRole }
+  | { authorized: true; db: SupabaseClient; userId: string; role: AppRole }
   | { authorized: false; response: Response }
 
 export async function requireBirthdayAccess(
-  allowedRoles: BirthdayRole[],
+  allowedRoles: readonly AppRole[],
 ): Promise<BirthdayAccess> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -62,7 +62,7 @@ export async function requireBirthdayAccess(
     }
   }
 
-  const role = profile?.role as BirthdayRole | undefined
+  const role = profile?.role ? toAppRole(profile.role) : undefined
   if (!role || !allowedRoles.includes(role)) {
     return {
       authorized: false,

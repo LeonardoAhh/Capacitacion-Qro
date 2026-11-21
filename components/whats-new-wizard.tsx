@@ -180,19 +180,20 @@ const slideV = {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function WhatsNewWizard() {
-  const { role, loading } = useRole()
+  const { canEdit, loading } = useRole()
   const [open, setOpen]   = useState(false)
   const [step, setStep]   = useState(0)
   const [dir,  setDir]    = useState(1)
 
   useEffect(() => {
     if (loading) return
-    if (role !== "dev") return
+    // Novedades para quien edita Capacitación (dev y analista).
+    if (!canEdit) return
     if (typeof window === "undefined") return
     if (localStorage.getItem(WIZARD_KEY) === "seen") return
     const t = setTimeout(() => setOpen(true), 800)
     return () => clearTimeout(t)
-  }, [role, loading])
+  }, [canEdit, loading])
 
   const dismiss = () => {
     setOpen(false)

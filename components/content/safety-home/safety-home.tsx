@@ -48,7 +48,7 @@ function FindingSkeletons({ isPreview = false }: { isPreview?: boolean }) {
 }
 
 export function SafetyHome() {
-  const { canEdit } = useRole()
+  const { canManageSafety: canEdit } = useRole()
   const [findingPreviews, setFindingPreviews] = useState<FindingPreview[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")

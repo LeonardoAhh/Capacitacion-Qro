@@ -2,8 +2,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  AlarmClock, BadgeCheck, BookPlus, CalendarClock, ChevronDown, EllipsisVertical, FilePenLine, FileText,
-  LayoutGrid, Layers, Search, ShieldAlert, Trash2, UserPlus, UserRoundPen, Users, X,
+  AlarmClock, BadgeCheck, BookPlus, CalendarClock, ChevronDown, EllipsisVertical, FilePenLine, FileText, LayoutGrid, Layers, Search, ShieldAlert, Trash2, UserPlus, UserRoundPen, Users, X, type LucideIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -16,9 +15,24 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { PaginationBar } from "@/components/ui/pagination-bar"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
+import { useRole } from "@/lib/hooks/useRole"
 
 const PAGE_SIZE = 7
 const employeeActionItemClass = "gap-1 px-1 text-sm font-normal"
+
+/** Pantallas de cada empleado, en el orden del menú. Las que piden número se omiten sin él. */
+function employeeLinks(emp: Employee): { href: string; label: string; icon: LucideIcon }[] {
+  const numero = emp.numero ? encodeURIComponent(emp.numero) : null
+  return [
+    { href: `/plantilla/matriz/${encodeURIComponent(emp.id)}`, label: "Matriz de capacitación", icon: LayoutGrid },
+    ...(numero ? [
+      { href: `/plantilla/incidencias/${numero}`, label: "Incidencias", icon: CalendarClock },
+      { href: `/plantilla/actas/${numero}`, label: "Actas administrativas", icon: FilePenLine },
+      { href: `/plantilla/incumplimientos/${numero}`, label: "Incumplimiento", icon: ShieldAlert },
+      { href: `/plantilla/retardos/${numero}`, label: "Retardos", icon: AlarmClock },
+    ] : []),
+  ]
+}
 
 interface CapHistorialTabProps {
   employees: Employee[]
@@ -43,6 +57,7 @@ export function CapHistorialTab({
   onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkImportRetardos, onBulkCreateEmployees,
   onEditEmployee, onAddCourses, onDeleteEmployee,
 }: CapHistorialTabProps) {
+  const { canAccess } = useRole()
   const [empSearch, setEmpSearch]         = useState("")
   const [empFilterDept, setEmpFilterDept] = useState("all")
   const [empFilterTurno, setEmpFilterTurno] = useState("all")
@@ -82,53 +97,52 @@ export function CapHistorialTab({
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-semibold leading-7 tracking-tight text-foreground">Empleados</h2>
             </div>
-            <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="h-(--control-height) px-3 py-0 text-sm font-medium" aria-label="Abrir opciones de carga" title="Abrir opciones de carga">
-                    <span>Importar</span>
-                    <ChevronDown className="ml-1 size-4" aria-hidden="true" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent align="end" className="w-64 p-3">
-                  <div className="mb-2 px-1">
-                    <h3 className="text-sm font-semibold text-foreground">Cargar información</h3>
-                  </div>
-                  <div className="grid gap-1">
-                    <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImport}>
-                      <Layers className="size-4" aria-hidden="true" />
-                      Cursos
+            {/* Importar y crear empleados: solo quien edita Capacitación. */}
+            {canEdit && (
+              <div className="flex w-full flex-wrap items-center justify-start gap-2 sm:w-auto sm:justify-end">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-(--control-height) px-3 py-0 text-sm font-medium" aria-label="Abrir opciones de carga" title="Abrir opciones de carga">
+                      <span>Importar</span>
+                      <ChevronDown className="ml-1 size-4" aria-hidden="true" />
                     </Button>
-                    <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkCreateEmployees}>
-                      <Users className="size-4" aria-hidden="true" />
-                      Empleados
-                    </Button>
-                    {canEdit && (
+                  </PopoverTrigger>
+                  <PopoverContent align="end" className="w-64 p-3">
+                    <div className="mb-2 px-1">
+                      <h3 className="text-sm font-semibold text-foreground">Cargar información</h3>
+                    </div>
+                    <div className="grid gap-1">
+                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImport}>
+                        <Layers className="size-4" aria-hidden="true" />
+                        Cursos
+                      </Button>
+                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkCreateEmployees}>
+                        <Users className="size-4" aria-hidden="true" />
+                        Empleados
+                      </Button>
                       <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportIncumplimientos}>
                         <ShieldAlert className="size-4" aria-hidden="true" />
                         Incumplimientos
                       </Button>
-                    )}
-                    {canEdit && (
                       <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportActas}>
                         <FileText className="size-4" aria-hidden="true" />
                         Actas
                       </Button>
-                    )}
-                    {canEdit && onBulkImportRetardos && (
-                      <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
-                        <AlarmClock className="size-4" aria-hidden="true" />
-                        Retardos
-                      </Button>
-                    )}
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <Button className="h-(--control-height) min-w-(--control-height) px-3 py-0 text-sm font-medium" onClick={onNewEmployee} aria-label="Nuevo empleado" title="Nuevo empleado">
-                <span className="hidden lg:inline">Nuevo empleado</span>
-                <UserPlus className="h-4 w-4 lg:hidden" aria-hidden="true" />
-              </Button>
-            </div>
+                      {onBulkImportRetardos && (
+                        <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
+                          <AlarmClock className="size-4" aria-hidden="true" />
+                          Retardos
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+                <Button className="h-(--control-height) min-w-(--control-height) px-3 py-0 text-sm font-medium" onClick={onNewEmployee} aria-label="Nuevo empleado" title="Nuevo empleado">
+                  <span className="hidden lg:inline">Nuevo empleado</span>
+                  <UserPlus className="h-4 w-4 lg:hidden" aria-hidden="true" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -243,57 +257,32 @@ export function CapHistorialTab({
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem asChild className={employeeActionItemClass}>
-                                  <Link href={`/plantilla/matriz/${encodeURIComponent(emp.id)}`}>
-                                    <LayoutGrid />
-                                    <span>Matriz de capacitación</span>
-                                  </Link>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className={employeeActionItemClass} onClick={() => onAddCourses(emp)}>
-                                  <BookPlus />
-                                  <span>Agregar cursos</span>
-                                </DropdownMenuItem>
-                                {emp.numero && (
+                                {/* Solo las pantallas que el rol puede abrir (lib/constants/roles). */}
+                                {employeeLinks(emp).filter(link => canAccess(link.href)).map(({ href, label, icon: Icon }) => (
+                                  <DropdownMenuItem key={href} asChild className={employeeActionItemClass}>
+                                    <Link href={href}>
+                                      <Icon />
+                                      <span>{label}</span>
+                                    </Link>
+                                  </DropdownMenuItem>
+                                ))}
+                                {canEdit && (
                                   <>
-                                    <DropdownMenuItem asChild className={employeeActionItemClass}>
-                                      <Link href={`/plantilla/incidencias/${encodeURIComponent(emp.numero)}`}>
-                                        <CalendarClock />
-                                        <span>Incidencias</span>
-                                      </Link>
+                                    <DropdownMenuItem className={employeeActionItemClass} onClick={() => onAddCourses(emp)}>
+                                      <BookPlus />
+                                      <span>Agregar cursos</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem asChild className={employeeActionItemClass}>
-                                      <Link href={`/plantilla/actas/${encodeURIComponent(emp.numero)}`}>
-                                        <FilePenLine />
-                                        <span>Actas administrativas</span>
-                                      </Link>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className={employeeActionItemClass} onClick={() => onEditEmployee(emp)}>
+                                      <UserRoundPen />
+                                      <span>Editar empleado</span>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => onDeleteEmployee(emp)} className={`${employeeActionItemClass} text-destructive focus:bg-destructive/10 focus:text-destructive`}>
+                                      <Trash2 />
+                                      <span>Eliminar</span>
                                     </DropdownMenuItem>
                                   </>
                                 )}
-                                {emp.numero && (
-                                  <DropdownMenuItem asChild className={employeeActionItemClass}>
-                                    <Link href={`/plantilla/incumplimientos/${encodeURIComponent(emp.numero)}`}>
-                                      <ShieldAlert />
-                                      <span>Incumplimiento</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                )}
-                                {emp.numero && (
-                                  <DropdownMenuItem asChild className={employeeActionItemClass}>
-                                    <Link href={`/plantilla/retardos/${encodeURIComponent(emp.numero)}`}>
-                                      <AlarmClock />
-                                      <span>Retardos</span>
-                                    </Link>
-                                  </DropdownMenuItem>
-                                )}
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className={employeeActionItemClass} onClick={() => onEditEmployee(emp)}>
-                                  <UserRoundPen />
-                                  <span>Editar empleado</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onDeleteEmployee(emp)} className={`${employeeActionItemClass} text-destructive focus:bg-destructive/10 focus:text-destructive`}>
-                                  <Trash2 />
-                                  <span>Eliminar</span>
-                                </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>

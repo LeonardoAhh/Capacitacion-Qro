@@ -8,9 +8,9 @@ import { useRole } from "@/lib/hooks/useRole"
 import { useUser } from "@/lib/hooks/useUser"
 
 export function RegularizacionContenido() {
-  const { role, loading: roleLoading } = useRole()
+  const { supervisesEvaluations, loading: roleLoading } = useRole()
   const { user, loading: userLoading } = useUser()
-  const allowed = !roleLoading && !userLoading && Boolean(user) && (role === "admin" || role === "dev")
+  const allowed = !roleLoading && !userLoading && Boolean(user) && supervisesEvaluations
   const flow = useRegularizacion(allowed)
 
   if (roleLoading || userLoading) return <p role="status" className="text-sm text-muted-foreground">Cargando acceso…</p>

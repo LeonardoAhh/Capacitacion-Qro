@@ -15,7 +15,9 @@ export default function RecontratacionPrintPage() {
   const params = useSearchParams()
   const numero = params.get("numero") ?? ""
   const { fetchByNumero } = useRecontratacion()
-  const { isEvaluador, loading: roleLoading } = useRole()
+  const { canAccess, loading: roleLoading } = useRole()
+  // Página fuera del Dashboard: revisa aquí que el rol pueda ver Recontratación.
+  const sinAcceso = !canAccess("/recontratacion")
   const [data, setData] = useState<RecontratacionPrintData | null>(null)
   const [status, setStatus] = useState<"loading" | "ready" | "notfound" | "error">("loading")
   const [loadedNumber, setLoadedNumber] = useState<string | null>(null)
@@ -25,7 +27,7 @@ export default function RecontratacionPrintPage() {
   const [autorizacionContrato, setAutorizacionContrato] = useState<string>("")
 
   useEffect(() => {
-    if (roleLoading || isEvaluador) return
+    if (roleLoading || sinAcceso) return
     if (!numero) return
     let cancelled = false
     fetchByNumero(numero).then(d => {
@@ -41,7 +43,7 @@ export default function RecontratacionPrintPage() {
       setStatus("error")
     })
     return () => { cancelled = true }
-  }, [numero, fetchByNumero, roleLoading, isEvaluador])
+  }, [numero, fetchByNumero, roleLoading, sinAcceso])
 
   const viewStatus = loadedNumber === numero
     ? status
@@ -52,7 +54,7 @@ export default function RecontratacionPrintPage() {
 
   const volverAListado = () => router.push("/recontratacion")
 
-  if (!roleLoading && isEvaluador) {
+  if (!roleLoading && sinAcceso) {
     return (
       <div className="no-print min-h-screen flex items-center justify-center bg-muted/40 p-4">
         <div className="bg-card border border-border rounded-xl px-8 py-8 text-center max-w-sm shadow-sm">

@@ -1,19 +1,12 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
+import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useUser } from './useUser'
+import { canAccessRoute, ROLE_POLICIES, toAppRole, type AppRole, type RolePolicy } from '@/lib/constants/roles'
+import type { WorkspaceId } from '@/lib/navigation'
 
-export type AppRole = 'dev' | 'admin' | 'evaluador'
-
-export const EVALUADOR_ALLOWED_ROUTES = ['/desempeno', '/desempeno/pendientes', '/settings', '/cursos']
-
-export function isEvaluadorAllowedRoute(path: string): boolean {
-  if (path === '/desempeno') return true
-  return EVALUADOR_ALLOWED_ROUTES.some(
-    (r) => r !== '/desempeno' && (path === r || path.startsWith(r + '/')),
-  )
-}
+export type { AppRole } from '@/lib/constants/roles'
 
 export type RoleContextType = {
   role: AppRole
@@ -22,21 +15,46 @@ export type RoleContextType = {
   isReadOnly: boolean
   isEvaluador: boolean
   canEvaluate: boolean
+  canCapturePlantilla: boolean
+  canManageSafety: boolean
+  supervisesEvaluations: boolean
+  employeesOnly: boolean
+  workspaces: readonly WorkspaceId[]
+  /** ¿El rol puede abrir esta ruta? (lib/constants/roles) */
+  canAccess: (path: string) => boolean
   loading: boolean
+}
+
+// Sin sesión o mientras carga: permisos de solo lectura, como antes.
+const DEFAULT_ROLE: AppRole = 'admin'
+
+function permissions(role: AppRole, signedIn: boolean) {
+  const policy: RolePolicy = ROLE_POLICIES[role]
+  return {
+    canEdit: signedIn && policy.canEdit,
+    isReadOnly: !signedIn || policy.readOnly,
+    isEvaluador: signedIn && role === 'evaluador',
+    canEvaluate: signedIn && policy.canEvaluate,
+    canCapturePlantilla: signedIn && policy.canCapturePlantilla,
+    canManageSafety: signedIn && policy.canManageSafety,
+    supervisesEvaluations: signedIn && policy.supervisesEvaluations,
+    employeesOnly: policy.employeesOnly,
+    workspaces: policy.workspaces,
+  }
 }
 
 const RoleContext = createContext<RoleContextType | undefined>(undefined)
 
 export function RoleProvider({ children }: { children: ReactNode }) {
   const { user, loading: userLoading } = useUser()
-  const [role, setRole] = useState<AppRole>('admin')
+  const [role, setRole] = useState<AppRole>(DEFAULT_ROLE)
   const [departamentos, setDepartamentos] = useState<string[] | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     if (userLoading) return
     if (!user) {
-      setRole('admin')
+      setRole(DEFAULT_ROLE)
       setDepartamentos(null)
       setLoading(false)
       return
@@ -55,46 +73,40 @@ export function RoleProvider({ children }: { children: ReactNode }) {
           .maybeSingle()
 
         if (isMounted && !error && data?.role) {
-          setRole(data.role as AppRole)
+          setRole(toAppRole(data.role))
           setDepartamentos((data.departamentos as string[] | null) ?? null)
         }
       } catch {
-        // Default to admin
+        // Se queda con el rol por defecto (solo lectura).
       } finally {
         if (isMounted) setLoading(false)
       }
     }
 
     fetchRole()
-    
+
     return () => { isMounted = false }
   }, [user, userLoading])
 
-  const canEdit = !!user && role === 'dev'
-  const isReadOnly = !user || role === 'admin'
-  const isEvaluador = !!user && role === 'evaluador'
-  const canEvaluate = !!user && (role === 'dev' || role === 'evaluador')
+  const canAccess = useCallback((path: string) => canAccessRoute(role, path), [role])
 
   return (
-    <RoleContext.Provider value={{ role, departamentos, canEdit, isReadOnly, isEvaluador, canEvaluate, loading }}>
+    <RoleContext.Provider value={{ role, departamentos, ...permissions(role, !!user), canAccess, loading }}>
       {children}
     </RoleContext.Provider>
   )
 }
 
-export function useRole() {
+export function useRole(): RoleContextType {
   const context = useContext(RoleContext)
   if (context === undefined) {
-    // Return a safe default to avoid crashing before the provider mounts
-    // or in server components that accidentally use this
+    // Valor seguro si se usa antes de montar el provider.
     return {
-      role: 'admin' as AppRole,
+      role: DEFAULT_ROLE,
       departamentos: null,
-      canEdit: false,
-      isReadOnly: true,
-      isEvaluador: false,
-      canEvaluate: false,
-      loading: true
+      ...permissions(DEFAULT_ROLE, false),
+      canAccess: (path: string) => canAccessRoute(DEFAULT_ROLE, path),
+      loading: true,
     }
   }
   return context

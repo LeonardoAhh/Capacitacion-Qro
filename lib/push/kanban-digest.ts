@@ -2,6 +2,8 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 import { participa, PARAM_TARJETA, sumarDias, type KanbanTarjeta } from "@/lib/kanban"
 import { claimDigest, releaseDigest, type DigestResult, type PushConfig, sendPush, type PushSubscriptionRow } from "@/lib/push/send"
 import { loadServerRows } from "@/lib/supabase/server-pagination"
+import { rolesWithRoute } from "@/lib/constants/roles"
+import { TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 
 type TarjetaVence = Pick<KanbanTarjeta, "id" | "titulo" | "fecha_limite" | "responsable_id" | "colaboradores">
 
@@ -33,7 +35,7 @@ export async function enviarVencimientosKanban(
 ): Promise<DigestResult[]> {
   const [miembros, tarjetas] = await Promise.all([
     loadServerRows<{ user_id: string }>((from, to) => db.from("profiles")
-      .select("user_id").in("role", ["dev", "admin"]).order("user_id").range(from, to)),
+      .select("user_id").in("role", rolesWithRoute(TRAINING_WORKSPACE_PATH)).order("user_id").range(from, to)),
     loadServerRows<TarjetaVence>((from, to) => db.from("kanban_tarjetas")
       .select("id,titulo,fecha_limite,responsable_id,colaboradores")
       .neq("estado", "concluido").gte("fecha_limite", hoy).lte("fecha_limite", sumarDias(hoy, 1))

@@ -13,6 +13,7 @@ import { AccountMenu } from "@/components/account-menu"
 import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW } from "@/components/sidebar-density"
 // Mismo límite que `md`; la visibilidad del panel sigue en CSS.
 import { DESKTOP_QUERY } from "@/lib/hooks/useMediaQuery"
+import { useRole } from "@/lib/hooks/useRole"
 
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
@@ -126,9 +127,12 @@ function NavTree({
 }) {
   const navSections = getWorkspaceNavSections(workspace)
   // Secciones fijas (pinned) primero y en su orden declarado; el resto, alfabético.
+  const { canAccess } = useRole()
+  // Cada rol solo ve las secciones que puede abrir (lib/constants/roles).
   const toItems = (sections: typeof navSections) => sections.flatMap((section) => {
-    const activeLeaf = findActiveLeaf(section.items, pathname)
-    return section.items.map((leaf) => ({
+    const items = section.items.filter((leaf) => canAccess(leaf.href))
+    const activeLeaf = findActiveLeaf(items, pathname)
+    return items.map((leaf) => ({
       leaf,
       active: leaf.href === activeLeaf?.href,
     }))

@@ -17,6 +17,8 @@ import { EvaluationNoticeRows } from "@/components/evaluation-notice-rows"
 import { notify } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 import { formatHace, hoyISO, PARAM_TARJETA, textoAviso } from "@/lib/kanban"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
+import { TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 
 const SECCION = "px-3 pb-1 pt-3 text-eyebrow text-muted-foreground"
 const ITEM = "flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 px-3 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
@@ -25,16 +27,19 @@ const DESCRIPCION = "Evaluaciones, tarjetas por vencer y avisos del Kanban"
 /**
  * Campana del encabezado. En celular abre un popover; en tablet y escritorio,
  * un panel lateral que aprovecha el alto de la pantalla.
- * Evaluaciones: evaluadores ven las suyas (RLS); dev y admin, las de toda la empresa.
- * Kanban: solo para quienes usan el tablero.
+ * Evaluaciones: evaluadores ven las suyas (RLS); quienes supervisan, las de toda la empresa.
+ * Cada sección solo aparece si el rol puede abrir su pantalla; sin ninguna, no hay campana.
  */
 export function KanbanAvisos() {
   const router = useRouter()
   const { user } = useUser()
-  const { isEvaluador, loading } = useRole()
+  const { canAccess, loading } = useRole()
   const lateral = useMediaQuery(DESKTOP_QUERY)
-  const activo = Boolean(user) && !loading
-  const kanbanActivo = activo && !isEvaluador
+  const conSesion = Boolean(user) && !loading
+  // Cada sección aparece solo si el rol puede abrir su pantalla (lib/constants/roles).
+  const kanbanActivo = conSesion && canAccess(TRAINING_WORKSPACE_PATH)
+  const evaluacionesActivas = conSesion && canAccess(DESEMPENO.routes.pending)
+  const activo = kanbanActivo || evaluacionesActivas
   const [open, setOpen] = useState(false)
   // Al abrir, el foco va al panel y no a la primera fila (evita que aparezca marcada).
   const panelRef = useRef<HTMLDivElement>(null)
@@ -48,7 +53,7 @@ export function KanbanAvisos() {
   const { avisos, porVencer, error, recargar, marcarLeidos } = useKanbanAvisos(user?.id ?? null, kanbanActivo,
     aviso => { if (push.state !== "active") notify.info(`${textoAviso(aviso)}: «${aviso.titulo}»`) })
   const { loading: evalLoading, totalVencidas, totalProximas, cargar: recargarEvaluaciones } =
-    usePendingEvals(undefined, activo)
+    usePendingEvals(undefined, evaluacionesActivas)
 
   if (!activo) return null
 
@@ -64,7 +69,7 @@ export function KanbanAvisos() {
     // Las fechas cambian con el día: al abrir se actualiza lo que vence.
     if (next) {
       if (kanbanActivo) void recargar()
-      void recargarEvaluaciones()
+      if (evaluacionesActivas) void recargarEvaluaciones()
     }
   }
 

@@ -74,7 +74,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const [images, setImages] = useState<File[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [imageError, setImageError] = useState("")
-  const [step, setStep] = useState<1 | 2>(1)
+  const [step, setStep] = useState<1 | 2 | 3>(1)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState("")
 
@@ -109,18 +109,24 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
     event.preventDefault()
     setSubmitted(true)
 
-    const parsedDate = parseDate(date)
     if (step === 1) {
-      if (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH || !description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH || !department || !responsible || !deadline || !parsedDate) return
+      if (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH || !description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH) return
       setSubmitted(false)
       setStep(2)
+      return
+    }
+    const parsedDate = parseDate(date)
+    if (step === 2) {
+      if (!department || !responsible || !parsedDate) return
+      setSubmitted(false)
+      setStep(3)
       return
     }
     if (images.length === 0) {
       setImageError("Selecciona al menos una imagen del hallazgo.")
       return
     }
-    if (!parsedDate || !deadline) return
+    if (!title.trim() || !description.trim() || !department || !responsible || !parsedDate || !deadline) return
 
     setSaving(true)
     setSaveError("")
@@ -139,32 +145,39 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
-        className="sm:max-w-3xl"
+        className="sm:max-w-xl"
         footer={
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => step === 1 ? handleOpenChange(false) : setStep(1)}
+              disabled={saving}
+              onClick={() => {
+                if (step === 1) handleOpenChange(false)
+                else {
+                  setSubmitted(false)
+                  setStep(step === 3 ? 2 : 1)
+                }
+              }}
             >
               {step === 1 ? "Cancelar" : "Atrás"}
             </Button>
             <Button type="submit" form="create-finding-form" disabled={saving}>
-              {saving ? "Guardando…" : step === 1 ? "Continuar" : "Crear hallazgo"}
+              {saving ? "Guardando…" : step === 3 ? "Crear hallazgo" : "Continuar"}
             </Button>
           </DialogFooter>
         }
       >
         <form id="create-finding-form" onSubmit={handleSubmit} className="space-y-6">
-          {saveError && <p role="alert" className="text-body-sm text-destructive">{saveError}</p>}
           <DialogHeader className="flex-row items-center justify-between gap-3">
             <DialogTitle>Nuevo hallazgo</DialogTitle>
-            <span className="shrink-0 text-body-sm text-muted-foreground">Paso {step} de 2</span>
+            <span className="shrink-0 text-body-sm text-muted-foreground" aria-live="polite">Paso {step} de 3</span>
           </DialogHeader>
+          {saveError && <p role="alert" className="text-body-sm text-destructive">{saveError}</p>}
 
           {step === 1 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2 sm:col-span-2">
+          <div className="space-y-4">
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Label htmlFor="finding-title">Título</Label>
                 <span className="text-body-sm text-muted-foreground tabular-nums">{title.length}/{MAX_FINDING_TITLE_LENGTH}</span>
@@ -178,7 +191,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
               />
             </div>
 
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">
                 <Label htmlFor="finding-description">Descripción</Label>
                 <span className="text-body-sm text-muted-foreground tabular-nums">{description.length}/{MAX_FINDING_DESCRIPTION_LENGTH}</span>
@@ -192,6 +205,9 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
               />
             </div>
 
+          </div>
+          ) : step === 2 ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label>Departamento</Label>
               <Select value={department} onValueChange={handleDepartmentChange}>
@@ -247,7 +263,10 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 aria-invalid={submitted && !isValidDate(date)}
               />
             </div>
-            <div className="space-y-2 sm:col-span-2">
+          </div>
+          ) : (
+          <div className="space-y-4">
+            <div className="space-y-2">
               <Label htmlFor="finding-deadline">Plazo</Label>
               <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)}>
                 <SelectTrigger id="finding-deadline" aria-invalid={submitted && !deadline}>
@@ -258,9 +277,6 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          ) : (
-          <div className="space-y-3">
             <FindingFileField label="Imágenes del hallazgo" files={images} onChange={(files) => { setImages(files); setImageError("") }} required disabled={saving} />
             {imageError && <p role="alert" className="text-body-sm text-destructive">{imageError}</p>}
           </div>

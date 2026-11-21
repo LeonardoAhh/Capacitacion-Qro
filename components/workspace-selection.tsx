@@ -13,31 +13,33 @@ import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { useRole } from "@/lib/hooks/useRole"
 import { loginStyles } from "@/lib/login/presentation"
 import { WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
-import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { homeFor } from "@/lib/constants/roles"
 import { cn } from "@/lib/utils"
 
 export function WorkspaceSelection() {
   const router = useRouter()
-  const { isEvaluador, loading } = useRole()
+  const { role, workspaces, loading } = useRole()
+  // Roles sin espacio de trabajo (evaluador) van directo a su inicio.
+  const sinEspacios = workspaces.length === 0
   const reducedMotion = useAppReducedMotion()
   const { signingOut, logout } = useLogout()
   const [, setWorkspace] = useActiveWorkspace()
   const [leaving, setLeaving] = useState(false)
 
   useEffect(() => {
-    if (!loading && isEvaluador) router.replace("/desempeno")
-  }, [isEvaluador, loading, router])
+    if (!loading && sinEspacios) router.replace(homeFor(role))
+  }, [loading, role, router, sinEspacios])
 
   const chooseWorkspace = (workspace: WorkspaceId) => {
-    if (leaving) return
+    if (leaving || !workspaces.includes(workspace)) return
     setWorkspace(workspace)
     // El contenido sale primero; luego entra el workspace.
     setLeaving(true)
-    const destination = workspace === "safety" ? SAFETY_HOME_PATH : TRAINING_WORKSPACE_PATH
+    const destination = homeFor(role, workspace)
     window.setTimeout(() => router.replace(destination), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
   }
 
-  if (loading || isEvaluador) return <AppTransition message="Preparando tu espacio…" />
+  if (loading || sinEspacios) return <AppTransition message="Preparando tu espacio…" />
 
   return (
     <main className={`${loginStyles.page} workspace-shell`}>
@@ -69,9 +71,11 @@ export function WorkspaceSelection() {
                 <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
                   {WORKSPACE_OPTIONS.map((option) => {
                     const Icon = option.id === "safety" ? HardHat : GraduationCap
+                    const permitido = workspaces.includes(option.id)
                     return (
                       <Button asChild key={option.id} className="w-full justify-between gap-4 px-5 sm:w-60">
-                        <motion.button type="button" disabled={leaving} onClick={() => chooseWorkspace(option.id)}
+                        <motion.button type="button" disabled={leaving || !permitido} onClick={() => chooseWorkspace(option.id)}
+                          title={permitido ? undefined : "Tu rol no tiene acceso a este espacio"}
                           whileHover={reducedMotion ? undefined : { y: -2 }}
                           whileTap={reducedMotion ? undefined : { scale: 0.98, y: 0 }}
                           transition={{ type: "spring", stiffness: 400, damping: 26 }}>

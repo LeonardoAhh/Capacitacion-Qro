@@ -64,7 +64,7 @@ const REGULARIZATION_TITLE = "Regularización requerida";
 
 function DesempenoSearchContent() {
   const router = useRouter();
-  const { role, loading: roleLoading } = useRole();
+  const { supervisesEvaluations, loading: roleLoading } = useRole();
   const { user } = useUser();
   const context = useEvaluationSearch();
   const {
@@ -92,19 +92,18 @@ function DesempenoSearchContent() {
     }
     if (roleLoading) return;
     const needsRegularization = error.title === REGULARIZATION_TITLE;
-    const canRegularize = role === "admin" || role === "dev";
     notify.error(error.title, {
       id: SEARCH_ERROR_TOAST_ID,
-      description: needsRegularization && !canRegularize
+      description: needsRegularization && !supervisesEvaluations
         ? `${error.description} Acude a Recursos Humanos.`
         : error.description,
       // Con acción, el toast permanece hasta que se use o se cierre.
-      ...(needsRegularization && canRegularize ? {
+      ...(needsRegularization && supervisesEvaluations ? {
         duration: Infinity,
         action: { label: "Regularizar →", onClick: () => router.push(DESEMPENO.routes.late) },
       } : {}),
     });
-  }, [error, role, roleLoading, router]);
+  }, [error, supervisesEvaluations, roleLoading, router]);
 
   useEffect(() => () => { notify.dismiss(SEARCH_ERROR_TOAST_ID); }, []);
 
@@ -115,7 +114,7 @@ function DesempenoSearchContent() {
       confirmNavigation={context.confirmDiscard}
       actions={<>
         {context.modoEdicion && data && <Button type="button" variant="outline" size="sm" disabled className="px-3">Editando</Button>}
-        {!roleLoading && user && (role === "admin" || role === "dev") && <Button asChild variant="outline" size="sm" className="px-3">
+        {!roleLoading && user && supervisesEvaluations && <Button asChild variant="outline" size="sm" className="px-3">
           <Link href={DESEMPENO.routes.late} onNavigate={event => {
             event.preventDefault();
             void context.confirmDiscard().then(confirmed => {

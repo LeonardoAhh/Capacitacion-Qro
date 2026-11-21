@@ -2,6 +2,7 @@ import { getTodayInTimeZone } from "@/lib/cumpleanos"
 import { normalizeDepartamento } from "@/lib/catalogo"
 import { HITOS_NUEVO_INGRESO, type SeguimientoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
 import { pendingEvalStatus } from "@/lib/desempeno/pending-status"
+import { rolesWith } from "@/lib/constants/roles"
 
 export interface EvaluationPushRecord extends SeguimientoNuevoIngreso {
   numero: string | null
@@ -15,8 +16,8 @@ export interface EvaluatorProfile {
   departamentos: string[] | null
 }
 
-/** Dev y admin ven las evaluaciones de toda la empresa; los evaluadores, las suyas. */
-export const ROLES_EVALUACIONES_GLOBALES = ["dev", "admin"]
+/** Quienes supervisan (lib/constants/roles) ven las evaluaciones de toda la empresa; los evaluadores, las suyas. */
+export const ROLES_EVALUACIONES_GLOBALES: string[] = rolesWith("supervisesEvaluations")
 
 export interface EvaluatorAssignment {
   evaluator_user_id: string

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation"
 import Sidebar, { useSidebar } from "@/components/sidebar"
 import Header from "@/components/header"
 import { useRole } from "@/lib/hooks"
-import { isEvaluadorAllowedRoute } from "@/lib/hooks/useRole"
+import { homeFor } from "@/lib/constants/roles"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
@@ -29,8 +29,13 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   const pathname = usePathname()
   const router = useRouter()
-  const { isEvaluador, loading: roleLoading } = useRole()
-  const [workspace, setWorkspace] = useActiveWorkspace()
+  const { role, isEvaluador, workspaces, canAccess, loading: roleLoading } = useRole()
+  const [storedWorkspace, setWorkspace] = useActiveWorkspace()
+  // Un espacio guardado que el rol ya no tiene se cambia por el primero permitido.
+  const workspace = storedWorkspace && !workspaces.includes(storedWorkspace)
+    ? workspaces[0] ?? storedWorkspace
+    : storedWorkspace
+  const allowed = canAccess(pathname ?? "")
 
   const handleWorkspaceChange = (nextWorkspace: WorkspaceId) => {
     if (nextWorkspace === workspace) return
@@ -39,16 +44,15 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     if (pathname !== targetPath) router.push(targetPath)
   }
 
+  // Cada rol solo abre sus rutas (lib/constants/roles); si escribe otra, va a su inicio.
   useEffect(() => {
-    if (roleLoading || !isEvaluador) return
-    if (!isEvaluadorAllowedRoute(pathname ?? '')) {
-      router.replace('/desempeno')
-    }
-  }, [pathname, isEvaluador, roleLoading, router])
+    if (roleLoading || allowed) return
+    router.replace(homeFor(role, workspace ?? undefined))
+  }, [allowed, role, roleLoading, router, workspace])
 
   // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
   // El espacio de trabajo solo falta al hidratar; al navegar entre páginas ya está.
-  if (roleLoading || !workspace) return <AppTransition message="Preparando tu espacio…" />
+  if (roleLoading || !workspace || !allowed) return <AppTransition message="Preparando tu espacio…" />
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).

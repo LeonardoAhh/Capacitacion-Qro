@@ -5,7 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { SAFETY_HOME_PATH, SETTINGS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import {
   BadgeCheck,
   Cake,
@@ -21,7 +21,7 @@ import {
   UsersRound,
 } from "lucide-react"
 
-export { SAFETY_HOME_PATH } from "@/lib/workspace-paths"
+export { SAFETY_HOME_PATH, SETTINGS_PATH } from "@/lib/workspace-paths"
 
 export interface NavLeaf {
   label: string
@@ -46,10 +46,9 @@ export const WORKSPACE_OPTIONS: ReadonlyArray<{ id: WorkspaceId; label: string }
 export const WORKSPACE_STORAGE_KEY = "workspace-active"
 
 export const HOME_PATH = "/inicio"
-/** Selección posterior al login para dev/admin; evaluadores van a Desempeño. */
+/** Selección posterior al login; los roles sin espacio de trabajo (evaluador) van a su inicio. */
 export const POST_LOGIN_PATH = WORKSPACE_SELECTION_PATH
 export const LOGIN_PATH = "/login"
-export const SETTINGS_PATH = "/settings"
 export const ASSIGNMENTS_PATH = "/asignaciones"
 export const MOBILE_NAV_ID = "workspace-mobile-navigation"
 

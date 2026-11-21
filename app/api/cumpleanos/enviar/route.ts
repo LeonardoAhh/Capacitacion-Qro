@@ -7,6 +7,7 @@ import {
   type BirthdayTable,
 } from "@/lib/cumpleanos"
 import { requireBirthdayAccess } from "@/lib/server/cumpleanos-auth"
+import { rolesWith } from "@/lib/constants/roles"
 
 interface SendRequestRecord {
   id: string
@@ -52,7 +53,7 @@ function parseRecords(value: unknown): SendRequestRecord[] | null {
 }
 
 export async function POST(request: Request) {
-  const access = await requireBirthdayAccess(["dev"])
+  const access = await requireBirthdayAccess(rolesWith("canEdit"))
   if (!access.authorized) return access.response
 
   try {

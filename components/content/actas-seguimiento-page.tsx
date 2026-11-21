@@ -106,12 +106,15 @@ function blankForm(): FormState {
 
 interface RowProps {
   acta: ActaSeguimiento
+  /** Captura y cambio de estatus (incluye auxiliar). */
   canEdit: boolean
+  /** Borrar queda para quien edita Capacitación. */
+  canDelete: boolean
   onChangeEstatus: (id: string, estatus: ActaEstatus) => void
   onDelete: (id: string) => void
 }
 
-function ActaRow({ acta, canEdit, onChangeEstatus, onDelete }: RowProps) {
+function ActaRow({ acta, canEdit, canDelete, onChangeEstatus, onDelete }: RowProps) {
   const [open, setOpen] = useState(false)
   const vencido = isVencido(acta.fecha_seguimiento)
   const proximo = !vencido && isProximo(acta.fecha_seguimiento)
@@ -209,14 +212,16 @@ function ActaRow({ acta, canEdit, onChangeEstatus, onDelete }: RowProps) {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="ghost" size="icon"
-                    className="h-10 w-10 text-destructive hover:bg-destructive/10 focus-visible:ring-offset-0"
-                    onClick={() => onDelete(acta.id)}
-                    aria-label="Eliminar registro"
-                  >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                  </Button>
+                  {canDelete && (
+                    <Button
+                      variant="ghost" size="icon"
+                      className="h-10 w-10 text-destructive hover:bg-destructive/10 focus-visible:ring-offset-0"
+                      onClick={() => onDelete(acta.id)}
+                      aria-label="Eliminar registro"
+                    >
+                      <Trash2 className="size-4" aria-hidden="true" />
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
@@ -264,7 +269,7 @@ const actasDialogContentClassName = "flex max-h-[calc(100dvh-2rem)] w-[calc(100v
 const actasDialogScrollStyle = { scrollbarGutter: "stable" } as const
 
 export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPageProps) {
-  const { canEdit } = useRole()
+  const { canCapturePlantilla, canEdit } = useRole()
   const { loading, saving, error, fetchByEmpleado, create, update, remove } = useActasSeguimiento()
 
   const [records, setRecords] = useState<ActaSeguimiento[]>([])
@@ -367,7 +372,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
             <p className="text-sm text-muted-foreground">Núm. {numeroEmpleado}</p>
             <h2 className="break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{displayName}</h2>
           </div>
-          {canEdit && (
+          {canCapturePlantilla && (
             <Button
               ref={newRecordRef}
               type="button"
@@ -408,7 +413,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
           ) : (
             <div className="space-y-3">
               {visibleRecords.map(acta => (
-                <ActaRow key={acta.id} acta={acta} canEdit={canEdit} onChangeEstatus={handleChangeEstatus} onDelete={handleDelete} />
+                <ActaRow key={acta.id} acta={acta} canEdit={canCapturePlantilla} canDelete={canEdit} onChangeEstatus={handleChangeEstatus} onDelete={handleDelete} />
               ))}
             </div>
           )}

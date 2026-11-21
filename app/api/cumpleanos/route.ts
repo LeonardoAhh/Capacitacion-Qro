@@ -6,6 +6,7 @@ import {
   type BirthdayTable,
 } from "@/lib/cumpleanos"
 import { requireBirthdayAccess } from "@/lib/server/cumpleanos-auth"
+import { rolesWithRoute } from "@/lib/constants/roles"
 
 export interface CumpleanosEntry {
   id: string
@@ -36,7 +37,7 @@ interface RawBirthdayRecord {
 }
 
 export async function GET(request: Request) {
-  const access = await requireBirthdayAccess(["dev", "admin"])
+  const access = await requireBirthdayAccess(rolesWithRoute("/cumpleanos"))
   if (!access.authorized) return access.response
 
   try {

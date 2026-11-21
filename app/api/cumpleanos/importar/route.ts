@@ -4,6 +4,7 @@ import {
   type BirthdayTable,
 } from "@/lib/cumpleanos"
 import { requireBirthdayAccess } from "@/lib/server/cumpleanos-auth"
+import { rolesWith } from "@/lib/constants/roles"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 interface ImportRecord {
@@ -108,7 +109,7 @@ async function resolveRecords(
 }
 
 export async function POST(request: Request) {
-  const access = await requireBirthdayAccess(["dev"])
+  const access = await requireBirthdayAccess(rolesWith("canEdit"))
   if (!access.authorized) return access.response
 
   try {

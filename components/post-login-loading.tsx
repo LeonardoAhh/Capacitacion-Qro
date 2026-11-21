@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { AppTransition, APP_TRANSITION_EXIT_MS, APP_TRANSITION_MIN_MS, useAppReducedMotion } from "@/components/app-transition"
 import { useRole } from "@/lib/hooks"
 import { POST_LOGIN_PATH } from "@/lib/navigation"
+import { homeFor, ROLE_POLICIES } from "@/lib/constants/roles"
 
 export function PostLoginLoading() {
   const searchParams = useSearchParams()
@@ -27,7 +28,8 @@ export function PostLoginLoading() {
   useEffect(() => {
     if (roleLoading || !ready) return
 
-    const destination = role === "evaluador" ? "/desempeno" : redirectTo
+    // Sin espacio de trabajo (evaluador) se va a su inicio; el resto, a /workspace o a la ruta pedida.
+    const destination = ROLE_POLICIES[role].workspaces.length === 0 ? homeFor(role) : redirectTo
     setExiting(true)
 
     const timer = window.setTimeout(() => {

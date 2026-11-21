@@ -23,7 +23,7 @@ interface RegistrosPorDiaPageProps {
 
 /** Ficha de un empleado con sus registros por mes y día; captura individual para dev. */
 export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaPageProps) {
-  const { canEdit } = useRole()
+  const { canCapturePlantilla } = useRole()
   const { loading, saving, error, fetchByEmpleado, reloadByEmpleado, saveForEmpleadoDia } = useRegistrosPorDia(config)
   const [records, setRecords] = useState<RegistroPorDia[]>([])
   const [nombreEmpleado, setNombreEmpleado] = useState<string | null>(null)
@@ -151,7 +151,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
           <h2 className="break-words text-heading-md text-foreground">{nombreEmpleado ?? "Empleado"}</h2>
           <p className="text-body-md text-muted-foreground">{config.descripcion}</p>
         </div>
-        {canEdit && (
+        {canCapturePlantilla && (
           <Button ref={newRecordRef} type="button" size="sm" className="pl-2 pr-3" onClick={openForm}>
             <Plus aria-hidden="true" />
             Nuevo {config.singular}
@@ -209,7 +209,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
         )}
       </section>
 
-      {canEdit && (
+      {canCapturePlantilla && (
         <RegistroPorDiaFormDialog
           config={config}
           open={showForm}
