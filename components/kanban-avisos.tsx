@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { useRouter } from "next/navigation"
 import { Bell, BellOff, CalendarDays, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -18,6 +18,7 @@ import { notify } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 import { formatHace, hoyISO, PARAM_TARJETA, textoAviso } from "@/lib/kanban"
 
+const SECCION = "px-3 pb-1 pt-3 text-eyebrow text-muted-foreground"
 const ITEM = "flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 px-3 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
 const DESCRIPCION = "Evaluaciones, tarjetas por vencer y avisos del Kanban"
 
@@ -35,12 +36,18 @@ export function KanbanAvisos() {
   const activo = Boolean(user) && !loading
   const kanbanActivo = activo && !isEvaluador
   const [open, setOpen] = useState(false)
+  // Al abrir, el foco va al panel y no a la primera fila (evita que aparezca marcada).
+  const panelRef = useRef<HTMLDivElement>(null)
+  const enfocarPanel = (event: Event) => {
+    event.preventDefault()
+    panelRef.current?.focus()
+  }
   // Se sincroniza al cargar: quien ya dio permiso no vuelve a activarlas.
   const push = useKanbanPush(user?.id ?? null, activo)
   // Con push activo el sistema ya muestra la notificación; el toast sería un duplicado.
   const { avisos, porVencer, error, recargar, marcarLeidos } = useKanbanAvisos(user?.id ?? null, kanbanActivo,
     aviso => { if (push.state !== "active") notify.info(`${textoAviso(aviso)}: «${aviso.titulo}»`) })
-  const { loading: evalLoading, totalVencidas, totalProximas, totalATiempo, cargar: recargarEvaluaciones } =
+  const { loading: evalLoading, totalVencidas, totalProximas, cargar: recargarEvaluaciones } =
     usePendingEvals(undefined, activo)
 
   if (!activo) return null
@@ -48,7 +55,8 @@ export function KanbanAvisos() {
   const sinLeer = avisos.filter(aviso => !aviso.leido)
   // El contador solo suma lo que pide acción ahora; las próximas se ven al abrir.
   const pendientes = sinLeer.length + porVencer.length + totalVencidas
-  const hayEvaluaciones = totalVencidas + totalProximas + totalATiempo > 0
+  const hayEvaluaciones = totalVencidas + totalProximas > 0
+  const hayKanban = porVencer.length > 0 || avisos.length > 0
   const hoy = hoyISO()
 
   function cambiarAbierto(next: boolean) {
@@ -110,17 +118,22 @@ export function KanbanAvisos() {
     <>
       {error && <p role="alert" className="px-3 py-2 text-body-sm text-destructive">{error}</p>}
 
-      {evalLoading && !hayEvaluaciones && (
-        <div role="status" aria-label="Cargando avisos de evaluaciones" className="grid gap-2 px-3 py-3">
-          <Skeleton className="h-4 w-2/3" />
-          <Skeleton className="h-4 w-1/3" />
-        </div>
+      {(hayEvaluaciones || evalLoading) && (
+        <section aria-labelledby="avisos-evaluaciones" className="pb-1">
+          <h3 id="avisos-evaluaciones" className={SECCION}>Evaluaciones</h3>
+          {hayEvaluaciones ? (
+            <EvaluationNoticeRows vencidas={totalVencidas} proximas={totalProximas} onOpen={abrirRuta} />
+          ) : (
+            <div role="status" aria-label="Cargando evaluaciones" className="px-3 py-3">
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          )}
+        </section>
       )}
 
-      <EvaluationNoticeRows vencidas={totalVencidas} proximas={totalProximas} aTiempo={totalATiempo} onOpen={abrirRuta} />
-
-      {porVencer.length > 0 && (
-        <section aria-label="Vencen pronto" className={hayEvaluaciones ? "border-t border-border" : undefined}>
+      {hayKanban && (
+        <section aria-labelledby="avisos-kanban" className={cn("pb-1", (hayEvaluaciones || evalLoading) && "border-t border-border")}>
+          <h3 id="avisos-kanban" className={SECCION}>Kanban</h3>
           <ul className="divide-y divide-border">
             {porVencer.map(tarjeta => (
               <li key={tarjeta.id}>
@@ -135,38 +148,33 @@ export function KanbanAvisos() {
                 </button>
               </li>
             ))}
+            {avisos.map(aviso => (
+              <li key={aviso.id}>
+                <button type="button" className={ITEM} onClick={() => {
+                  if (!aviso.leido) marcar([aviso.id])
+                  abrirRuta(aviso.tarjeta_id ? `/kanban?${PARAM_TARJETA}=${aviso.tarjeta_id}` : "/kanban")
+                }}>
+                  <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
+                    <span className={cn("size-1.5 rounded-sm", aviso.leido ? "bg-transparent" : "bg-primary")} />
+                  </span>
+                  <span className="grid min-w-0 flex-1">
+                    <span className="flex min-w-0 items-baseline gap-2">
+                      <span className={cn("min-w-0 flex-1 truncate text-label-sm", aviso.leido ? "text-muted-foreground" : "text-foreground")} title={aviso.titulo}>
+                        {!aviso.leido && <span className="sr-only">Sin leer: </span>}{aviso.titulo}
+                      </span>
+                      <span className="shrink-0 text-body-sm text-muted-foreground">{formatHace(aviso.created_at)}</span>
+                    </span>
+                    <span className="truncate text-body-sm text-muted-foreground" title={textoAviso(aviso)}>{textoAviso(aviso)}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
           </ul>
         </section>
       )}
 
-      {avisos.length > 0 && (
-        <ul aria-label="Avisos recientes" className={cn("divide-y divide-border", (porVencer.length > 0 || hayEvaluaciones) && "border-t border-border")}>
-          {avisos.map(aviso => (
-            <li key={aviso.id}>
-              <button type="button" className={ITEM} onClick={() => {
-                if (!aviso.leido) marcar([aviso.id])
-                abrirRuta(aviso.tarjeta_id ? `/kanban?${PARAM_TARJETA}=${aviso.tarjeta_id}` : "/kanban")
-              }}>
-                <span aria-hidden="true" className="flex size-4 shrink-0 items-center justify-center">
-                  <span className={cn("size-1.5 rounded-sm", aviso.leido ? "bg-transparent" : "bg-primary")} />
-                </span>
-                <span className="grid min-w-0 flex-1">
-                  <span className="flex min-w-0 items-baseline gap-2">
-                    <span className={cn("min-w-0 flex-1 truncate text-label-sm", aviso.leido ? "text-muted-foreground" : "text-foreground")} title={aviso.titulo}>
-                      {!aviso.leido && <span className="sr-only">Sin leer: </span>}{aviso.titulo}
-                    </span>
-                    <span className="shrink-0 text-body-sm text-muted-foreground">{formatHace(aviso.created_at)}</span>
-                  </span>
-                  <span className="truncate text-body-sm text-muted-foreground" title={textoAviso(aviso)}>{textoAviso(aviso)}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {!avisos.length && !porVencer.length && !hayEvaluaciones && !error && !evalLoading && (
-        <p className="px-3 py-3 text-body-sm text-muted-foreground">Sin avisos por ahora.</p>
+      {!hayKanban && !hayEvaluaciones && !error && !evalLoading && (
+        <p className="px-3 py-6 text-center text-body-sm text-muted-foreground">Sin avisos por ahora.</p>
       )}
     </>
   )
@@ -181,9 +189,10 @@ export function KanbanAvisos() {
       <>
         {campana(() => cambiarAbierto(true))}
         <Drawer direction="right" shouldScaleBackground={false} open={open} onOpenChange={cambiarAbierto}>
-          <DrawerContent raw fullViewport showHandle={false}
-            className="inset-y-0 left-auto right-0 mt-0 w-96 max-w-[calc(100vw-2rem)] rounded-none border-y-0 border-r-0">
-            <div className="safe-top flex h-full min-h-0 flex-col">
+          {/* Flota como el workspace: mismo margen, borde y esquinas (globals.css: --workspace-inset). */}
+          <DrawerContent raw fullViewport showHandle={false} onOpenAutoFocus={enfocarPanel}
+            className="bottom-[var(--workspace-inset)] left-auto right-[var(--workspace-inset)] top-[max(var(--workspace-inset),env(safe-area-inset-top,0px))] mt-0 w-96 max-w-[calc(100vw-2*var(--workspace-inset))] overflow-hidden rounded-xl border">
+            <div ref={panelRef} tabIndex={-1} className="flex h-full min-h-0 flex-col outline-none">
               {/* Misma altura que el encabezado de la app. */}
               <div className="flex h-[var(--workspace-header-height)] shrink-0 items-center gap-2 border-b border-border pl-3 pr-1">
                 <DrawerTitle className="text-label-sm text-foreground">Avisos</DrawerTitle>
@@ -206,12 +215,13 @@ export function KanbanAvisos() {
   return (
     <Popover open={open} onOpenChange={cambiarAbierto}>
       <PopoverTrigger asChild>{campana()}</PopoverTrigger>
-      <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0" aria-label="Avisos">
+      <PopoverContent align="end" className="w-[min(22rem,calc(100vw-2rem))] p-0 outline-none" aria-label="Avisos"
+        onOpenAutoFocus={enfocarPanel}>
         <div className="flex min-h-(--control-height) items-center gap-2 border-b border-border pl-3 pr-1">
           <h2 className="text-label-sm text-foreground">Avisos</h2>
           {acciones}
         </div>
-        <div className="max-h-[min(28rem,70vh)] overflow-y-auto">{lista}</div>
+        <div ref={panelRef} tabIndex={-1} className="max-h-[min(28rem,70vh)] overflow-y-auto outline-none">{lista}</div>
         {pie}
       </PopoverContent>
     </Popover>
