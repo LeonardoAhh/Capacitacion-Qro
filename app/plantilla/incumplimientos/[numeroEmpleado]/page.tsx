@@ -1,5 +1,6 @@
 import type { Metadata } from "next"
 import Dashboard from "@/components/Dashboard"
+import { PLANTILLA_PATH } from "@/components/content/plantilla-paths"
 import { ReglamentoIncumplimientosPage } from "@/components/content/reglamento-incumplimientos-page"
 
 export const metadata: Metadata = {
@@ -15,7 +16,7 @@ export default async function IncumplimientosPage({
 
   return (
     <Dashboard
-      headerTitleHref="/plantilla"
+      headerTitleHref={PLANTILLA_PATH}
       headerTitleHrefLabel="Volver a plantilla"
       content={
         <ReglamentoIncumplimientosPage

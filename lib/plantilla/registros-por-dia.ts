@@ -11,8 +11,6 @@ export interface RegistroPorDiaConfig {
   rpcRegistrar: string
   singular: string
   plural: string
-  /** Subtítulo de la ficha del empleado. */
-  descripcion: string
   /** Registra minutos por día (RPC con p_minutos / p_minutos_anterior). */
   conMinutos?: boolean
   /** RPC de importación mensual (p_periodos), si el tipo la tiene. */
@@ -24,7 +22,6 @@ export const INCUMPLIMIENTOS_CONFIG: RegistroPorDiaConfig = {
   rpcRegistrar: "registrar_incumplimiento_reglamento",
   singular: "incumplimiento",
   plural: "incumplimientos",
-  descripcion: "Incumplimientos del reglamento interno",
 }
 
 export const RETARDOS_CONFIG: RegistroPorDiaConfig = {
@@ -32,7 +29,6 @@ export const RETARDOS_CONFIG: RegistroPorDiaConfig = {
   rpcRegistrar: "registrar_retardo",
   singular: "retardo",
   plural: "retardos",
-  descripcion: "Retardos registrados por día",
   conMinutos: true,
   rpcReemplazarMeses: "reemplazar_meses_retardos",
 }

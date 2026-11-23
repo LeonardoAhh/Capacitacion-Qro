@@ -1,15 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback, useId, useRef, type ReactNode } from "react"
-import Link from "next/link"
-import {
-  AlertTriangle, ArrowLeft, CalendarClock, Check, ChevronDown,
-  ChevronUp, FilePenLine, FileQuestion, Loader2, Plus, Trash2, X,
-} from "lucide-react"
-import {
-  Dialog, DialogClose, DialogContent,
-  DialogTitle, DialogDescription,
-} from "@/components/ui/dialog"
+import { useState, useEffect, useCallback, useId } from "react"
+import { AlertTriangle, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,34 +12,30 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   useActasSeguimiento,
   ACTA_ESTATUSES,
   type ActaSeguimiento, type ActaEstatus,
 } from "@/lib/hooks/useActasSeguimiento"
 import { useRole } from "@/lib/hooks"
+import { formatDate } from "@/lib/hooks/useNuevoIngreso"
 import { notify } from "@/lib/notify"
 import { supabase } from "@/lib/supabase/client"
+import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-function formatDate(iso: string | null): string {
-  if (!iso) return "—"
-  const [y, m, d] = iso.split("-")
-  return `${d}/${m}/${y}`
-}
-
 function sentenceCase(value: string): string {
   return value.charAt(0) + value.slice(1).toLocaleLowerCase("es-MX")
-}
-
-function countLabel(count: number, singular: string, plural: string): string {
-  return `${count} ${count === 1 ? singular : plural}`
 }
 
 function today(): string {
@@ -55,33 +43,42 @@ function today(): string {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
 }
 
-/** Returns true if fecha_seguimiento is past today */
+/** La revisión ya pasó. */
 function isVencido(fecha: string | null): boolean {
   if (!fecha) return false
   return fecha < today()
 }
 
-/** Returns true if fecha_seguimiento is within 7 days */
+/** La revisión cae en los próximos 7 días. */
 function isProximo(fecha: string | null): boolean {
   if (!fecha) return false
   const diff = (new Date(fecha).getTime() - new Date(today()).getTime()) / 86_400_000
   return diff >= 0 && diff <= 7
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Badge helpers
-// ─────────────────────────────────────────────────────────────────────────────
+/** Estado de la revisión; solo importa mientras el acta no está cerrada. */
+function revision(acta: ActaSeguimiento) {
+  if (acta.estatus === "CERRADO") return { tone: "text-muted-foreground", label: null }
+  if (isVencido(acta.fecha_seguimiento)) return { tone: "text-destructive", label: "Vencida" }
+  if (isProximo(acta.fecha_seguimiento)) return { tone: "text-warning-deep", label: "Próxima" }
+  return { tone: "text-muted-foreground", label: null }
+}
+
+function RevisionFecha({ acta }: { acta: ActaSeguimiento }) {
+  const { tone, label } = revision(acta)
+  if (!acta.fecha_seguimiento) return <span className="text-muted-foreground">—</span>
+  return <span className={tone}>
+    <time dateTime={acta.fecha_seguimiento}>{formatDate(acta.fecha_seguimiento)}</time>
+    {label && <span className="sr-only"> ({label})</span>}
+  </span>
+}
 
 function EstatusBadge({ estatus }: { estatus: ActaEstatus }) {
-  return (
-    <Badge variant="outline" className={estatus === "CERRADO" ? "whitespace-nowrap border-border bg-muted/50 font-medium text-muted-foreground" : "whitespace-nowrap border-border bg-card font-medium text-foreground"}>
-      {sentenceCase(estatus)}
-    </Badge>
-  )
+  return <Badge variant={estatus === "CERRADO" ? "secondary" : "outline"} size="sm" className="whitespace-nowrap">{sentenceCase(estatus)}</Badge>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Form blank state
+// Formulario
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface FormState {
@@ -92,181 +89,73 @@ interface FormState {
 }
 
 function blankForm(): FormState {
-  return {
-    fecha: today(),
-    descripcion: "",
-    fecha_seguimiento: "",
-    estatus: "ACTIVO",
-  }
+  return { fecha: today(), descripcion: "", fecha_seguimiento: "", estatus: "ACTIVO" }
+}
+
+function EstatusSelect({ id, value, onChange, label }: { id?: string; value: ActaEstatus; onChange: (value: ActaEstatus) => void; label?: string }) {
+  return <Select value={value} onValueChange={v => onChange(v as ActaEstatus)}>
+    <SelectTrigger id={id} aria-label={label}><SelectValue /></SelectTrigger>
+    <SelectContent>
+      {ACTA_ESTATUSES.map(s => <SelectItem key={s} value={s}>{sentenceCase(s)}</SelectItem>)}
+    </SelectContent>
+  </Select>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Row — collapsed card for a single record
+// Detalle
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface RowProps {
+function ActaDetalle({ acta, canEdit, canDelete, onClose, onChangeEstatus, onDelete }: {
   acta: ActaSeguimiento
-  /** Captura y cambio de estatus (incluye auxiliar). */
   canEdit: boolean
-  /** Borrar queda para quien edita Capacitación. */
   canDelete: boolean
+  onClose: () => void
   onChangeEstatus: (id: string, estatus: ActaEstatus) => void
   onDelete: (id: string) => void
-}
-
-function ActaRow({ acta, canEdit, canDelete, onChangeEstatus, onDelete }: RowProps) {
-  const [open, setOpen] = useState(false)
-  const vencido = isVencido(acta.fecha_seguimiento)
-  const proximo = !vencido && isProximo(acta.fecha_seguimiento)
-  const panelId = `acta-panel-${acta.id}`
-  const tipoLabel = sentenceCase(acta.tipo)
-
-  return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card">
-      {/* Header row */}
-      <button
-        type="button"
-        onClick={() => setOpen(v => !v)}
-        className="grid w-full grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-x-3 px-4 py-4 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(0,1fr)_7rem_9rem_1rem] sm:gap-x-4"
-        aria-expanded={open}
-        aria-controls={panelId}
-      >
-        <span className="min-w-0">
-          <span className="block truncate text-sm font-semibold text-foreground">{tipoLabel}</span>
-          {!open && acta.descripcion && (
-            <span className="mt-0.5 block truncate text-sm font-normal text-muted-foreground">{acta.descripcion}</span>
-          )}
-        </span>
-
-        <span className="hidden items-center sm:flex">
-          {!open && acta.fecha_seguimiento && (
-            <span
-              className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium ${
-                vencido
-                  ? "bg-destructive/10 text-destructive"
-                  : proximo
-                  ? "bg-warning/10 text-warning-deep"
-                  : "bg-muted/50 text-muted-foreground"
-              }`}
-            >
-              {vencido ? <AlertTriangle className="size-3.5" aria-hidden="true" /> : <CalendarClock className="size-3.5" aria-hidden="true" />}
-              {formatDate(acta.fecha_seguimiento)}
-            </span>
-          )}
-        </span>
-        <span className="flex min-w-0 items-center">
-          {(!open || !canEdit) && <EstatusBadge estatus={acta.estatus} />}
-        </span>
-        <span className="flex justify-end">
-          {open
-            ? <ChevronUp size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
-            : <ChevronDown size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />}
-        </span>
-      </button>
-
-      {/* Expanded detail */}
-      {open && (
-          <div id={panelId} role="region">
-            <div className="border-t border-border px-4 py-5">
-              <dl className="grid grid-cols-1 gap-5 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <dt className="text-muted-foreground">Fecha</dt>
-                  <dd className="mt-1 font-medium text-foreground">{formatDate(acta.fecha)}</dd>
-                </div>
-                <div>
-                  <dt className="text-muted-foreground">Fecha de revisión</dt>
-                  <dd className={`mt-1 flex items-center gap-1 font-medium ${vencido ? "text-destructive" : proximo ? "text-warning-deep" : "text-foreground"}`}>
-                    {formatDate(acta.fecha_seguimiento)}
-                    {vencido && (
-                      <span className="inline-flex items-center gap-1">
-                        <AlertTriangle className="size-3.5" aria-hidden="true" />
-                        Vencido
-                      </span>
-                    )}
-                  </dd>
-                </div>
-                <div className="sm:col-span-2 lg:col-span-2">
-                  <dt className="text-muted-foreground">Descripción</dt>
-                  <dd className="mt-1 max-w-prose whitespace-pre-line leading-5 text-foreground">
-                    {acta.descripcion || "Sin descripción"}
-                  </dd>
-                </div>
-              </dl>
-
-              {/* Actions */}
-              {canEdit && (
-                <div className="mt-5 flex items-center justify-end gap-3 border-t border-border pt-4">
-                  <Select
-                    value={acta.estatus}
-                    onValueChange={v => onChangeEstatus(acta.id, v as ActaEstatus)}
-                  >
-                    <SelectTrigger
-                      className="h-9 w-44 bg-card text-xs focus-visible:ring-offset-0"
-                      aria-label="Cambiar estatus del registro"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ACTA_ESTATUSES.map(s => (
-                        <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {canDelete && (
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-10 w-10 text-destructive hover:bg-destructive/10 focus-visible:ring-offset-0"
-                      onClick={() => onDelete(acta.id)}
-                      aria-label="Eliminar registro"
-                    >
-                      <Trash2 className="size-4" aria-hidden="true" />
-                    </Button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-      )}
+}) {
+  const { label } = revision(acta)
+  return <ResponsiveShell open onClose={onClose} title="Acta administrativa" description={`Registrada el ${formatDate(acta.fecha)}`} size="sm">
+    <ModalHeader title="Acta administrativa" onClose={onClose} />
+    <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-(--card-padding)">
+      <dl className="grid grid-cols-2 gap-4">
+        <div>
+          <dt className="text-label-sm text-muted-foreground">Fecha</dt>
+          <dd className="text-body-md text-foreground">{formatDate(acta.fecha)}</dd>
+        </div>
+        <div>
+          <dt className="text-label-sm text-muted-foreground">Revisión</dt>
+          <dd className="text-body-md"><RevisionFecha acta={acta} />{label && <span aria-hidden="true" className={cn("ml-1", revision(acta).tone)}>· {label}</span>}</dd>
+        </div>
+        <div className="col-span-2">
+          <dt className="text-label-sm text-muted-foreground">Descripción</dt>
+          <dd className="whitespace-pre-line break-words text-body-md text-foreground">{acta.descripcion || "Sin descripción"}</dd>
+        </div>
+        {!canEdit && <div>
+          <dt className="text-label-sm text-muted-foreground">Estatus</dt>
+          <dd><EstatusBadge estatus={acta.estatus} /></dd>
+        </div>}
+      </dl>
+      {canEdit && <div className="flex items-end gap-2 border-t pt-4">
+        <div className="min-w-0 flex-1 space-y-1.5 sm:max-w-56">
+          <Label htmlFor={`acta-estatus-${acta.id}`}>Estatus</Label>
+          <EstatusSelect id={`acta-estatus-${acta.id}`} value={acta.estatus} onChange={estatus => onChangeEstatus(acta.id, estatus)} />
+        </div>
+        {canDelete && <Button type="button" variant="ghost" size="icon" className="ml-auto text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => onDelete(acta.id)} aria-label="Eliminar registro">
+          <Trash2 aria-hidden="true" />
+        </Button>}
+      </div>}
     </div>
-  )
+  </ResponsiveShell>
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page and record form
+// Página
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface ActasSeguimientoPageProps {
   numeroEmpleado: string
 }
-
-function ActasDialogHeader({ nombreEmpleado, children }: { nombreEmpleado: string; children?: ReactNode }) {
-  return (
-    <div className="shrink-0 border-b border-border px-5 py-5 pr-14 sm:pl-6 sm:py-6">
-      <div className="flex min-w-0 items-center gap-3">
-        <div className="grid size-10 shrink-0 place-items-center rounded-md border border-border bg-muted/40 text-foreground">
-          <FilePenLine size={18} aria-hidden="true" />
-        </div>
-        <div className="min-w-0">
-          <DialogTitle className="text-base font-semibold tracking-tight text-foreground">Actas administrativas</DialogTitle>
-          <DialogDescription className="mt-0.5 break-words text-xs leading-4 text-muted-foreground">{nombreEmpleado}</DialogDescription>
-        </div>
-      </div>
-      {children}
-    </div>
-  )
-}
-
-function ActasDialogClose() {
-  return (
-    <DialogClose className="absolute right-3 top-3 z-10 flex size-10 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <X className="size-4" aria-hidden="true" />
-      <span className="sr-only">Cerrar</span>
-    </DialogClose>
-  )
-}
-
-const actasDialogContentClassName = "flex max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] flex-col gap-0 border-border p-0 sm:max-w-lg"
-const actasDialogScrollStyle = { scrollbarGutter: "stable" } as const
 
 export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPageProps) {
   const { canCapturePlantilla, canEdit } = useRole()
@@ -275,12 +164,11 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
   const [records, setRecords] = useState<ActaSeguimiento[]>([])
   const [nombreEmpleado, setNombreEmpleado] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<FormState>(blankForm)
   const [formError, setFormError] = useState<string | null>(null)
   const formId = useId()
-  const fechaRef = useRef<HTMLInputElement>(null)
-  const newRecordRef = useRef<HTMLButtonElement>(null)
 
   const load = useCallback(async () => {
     const data = await fetchByEmpleado(numeroEmpleado)
@@ -298,11 +186,9 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
     return () => { active = false }
   }, [load, numeroEmpleado])
 
-  useEffect(() => {
-    setPage(current => Math.min(current, Math.max(1, Math.ceil(records.length / PAGE_SIZE))))
-  }, [records.length])
-
   // ── Handlers ──────────────────────────────────────────────────────────────
+
+  const closeForm = () => { setShowForm(false); setFormError(null) }
 
   const handleSave = async () => {
     if (!form.fecha) { setFormError("La fecha es obligatoria."); return }
@@ -347,192 +233,132 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
     if (!ok) return
     const result = await remove(id)
     if (result.success) {
+      setSelectedId(null)
       setRecords(prev => prev.filter(r => r.id !== id))
     } else {
       notify.error(result.error ?? "Error al eliminar")
     }
   }
 
-  // ── Counts ────────────────────────────────────────────────────────────────
-  const activos  = records.filter(r => r.estatus !== "CERRADO").length
+  // ── Derivados ─────────────────────────────────────────────────────────────
   const vencidos = records.filter(r => isVencido(r.fecha_seguimiento) && r.estatus !== "CERRADO").length
   const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE))
-  const visibleRecords = records.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
-  const displayName = nombreEmpleado ?? "Empleado"
+  const currentPage = Math.min(page, totalPages)
+  const visibleRecords = records.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const selected = records.find(r => r.id === selectedId) ?? null
 
   return (
     <>
-      <div className="space-y-6">
-        <Link href="/plantilla" className="inline-flex min-h-11 items-center gap-2 rounded-md text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-          <ArrowLeft className="size-4" aria-hidden="true" /> Volver
-        </Link>
-
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div className="min-w-0 space-y-1">
-            <p className="text-sm text-muted-foreground">Núm. {numeroEmpleado}</p>
-            <h2 className="break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{displayName}</h2>
+      <div className="space-y-4">
+        {/* Barra única: empleado a la izquierda; alertas, captura y página a la derecha. */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <div className="min-w-0">
+            {nombreEmpleado ? <p className="truncate text-label-sm text-foreground">{nombreEmpleado}</p> : <Skeleton className="mb-1 h-4 w-48" />}
+            <p className="text-body-sm text-muted-foreground">#{numeroEmpleado}</p>
           </div>
-          {canCapturePlantilla && (
-            <Button
-              ref={newRecordRef}
-              type="button"
-              className="h-10 w-full shrink-0 focus-visible:ring-offset-0 sm:w-auto"
-              onClick={() => { setForm(blankForm()); setFormError(null); setShowForm(true) }}
-            >
-              <Plus className="size-4" aria-hidden="true" /> Nuevo registro
-            </Button>
-          )}
-        </header>
-
-        <section aria-labelledby="actas-registros-title" className="space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-            <h3 id="actas-registros-title" className="text-xl font-semibold tracking-tight text-foreground">Actas administrativas</h3>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-border bg-card font-medium text-muted-foreground">{countLabel(records.length, "registro", "registros")}</Badge>
-              {activos > 0 && <Badge variant="outline" className="border-border bg-card font-medium text-muted-foreground">{countLabel(activos, "activo", "activos")}</Badge>}
-              {vencidos > 0 && <Badge variant="destructive" className="font-medium">{countLabel(vencidos, "vencido", "vencidos")}</Badge>}
-            </div>
+          <div className="ml-auto flex items-center gap-2">
+            {vencidos > 0 && <Badge variant="destructive" size="sm">{vencidos} {vencidos === 1 ? "revisión vencida" : "revisiones vencidas"}</Badge>}
+            {canCapturePlantilla && (
+              <Button type="button" size="sm" onClick={() => { setForm(blankForm()); setFormError(null); setShowForm(true) }}>
+                <Plus aria-hidden="true" /> Nuevo registro
+              </Button>
+            )}
+            <CompactPager label="Paginación de actas" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
           </div>
+        </div>
 
-          {error && (
-            <Alert variant="destructive" role="alert">
-              <AlertTriangle className="size-4" aria-hidden="true" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          {loading ? (
-            <div className="flex items-center gap-2 py-10 text-sm text-muted-foreground" role="status">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Cargando registros...
-            </div>
-          ) : records.length === 0 && !error ? (
-            <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-6 py-12 text-center">
-              <FileQuestion className="size-8 text-muted-foreground" aria-hidden="true" />
-              <p className="font-medium text-foreground">Sin registros</p>
-              <p className="text-sm text-muted-foreground">No hay actas administrativas para este empleado.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {visibleRecords.map(acta => (
-                <ActaRow key={acta.id} acta={acta} canEdit={canCapturePlantilla} canDelete={canEdit} onChangeEstatus={handleChangeEstatus} onDelete={handleDelete} />
-              ))}
-            </div>
-          )}
+        {error && (
+          <Alert variant="destructive" role="alert">
+            <AlertTriangle className="size-4" aria-hidden="true" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-          {!loading && totalPages > 1 && (
-            <div className="border-t border-border pt-4">
-              <PaginationBar currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-            </div>
-          )}
-        </section>
+        {loading ? (
+          <div className="space-y-2" role="status" aria-label="Cargando actas">
+            {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+          </div>
+        ) : records.length === 0 ? (
+          !error && <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+            No hay actas administrativas para este empleado.
+          </p>
+        ) : (
+          <div className="overflow-hidden rounded-xl border bg-card">
+            <Table className="table-fixed">
+              <caption className="sr-only">Actas administrativas de {nombreEmpleado ?? `#${numeroEmpleado}`}</caption>
+              <TableHeader className="bg-muted/50">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col" className={HEAD}>Descripción</TableHead>
+                  <TableHead scope="col" className={cn(HEAD, "hidden w-28 sm:table-cell")}>Fecha</TableHead>
+                  <TableHead scope="col" className={cn(HEAD, "hidden w-28 sm:table-cell")}>Revisión</TableHead>
+                  <TableHead scope="col" className={cn(HEAD, "w-32")}>Estatus</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {visibleRecords.map(acta => (
+                  <TableRow key={acta.id} className="cursor-pointer" onClick={() => setSelectedId(acta.id)}>
+                    <TableCell>
+                      <button type="button" onClick={event => { event.stopPropagation(); setSelectedId(acta.id) }}
+                        className="block w-full truncate rounded-sm text-left text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                        {acta.descripcion || "Sin descripción"}
+                      </button>
+                      <span className="block truncate text-body-sm text-muted-foreground sm:hidden">
+                        {formatDate(acta.fecha)}{acta.fecha_seguimiento && <> · Revisión <RevisionFecha acta={acta} /></>}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden text-body-sm text-muted-foreground sm:table-cell">
+                      <time dateTime={acta.fecha}>{formatDate(acta.fecha)}</time>
+                    </TableCell>
+                    <TableCell className="hidden text-body-sm sm:table-cell"><RevisionFecha acta={acta} /></TableCell>
+                    <TableCell><EstatusBadge estatus={acta.estatus} /></TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
 
-      {showForm && (
-        <Dialog open={showForm} onOpenChange={v => { if (!v) setShowForm(false) }}>
-          <DialogContent
-            raw
-            onOpenAutoFocus={event => { event.preventDefault(); fechaRef.current?.focus() }}
-            onCloseAutoFocus={event => { event.preventDefault(); newRecordRef.current?.focus() }}
-            className={actasDialogContentClassName}
-          >
-            <ActasDialogClose />
-            <ActasDialogHeader nombreEmpleado={displayName} />
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6 sm:px-6" style={actasDialogScrollStyle}>
-              <form onSubmit={event => { event.preventDefault(); void handleSave() }} className="space-y-5">
-                <h3 className="text-base font-semibold tracking-tight text-foreground">Nueva acta administrativa</h3>
-
-                {formError && (
-                  <Alert variant="destructive" className="py-2" role="alert">
-                    <AlertTriangle className="h-4 w-4" aria-hidden="true" />
-                    <AlertDescription className="text-xs">{formError}</AlertDescription>
-                  </Alert>
-                )}
-
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {/* Fecha */}
-                  <div className="min-w-0 space-y-2">
-                    <Label htmlFor={`${formId}-fecha`} className="text-sm font-medium text-foreground">Fecha <span aria-hidden="true">*</span><span className="sr-only"> (obligatoria)</span></Label>
-                    <Input
-                      ref={fechaRef}
-                      id={`${formId}-fecha`}
-                      type="date"
-                      required
-                      value={form.fecha}
-                      onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))}
-                      className="h-10 min-w-0 border-border bg-card text-sm focus-visible:ring-offset-0"
-                    />
-                  </div>
-
-                  {/* Fecha seguimiento */}
-                  <div className="min-w-0 space-y-2">
-                    <Label htmlFor={`${formId}-fecha-seguimiento`} className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                      <CalendarClock className="size-4" aria-hidden="true" />
-                      Fecha de revisión
-                    </Label>
-                    <Input
-                      id={`${formId}-fecha-seguimiento`}
-                      type="date"
-                      value={form.fecha_seguimiento}
-                      onChange={e => setForm(f => ({ ...f, fecha_seguimiento: e.target.value }))}
-                      className="h-10 min-w-0 border-border bg-card text-sm focus-visible:ring-offset-0"
-                    />
-                  </div>
-
-                  {/* Estatus */}
-                  <div className="space-y-2">
-                    <Label htmlFor={`${formId}-estatus`} className="text-sm font-medium text-foreground">Estatus</Label>
-                    <Select
-                      value={form.estatus}
-                      onValueChange={v => setForm(f => ({ ...f, estatus: v as ActaEstatus }))}
-                    >
-                      <SelectTrigger id={`${formId}-estatus`} className="h-10 border-border bg-card text-sm focus-visible:ring-offset-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ACTA_ESTATUSES.map(s => (
-                          <SelectItem key={s} value={s} className="text-sm">{s}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Descripción */}
-                <div className="space-y-2">
-                  <Label htmlFor={`${formId}-descripcion`} className="text-sm font-medium text-foreground">Descripción / motivo</Label>
-                  <Textarea
-                    id={`${formId}-descripcion`}
-                    value={form.descripcion}
-                    onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
-                    placeholder="Describe brevemente el motivo o los compromisos acordados..."
-                    className="min-h-24 border-border bg-card text-sm focus-visible:ring-offset-0"
-                  />
-                </div>
-
-                {/* Form actions */}
-                <div className="flex flex-col-reverse gap-2 pt-1 sm:flex-row sm:justify-end">
-                  <Button
-                    type="button" variant="ghost"
-                    className="h-10 w-full focus-visible:ring-offset-0 sm:w-auto"
-                    onClick={() => { setShowForm(false); setFormError(null) }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="h-10 w-full focus-visible:ring-offset-0 sm:w-auto"
-                    disabled={saving}
-                  >
-                    {saving
-                      ? <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
-                      : <Check className="mr-1.5 size-4" aria-hidden="true" />}
-                    Guardar
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </DialogContent>
-        </Dialog>
+      {selected && (
+        <ActaDetalle acta={selected} canEdit={canCapturePlantilla} canDelete={canEdit}
+          onClose={() => setSelectedId(null)} onChangeEstatus={handleChangeEstatus} onDelete={handleDelete} />
       )}
+
+      <ResponsiveShell open={showForm} onClose={closeForm} title="Nueva acta administrativa" description={nombreEmpleado ?? `#${numeroEmpleado}`} size="sm">
+        <ModalHeader title="Nueva acta administrativa" onClose={closeForm} />
+        <form id={formId} onSubmit={event => { event.preventDefault(); void handleSave() }}
+          className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-(--card-padding)">
+          {formError && (
+            <Alert variant="destructive" role="alert">
+              <AlertTriangle className="size-4" aria-hidden="true" />
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
+          )}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="min-w-0 space-y-1.5">
+              <Label htmlFor={`${formId}-fecha`}>Fecha <span aria-hidden="true">*</span><span className="sr-only"> (obligatoria)</span></Label>
+              <Input id={`${formId}-fecha`} type="date" required value={form.fecha}
+                onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <Label htmlFor={`${formId}-fecha-seguimiento`}>Fecha de revisión</Label>
+              <Input id={`${formId}-fecha-seguimiento`} type="date" value={form.fecha_seguimiento}
+                onChange={e => setForm(f => ({ ...f, fecha_seguimiento: e.target.value }))} />
+            </div>
+            <div className="min-w-0 space-y-1.5">
+              <Label htmlFor={`${formId}-estatus`}>Estatus</Label>
+              <EstatusSelect id={`${formId}-estatus`} value={form.estatus} onChange={estatus => setForm(f => ({ ...f, estatus }))} />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`${formId}-descripcion`}>Descripción o motivo</Label>
+            <Textarea id={`${formId}-descripcion`} value={form.descripcion}
+              onChange={e => setForm(f => ({ ...f, descripcion: e.target.value }))}
+              placeholder="Describe brevemente el motivo o los compromisos acordados…" className="min-h-24" />
+          </div>
+        </form>
+        <ModalFooter onCancel={closeForm} onConfirm={() => void handleSave()} saving={saving} />
+      </ResponsiveShell>
     </>
   )
 }

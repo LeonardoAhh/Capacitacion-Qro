@@ -1,18 +1,21 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, BookOpen } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { Plus } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_FILTER, TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
 import type { Department, Position } from "@/lib/hooks"
 import { puestoCursosHref } from "@/components/content/plantilla-paths"
+import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 8
+const PAGE_SIZE = 12
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 interface CapPositionsTabProps {
   departments: Department[]
@@ -25,14 +28,15 @@ interface CapPositionsTabProps {
 export function CapPositionsTab({
   departments, positions, loadingPositions, isReadOnly, onNewPosition,
 }: CapPositionsTabProps) {
+  const router = useRouter()
   const [posSearch, setPosSearch]     = useState("")
-  const [selectedDept, setSelectedDept] = useState("all")
+  const [selectedDept, setSelectedDept] = useState(FILTER_ALL)
   const [posPage, setPosPage]         = useState(1)
 
   const getDeptName = (p: Position): string | undefined =>
     (p.department as { name?: string } | null | undefined)?.name
   const filtered = positions.filter(p => {
-    const matchesDept   = selectedDept === "all" || p.department_id === selectedDept
+    const matchesDept   = selectedDept === FILTER_ALL || p.department_id === selectedDept
     const matchesSearch =
       p.name.toLowerCase().includes(posSearch.toLowerCase()) ||
       (getDeptName(p) ?? "").toLowerCase().includes(posSearch.toLowerCase())
@@ -47,7 +51,7 @@ export function CapPositionsTab({
 
   return (
     <div className="space-y-4">
-      {/* Búsqueda, filtro y "Nuevo puesto" en la línea de las pestañas. */}
+      {/* Búsqueda, filtro, "Nuevo puesto" y página en la línea de las pestañas. */}
       <TabsToolbar>
         <SearchInput
           label="Buscar puesto"
@@ -56,80 +60,62 @@ export function CapPositionsTab({
           value={posSearch}
           onValueChange={setPosSearch}
         />
-        <Select value={selectedDept} onValueChange={setSelectedDept}>
-          <SelectTrigger className={TOOLBAR_FILTER} aria-label="Filtrar por departamento">
-            <SelectValue placeholder="Departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Departamentos</SelectItem>
-            {departments.map(d => (
-              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <FilterMenu
+          facets={[{
+            id: "departamento", label: "Departamento", value: selectedDept, onChange: setSelectedDept,
+            options: departments.map(d => ({ value: d.id, label: d.name })),
+          }]}
+          onClear={() => setSelectedDept(FILTER_ALL)}
+        />
         {!isReadOnly && (
-          <Button onClick={onNewPosition} className="min-w-(--control-height) px-3" aria-label="Nuevo puesto">
+          <Button size="sm" onClick={onNewPosition} aria-label="Nuevo puesto">
+            <Plus aria-hidden="true" />
             <span className="hidden sm:inline">Nuevo puesto</span>
-            <Plus className="sm:hidden" aria-hidden="true" />
           </Button>
         )}
+        <CompactPager label="Paginación de puestos" page={safePage} totalPages={totalPages} onPageChange={setPosPage} />
       </TabsToolbar>
 
       {loadingPositions ? (
-        <div className="rounded-md border border-border/60 overflow-hidden bg-transparent shadow-none">
-          <div className="divide-y divide-border/60">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3">
-                <Skeleton className="h-4 flex-1 bg-muted" />
-                <Skeleton className="h-4 w-32 hidden sm:block bg-muted" />
-                <Skeleton className="h-8 w-24 rounded-md bg-muted" />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-2" role="status" aria-label="Cargando puestos">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
           {positions.length === 0
             ? "No hay puestos cargados. Usa la pestaña Importar para cargar datos."
             : "No se encontraron puestos con ese filtro."}
-        </div>
+        </p>
       ) : (
-        <>
-          <div className="rounded-md border border-border/60 shadow-none overflow-hidden bg-transparent">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-transparent hover:bg-transparent border-border/60">
-                  <TableHead>Puesto</TableHead>
-                  <TableHead className="hidden sm:table-cell">Departamento</TableHead>
-                  <TableHead className="text-center w-24">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map(pos => (
-                  <TableRow key={pos.id} className="hover:bg-muted/30 border-border/60">
-                    <TableCell className="text-sm font-medium text-ink">{pos.name}</TableCell>
-                    <TableCell className="hidden sm:table-cell text-sm text-muted-foreground font-normal">
-                      <span>{getDeptName(pos) ?? "—"}</span>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Puestos; abre uno para ver sus cursos</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Puesto</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-56 sm:table-cell")}>Departamento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map(pos => {
+                const href = puestoCursosHref(pos.id)
+                const dept = getDeptName(pos)
+                return (
+                  <TableRow key={pos.id} className="cursor-pointer" onClick={() => router.push(href)}>
+                    <TableCell>
+                      <Link href={href} onClick={event => event.stopPropagation()} aria-label={`Ver cursos de ${pos.name}`}
+                        className="block truncate rounded-sm text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                        {pos.name}
+                      </Link>
+                      {dept && <span className="block truncate text-body-sm text-muted-foreground sm:hidden">{dept}</span>}
                     </TableCell>
-                    <TableCell className="text-center p-2">
-                      <Button asChild variant="ghost" size="sm" className="mx-auto">
-                        <Link href={puestoCursosHref(pos.id)} aria-label={`Ver cursos de ${pos.name}`}>
-                          <BookOpen aria-hidden="true" />
-                          <span>Ver</span>
-                        </Link>
-                      </Button>
-                    </TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground sm:table-cell">{dept ?? "—"}</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-          {filtered.length > PAGE_SIZE && (
-            <div className="mt-4 flex justify-end">
-              <PaginationBar currentPage={safePage} totalPages={totalPages} onPageChange={setPosPage} />
-            </div>
-          )}
-        </>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

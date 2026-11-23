@@ -12,7 +12,7 @@ export const DESEMPENO = {
     saved: "/evaluadas",
     objectives: "/objetivos",
     pending: "/pendientes",
-    late: "/desempeno/regularizacion",
+    late: "/regularizacion",
   },
   search: {
     title: "Buscar empleado",

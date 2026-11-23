@@ -1,5 +1,5 @@
 import type { WorkspaceId } from "@/lib/navigation"
-import { SAFETY_HOME_PATH, SETTINGS_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 
 /**
@@ -99,9 +99,7 @@ export function workspaceForRoute(path: string): WorkspaceId {
   return SAFETY_ROUTES.some(route => matchesRoute(path, `${route}/*`)) ? "safety" : "training"
 }
 
-/** Configuración (perfil, apariencia) está abierta a todos los roles. */
 export function canAccessRoute(role: AppRole, path: string): boolean {
-  if (matchesRoute(path, `${SETTINGS_PATH}/*`)) return true
   const policy = ROLE_POLICIES[role]
   if (policy.routes) return policy.routes.some(rule => matchesRoute(path, rule))
   return policy.workspaces.includes(workspaceForRoute(path))

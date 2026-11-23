@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useMemo, useId } from "react"
-import { Search, FileText, CheckSquare, Square, Loader2 } from "lucide-react"
+import { useState, useEffect, useMemo } from "react"
+import { FileText, Loader2 } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -12,9 +12,18 @@ import { notify } from "@/lib/notify"
 import { addReportFooter } from "@/lib/pdf-footer"
 import { PRINT_FONT_FAMILY, registerPrintFont } from "@/lib/print-font"
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { SearchInput } from "@/components/ui/search-input"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
+import { cn } from "@/lib/utils"
+
+// 9 filas de dos líneas caben con la barra superior en una pantalla de escritorio sin scroll.
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 export default function ReportesContent() {
   const { fetchEmployees, fetchEmployeeProgress } = useCapacitacion()
@@ -23,7 +32,7 @@ export default function ReportesContent() {
   const [search, setSearch] = useState("")
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [generating, setGenerating] = useState(false)
-  const searchId = useId()
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     loadEmployees()
@@ -52,6 +61,11 @@ export default function ReportesContent() {
       (e.puesto && e.puesto.toLowerCase().includes(s))
     )
   }, [employees, search])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const allSelected = filtered.length > 0 && selected.size === filtered.length
 
   const toggleSelect = (id: string) => {
     const next = new Set(selected)
@@ -189,98 +203,67 @@ export default function ReportesContent() {
   }
 
   return (
-    <div className="flex w-full min-w-0 flex-col gap-6 pb-10">
-      <Card className="border-border">
-        <CardHeader className="flex-shrink-0 border-b border-border/50 bg-muted/20 p-6">
-          <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
-            <div className="relative min-w-0 flex-1">
-              <label htmlFor={searchId} className="sr-only">
-                Buscar por nombre, número o puesto
-              </label>
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-              <Input
-                id={searchId}
-                placeholder="Buscar por nombre, número o puesto..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-11 min-h-11 bg-background pl-10 text-sm"
-              />
-            </div>
-            <div className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleSelectAll}
-                className="h-11 min-h-11 w-full px-3 py-0 text-sm sm:w-auto"
-              >
-                {selected.size === filtered.length && filtered.length > 0 ? (
-                  <CheckSquare className="mr-2 h-4 w-4" />
-                ) : (
-                  <Square className="mr-2 h-4 w-4" />
-                )}
-                {selected.size === filtered.length && filtered.length > 0 ? "Deseleccionar Todos" : "Seleccionar Todos"}
-              </Button>
-            </div>
-            <Button
-              onClick={handleDownload}
-              disabled={selected.size === 0 || generating}
-              className="h-11 min-h-11 w-full px-3 py-0 text-sm font-medium sm:w-auto"
-            >
-              {generating ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : (
-                <FileText className="mr-2 h-4 w-4" />
-              )}
-              {generating ? "Generando PDF..." : `Descargar PDF (${selected.size})`}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="flex min-h-48 items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground/50" />
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="flex min-h-48 items-center justify-center px-4 text-center text-sm text-muted-foreground">
-              <p>No se encontraron colaboradores.</p>
-            </div>
-          ) : (
-            <ul className="grid grid-cols-1 md:grid-cols-2">
-              {filtered.map((emp) => (
-                <li key={emp.id} className="border-b border-border/50 md:odd:border-r md:odd:border-r-border/50">
-                  <button
-                    type="button"
-                    aria-label={`Seleccionar a ${emp.nombre}`}
-                    aria-pressed={selected.has(emp.id)}
-                    onClick={() => toggleSelect(emp.id)}
-                    className={`flex h-full min-h-11 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring sm:gap-4 sm:px-6 ${selected.has(emp.id) ? "bg-muted/30" : ""}`}
-                  >
-                    {selected.has(emp.id) ? (
-                      <CheckSquare className="size-5 shrink-0 text-primary" aria-hidden="true" />
-                    ) : (
-                      <Square className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                    )}
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-medium text-foreground">{emp.nombre}</span>
-                      <span className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                        <span>
-                          <span className="font-medium text-foreground/70">Nº:</span> {emp.numero || "N/A"}
-                        </span>
-                        <span>
-                          <span className="font-medium text-foreground/70">Puesto:</span> {emp.puesto || "N/A"}
-                        </span>
-                        <span>
-                          <span className="font-medium text-foreground/70">Depto:</span> {emp.departamento || "N/A"}
-                        </span>
+    <div className="space-y-4">
+      {/* Barra única: búsqueda y selección a la izquierda; descarga y página a la derecha. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput value={search} onValueChange={value => { setSearch(value); setPage(1) }}
+          label="Buscar por nombre, número o puesto" placeholder="Buscar por nombre, número o puesto…" className={TOOLBAR_SEARCH} />
+        {filtered.length > 0 && (
+          <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground">
+            <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Seleccionar todos los colaboradores" />
+            <span aria-live="polite">{selected.size > 0 ? `${selected.size} seleccionados` : "Seleccionar todos"}</span>
+          </label>
+        )}
+        <div className="ml-auto flex items-center gap-2">
+          <Button size="sm" onClick={handleDownload} disabled={selected.size === 0 || generating}>
+            {generating ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <FileText aria-hidden="true" />}
+            {generating ? "Generando PDF…" : "Descargar PDF"}
+          </Button>
+          <CompactPager label="Paginación de colaboradores" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="space-y-2" aria-label="Cargando colaboradores">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+          No se encontraron colaboradores.
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Colaboradores para el reporte de capacitación</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="w-12 px-1"><span className="sr-only">Seleccionar</span></TableHead>
+                <TableHead scope="col" className={HEAD}>Colaborador</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-56 md:table-cell")}>Departamento</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pageRows.map(emp => {
+                const isSelected = selected.has(emp.id)
+                return (
+                  <TableRow key={emp.id} data-state={isSelected ? "selected" : undefined} className="cursor-pointer" onClick={() => toggleSelect(emp.id)}>
+                    <TableCell className="px-1 text-center" onClick={event => event.stopPropagation()}>
+                      <Checkbox checked={isSelected} onCheckedChange={() => toggleSelect(emp.id)} aria-label={`Seleccionar a ${emp.nombre}`} />
+                    </TableCell>
+                    <TableCell>
+                      <span className="block truncate text-label-sm text-foreground">{emp.nombre}</span>
+                      <span className="block truncate text-body-sm text-muted-foreground">
+                        {[`#${emp.numero || "—"}`, emp.puesto].filter(Boolean).join(" · ")}
                       </span>
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+                    </TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{emp.departamento || "—"}</TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </div>
   )
 }

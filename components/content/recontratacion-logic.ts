@@ -6,7 +6,7 @@ export type UrgencyLevel = "critical" | "warning" | "expired" | "normal" | "inde
 
 export const URGENCY_THRESHOLDS = { critical: 7, warning: 15 } as const
 export const EVAL_THRESHOLDS = { minPass: 70, goodAvg: 85, maxFaltas: 3 } as const
-export const PAGE_SIZE = 8
+export const PAGE_SIZE = 9
 
 export function evaluarRecomendacion(data: RecontratacionPrintData): Recomendacion {
   const califs = data.evaluaciones

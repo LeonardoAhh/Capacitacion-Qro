@@ -143,11 +143,13 @@
         --input: 216.92 10.83% 52.94%;
         --ring: var(--primary);
 
-        --chart-1: var(--primary);
-        --chart-2: 217.22 91.22% 59.8%;
-        --chart-3: 215.29 19.32% 34.51%;
-        --chart-4: 192.92 82.28% 30.98%;
-        --chart-5: 215.38 16.32% 46.86%;
+        /* Paleta de gráficas: 5 tonos distinguibles como máximo, sin repetir grises.
+           2 = azul de éxito (aprobado / cumple) y 3 = ámbar de aviso (pendiente / parcial). */
+        --chart-1: 173 58% 39%;
+        --chart-2: 212 100% 48%;
+        --chart-3: 37 91% 55%;
+        --chart-4: 262 52% 55%;
+        --chart-5: 340 65% 52%;
 
         /* La barra lateral comparte superficie con el contenido dentro del panel. */
         --sidebar: var(--card);
@@ -253,11 +255,11 @@
         --input: 217.78 11.59% 54.31%;
         --ring: var(--primary);
 
-        --chart-1: var(--primary);
-        --chart-2: 213.12 93.9% 67.84%;
-        --chart-3: 215 20.22% 65.1%;
-        --chart-4: 187.94 85.71% 53.33%;
-        --chart-5: 212.73 26.83% 83.92%;
+        --chart-1: 172 55% 50%;
+        --chart-2: 212 100% 62%;
+        --chart-3: 38 92% 58%;
+        --chart-4: 263 70% 72%;
+        --chart-5: 340 75% 68%;
 
         --sidebar: var(--card);
         --sidebar-foreground: var(--foreground);

@@ -23,18 +23,21 @@ export function useExamenes() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const buscar = useCallback(async (term: string) => {
-    if (!term.trim()) {
+  /** Busca por texto, por departamento o por ambos; sin ninguno, la lista queda vacía. */
+  const buscar = useCallback(async (term: string, departamento?: string) => {
+    const texto = term.trim()
+    if (!texto && !departamento) {
       setPreguntas([])
       return
     }
     setLoading(true)
     setError(null)
     try {
-      const { data, error: err } = await supabase
-        .from("preguntas_examen")
-        .select("*")
-        .or(`pregunta.ilike.%${term}%,departamento.ilike.%${term}%,opcion_a.ilike.%${term}%,opcion_b.ilike.%${term}%,opcion_c.ilike.%${term}%`)
+      let query = supabase.from("preguntas_examen").select("*")
+      if (texto) query = query.or(`pregunta.ilike.%${texto}%,departamento.ilike.%${texto}%,opcion_a.ilike.%${texto}%,opcion_b.ilike.%${texto}%,opcion_c.ilike.%${texto}%`)
+      // Sin comodines: el departamento coincide completo, sin distinguir mayúsculas.
+      if (departamento) query = query.ilike("departamento", departamento)
+      const { data, error: err } = await query
         .order("departamento")
         .order("created_at", { ascending: false })
       if (err) throw err

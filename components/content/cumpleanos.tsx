@@ -1,28 +1,15 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import {
-  AlertCircle,
-  CalendarDays,
-  CalendarRange,
-  Cake,
-  CheckCircle2,
-  Clock3,
-  FileJson,
-  Loader2,
-  Mail,
-  RefreshCw,
-  Search,
-  Send,
-  X,
-} from "lucide-react"
+import { useMemo, useState, type ReactNode } from "react"
+import { AlertCircle, Cake, FileJson, Loader2, RefreshCw, Search, Send } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { SearchInput } from "@/components/ui/search-input"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CumpleanosImportModal } from "@/components/content/cumpleanos-import-modal"
 import {
   BIRTHDAY_LOOKAHEAD_DAYS,
@@ -61,123 +48,13 @@ function formatBirthday(iso: string) {
   return DATE_FORMATTER.format(parseIsoDate(iso))
 }
 
-interface BirthdayRowProps {
-  entry: CumpleanosEntry
-  canEdit: boolean
-  selected: boolean
-  sending: boolean
-  onToggle: () => void
-  onSend: (entry: CumpleanosEntry) => Promise<void>
-}
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
-function BirthdayRow({ entry, canEdit, selected, sending, onToggle, onSend }: BirthdayRowProps) {
-  const withinSendWindow = entry.diasParaCumpleanios <= BIRTHDAY_LOOKAHEAD_DAYS
-  const selectable = Boolean(entry.email) && !entry.yaEnviado && withinSendWindow
-  const canSend = Boolean(entry.email)
-  const selectionId = `birthday-${entry.tabla}-${entry.id}`
-
-  return (
-    <li
-      className={cn(
-        "min-w-0 rounded-xl border border-border bg-card p-4 transition-colors",
-        selected && "border-primary/40 bg-primary/[0.03]",
-      )}
-    >
-      <div className="flex min-w-0 items-start gap-3 lg:items-center">
-        {canEdit && (
-          <label
-            htmlFor={selectionId}
-            className="grid size-(--control-height) shrink-0 cursor-pointer place-items-center rounded-md focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 has-[:disabled]:cursor-not-allowed"
-          >
-            <Checkbox
-              id={selectionId}
-              checked={selected}
-              onCheckedChange={onToggle}
-              disabled={!selectable}
-              aria-label={`Seleccionar a ${entry.nombre}`}
-            />
-          </label>
-        )}
-
-        <div className="grid min-w-0 flex-1 gap-4 lg:grid-cols-2 lg:items-center">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <h3 className="min-w-0 break-words text-sm font-medium leading-5 text-foreground">
-                {entry.nombre}
-              </h3>
-              {entry.numero && (
-                <span className="font-sans text-xs text-muted-foreground">#{entry.numero}</span>
-              )}
-            </div>
-          </div>
-
-          <dl className="grid min-w-0 grid-cols-1 gap-x-4 gap-y-3 border-t border-border pt-3 sm:grid-cols-2 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
-            <div className="min-w-0">
-              <dt className="text-xs font-medium uppercase text-muted-foreground">
-                Cumpleaños
-              </dt>
-              <dd className="mt-0.5 text-sm text-foreground sm:whitespace-nowrap">
-                {formatBirthday(entry.fechaCumpleanios)} · {entry.edad} años
-              </dd>
-            </div>
-            <div className="min-w-0">
-              <dt className="text-xs font-medium uppercase text-muted-foreground">
-                Correo
-              </dt>
-              <dd className="mt-0.5 flex min-w-0 items-start gap-1.5 text-sm text-foreground">
-                <Mail className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
-                <span className="min-w-0 break-all">{entry.email || "Sin correo registrado"}</span>
-              </dd>
-            </div>
-          </dl>
-        </div>
-
-        <div className="flex shrink-0 items-center gap-1">
-          {entry.yaEnviado && (
-            <Badge variant="success" className="hidden gap-1 text-xs font-medium sm:inline-flex">
-              <CheckCircle2 className="size-3" aria-hidden="true" />
-              Enviado
-            </Badge>
-          )}
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-(--control-height)"
-              disabled={!canSend || sending}
-              onClick={() => onSend(entry)}
-              aria-label={
-                !withinSendWindow
-                  ? `Enviar felicitación atrasada a ${entry.nombre}`
-                  : entry.yaEnviado
-                    ? `Reenviar felicitación a ${entry.nombre}`
-                    : !entry.email
-                      ? `${entry.nombre} no tiene correo registrado`
-                      : `Enviar felicitación a ${entry.nombre}`
-              }
-            >
-              {sending ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {entry.yaEnviado && (
-        <div className="mt-3 sm:hidden">
-          <Badge variant="success" className="gap-1 text-xs font-medium">
-            <CheckCircle2 className="size-3" aria-hidden="true" />
-            Enviado
-          </Badge>
-        </div>
-      )}
-    </li>
-  )
-}
-
-interface BirthdaySectionProps {
-  title: string
+interface BirthdayTableProps {
+  label: string
+  /** Solo la primera tabla muestra encabezados; las siguientes los dejan para lectores de pantalla. */
+  showHead: boolean
   entries: CumpleanosEntry[]
-  icon: React.ReactNode
   canEdit: boolean
   selectedIds: Set<string>
   sendingId: string | null
@@ -185,62 +62,110 @@ interface BirthdaySectionProps {
   onSend: (entry: CumpleanosEntry) => Promise<void>
 }
 
-function BirthdaySection({
-  title,
-  entries,
-  icon,
-  canEdit,
-  selectedIds,
-  sendingId,
-  onToggle,
-  onSend,
-}: BirthdaySectionProps) {
-  return (
-    <section
-      aria-labelledby={`section-${title.replaceAll(" ", "-").toLowerCase()}`}
-      className="space-y-2"
-    >
-      <div className="flex items-center gap-3 px-1">
-        <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-card text-muted-foreground" aria-hidden="true">
-          {icon}
-        </span>
-        <h2
-          id={`section-${title.replaceAll(" ", "-").toLowerCase()}`}
-          className="min-w-0 flex-1 text-xl font-semibold leading-7 tracking-tight text-foreground"
-        >
-          {title}
-        </h2>
-        <Badge variant="secondary" className="font-medium" aria-label={`${entries.length} colaboradores`}>
-          {entries.length}
-        </Badge>
-      </div>
+/** Etiqueta accesible del botón de envío según el caso de la persona. */
+function sendLabel(entry: CumpleanosEntry) {
+  if (entry.diasParaCumpleanios > BIRTHDAY_LOOKAHEAD_DAYS) return `Enviar felicitación atrasada a ${entry.nombre}`
+  if (entry.yaEnviado) return `Reenviar felicitación a ${entry.nombre}`
+  if (!entry.email) return `${entry.nombre} no tiene correo registrado`
+  return `Enviar felicitación a ${entry.nombre}`
+}
 
-      <ul className="grid gap-2">
-        {entries.map((entry) => {
-          const key = birthdayEntryKey(entry)
-          return (
-            <BirthdayRow
-              key={key}
-              entry={entry}
-              canEdit={canEdit}
-              selected={selectedIds.has(key)}
-              sending={sendingId === key}
-              onToggle={() => onToggle(key)}
-              onSend={onSend}
-            />
-          )
-        })}
-      </ul>
+/**
+ * Un periodo (Hoy, Próximos 7 días…): rótulo con su total y una tabla. Cada periodo
+ * es su propia tabla para no usar filas que abarquen columnas ocultas en móvil.
+ */
+function BirthdayTable({ label, showHead, entries, canEdit, selectedIds, sendingId, onToggle, onSend }: BirthdayTableProps) {
+  return (
+    <section aria-label={label} className="space-y-2">
+      <p className="flex items-center gap-2 text-eyebrow uppercase text-muted-foreground">
+        {label}<span className="tabular-nums">· {entries.length}</span>
+      </p>
+      <div className="overflow-hidden rounded-xl border bg-card">
+        <Table className="table-fixed">
+          {/* Anchos en colgroup: todas las tablas alinean sus columnas aunque solo la primera muestre encabezados. */}
+          <colgroup>
+            {canEdit && <col className="w-12" />}
+            <col />
+            <col className="hidden w-44 sm:table-column" />
+            <col className="hidden w-28 md:table-column" />
+            {canEdit && <col className="w-14" />}
+          </colgroup>
+          <TableHeader className={showHead ? "bg-muted/50" : "sr-only"}>
+            <TableRow className="hover:bg-transparent">
+              {canEdit && <TableHead className="px-1"><span className="sr-only">Seleccionar</span></TableHead>}
+              <TableHead className={HEAD}>Colaborador</TableHead>
+              <TableHead className={cn(HEAD, "hidden sm:table-cell")}>Cumpleaños</TableHead>
+              <TableHead className={cn(HEAD, "hidden md:table-cell")}>Estado</TableHead>
+              {canEdit && <TableHead className="px-1"><span className="sr-only">Enviar</span></TableHead>}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {entries.map((entry) => {
+              const key = birthdayEntryKey(entry)
+              const selected = selectedIds.has(key)
+              const selectable = Boolean(entry.email) && !entry.yaEnviado && entry.diasParaCumpleanios <= BIRTHDAY_LOOKAHEAD_DAYS
+              const sending = sendingId === key
+              const fecha = formatBirthday(entry.fechaCumpleanios)
+              return (
+                <TableRow key={key} data-state={selected ? "selected" : undefined}>
+                  {canEdit && (
+                    <TableCell className="px-1 text-center">
+                      <Checkbox checked={selected} onCheckedChange={() => onToggle(key)} disabled={!selectable}
+                        aria-label={`Seleccionar a ${entry.nombre}`} />
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <span className="block truncate text-label-sm text-foreground">{entry.nombre}</span>
+                    {/* En móvil el detalle es la fecha; desde sm, el número y el correo. */}
+                    <span className="block truncate text-body-sm text-muted-foreground sm:hidden">
+                      {fecha} · {entry.edad} años{entry.yaEnviado ? " · Enviado" : ""}
+                    </span>
+                    <span className="hidden truncate text-body-sm text-muted-foreground sm:block">
+                      {[entry.numero && `#${entry.numero}`, entry.email || "Sin correo registrado"].filter(Boolean).join(" · ")}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <span className="block truncate text-body-sm text-foreground">{fecha}</span>
+                    <span className="block truncate text-body-sm text-muted-foreground">{entry.edad} años</span>
+                  </TableCell>
+                  <TableCell className="hidden md:table-cell">
+                    {entry.yaEnviado
+                      ? <Badge variant="success" size="sm">Enviado</Badge>
+                      : <span className="text-body-sm text-muted-foreground">{entry.email ? "Por enviar" : "Sin correo"}</span>}
+                  </TableCell>
+                  {canEdit && (
+                    <TableCell className="px-1 text-center">
+                      <Button variant="ghost" size="icon" disabled={!entry.email || sending} onClick={() => onSend(entry)} aria-label={sendLabel(entry)}>
+                        {sending ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Send aria-hidden="true" />}
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              )
+            })}
+          </TableBody>
+        </Table>
+      </div>
     </section>
   )
 }
 
 function LoadingState() {
   return (
-    <div className="space-y-4" role="status" aria-label="Cargando cumpleaños">
-      <Skeleton className="h-24 w-full rounded-xl" />
-      <Skeleton className="h-36 w-full rounded-xl" />
-      <Skeleton className="h-28 w-full rounded-xl" />
+    <div className="space-y-2" role="status" aria-label="Cargando cumpleaños">
+      {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+    </div>
+  )
+}
+
+/** Estado vacío con la forma de las demás vistas. */
+function EmptyState({ icon: Icon, title, text, action }: { icon: typeof Cake; title: string; text: string; action?: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+      <Icon className="size-6 text-muted-foreground" aria-hidden="true" />
+      <p className="text-label-sm text-foreground">{title}</p>
+      <p className="text-body-sm text-muted-foreground">{text}</p>
+      {action}
     </div>
   )
 }
@@ -401,8 +326,8 @@ export default function CumpleanosContent() {
       <Card role="alert">
         <CardContent className="flex flex-col items-start gap-4 p-(--card-padding) sm:flex-row sm:items-center">
           <AlertCircle className="size-5 shrink-0 text-destructive" aria-hidden="true" />
-          <p className="flex-1 text-sm">No se pudo cargar la información de cumpleaños.</p>
-          <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => void recargar()}>
+          <p className="flex-1 text-body-md">No se pudo cargar la información de cumpleaños.</p>
+          <Button variant="outline" size="sm" onClick={() => void recargar()}>
             <RefreshCw aria-hidden="true" />
             Reintentar
           </Button>
@@ -415,21 +340,18 @@ export default function CumpleanosContent() {
     {
       ...BIRTHDAY_PERIODS[0],
       entries: pageEntries.filter((entry) => entry.diasParaCumpleanios === 0),
-      icon: <Cake className="size-4" />,
     },
     {
       ...BIRTHDAY_PERIODS[1],
       entries: pageEntries.filter(
         (entry) => entry.diasParaCumpleanios >= 1 && entry.diasParaCumpleanios <= 7,
       ),
-      icon: <CalendarDays className="size-4" />,
     },
     {
       ...BIRTHDAY_PERIODS[2],
       entries: pageEntries.filter(
         (entry) => entry.diasParaCumpleanios >= 8 && entry.diasParaCumpleanios <= 30,
       ),
-      icon: <CalendarRange className="size-4" />,
     },
     {
       ...BIRTHDAY_PERIODS[3],
@@ -438,7 +360,6 @@ export default function CumpleanosContent() {
           entry.diasParaCumpleanios >= 31 &&
           entry.diasParaCumpleanios <= BIRTHDAY_LOOKAHEAD_DAYS,
       ),
-      icon: <Clock3 className="size-4" />,
     },
   ]
   const periods = searchQuery.trim()
@@ -447,115 +368,55 @@ export default function CumpleanosContent() {
           key: "resultados",
           label: "Resultados",
           entries: pageEntries,
-          icon: <Search className="size-4" />,
         },
       ]
     : periodGroups
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-col gap-3 md:flex-row md:flex-wrap md:items-center">
-        <div className="relative w-full min-w-0 md:min-w-[220px] md:flex-1">
-          <Search
-            className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
-          <Input
-            type="text"
-            inputMode="search"
-            enterKeyHint="search"
-            value={searchQuery}
-            onChange={(event) => handleSearchChange(event.target.value)}
-            placeholder="Buscar colaborador"
-            aria-label="Buscar por nombre, número o correo"
-            className="h-(--control-height) pl-9 pr-11 text-sm"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => handleSearchChange("")}
-              className="absolute right-0 top-1/2 grid size-(--control-height) -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              aria-label="Limpiar búsqueda"
-            >
-              <X className="size-4" aria-hidden="true" />
-            </button>
-          )}
-        </div>
-
-        <div className="min-h-(--control-height) md:ml-1">
-          {canEdit && selectable.length > 0 && (
-            <label className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md px-2 text-sm focus-within:ring-2 focus-within:ring-ring">
-              <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Seleccionar todos los colaboradores disponibles" />
-              <span aria-live="polite">
-                {selectedCount > 0 ? `${selectedCount} seleccionados` : "Seleccionar todos"}
-              </span>
-            </label>
-          )}
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 md:ml-auto">
+      {/* Barra única: búsqueda y selección a la izquierda; acciones y página a la derecha. */}
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput value={searchQuery} onValueChange={handleSearchChange} label="Buscar por nombre, número o correo"
+          placeholder="Buscar colaborador" className="w-full sm:w-64" />
+        {canEdit && selectable.length > 0 && (
+          <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground">
+            <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Seleccionar todos los colaboradores disponibles" />
+            <span aria-live="polite">{selectedCount > 0 ? `${selectedCount} seleccionados` : "Seleccionar todos"}</span>
+          </label>
+        )}
+        <div className="ml-auto flex items-center gap-2">
           {selectedCount > 0 && (
-            <Button size="sm" className="h-(--control-height) px-3 py-0 text-sm" disabled={sendingBulk} onClick={() => void handleSendSelected()}>
-              {sendingBulk ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" />}
+            <Button size="sm" disabled={sendingBulk} onClick={() => void handleSendSelected()}>
+              {sendingBulk ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Send aria-hidden="true" />}
               Enviar {selectedCount} {selectedCount === 1 ? "correo" : "correos"}
             </Button>
           )}
           {canEdit && (
-            <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
+            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
               <FileJson aria-hidden="true" />
               Empleados
             </Button>
           )}
-          <Button variant="outline" size="icon" className="size-(--control-height)" onClick={() => void recargar()} aria-label="Actualizar cumpleaños">
-            <RefreshCw aria-hidden="true" />
-          </Button>
+          <CompactPager label="Paginación de cumpleaños" page={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
       </div>
 
       {upcomingEntries.length === 0 && !searchQuery.trim() ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <span className="grid size-12 place-items-center rounded-md bg-muted text-muted-foreground">
-              <Cake className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="text-xl font-semibold leading-7 tracking-tight">Sin cumpleaños próximos</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                No hay registros dentro de los próximos {BIRTHDAY_LOOKAHEAD_DAYS} días.
-              </p>
-            </div>
-            {canEdit && (
-              <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => setImportOpen(true)}>
-                Importar información
-              </Button>
-            )}
-          </CardContent>
-        </Card>
+        <EmptyState icon={Cake} title="Sin cumpleaños próximos"
+          text={`No hay registros dentro de los próximos ${BIRTHDAY_LOOKAHEAD_DAYS} días.`}
+          action={canEdit && <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>Importar información</Button>} />
       ) : filteredEntries.length === 0 ? (
-        <Card>
-          <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
-            <span className="grid size-12 place-items-center rounded-md bg-muted text-muted-foreground">
-              <Search className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="text-xl font-semibold leading-7 tracking-tight">Sin resultados</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                No encontramos colaboradores que coincidan con “{searchQuery.trim()}”.
-              </p>
-            </div>
-            <Button variant="outline" size="sm" className="h-(--control-height) px-3 py-0 text-sm" onClick={() => handleSearchChange("")}>
-              Limpiar búsqueda
-            </Button>
-          </CardContent>
-        </Card>
+        <EmptyState icon={Search} title="Sin resultados"
+          text={`No encontramos colaboradores que coincidan con “${searchQuery.trim()}”.`}
+          action={<Button variant="outline" size="sm" onClick={() => handleSearchChange("")}>Limpiar búsqueda</Button>} />
       ) : (
-        <div className="space-y-3">
-          {periods.filter((period) => period.entries.length > 0).map((period) => (
-            <BirthdaySection
+        <div className="space-y-4">
+          {periods.filter((period) => period.entries.length > 0).map((period, index) => (
+            <BirthdayTable
               key={period.key}
-              title={period.label}
+              label={period.label}
+              showHead={index === 0}
               entries={period.entries}
-              icon={period.icon}
               canEdit={canEdit}
               selectedIds={selectedIds}
               sendingId={sendingId}
@@ -563,18 +424,6 @@ export default function CumpleanosContent() {
               onSend={handleSendOne}
             />
           ))}
-          {totalPages > 1 && (
-            <div className="flex flex-col gap-2 pt-1 sm:flex-row sm:items-center sm:justify-between [&>nav]:mb-0">
-              <p className="text-sm text-muted-foreground">
-                Mostrando {(safePage - 1) * PAGE_SIZE + 1}–{Math.min(safePage * PAGE_SIZE, filteredEntries.length)} de {filteredEntries.length}
-              </p>
-              <PaginationBar
-                currentPage={safePage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
         </div>
       )}
 

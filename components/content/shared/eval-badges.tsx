@@ -1,74 +1,50 @@
-import React from "react"
-import { CheckCircle2, AlertTriangle, CalendarCheck, XCircle, Clock } from "lucide-react"
 import { formatDate, daysFromToday, evalStatus } from "@/lib/hooks"
 import type { EvalStatus } from "@/lib/hooks"
 import type { HitoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
+import { cn } from "@/lib/utils"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Metadata para estados de evaluación
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const EVAL_STATUS_META: Record<EvalStatus, { label: string; icon: React.ElementType; classes: string }> = {
-  completada: { label: 'Completada', icon: CheckCircle2, classes: 'text-success' },
-  disponible: { label: 'Disponible', icon: CalendarCheck, classes: 'text-success' },
-  proxima: { label: 'Próxima', icon: AlertTriangle, classes: 'text-warning-deep' },
-  hoy: { label: 'Hoy', icon: CalendarCheck, classes: 'text-warning-deep' },
-  vencida: { label: 'Vencida', icon: XCircle, classes: 'text-destructive' },
-  pendiente: { label: 'Pendiente', icon: Clock, classes: 'text-muted-foreground' },
+/** Color del estado de una evaluación: solo lo que pide atención se resalta. */
+const EVAL_TONE: Record<EvalStatus, string> = {
+  completada: "text-foreground",
+  disponible: "text-success",
+  proxima: "text-warning-deep",
+  hoy: "text-warning-deep",
+  vencida: "text-destructive",
+  pendiente: "text-foreground",
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// EvalBadge — indicador visual de estado de evaluación
-// ─────────────────────────────────────────────────────────────────────────────
+const LINE = "block truncate text-body-sm"
 
-export function EvalBadge({ fecha, calificacion, numeroEvaluacion }: {
+function enDias(diff: number) {
+  if (diff === 0) return "Hoy"
+  return diff > 0 ? `En ${diff} ${diff === 1 ? "día" : "días"}` : `Hace ${Math.abs(diff)} ${diff === -1 ? "día" : "días"}`
+}
+
+/** Celda de evaluación (tabla): fecha arriba; abajo la calificación o cuánto falta. */
+export function EvalCell({ fecha, calificacion, numeroEvaluacion }: {
   fecha: string | null
   calificacion: number | null
   numeroEvaluacion: HitoNuevoIngreso
 }) {
   const status = evalStatus(fecha, calificacion, numeroEvaluacion)
-  const { icon: Icon, classes } = EVAL_STATUS_META[status]
   const diff = daysFromToday(fecha)
-
-  return (
-    <div className={`flex flex-col items-center gap-0.5 ${classes}`}>
-      <Icon className="h-4 w-4" />
-      <span className="text-xs font-medium">{formatDate(fecha)}</span>
-      {calificacion != null && (
-        <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${calificacion >= 70 ? 'bg-success/10 text-success'
-          : 'bg-destructive/10 text-destructive'
-          }`}>{calificacion}</span>
-      )}
-      {calificacion == null && status === 'disponible' && (
-        <span className="text-xs opacity-70">Disponible</span>
-      )}
-      {calificacion == null && status !== 'disponible' && diff !== null && diff >= 0 && (
-        <span className="text-xs opacity-70">{diff === 0 ? 'hoy' : `en ${diff}d`}</span>
-      )}
-      {calificacion == null && status !== 'disponible' && diff !== null && diff < 0 && (
-        <span className="text-xs opacity-70">{Math.abs(diff)}d atrás</span>
-      )}
-    </div>
-  )
+  const detalle = calificacion != null
+    ? `Calificación ${calificacion}`
+    : status === "disponible" ? "Disponible" : diff !== null ? enDias(diff) : "—"
+  return <>
+    <span className={cn(LINE, EVAL_TONE[status])}>{formatDate(fecha)}</span>
+    <span className={cn(LINE, calificacion != null && calificacion < 70 ? "text-destructive" : "text-muted-foreground")}>{detalle}</span>
+  </>
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ContratoTerminoBadge — indicador de vencimiento de contrato
-// ─────────────────────────────────────────────────────────────────────────────
-
-export function ContratoTerminoBadge({ fecha, indeterminado }: { fecha: string | null; indeterminado?: boolean }) {
+/** Celda de término de contrato: fecha y, si es a prueba, cuánto falta (en color si urge). */
+export function ContratoTerminoCell({ tipo, fecha, indeterminado }: { tipo: string | null; fecha: string | null; indeterminado: boolean }) {
   const diff = daysFromToday(fecha)
-  if (diff === null) return <span className="text-xs text-muted-foreground">—</span>
-  const urgent = diff <= 10
-  const past = diff < 0
-  return (
-    <div className={`text-xs font-medium ${past && !indeterminado ? 'text-destructive' : urgent && !indeterminado ? 'text-warning-deep' : 'text-muted-foreground'}`}>
-      <div>{formatDate(fecha)}</div>
-      {!indeterminado && (
-        <div className="opacity-70">
-          {past ? `Vencido hace ${Math.abs(diff)}d` : diff === 0 ? 'Hoy' : `En ${diff} días`}
-        </div>
-      )}
-    </div>
-  )
+  const tone = indeterminado || diff === null ? "text-muted-foreground" : diff < 0 ? "text-destructive" : diff <= 10 ? "text-warning-deep" : "text-muted-foreground"
+  return <>
+    <span className={cn(LINE, "text-foreground")}>{tipo ?? "—"}</span>
+    <span className={cn(LINE, tone)}>
+      {diff === null ? "Sin término" : indeterminado ? formatDate(fecha) : `${formatDate(fecha)} · ${diff < 0 ? `vencido` : enDias(diff).toLowerCase()}`}
+    </span>
+  </>
 }

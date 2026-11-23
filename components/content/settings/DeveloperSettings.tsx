@@ -5,115 +5,74 @@ import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useMaintenanceMode } from "@/lib/hooks/useMaintenanceMode"
 import { ASSIGNMENTS_PATH } from "@/lib/navigation"
-import { SettingsGroup, SettingsRow, SettingsSectionHeader } from "./SettingsPrimitives"
+import { SettingsGroup, SettingsRow } from "./SettingsPrimitives"
 
-export function DeveloperSettings() {
+const UNITS = [
+  { value: "60", label: "Minutos" },
+  { value: "3600", label: "Horas" },
+  { value: "86400", label: "Días" },
+]
+
+/** Opciones avanzadas: pausar la app por mantenimiento y asignar evaluadores. */
+export function DeveloperSettings({ onNavigate }: { onNavigate?: () => void }) {
   const { isMaintenance, endsAt, toggleMaintenance, loading, saving, saveError } = useMaintenanceMode()
   const [duration, setDuration] = useState("30")
   const [unit, setUnit] = useState("60")
   const [feedback, setFeedback] = useState("")
   const seconds = Number(duration) * Number(unit)
-  const validDuration = duration.trim() !== "" && Number.isFinite(seconds) && seconds >= 1 && seconds <= 365 * 86400
+  const validDuration = duration.trim() !== "" && Number.isFinite(seconds) && seconds >= 60 && seconds <= 365 * 86400
+  const busy = loading || saving
 
   const saveMaintenance = async (active: boolean) => {
     setFeedback("")
     const success = await toggleMaintenance(active, seconds)
-    setFeedback(success
-      ? active
-        ? "Mantenimiento guardado. El contador comienza desde ahora."
-        : "Mantenimiento desactivado."
-      : "")
+    if (success) setFeedback(active ? "Mantenimiento activado." : "Mantenimiento desactivado.")
   }
 
   return (
-    <div className="space-y-5">
-      <SettingsSectionHeader
-        title="Desarrollador"
-        description="Peligro: Opciones avanzadas de control global del sistema."
-      />
-
-      <SettingsGroup title="Control de Sistema">
-        <SettingsRow
-          label="Modo mantenimiento"
-          description="Al activar, todos los usuarios en producción serán bloqueados y verán la pantalla de mantenimiento. Tú seguirás teniendo acceso si estás en localhost."
-          htmlFor="maintenance-mode"
-        >
-          <Switch
-            id="maintenance-mode"
-            checked={isMaintenance}
-            onCheckedChange={saveMaintenance}
-            disabled={loading || saving || (!isMaintenance && !validDuration)}
-          />
+    <div className="space-y-4">
+      <SettingsGroup title="Mantenimiento">
+        <SettingsRow label="Pausar la app" description="Nadie más podrá entrar hasta que lo desactives." htmlFor="maintenance-mode">
+          <Switch id="maintenance-mode" checked={isMaintenance} onCheckedChange={saveMaintenance}
+            disabled={busy || (!isMaintenance && !validDuration)} />
         </SettingsRow>
-        <div className="space-y-3 py-4">
-          <Label htmlFor="maintenance-duration" className="text-sm font-medium">
-            Duración estimada
-          </Label>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Input
-              id="maintenance-duration"
-              type="number"
-              min="1"
-              step="1"
-              value={duration}
-              onChange={(event) => setDuration(event.target.value)}
-              disabled={loading || saving}
-              aria-invalid={!validDuration}
-              aria-describedby="maintenance-duration-help"
-              className="min-h-11 w-full sm:w-28"
-            />
-            <Select value={unit} onValueChange={setUnit} disabled={loading || saving}>
-              <SelectTrigger className="min-h-11 w-full sm:w-36" aria-label="Unidad de duración">
-                <SelectValue />
-              </SelectTrigger>
+        <SettingsRow label="Tiempo estimado" description="Se muestra como cuenta regresiva a los usuarios." htmlFor="maintenance-duration">
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            <Input id="maintenance-duration" type="number" min="1" step="1" value={duration} onChange={event => setDuration(event.target.value)}
+              disabled={busy} aria-invalid={!validDuration} className="w-20" />
+            <Select value={unit} onValueChange={setUnit} disabled={busy}>
+              <SelectTrigger aria-label="Unidad de tiempo" className="w-28"><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Segundos</SelectItem>
-                <SelectItem value="60">Minutos</SelectItem>
-                <SelectItem value="3600">Horas</SelectItem>
-                <SelectItem value="86400">Días</SelectItem>
+                {UNITS.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
               </SelectContent>
             </Select>
             {isMaintenance && (
-              <Button
-                type="button"
-                className="min-h-11"
-                onClick={() => void saveMaintenance(true)}
-                disabled={loading || saving || !validDuration}
-              >
-                {saving ? "Guardando…" : "Reiniciar contador"}
+              <Button type="button" variant="outline" size="sm" onClick={() => void saveMaintenance(true)} disabled={busy || !validDuration}>
+                Reiniciar
               </Button>
             )}
           </div>
-          <p id="maintenance-duration-help" className="text-sm leading-5 text-muted-foreground">
-            {validDuration
-              ? "El contador comienza al activar o reiniciar. Al llegar a cero, el mantenimiento sigue activo hasta que lo desactives."
-              : "Introduce una duración entre 1 segundo y 365 días."}
-          </p>
-          {isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt)) && (
-            <p className="text-sm text-muted-foreground">
-              Fin estimado: {new Date(endsAt).toLocaleString("es-MX")}
-            </p>
-          )}
-          {saveError && <p role="alert" className="text-sm text-destructive">{saveError}</p>}
-          {feedback && <p role="status" className="text-sm text-foreground">{feedback}</p>}
-        </div>
+        </SettingsRow>
+        {(isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt))) || saveError || feedback || !validDuration ? (
+          <div className="space-y-1 py-2 text-body-sm">
+            {!validDuration && <p className="text-destructive">Escribe un tiempo de 1 minuto a 365 días.</p>}
+            {isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt)) && (
+              <p className="text-muted-foreground">Termina aprox. el {new Date(endsAt).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}</p>
+            )}
+            {saveError && <p role="alert" className="text-destructive">{saveError}</p>}
+            {feedback && <p role="status" className="text-foreground">{feedback}</p>}
+          </div>
+        ) : null}
       </SettingsGroup>
 
       <SettingsGroup title="Evaluaciones">
-        <SettingsRow
-          label="Asignaciones de evaluadores"
-          description="Elige las áreas y personas que puede evaluar cada cuenta."
-        >
-          <Button asChild type="button" variant="outline" className="min-h-11 w-full sm:w-auto">
-            <Link href={ASSIGNMENTS_PATH}>
-              Abrir asignaciones
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
+        <SettingsRow label="Asignar evaluadores" description="Qué áreas y personas evalúa cada cuenta.">
+          <Button asChild variant="outline" size="sm">
+            <Link href={ASSIGNMENTS_PATH} onClick={onNavigate}>Abrir<ArrowRight aria-hidden="true" /></Link>
           </Button>
         </SettingsRow>
       </SettingsGroup>

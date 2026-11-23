@@ -1,6 +1,6 @@
 "use client"
 
-import Link from "next/link"
+import { useState } from "react"
 import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
 import type { ReactNode } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -18,7 +18,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useProfile, useRole, useUser } from "@/lib/hooks"
-import { SETTINGS_PATH, type WorkspaceId } from "@/lib/navigation"
+import type { WorkspaceId } from "@/lib/navigation"
+import { SettingsDialog } from "@/components/settings-dialog"
 import { WorkspaceMenuSub } from "@/components/workspace-switcher"
 import { ROLE_LABELS } from "@/lib/constants/roles"
 import { cn } from "@/lib/utils"
@@ -51,6 +52,7 @@ export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWork
   const { role, isEvaluador, loading: roleLoading } = useRole()
   const { signingOut, logout } = useLogout()
   const { themeMode, setThemeMode } = useTheme()
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const displayName = profile?.displayName || user?.email?.split("@")[0] || "Usuario"
   const initial = displayName.trim().charAt(0).toUpperCase()
@@ -100,11 +102,10 @@ export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWork
         >
           {!roleLoading && !isEvaluador && (
             <>
-              <DropdownMenuItem asChild className={SIDEBAR_MENU_ITEM}>
-                <Link href={SETTINGS_PATH} onClick={onNavigate}>
-                  <Settings className="text-muted-foreground" aria-hidden="true" />
-                  Configuración
-                </Link>
+              {/* Abre el modal sin cerrar el menú móvil: el modal vive en este componente. */}
+              <DropdownMenuItem className={SIDEBAR_MENU_ITEM} onSelect={() => setSettingsOpen(true)}>
+                <Settings className="text-muted-foreground" aria-hidden="true" />
+                Configuración
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
@@ -149,6 +150,7 @@ export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWork
 
         </DropdownMenuContent>
       </DropdownMenu>}
+      {user && <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />}
     </>
   )
 }

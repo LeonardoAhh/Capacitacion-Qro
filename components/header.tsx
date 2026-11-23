@@ -1,11 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { ArrowLeft, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
+import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
@@ -29,6 +30,7 @@ export default function Header({
   mobileOnly = false,
 }: HeaderProps) {
   const pathname = usePathname()
+  const router = useRouter()
   const pageLabel = getRouteLabel(pathname)
 
   return (
@@ -52,7 +54,14 @@ export default function Header({
         <div className="flex min-w-0 flex-1 items-center">
           {pageLabel && (
             <h1 className="min-w-0 text-heading-md text-foreground">
-              {titleHref ? <Link href={titleHref} aria-label={titleHrefLabel ? `${pageLabel}. ${titleHrefLabel}` : pageLabel} className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-md pr-2 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              {titleHref ? <Link href={titleHref}
+                // Con una captura sin guardar se confirma antes de volver.
+                onNavigate={event => {
+                  if (!hasUnsavedChanges()) return
+                  event.preventDefault()
+                  void confirmUnsavedChanges().then(confirmed => { if (confirmed) router.push(titleHref) })
+                }}
+                aria-label={titleHrefLabel ? `${pageLabel}. ${titleHrefLabel}` : pageLabel} className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-md pr-2 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
                 <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
                 <span className="truncate">{pageLabel}</span>
               </Link> : <span className="block truncate">{pageLabel}</span>}

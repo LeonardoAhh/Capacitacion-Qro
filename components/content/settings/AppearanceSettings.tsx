@@ -1,130 +1,52 @@
 "use client"
 
-import { RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-context"
-import { isDensity } from "@/lib/theme/constants"
-import { SettingsGroup, SettingsRow, SettingsSectionHeader } from "./SettingsPrimitives"
+import { isDensity, isThemeMode, THEME_MODE_LABELS, type FontSize } from "@/lib/theme/constants"
+import { SettingsGroup, SettingsRow } from "./SettingsPrimitives"
+
+const FONT_SIZES: Record<FontSize, string> = { small: "Pequeño", medium: "Normal", large: "Grande" }
+const DENSITIES = { auto: "Automática", comfortable: "Amplia", compact: "Compacta" } as const
+const CONTROL = "w-full sm:w-40"
 
 export function AppearanceSettings() {
-  const {
-    fontSize,
-    density,
-    reducedMotion,
-    themeMode,
-    setThemeMode,
-    setFontSize,
-    setDensity,
-    setReducedMotion,
-    resetTheme,
-  } = useTheme()
+  const { fontSize, density, reducedMotion, themeMode, setThemeMode, setFontSize, setDensity, setReducedMotion, resetTheme } = useTheme()
 
   return (
-    <div className="space-y-5">
-      <SettingsSectionHeader
-        title="Apariencia"
-        description="Ajusta la lectura y el ritmo visual de la aplicación."
-      />
-
-      <SettingsGroup title="Pantalla">
-        <SettingsRow
-          label="Tema"
-          description="Elige un tema o sigue la preferencia de tu dispositivo."
-          htmlFor="theme-mode"
-        >
-          <Select
-            value={themeMode}
-            onValueChange={(value) => {
-              if (value === "light" || value === "dark" || value === "system") {
-                setThemeMode(value)
-              }
-            }}
-          >
-            <SelectTrigger id="theme-mode" className="w-full sm:w-40">
-              <SelectValue />
-            </SelectTrigger>
+    <div className="space-y-4">
+      <SettingsGroup>
+        <SettingsRow label="Tema" description="Automático usa el de tu dispositivo." htmlFor="theme-mode">
+          <Select value={themeMode} onValueChange={value => { if (isThemeMode(value)) setThemeMode(value) }}>
+            <SelectTrigger id="theme-mode" className={CONTROL}><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">Claro</SelectItem>
-              <SelectItem value="dark">Oscuro</SelectItem>
-              <SelectItem value="system">Sistema</SelectItem>
+              {Object.entries(THEME_MODE_LABELS).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
             </SelectContent>
           </Select>
         </SettingsRow>
-        <SettingsRow
-          label="Tamaño de fuente"
-          description="Ajusta el tamaño del texto en toda la aplicación."
-          htmlFor="font-size"
-        >
-          <Select
-            value={fontSize}
-            onValueChange={(value) => {
-              if (value === "small" || value === "medium" || value === "large") {
-                setFontSize(value)
-              }
-            }}
-          >
-            <SelectTrigger id="font-size" className="w-full sm:w-40">
-              <SelectValue />
-            </SelectTrigger>
+        <SettingsRow label="Tamaño del texto" htmlFor="font-size">
+          <Select value={fontSize} onValueChange={value => { if (value in FONT_SIZES) setFontSize(value as FontSize) }}>
+            <SelectTrigger id="font-size" className={CONTROL}><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="small">Pequeño</SelectItem>
-              <SelectItem value="medium">Mediano</SelectItem>
-              <SelectItem value="large">Grande</SelectItem>
+              {Object.entries(FONT_SIZES).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
             </SelectContent>
           </Select>
         </SettingsRow>
-
-        <SettingsRow
-          label="Densidad"
-          description="Automática compacta la vista en monitores de poca altura."
-          htmlFor="display-density"
-        >
-          <Select
-            value={density}
-            onValueChange={(value) => {
-              if (isDensity(value)) setDensity(value)
-            }}
-          >
-            <SelectTrigger id="display-density" className="w-full sm:w-40">
-              <SelectValue />
-            </SelectTrigger>
+        <SettingsRow label="Espacio entre elementos" description="Automática lo reduce en pantallas bajas." htmlFor="display-density">
+          <Select value={density} onValueChange={value => { if (isDensity(value)) setDensity(value) }}>
+            <SelectTrigger id="display-density" className={CONTROL}><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="auto">Automática</SelectItem>
-              <SelectItem value="comfortable">Cómoda</SelectItem>
-              <SelectItem value="compact">Compacta</SelectItem>
+              {Object.entries(DENSITIES).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
             </SelectContent>
           </Select>
+        </SettingsRow>
+        <SettingsRow label="Reducir animaciones" description="Menos movimiento al cambiar de pantalla." htmlFor="reduced-motion">
+          <Switch id="reduced-motion" checked={reducedMotion} onCheckedChange={setReducedMotion} />
         </SettingsRow>
       </SettingsGroup>
 
-      <SettingsGroup title="Accesibilidad">
-        <SettingsRow
-          label="Movimiento reducido"
-          description="Minimiza animaciones y transiciones."
-          htmlFor="reduced-motion"
-        >
-          <Switch
-            id="reduced-motion"
-            checked={reducedMotion}
-            onCheckedChange={setReducedMotion}
-            className="h-6 w-11"
-          />
-        </SettingsRow>
-      </SettingsGroup>
-
-      <div className="flex justify-end">
-        <Button
-          type="button"
-          variant="outline"
-          className="gap-2"
-          onClick={resetTheme}
-        >
-          <RotateCcw className="size-4" aria-hidden="true" />
-          Restablecer valores
-        </Button>
-      </div>
+      <Button type="button" variant="ghost" size="sm" onClick={resetTheme}>Volver a los valores iniciales</Button>
     </div>
   )
 }

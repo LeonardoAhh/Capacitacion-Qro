@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import { APP_TRANSITION_EASE, useAppReducedMotion } from "@/components/app-transition"
 import LoginForm from "@/components/login-form"
 import LoginPromoPanel from "@/components/login-promo-panel"
-import { WorkspaceLandscape } from "@/components/WorkspaceLandscape"
+import { WorkspaceBackdrop } from "@/components/workspace-backdrop"
 import { LOGIN, loginStyles } from "@/lib/login/presentation"
 
 export default function LoginShell() {
@@ -17,8 +17,8 @@ export default function LoginShell() {
     <main className={`${loginStyles.page} workspace-shell`}>
       <div className="workspace-frame bg-card md:rounded-xl md:border md:border-border">
         <div className={loginStyles.container}>
-          {/* Un solo paisaje: al pasar de la bienvenida al formulario solo cambia el contenido. */}
-          <WorkspaceLandscape>
+          {/* Un solo fondo: al pasar de la bienvenida al formulario solo cambia el contenido. */}
+          <WorkspaceBackdrop>
             <AnimatePresence mode="wait">
               <motion.div
                 key={showForm ? "form" : "intro"}
@@ -45,7 +45,7 @@ export default function LoginShell() {
                 ) : <LoginPromoPanel onContinue={() => setShowForm(true)} />}
               </motion.div>
             </AnimatePresence>
-          </WorkspaceLandscape>
+          </WorkspaceBackdrop>
         </div>
       </div>
     </main>

@@ -2,7 +2,7 @@
 
 import { motion, useReducedMotion } from "framer-motion"
 import { useTheme } from "@/components/theme-context"
-import { WorkspaceLandscape } from "@/components/WorkspaceLandscape"
+import { WorkspaceBackdrop } from "@/components/workspace-backdrop"
 import PluckedText from "@/components/ui/PluckedText"
 
 export const APP_TRANSITION_MIN_MS = 2000
@@ -47,7 +47,7 @@ export function AppMark({ className }: { className: string }) {
 }
 
 /**
- * Pantalla de carga entre login, selección de espacio y workspace. El paisaje
+ * Pantalla de carga entre login, selección de espacio y workspace. El fondo
  * queda fijo para dar continuidad; solo el mensaje entra y, con `leaving`,
  * sale antes de navegar. Como capa (cerrar sesión) aparece y se va con fundido.
  */
@@ -75,9 +75,9 @@ export function AppTransition({
       }
     >
       <div className="workspace-panel min-h-0 overflow-hidden bg-card md:rounded-xl md:border md:border-border">
-        <WorkspaceLandscape isStatic className="h-full min-h-0">
+        <WorkspaceBackdrop className="sm:min-h-dvh md:h-full md:min-h-0">
           <motion.div
-            className="flex h-full items-center justify-center px-6 text-center"
+            className="flex h-full min-h-dvh items-center justify-center px-6 text-center md:min-h-0"
             initial={{ opacity: 0, y: 8 }}
             animate={leaving ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
             transition={transition}
@@ -87,7 +87,7 @@ export function AppTransition({
               {reducedMotion ? message : <PluckedText text={message} loop strum={false} />}
             </span>
           </motion.div>
-        </WorkspaceLandscape>
+        </WorkspaceBackdrop>
       </div>
     </motion.div>
   )

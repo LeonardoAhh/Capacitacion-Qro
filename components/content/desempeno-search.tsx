@@ -107,11 +107,11 @@ function DesempenoSearchContent() {
 
   useEffect(() => () => { notify.dismiss(SEARCH_ERROR_TOAST_ID); }, []);
 
-  // Practicar es solo para el evaluador. Sin evaluación abierta, las acciones van en
-  // la fila del buscador; al evaluar, arriba: Practicar a la izquierda y el resto a la derecha.
-  const practice = isEvaluador ? <GuiaButton onClick={() => setGuiaOpen(true)} /> : null;
-  const actions = <>
-        {context.modoEdicion && data && <Button type="button" variant="outline" size="sm" disabled className="px-3">Editando</Button>}
+  // Practicar (evaluador) y Vencidas (supervisión) son accesos secundarios: al evaluar van
+  // a la izquierda y Editando/Cerrar a la derecha. Sin evaluación abierta, todo va en la
+  // fila del buscador.
+  const start = <>
+        {isEvaluador && <GuiaButton onClick={() => setGuiaOpen(true)} />}
         {!roleLoading && user && supervisesEvaluations && <Button asChild variant="outline" size="sm" className="px-3">
           <Link href={DESEMPENO.routes.late} onNavigate={event => {
             event.preventDefault();
@@ -120,15 +120,18 @@ function DesempenoSearchContent() {
             });
           }} aria-label="Regularizar evaluaciones vencidas"><ClipboardClock className="hidden sm:block" aria-hidden="true" /><span className="sm:hidden">Regularizar</span><span className="hidden sm:inline">Vencidas</span></Link>
         </Button>}
+      </>;
+  const actions = <>
+        {context.modoEdicion && data && <Button type="button" variant="outline" size="sm" disabled className="px-3">Editando</Button>}
         {data && <ActionButton icon={<X />} label="Cerrar" tooltip="Cerrar evaluación" onClick={context.closeEvaluation} variant="outline" />}
       </>;
 
   return <TooltipProvider>
-    <EvaluationWorkspace start={data ? practice : undefined} actions={data ? actions : undefined}>
+    <EvaluationWorkspace start={data ? start : undefined} actions={data ? actions : undefined}>
 
       {/* ── Buscador: oculto mientras se evalúa; Cerrar vive en las acciones ── */}
       {!data && <PracticeNotice onPractice={() => setGuiaOpen(true)} />}
-      {!data && <SearchPanel context={context} actions={<>{practice}{actions}</>} />}
+      {!data && <SearchPanel context={context} actions={<>{start}{actions}</>} />}
 
       {/* Banner de Pendientes en estado vacío */}
       <PendingSummary context={context} />

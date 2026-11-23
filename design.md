@@ -37,7 +37,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 | Success | `#0070f3` | `#0070f3` |
 | Warning | `#f5a623` | `#f5a623` |
 
-Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
+Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. Charts use at most five distinct hues, `--chart-1` to `--chart-5` (teal, blue, amber, violet, rose; lighter in dark mode), never several grays: `--chart-2` marks approved/meets goal (success blue) and `--chart-3` marks pending/partial (warning amber); failures use `--destructive`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).

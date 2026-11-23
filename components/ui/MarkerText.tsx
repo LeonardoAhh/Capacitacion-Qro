@@ -8,7 +8,7 @@ interface MarkerTextProps {
   className?: string
 }
 
-/** The single highlight treatment used on the login tagline. */
+/** Resaltado de marcador del lema del login: ámbar de la paleta de gráficas, translúcido para que el texto se lea en ambos temas. */
 export default function MarkerText({ children, className }: MarkerTextProps) {
   const maskId = useId().replace(/:/g, "")
   const rootRef = useRef<HTMLElement>(null)
@@ -35,7 +35,7 @@ export default function MarkerText({ children, className }: MarkerTextProps) {
     <mark ref={rootRef} className={cn("relative inline-block whitespace-nowrap bg-transparent text-inherit", className)}>
       <svg
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible text-accent"
+        className="pointer-events-none absolute inset-0 h-full w-full overflow-visible text-chart-3/45"
         preserveAspectRatio="none"
         viewBox="0 0 100 20"
       >

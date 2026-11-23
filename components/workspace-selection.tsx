@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { GraduationCap, HardHat, LogOut } from "lucide-react"
+import { Check, GraduationCap, HardHat, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 import { AppTransition, APP_TRANSITION_EXIT_MS, useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
 import PluckedText from "@/components/ui/PluckedText"
-import { WorkspaceLandscape } from "@/components/WorkspaceLandscape"
+import { WorkspaceBackdrop } from "@/components/workspace-backdrop"
+import { WORKSPACE_ACCENT, WorkspacePreview } from "@/components/workspace-preview"
 import { useLogout } from "@/components/use-logout"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { useRole } from "@/lib/hooks/useRole"
@@ -23,8 +24,11 @@ export function WorkspaceSelection() {
   const sinEspacios = workspaces.length === 0
   const reducedMotion = useAppReducedMotion()
   const { signingOut, logout } = useLogout()
-  const [, setWorkspace] = useActiveWorkspace()
+  const [activeWorkspace, setWorkspace] = useActiveWorkspace()
   const [leaving, setLeaving] = useState(false)
+  // Marca la vista elegida al tocarla; antes, la del último espacio usado.
+  const [chosen, setChosen] = useState<WorkspaceId | null>(null)
+  const selected = chosen ?? activeWorkspace
 
   useEffect(() => {
     if (!loading && sinEspacios) router.replace(homeFor(role))
@@ -33,6 +37,7 @@ export function WorkspaceSelection() {
   const chooseWorkspace = (workspace: WorkspaceId) => {
     if (leaving || !workspaces.includes(workspace)) return
     setWorkspace(workspace)
+    setChosen(workspace)
     // El contenido sale primero; luego entra el workspace.
     setLeaving(true)
     const destination = homeFor(role, workspace)
@@ -45,8 +50,8 @@ export function WorkspaceSelection() {
     <main className={`${loginStyles.page} workspace-shell`}>
       <div className="workspace-frame bg-card md:rounded-xl md:border md:border-border">
         <div className={loginStyles.container}>
-          {/* Estático: sigue el mismo paisaje de la pantalla de carga, sin volver a pintarse. */}
-          <WorkspaceLandscape isStatic>
+          {/* Mismo fondo que la pantalla de carga. */}
+          <WorkspaceBackdrop>
             <Button
               type="button"
               variant="ghost"
@@ -68,27 +73,39 @@ export function WorkspaceSelection() {
                     <PluckedText text="de trabajo." loop />
                   </span>
                 </h1>
-                <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+                <p className="mt-3 text-body-md text-muted-foreground">Toca una vista para ingresar.</p>
+                <div className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-4 sm:gap-6">
                   {WORKSPACE_OPTIONS.map((option) => {
                     const Icon = option.id === "safety" ? HardHat : GraduationCap
                     const permitido = workspaces.includes(option.id)
+                    const isSelected = selected === option.id
                     return (
-                      <Button asChild key={option.id} className="w-full justify-between gap-4 px-5 sm:w-60">
-                        <motion.button type="button" disabled={leaving || !permitido} onClick={() => chooseWorkspace(option.id)}
-                          title={permitido ? undefined : "Tu rol no tiene acceso a este espacio"}
-                          whileHover={reducedMotion ? undefined : { y: -2 }}
-                          whileTap={reducedMotion ? undefined : { scale: 0.98, y: 0 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 26 }}>
-                          <span>{option.label}</span>
-                          <Icon className="size-4" aria-hidden="true" />
-                        </motion.button>
-                      </Button>
+                      <motion.button key={option.id} type="button" disabled={leaving || !permitido} onClick={() => chooseWorkspace(option.id)}
+                        aria-pressed={isSelected}
+                        aria-label={permitido ? option.label : `${option.label}, sin acceso para tu rol`}
+                        whileHover={reducedMotion || !permitido ? undefined : { y: -4 }}
+                        whileTap={reducedMotion || !permitido ? undefined : { scale: 0.98, y: 0 }}
+                        transition={{ type: "spring", stiffness: 400, damping: 26 }}
+                        className="group grid gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed">
+                        {/* Solo el mockup: la selección se marca con su sombra y el círculo de abajo. */}
+                        <WorkspacePreview icon={Icon} workspace={option.id} className={cn("transition-shadow",
+                          isSelected ? "shadow-lg" : "group-hover:shadow-md",
+                          !permitido && "opacity-50")} />
+                        <span className="flex flex-wrap items-center justify-center gap-2 text-center">
+                          <span className={cn("text-label-sm text-foreground", !permitido && "text-muted-foreground")}>{option.label}</span>
+                          <span aria-hidden="true" className={cn("grid size-5 place-items-center rounded-full border transition-colors",
+                            isSelected ? cn("border-transparent text-card", WORKSPACE_ACCENT[option.id].solid) : "border-border bg-muted")}>
+                            {isSelected && <Check className="size-3" />}
+                          </span>
+                        </span>
+                        {!permitido && <span aria-hidden="true" className="-mt-2 text-center text-body-sm text-muted-foreground">Sin acceso para tu rol</span>}
+                      </motion.button>
                     )
                   })}
                 </div>
               </div>
             </section>
-          </WorkspaceLandscape>
+          </WorkspaceBackdrop>
         </div>
       </div>
     </main>

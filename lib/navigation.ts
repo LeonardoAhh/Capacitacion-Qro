@@ -5,7 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { SAFETY_HOME_PATH, SETTINGS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
@@ -25,7 +25,7 @@ import {
   UsersRound,
 } from "lucide-react"
 
-export { SAFETY_HOME_PATH, SETTINGS_PATH } from "@/lib/workspace-paths"
+export { SAFETY_HOME_PATH } from "@/lib/workspace-paths"
 
 export interface NavLeaf {
   label: string
@@ -126,7 +126,6 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
-  [SETTINGS_PATH]: "Configuración",
   "/promociones": "Categorías",
   "/promociones/reglas": "Reglas de promoción",
   "/asignaciones": "Asignaciones de evaluación",
@@ -138,7 +137,7 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   [DESEMPENO.routes.saved]: DESEMPENO.pages.saved.title,
   [DESEMPENO.routes.pending]: DESEMPENO.pages.pending.title,
   [DESEMPENO.routes.objectives]: DESEMPENO.pages.objectives.title,
-  "/desempeno/regularizacion": "Captura tardía",
+  [DESEMPENO.routes.late]: "Captura tardía",
   "/seguimiento": "Seguimiento de Compromisos",
 }
 

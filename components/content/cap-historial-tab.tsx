@@ -7,19 +7,19 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_FILTER, TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
 import { useRole } from "@/lib/hooks/useRole"
+import { cn } from "@/lib/utils"
 
-const PAGE_SIZE = 10
-const employeeActionItemClass = "gap-1 px-1 text-sm font-normal"
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 /** Pantallas de cada empleado, en el orden del menú. Las que piden número se omiten sin él. */
 function employeeLinks(emp: Employee): { href: string; label: string; icon: LucideIcon }[] {
@@ -60,8 +60,8 @@ export function CapHistorialTab({
 }: CapHistorialTabProps) {
   const { canAccess } = useRole()
   const [empSearch, setEmpSearch]         = useState("")
-  const [empFilterDept, setEmpFilterDept] = useState("all")
-  const [empFilterTurno, setEmpFilterTurno] = useState("all")
+  const [empFilterDept, setEmpFilterDept] = useState(FILTER_ALL)
+  const [empFilterTurno, setEmpFilterTurno] = useState(FILTER_ALL)
   const [empPage, setEmpPage]             = useState(1)
 
   const filtered = employees
@@ -71,8 +71,8 @@ export function CapHistorialTab({
       (e.departamento ?? '').toLowerCase().includes(empSearch.toLowerCase()) ||
       (e.puesto ?? '').toLowerCase().includes(empSearch.toLowerCase())
     )
-    .filter(e => empFilterDept  === 'all' || (e.departamento ?? '') === empFilterDept)
-    .filter(e => empFilterTurno === 'all' || (e.turno ?? '') === empFilterTurno)
+    .filter(e => empFilterDept  === FILTER_ALL || (e.departamento ?? '') === empFilterDept)
+    .filter(e => empFilterTurno === FILTER_ALL || (e.turno ?? '') === empFilterTurno)
     .sort((a, b) => parseInt(b.numero ?? '0', 10) - parseInt(a.numero ?? '0', 10))
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -80,6 +80,14 @@ export function CapHistorialTab({
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   useEffect(() => { setEmpPage(1) }, [empSearch, empFilterDept, empFilterTurno])
+
+  const importOptions: { label: string; icon: LucideIcon; onSelect: () => void }[] = [
+    { label: "Cursos", icon: Layers, onSelect: onBulkImport },
+    { label: "Empleados", icon: Users, onSelect: onBulkCreateEmployees },
+    { label: "Incumplimientos", icon: ShieldAlert, onSelect: onBulkImportIncumplimientos },
+    { label: "Actas", icon: FileText, onSelect: onBulkImportActas },
+    ...(onBulkImportRetardos ? [{ label: "Retardos", icon: AlarmClock, onSelect: onBulkImportRetardos }] : []),
+  ]
 
   return (
     <div className="space-y-4">
@@ -92,7 +100,7 @@ export function CapHistorialTab({
         </Alert>
       )}
 
-      {/* Búsqueda, filtros y acciones en la línea de las pestañas. */}
+      {/* Búsqueda, filtros, acciones y página en la línea de las pestañas. */}
       <TabsToolbar>
         <SearchInput
           label="Buscar empleado"
@@ -101,180 +109,119 @@ export function CapHistorialTab({
           value={empSearch}
           onValueChange={setEmpSearch}
         />
-        <Select value={empFilterDept} onValueChange={setEmpFilterDept}>
-          <SelectTrigger className={TOOLBAR_FILTER} aria-label="Filtrar por departamento">
-            <SelectValue placeholder="Departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Departamentos</SelectItem>
-            {Object.keys(CATALOGO_ORGANIZACIONAL).map(d => (
-              <SelectItem key={d} value={d}>{d}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={empFilterTurno} onValueChange={setEmpFilterTurno}>
-          <SelectTrigger className={TOOLBAR_FILTER} aria-label="Filtrar por turno">
-            <SelectValue placeholder="Turno" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Turnos</SelectItem>
-            {TURNOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <FilterMenu
+          facets={[
+            { id: "departamento", label: "Departamento", value: empFilterDept, onChange: setEmpFilterDept,
+              options: Object.keys(CATALOGO_ORGANIZACIONAL).map(d => ({ value: d, label: d })) },
+            { id: "turno", label: "Turno", value: empFilterTurno, onChange: setEmpFilterTurno,
+              options: TURNOS.map(t => ({ value: t, label: t })) },
+          ]}
+          onClear={() => { setEmpFilterDept(FILTER_ALL); setEmpFilterTurno(FILTER_ALL) }}
+        />
         {/* Importar y crear empleados: solo quien edita Capacitación. */}
         {canEdit && (
           <>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" aria-label="Abrir opciones de carga">
-                  <span>Importar</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Importar
                   <ChevronDown aria-hidden="true" />
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-64 p-3">
-                <div className="mb-2 px-1">
-                  <h3 className="text-sm font-semibold text-foreground">Cargar información</h3>
-                </div>
-                <div className="grid gap-1">
-                  <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImport}>
-                    <Layers className="size-4" aria-hidden="true" />
-                    Cursos
-                  </Button>
-                  <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkCreateEmployees}>
-                    <Users className="size-4" aria-hidden="true" />
-                    Empleados
-                  </Button>
-                  <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportIncumplimientos}>
-                    <ShieldAlert className="size-4" aria-hidden="true" />
-                    Incumplimientos
-                  </Button>
-                  <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportActas}>
-                    <FileText className="size-4" aria-hidden="true" />
-                    Actas
-                  </Button>
-                  {onBulkImportRetardos && (
-                    <Button variant="ghost" className="min-h-(--control-height) justify-start gap-2 px-2" onClick={onBulkImportRetardos}>
-                      <AlarmClock className="size-4" aria-hidden="true" />
-                      Retardos
-                    </Button>
-                  )}
-                </div>
-              </PopoverContent>
-            </Popover>
-            <Button className="min-w-(--control-height) px-3" onClick={onNewEmployee} aria-label="Nuevo empleado">
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>Cargar información</DropdownMenuLabel>
+                {importOptions.map(({ label, icon: Icon, onSelect }) => (
+                  <DropdownMenuItem key={label} onSelect={onSelect}>
+                    <Icon aria-hidden="true" />
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button size="sm" onClick={onNewEmployee} aria-label="Nuevo empleado">
+              <UserPlus aria-hidden="true" />
               <span className="hidden lg:inline">Nuevo empleado</span>
-              <UserPlus className="lg:hidden" aria-hidden="true" />
             </Button>
           </>
         )}
+        <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setEmpPage} />
       </TabsToolbar>
 
       {loadingEmployees ? (
-        <div className="overflow-hidden rounded-md border border-border bg-card">
-          <div className="divide-y divide-border/60">
-            {Array.from({ length: 15 }).map((_, i) => (
-              <div key={i} className="flex items-center gap-4 px-4 py-2">
-                <Skeleton className="hidden h-4 w-8 bg-muted sm:block" />
-                <Skeleton className="h-4 flex-1 bg-muted" />
-                <Skeleton className="hidden h-4 w-24 bg-muted sm:block" />
-                <Skeleton className="h-4 w-28 bg-muted" />
-                <Skeleton className="h-4 w-4 rounded bg-muted" />
-              </div>
-            ))}
-          </div>
+        <div className="space-y-2" role="status" aria-label="Cargando empleados">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
           {employees.length === 0
             ? (canEdit ? 'Sin empleados registrados. Usa el botón "Nuevo empleado" para agregar.' : "Sin empleados registrados.")
             : "No se encontraron empleados con esa búsqueda."}
-        </div>
+        </p>
       ) : (
-        <>
-          <div className="overflow-hidden rounded-md border border-border bg-card">
-            <Table className="[&_td]:!py-0">
-              <TableHeader>
-                <TableRow className="bg-transparent hover:bg-transparent border-border/60">
-                  <TableHead className="w-14 hidden sm:table-cell">No.</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead className="hidden sm:table-cell">Puesto</TableHead>
-                  <TableHead className="hidden md:table-cell">Departamento</TableHead>
-                  <TableHead className="text-right w-16">Acciones</TableHead>
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Empleados</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden md:table-cell")}>Puesto</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 lg:table-cell")}>Departamento</TableHead>
+                <TableHead className="w-14 px-1"><span className="sr-only">Acciones</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map(emp => (
+                <TableRow key={emp.id}>
+                  <TableCell>
+                    <span className="block truncate text-label-sm text-foreground">{emp.nombre}</span>
+                    <span className="block truncate text-body-sm text-muted-foreground">
+                      #{emp.numero ?? "—"}{emp.puesto && <span className="md:hidden"> · {emp.puesto}</span>}
+                    </span>
+                  </TableCell>
+                  <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{emp.puesto ?? "—"}</TableCell>
+                  <TableCell className="hidden truncate text-body-sm text-muted-foreground lg:table-cell">{emp.departamento ?? "—"}</TableCell>
+                  <TableCell className="px-1 py-0 text-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground" aria-label={`Más opciones para ${emp.nombre}`}>
+                          <EllipsisVertical aria-hidden="true" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {/* Solo las pantallas que el rol puede abrir (lib/constants/roles). */}
+                        {employeeLinks(emp).filter(link => canAccess(link.href)).map(({ href, label, icon: Icon }) => (
+                          <DropdownMenuItem key={href} asChild>
+                            <Link href={href}>
+                              <Icon aria-hidden="true" />
+                              {label}
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                        {canEdit && (
+                          <>
+                            <DropdownMenuItem onSelect={() => onAddCourses(emp)}>
+                              <BookPlus aria-hidden="true" />
+                              Agregar cursos
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onSelect={() => onEditEmployee(emp)}>
+                              <UserRoundPen aria-hidden="true" />
+                              Editar empleado
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => onDeleteEmployee(emp)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                              <Trash2 aria-hidden="true" />
+                              Eliminar
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginated.map(emp => (
-                  <TableRow key={emp.id} className="hover:bg-muted/30 border-border/60">
-                    <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
-                      {emp.numero ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-sm font-medium text-ink">
-                      <div className="flex flex-col">
-                        <span>{emp.nombre}</span>
-                        <span className="text-xs text-muted-foreground sm:hidden">
-                          {emp.numero ?? ""}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">{emp.puesto ?? "—"}</TableCell>
-                    <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
-                      {emp.departamento && (
-                        <span>
-                          {emp.departamento}
-                        </span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right p-2">
-                      <div className="flex items-center justify-end gap-1">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="size-(--control-height)" aria-label={`Más opciones para ${emp.nombre}`}>
-                              <EllipsisVertical className="text-muted-foreground" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {/* Solo las pantallas que el rol puede abrir (lib/constants/roles). */}
-                            {employeeLinks(emp).filter(link => canAccess(link.href)).map(({ href, label, icon: Icon }) => (
-                              <DropdownMenuItem key={href} asChild className={employeeActionItemClass}>
-                                <Link href={href}>
-                                  <Icon />
-                                  <span>{label}</span>
-                                </Link>
-                              </DropdownMenuItem>
-                            ))}
-                            {canEdit && (
-                              <>
-                                <DropdownMenuItem className={employeeActionItemClass} onClick={() => onAddCourses(emp)}>
-                                  <BookPlus />
-                                  <span>Agregar cursos</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem className={employeeActionItemClass} onClick={() => onEditEmployee(emp)}>
-                                  <UserRoundPen />
-                                  <span>Editar empleado</span>
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => onDeleteEmployee(emp)} className={`${employeeActionItemClass} text-destructive focus:bg-destructive/10 focus:text-destructive`}>
-                                  <Trash2 />
-                                  <span>Eliminar</span>
-                                </DropdownMenuItem>
-                              </>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {filtered.length > PAGE_SIZE && (
-            <div className="mt-4 flex justify-end">
-              <PaginationBar currentPage={safePage} totalPages={totalPages} onPageChange={setEmpPage} />
-            </div>
-          )}
-        </>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
     </div>
   )

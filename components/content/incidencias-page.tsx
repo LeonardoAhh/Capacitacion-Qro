@@ -1,14 +1,12 @@
 "use client"
 
 import { useCallback, useEffect, useId, useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { AlertTriangle, ArrowLeft, Check, ChevronLeft, ChevronRight, Loader2, NotebookPen } from "lucide-react"
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Skeleton } from "@/components/ui/skeleton"
 import { CATEGORY_META } from "@/lib/constants/incidencias"
 import {
   formatMes, INCIDENCIA_CATEGORIES, useIncidencias,
@@ -33,10 +31,11 @@ function emptyByCategory<T>(value: T): Record<IncidenciaCategory, T> {
   return Object.fromEntries(INCIDENCIA_CATEGORIES.map(category => [category, value])) as Record<IncidenciaCategory, T>
 }
 
-export function IncidenciasPage({ numeroEmpleado, returnTo }: { numeroEmpleado: string; returnTo: string }) {
+/** Captura mensual de incidencias de un empleado: cantidad por categoría y notas opcionales. */
+export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) {
   const { loading, saving, error, fetchByEmpleado, saveMonth } = useIncidencias()
-  const router = useRouter()
   const fieldId = useId()
+  const formId = `${fieldId}-form`
   const [identity, setIdentity] = useState<{ nombre: string; puesto: string | null } | null>(null)
   const [selectedMonth, setSelectedMonth] = useState(currentMonth)
   const [records, setRecords] = useState<IncidenciaRecord[]>([])
@@ -77,7 +76,6 @@ export function IncidenciasPage({ numeroEmpleado, returnTo }: { numeroEmpleado: 
     setDirty(false)
   }, [records, selectedMonth])
 
-  const months = Array.from(new Set(records.map(record => record.mes))).sort().reverse()
   const total = Object.values(values).reduce((sum, value) => sum + value, 0)
   const notedCategories = INCIDENCIA_CATEGORIES.filter(category => values[category] > 0 || notes[category].trim())
 
@@ -85,6 +83,11 @@ export function IncidenciasPage({ numeroEmpleado, returnTo }: { numeroEmpleado: 
     const value = raw === "" ? 0 : Number(raw)
     if (!Number.isInteger(value) || value < 0) return
     setValues(previous => ({ ...previous, [category]: value }))
+    setDirty(true)
+  }
+
+  const changeNote = (category: IncidenciaCategory, note: string) => {
+    setNotes(previous => ({ ...previous, [category]: note }))
     setDirty(true)
   }
 
@@ -105,6 +108,7 @@ export function IncidenciasPage({ numeroEmpleado, returnTo }: { numeroEmpleado: 
     size: "xs",
   }), [])
 
+  // La guardia también cubre el título del header y la barra lateral.
   useEffect(() => {
     if (!dirty) return
     return registerUnsavedChangesGuard(confirmDiscard)
@@ -117,113 +121,81 @@ export function IncidenciasPage({ numeroEmpleado, returnTo }: { numeroEmpleado: 
   }
 
   return (
-    <div className="space-y-6">
-      <Link
-        href={returnTo}
-        onClick={event => {
-          if (!dirty) return
-          event.preventDefault()
-          void (async () => { if (await confirmDiscard()) router.push(returnTo) })()
-        }}
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <ArrowLeft className="size-4" aria-hidden="true" /> Volver
-      </Link>
-
-      <header className="min-w-0 space-y-1">
-        <p className="text-sm text-muted-foreground">Núm. {numeroEmpleado}</p>
-        <h2 className="break-words text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">{identity?.nombre ?? "Empleado"}</h2>
-        {identity?.puesto && <p className="text-sm text-muted-foreground">{identity.puesto}</p>}
-      </header>
-
-      <section aria-labelledby="incidencias-periodo" className="space-y-5">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-4">
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 id="incidencias-periodo" className="text-xl font-semibold tracking-tight text-foreground">{formatMes(selectedMonth)}</h3>
-            <Badge variant="outline" className="border-border bg-card font-medium text-muted-foreground">
-              {total} {total === 1 ? "incidencia" : "incidencias"}
-            </Badge>
-          </div>
-          <nav aria-label="Cambiar mes" className="flex items-center gap-2">
-            <Button type="button" variant="outline" size="icon" className="h-11 w-11" disabled={saving} onClick={() => void selectMonth(shiftMonth(selectedMonth, -1))} aria-label="Mes anterior">
+    <div className="space-y-4">
+      {/* Barra única: empleado a la izquierda; mes y guardado a la derecha. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          {identity ? <p className="truncate text-label-sm text-foreground">{identity.nombre}</p> : <Skeleton className="mb-1 h-4 w-48" />}
+          <p className="truncate text-body-sm text-muted-foreground">
+            #{numeroEmpleado}{identity?.puesto && ` · ${identity.puesto}`}
+          </p>
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <nav aria-label="Cambiar mes" className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" className="text-muted-foreground" disabled={saving} onClick={() => void selectMonth(shiftMonth(selectedMonth, -1))} aria-label="Mes anterior">
               <ChevronLeft aria-hidden="true" />
             </Button>
-            <Button type="button" variant="outline" size="icon" className="h-11 w-11" disabled={saving} onClick={() => void selectMonth(shiftMonth(selectedMonth, 1))} aria-label="Mes siguiente">
+            <span aria-live="polite" className="min-w-32 text-center text-label-sm text-foreground">{formatMes(selectedMonth)}</span>
+            <Button type="button" variant="ghost" size="icon" className="text-muted-foreground" disabled={saving} onClick={() => void selectMonth(shiftMonth(selectedMonth, 1))} aria-label="Mes siguiente">
               <ChevronRight aria-hidden="true" />
             </Button>
           </nav>
+          <Button type="submit" form={formId} size="sm" disabled={!dirty || saving || loading}>
+            {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check aria-hidden="true" />}
+            Guardar cambios
+          </Button>
         </div>
+      </div>
 
-        {error && (
-          <Alert variant="destructive" role="alert">
-            <AlertTriangle className="size-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
+      {error && (
+        <Alert variant="destructive" role="alert">
+          <AlertTriangle className="size-4" aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        {loading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-sm text-muted-foreground" role="status">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" /> Cargando incidencias...
-          </div>
-        ) : (
-          <form onSubmit={event => { event.preventDefault(); void save() }} className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {INCIDENCIA_CATEGORIES.map((category, index) => {
-                const id = `${fieldId}-${index}`
+      {loading ? (
+        <div className="space-y-2" role="status" aria-label="Cargando incidencias">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+        </div>
+      ) : (
+        <form id={formId} onSubmit={event => { event.preventDefault(); void save() }} className="space-y-4">
+          {/* Rejilla de 12 celdas (11 categorías + total): cabe en 2, 3 o 4 columnas sin huecos. */}
+          <fieldset className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-3 lg:grid-cols-4">
+            <legend className="sr-only">Incidencias de {formatMes(selectedMonth)}</legend>
+            {INCIDENCIA_CATEGORIES.map((category, index) => {
+              const id = `${fieldId}-${index}`
+              return (
+                <div key={category} className="flex min-w-0 items-center justify-between gap-3 bg-card px-(--card-padding) py-2">
+                  <Label htmlFor={id} className="min-w-0 truncate text-label-sm text-foreground">{CATEGORY_META[category].shortLabel}</Label>
+                  <Input id={id} type="number" min={0} step={1} inputMode="numeric" value={values[category] || ""}
+                    onChange={event => changeValue(category, event.target.value)} placeholder="0" disabled={saving}
+                    className="w-16 shrink-0 text-center tabular-nums" />
+                </div>
+              )
+            })}
+            <div className="flex items-center justify-between gap-3 bg-muted/50 px-(--card-padding) py-2">
+              <span className="text-label-sm text-foreground">Total</span>
+              <output aria-live="polite" className="w-16 text-center text-label-sm tabular-nums text-foreground">{total}</output>
+            </div>
+          </fieldset>
+
+          {/* Notas solo para las categorías con cantidad o con nota previa. */}
+          {notedCategories.length > 0 && (
+            <fieldset className="grid gap-x-4 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+              <legend className="mb-2 text-label-sm text-foreground">Notas</legend>
+              {notedCategories.map(category => {
+                const id = `${fieldId}-nota-${category}`
                 return (
-                  <div key={category} className="flex min-w-0 items-center justify-between gap-3 rounded-md border border-border bg-card p-4">
-                    <Label htmlFor={id} className={`min-w-0 text-sm font-medium ${CATEGORY_META[category].color}`} title={category}>
-                      {CATEGORY_META[category].shortLabel}
-                    </Label>
-                    <Input id={id} type="number" min={0} step={1} inputMode="numeric" value={values[category] || ""} onChange={event => changeValue(category, event.target.value)} placeholder="0" className="h-10 w-20 shrink-0 bg-background text-center" />
+                  <div key={category} className="min-w-0 space-y-1.5">
+                    <Label htmlFor={id} className="text-body-sm text-muted-foreground">{CATEGORY_META[category].shortLabel}</Label>
+                    <Input id={id} value={notes[category]} onChange={event => changeNote(category, event.target.value)} placeholder="Nota opcional" disabled={saving} />
                   </div>
                 )
               })}
-            </div>
-
-            {notedCategories.length > 0 && (
-              <details className="group border-t border-border pt-5">
-                <summary className="flex cursor-pointer items-center gap-2 text-sm font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                  <NotebookPen className="size-4 text-muted-foreground" aria-hidden="true" /> Notas por categoría
-                </summary>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  {notedCategories.map((category, index) => {
-                    const id = `${fieldId}-note-${index}`
-                    return (
-                      <div key={category} className="space-y-2">
-                        <Label htmlFor={id} className="text-sm">{CATEGORY_META[category].shortLabel}</Label>
-                        <Input id={id} value={notes[category]} onChange={event => { setNotes(previous => ({ ...previous, [category]: event.target.value })); setDirty(true) }} placeholder="Nota opcional" />
-                      </div>
-                    )
-                  })}
-                </div>
-              </details>
-            )}
-
-            <div className="flex justify-end border-t border-border pt-5">
-              <Button type="submit" disabled={!dirty || saving} className="w-full sm:w-auto">
-                {saving ? <Loader2 className="size-4 animate-spin" aria-hidden="true" /> : <Check className="size-4" aria-hidden="true" />}
-                Guardar cambios
-              </Button>
-            </div>
-          </form>
-        )}
-      </section>
-
-      {months.length > 0 && (
-        <section aria-labelledby="incidencias-historial" className="space-y-3">
-          <h3 id="incidencias-historial" className="text-base font-semibold text-foreground">Historial de meses</h3>
-          <div className="flex flex-wrap gap-2">
-            {months.map(month => {
-              const monthTotal = records.filter(record => record.mes === month).reduce((sum, record) => sum + record.valor, 0)
-              return (
-                <Button key={month} type="button" variant={month === selectedMonth ? "default" : "outline"} size="sm" disabled={saving} onClick={() => void selectMonth(month)} aria-current={month === selectedMonth ? "date" : undefined}>
-                  {formatMes(month)} <span className="opacity-70">({monthTotal})</span>
-                </Button>
-              )
-            })}
-          </div>
-        </section>
+            </fieldset>
+          )}
+        </form>
       )}
     </div>
   )

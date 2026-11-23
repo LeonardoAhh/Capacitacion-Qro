@@ -163,7 +163,7 @@ export default function TrainingHoursKPI() {
                   <XAxis type="number" tick={{ fill: "currentColor", className: "text-body-sm" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
                   <YAxis type="category" dataKey="year" tick={{ fill: "hsl(var(--foreground))", className: "text-label-sm" }} tickLine={false} axisLine={false} width={56} />
                   <Tooltip content={<HoursTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-                  <Bar dataKey="totalHours" radius={[0, 6, 6, 0]} fill="hsl(var(--primary))">
+                  <Bar dataKey="totalHours" radius={[0, 6, 6, 0]} fill="hsl(var(--chart-1))">
                     <LabelList dataKey="totalHours" position="right" className="text-label-sm" fill="hsl(var(--foreground))" formatter={(v: unknown) => `${v} h`} />
                   </Bar>
                 </BarChart>

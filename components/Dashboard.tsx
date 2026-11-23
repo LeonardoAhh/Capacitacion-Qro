@@ -7,6 +7,7 @@ import Header from "@/components/header"
 import { useRole } from "@/lib/hooks"
 import { homeFor } from "@/lib/constants/roles"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
+import { DotPattern } from "@/components/ui/dot-pattern"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { HOME_PATH, SAFETY_HOME_PATH, type WorkspaceId } from "@/lib/navigation"
@@ -80,7 +81,9 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           showStatus={isEvaluador}
         />
 
-        <div className="workspace-frame">
+        {/* Header y contenido sobre el patrón de puntos; la barra lateral queda lisa. */}
+        <div className="workspace-frame relative isolate">
+          <DotPattern className="-z-10 [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]" />
           <Header
             titleHref={headerTitleHref}
             titleHrefLabel={headerTitleHrefLabel}

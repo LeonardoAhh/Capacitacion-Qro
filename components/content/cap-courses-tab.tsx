@@ -1,11 +1,12 @@
 "use client"
 import { useState, useMemo } from "react"
-import { BookOpen } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
 import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import { downloadExcelReport } from "@/lib/capacitacion/excel"
 import { CapReportPreviewDialog } from "@/components/content/cap-report-preview-dialog"
 import { CapCourseAuditDialog } from "@/components/content/cap-course-audit-dialog"
@@ -13,7 +14,8 @@ import { CapCourseDetailView } from "@/components/content/cap-course-detail-view
 import { motion, AnimatePresence } from "framer-motion"
 import type { Course, Position, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
 
-const PAGE_SIZE = 18
+const PAGE_SIZE = 12
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 interface CapCoursesTabProps {
   courses: Course[]
@@ -61,28 +63,24 @@ export function CapCoursesTab({
           value={courseSearch}
           onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
         />
-        <Button variant="outline" onClick={() => setAuditOpen(true)} aria-label="Auditoría global">
+        <Button variant="outline" size="sm" onClick={() => setAuditOpen(true)} aria-label="Auditoría global">
           Auditoría
         </Button>
-        <Button variant="outline" onClick={() => setPreviewOpen(true)} aria-label="Descargar reporte Excel">
+        <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} aria-label="Descargar reporte Excel">
           Reporte
         </Button>
         {!isReadOnly && (
-          <Button onClick={onNewCourse}>Nuevo curso</Button>
+          <Button size="sm" onClick={onNewCourse}>Nuevo curso</Button>
         )}
+        {!selectedCourse && <CompactPager label="Paginación de cursos" page={safePage} totalPages={totalPages} onPageChange={setCoursePage} />}
       </TabsToolbar>
 
       {loadingCourses ? (
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="rounded-md border border-border/60 bg-transparent px-4 py-3 flex items-center gap-3 shadow-none">
-              <Skeleton className="h-4 w-4 rounded bg-muted" />
-              <Skeleton className="h-4 flex-1 bg-muted" />
-            </div>
-          ))}
+        <div className="space-y-2" role="status" aria-label="Cargando cursos">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
         </div>
       ) : (
-        <div className="relative min-h-[400px]">
+        <div className="relative">
           <AnimatePresence mode="wait">
             {selectedCourse ? (
               <CapCourseDetailView
@@ -106,35 +104,41 @@ export function CapCoursesTab({
                 className="w-full"
               >
                 {filtered.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
+                  <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
                     {courses.length === 0
                       ? "No hay cursos registrados. Importa datos primero."
                       : "No se encontraron cursos."}
-                  </div>
+                  </p>
                 ) : (
-                  <>
-                    <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {paginated.map((course) => (
-                        <button
-                          type="button"
-                          key={course.id}
-                          className="flex min-h-(--control-height) w-full items-center gap-3 rounded-md border border-border bg-card px-3 text-left text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                          onClick={() => setSelectedCourseId(course.id)}
-                        >
-                          <BookOpen className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                          <span className="min-w-0 flex-1 line-clamp-2 font-medium leading-5 text-foreground">
-                            {course.name}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-
-                    {filtered.length > PAGE_SIZE && (
-                      <div className="mt-4 flex justify-end">
-                        <PaginationBar currentPage={safePage} totalPages={totalPages} onPageChange={setCoursePage} />
-                      </div>
-                    )}
-                  </>
+                  <div className="overflow-hidden rounded-xl border bg-card">
+                    <Table className="table-fixed">
+                      <caption className="sr-only">Cursos; abre uno para ver su detalle</caption>
+                      <TableHeader className="bg-muted/50">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead scope="col" className={HEAD}>Curso</TableHead>
+                          <TableHead scope="col" className={cn(HEAD, "hidden w-40 sm:table-cell")}>Tipo</TableHead>
+                          <TableHead scope="col" className={cn(HEAD, "hidden w-24 text-right md:table-cell")}>Duración</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {paginated.map(course => (
+                          <TableRow key={course.id} className="cursor-pointer" onClick={() => setSelectedCourseId(course.id)}>
+                            <TableCell>
+                              <button type="button" onClick={event => { event.stopPropagation(); setSelectedCourseId(course.id) }}
+                                className="block w-full truncate rounded-sm text-left text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                                {course.name}
+                              </button>
+                              {course.tipo && <span className="block truncate text-body-sm text-muted-foreground sm:hidden">{course.tipo}</span>}
+                            </TableCell>
+                            <TableCell className="hidden truncate text-body-sm text-muted-foreground sm:table-cell">{course.tipo ?? "—"}</TableCell>
+                            <TableCell className="hidden text-right text-body-sm tabular-nums text-muted-foreground md:table-cell">
+                              {course.duration_hours != null ? `${course.duration_hours} h` : "—"}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 )}
               </motion.div>
             )}

@@ -1,28 +1,29 @@
 "use client"
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import {
-  CheckCircle2, AlertCircle, Clock, Loader2,
+  CheckCircle2, AlertCircle, Loader2,
   UserPlus, FileUp, MessageSquareShare,
 } from "lucide-react"
-import { EvalBadge, ContratoTerminoBadge } from "@/components/content/shared/eval-badges"
+import { EvalCell, ContratoTerminoCell } from "@/components/content/shared/eval-badges"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { CompactPager } from "@/components/ui/compact-pager"
 import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_FILTER, TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
-import { Badge } from "@/components/ui/badge"
+import { TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
+import { FilterMenu } from "@/components/ui/filter-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { cn } from "@/lib/utils"
 import { useNuevoIngreso, formatDate, daysFromToday, useRole } from "@/lib/hooks"
 import type { NuevoIngreso, NuevoIngresoUpdate } from "@/lib/hooks"
 import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
+
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 const dialogLoading = () => (
   <div className="fixed inset-0 z-50 flex items-center justify-center gap-2 bg-background/80 text-sm text-muted-foreground" role="status" aria-live="polite">
@@ -201,7 +202,7 @@ export default function NuevoIngresoContent() {
 
       {/* Alertas */}
       {createSuccess && (
-        <Alert className="mb-4 border-success/30 bg-success/10 text-success">
+        <Alert className="border-success/30 bg-success/10 text-success">
           <CheckCircle2 className="h-4 w-4 text-success" />
           <AlertDescription className="text-success">
             Empleado creado correctamente.
@@ -209,7 +210,7 @@ export default function NuevoIngresoContent() {
         </Alert>
       )}
       {error && (
-        <Alert variant="destructive" className="mb-4">
+        <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
@@ -224,257 +225,120 @@ export default function NuevoIngresoContent() {
           value={search}
           onValueChange={setSearch}
         />
-        <Select value={filterDept} onValueChange={setFilterDept}>
-          <SelectTrigger className={TOOLBAR_FILTER}>
-            <SelectValue placeholder="Departamentos" />
-          </SelectTrigger>
-          <SelectContent className="bg-card">
-            <SelectItem value="all">Departamentos</SelectItem>
-            {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterContrato} onValueChange={setFilterContrato}>
-          <SelectTrigger className={TOOLBAR_FILTER}>
-            <SelectValue placeholder="Tipo contrato" />
-          </SelectTrigger>
-          <SelectContent className="bg-card">
-            <SelectItem value="all">Tipo contrato</SelectItem>
-            <SelectItem value="A prueba">A prueba</SelectItem>
-            <SelectItem value="Indeterminado">Indeterminado</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={filterTurno} onValueChange={setFilterTurno}>
-          <SelectTrigger className={TOOLBAR_FILTER}>
-            <SelectValue placeholder="Turnos" />
-          </SelectTrigger>
-          <SelectContent className="bg-card">
-            <SelectItem value="all">Turnos</SelectItem>
-            {turnos.map(t => <SelectItem key={t} value={t}>Turno {t}</SelectItem>)}
-          </SelectContent>
-        </Select>
-        <Select value={filterRG} onValueChange={setFilterRG}>
-          <SelectTrigger className={TOOLBAR_FILTER}>
-            <SelectValue placeholder="Plan de Formación" />
-          </SelectTrigger>
-          <SelectContent className="bg-card">
-            <SelectItem value="all">Plan de Formación</SelectItem>
-            <SelectItem value="Pendiente">Pendiente</SelectItem>
-            <SelectItem value="Entregado">Entregado</SelectItem>
-          </SelectContent>
-        </Select>
-        {!isReadOnly && (
-          <div className="ml-auto flex shrink-0 items-center gap-2">
-            <Button asChild className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline">
-              <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes" title="Compartir pendientes">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <FilterMenu
+            onClear={() => { setFilterDept('all'); setFilterContrato('all'); setFilterTurno('all'); setFilterRG('all') }}
+            facets={[
+              { id: 'departamento', label: 'Departamento', value: filterDept, onChange: setFilterDept,
+                options: departments.map(d => ({ value: d, label: d })) },
+              { id: 'contrato', label: 'Contrato', value: filterContrato, onChange: setFilterContrato,
+                options: [{ value: 'A prueba', label: 'A prueba' }, { value: 'Indeterminado', label: 'Indeterminado' }] },
+              { id: 'turno', label: 'Turno', value: filterTurno, onChange: setFilterTurno,
+                options: turnos.map(t => ({ value: t, label: `Turno ${t}` })) },
+              { id: 'plan', label: 'Plan de formación', value: filterRG, onChange: setFilterRG,
+                options: [{ value: 'Pendiente', label: 'Pendiente' }, { value: 'Entregado', label: 'Entregado' }] },
+            ]}
+          />
+          {!isReadOnly && <>
+            <Button asChild variant="outline" size="sm" className="max-sm:w-(--control-height) max-sm:px-0">
+              <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes">
+                <MessageSquareShare className="sm:hidden" aria-hidden="true" />
                 <span className="hidden sm:inline">Pendientes</span>
-                <MessageSquareShare className="size-4 sm:hidden" aria-hidden="true" />
               </Link>
             </Button>
-            <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
-              <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando..." : "Incidencias"}</span>
+            <Button variant="outline" size="sm" className="max-sm:w-(--control-height) max-sm:px-0" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar incidencias">
               {capEmployeeNamesLoading
-                ? <Loader2 className="h-4 w-4 animate-spin" />
-                : <FileUp className="h-4 w-4 sm:hidden" />}
+                ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                : <FileUp className="sm:hidden" aria-hidden="true" />}
+              <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando…" : "Incidencias"}</span>
             </Button>
-            <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" onClick={() => {
+            <Button size="sm" className="max-sm:w-(--control-height) max-sm:px-0" onClick={() => {
               markDialogLoaded("create")
               setNuevoOpen(true)
-            }} aria-label="Nuevo Empleado" title="Nuevo Empleado">
+            }} aria-label="Nuevo empleado">
+              <UserPlus className="sm:hidden" aria-hidden="true" />
               <span className="hidden sm:inline">Nuevo empleado</span>
-              <UserPlus className="h-4 w-4 sm:hidden" />
             </Button>
-          </div>
-        )}
+          </>}
+          <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
+        </div>
       </div>
 
-      {/* Tabla */}
-      <Card className="bg-card">
-        <CardContent className="p-0">
-          {loading ? (
-            <div className="divide-y" aria-busy="true" aria-label="Cargando empleados">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3 px-4 py-3">
-                  <Skeleton className="h-4 w-16 shrink-0" />
-                  <Skeleton className="h-4 flex-1" />
-                  <Skeleton className="h-5 w-20 rounded-md hidden sm:block" />
-                  <Skeleton className="h-5 w-20 rounded-md hidden md:block" />
-                </div>
-              ))}
-            </div>
-          ) : filtered.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground text-sm">
-              {records.length === 0
-                ? (isReadOnly
-                    ? 'No hay empleados registrados.'
-                    : 'No hay empleados registrados. Usa el botón “Nuevo Empleado” para crear el primero.')
-                : 'Sin empleados que coincidan con el filtro.'}
-            </div>
-          ) : (
-            <>
-              {/* ── Móvil: tarjetas ──────────────────────────────────────── */}
-              <div className="sm:hidden divide-y divide-border">
-                {paginatedFiltered.map(r => {
-                  const rgVencido = daysFromToday(r.fecha_vencimiento_rg)
-                  const rgUrgente = r.rg_rec_048 === 'Pendiente' && rgVencido !== null && rgVencido <= 7
-                  return (
-                    <div
-                      key={r.id}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Editar empleado ${r.nombre}`}
-                      className="p-4 cursor-pointer active:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset"
-                      onClick={() => handleEdit(r)}
-                      onKeyDown={(e: React.KeyboardEvent) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          handleEdit(r)
-                        }
-                      }}
-                    >
-                      {/* Fila superior: nombre + RG pill */}
-                      <div className="flex items-start justify-between gap-2 mb-2">
-                        <div className="min-w-0">
-                          {r.numero && (
-                            <p className="text-xs text-muted-foreground leading-none mb-1">
-                              #{r.numero}
-                            </p>
-                          )}
-                          <p className="font-medium text-sm leading-tight">{r.nombre}</p>
-                          <p className="text-xs text-muted-foreground mt-1 truncate">{r.puesto}</p>
-                          <p className="text-xs text-muted-foreground">{r.departamento}</p>
-                        </div>
-                          <div className={`shrink-0 inline-flex flex-col items-center gap-1 text-xs font-medium px-2 py-1 rounded-md ${r.rg_rec_048 === 'Entregado'
-                            ? 'bg-success text-success-foreground'
-                            : rgUrgente
-                              ? 'bg-destructive text-destructive-foreground'
-                              : 'bg-warning text-warning-foreground'
-                            }`}>
-                          <span className="flex items-center gap-1">
-                            {r.rg_rec_048 === 'Entregado' ? <CheckCircle2 className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                            RG
-                          </span>
-                          {r.fecha_vencimiento_rg && (
-                            <span className="text-xs opacity-80">{formatDate(r.fecha_vencimiento_rg)}</span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <div className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-xs text-muted-foreground">1er mes</span>
-                          <EvalBadge fecha={r.eval_1_fecha} calificacion={r.eval_1_calificacion} numeroEvaluacion={1} />
-                        </div>
-                        <div className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-xs text-muted-foreground">2do mes</span>
-                          <EvalBadge fecha={r.eval_2_fecha} calificacion={r.eval_2_calificacion} numeroEvaluacion={2} />
-                        </div>
-                        <div className="flex-1 flex flex-col items-center gap-1">
-                          <span className="text-xs text-muted-foreground">3er mes</span>
-                          <EvalBadge fecha={r.eval_3_fecha} calificacion={r.eval_3_calificacion} numeroEvaluacion={3} />
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-
-              {/* ── Desktop: tabla ───────────────────────────────────────── */}
-              <div className="hidden sm:block overflow-x-auto">
-                <Table className="[&_td]:py-2">
-                  <TableHeader>
-                    <TableRow className="bg-background/50">
-                      <TableHead>Empleado</TableHead>
-                      <TableHead className="hidden lg:table-cell">Ingreso</TableHead>
-                      <TableHead className="text-center">Eval. 1er mes</TableHead>
-                      <TableHead className="text-center hidden xl:table-cell">Eval. 2do mes</TableHead>
-                      <TableHead className="text-center hidden 2xl:table-cell">Eval. 3er mes</TableHead>
-                      <TableHead className="hidden xl:table-cell">Término</TableHead>
-                      <TableHead className="hidden lg:table-cell">Contrato</TableHead>
-                      <TableHead className="text-center">RG-REC-048</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {paginatedFiltered.map(r => {
-                      const rgVencido = daysFromToday(r.fecha_vencimiento_rg)
-                      const rgUrgente = r.rg_rec_048 === 'Pendiente' && rgVencido !== null && rgVencido <= 7
-                      return (
-                        <TableRow
-                          key={r.id}
-                          className="hover:bg-muted/40 cursor-pointer"
-                          onClick={() => handleEdit(r)}
-                        >
-                          <TableCell>
-                            <div className="font-medium text-sm leading-tight">{r.nombre}</div>
-                            <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0">
-                              <span className="text-xs text-muted-foreground">#{r.numero ?? '—'}</span>
-                              <span className="text-xs text-muted-foreground">{r.puesto}</span>
-                              {r.turno && (
-                                <span className="text-xs font-medium px-1 py-0 rounded-md bg-muted text-muted-foreground whitespace-nowrap">
-                                  T{r.turno}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <div className="text-sm">{formatDate(r.fecha_ingreso)}</div>
-                            <div className="text-xs text-muted-foreground">{r.departamento}</div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="[&_svg]:hidden">
-                              <EvalBadge fecha={r.eval_1_fecha} calificacion={r.eval_1_calificacion} numeroEvaluacion={1} />
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden text-center xl:table-cell">
-                            <div className="[&_svg]:hidden">
-                              <EvalBadge fecha={r.eval_2_fecha} calificacion={r.eval_2_calificacion} numeroEvaluacion={2} />
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden text-center 2xl:table-cell">
-                            <div className="[&_svg]:hidden">
-                              <EvalBadge fecha={r.eval_3_fecha} calificacion={r.eval_3_calificacion} numeroEvaluacion={3} />
-                            </div>
-                          </TableCell>
-                          <TableCell className="hidden xl:table-cell">
-                            <ContratoTerminoBadge fecha={r.termino_contrato} indeterminado={r.tipo_contrato === 'Indeterminado'} />
-                          </TableCell>
-                          <TableCell className="hidden lg:table-cell">
-                            <Badge
-                              variant={r.tipo_contrato === 'Indeterminado' ? 'info' : 'secondary'}
-                              className="whitespace-nowrap"
-                            >
-                              {r.tipo_contrato}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex flex-col items-center gap-1">
-                              <Badge
-                                variant={r.rg_rec_048 === 'Entregado' ? 'success' : rgUrgente ? 'destructive' : 'warning'}
-                              >
-                                {r.rg_rec_048}
-                              </Badge>
-                              {r.fecha_vencimiento_rg && (
-                                <span className="text-xs text-muted-foreground">{formatDate(r.fecha_vencimiento_rg)}</span>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Paginación inferior */}
-      {filtered.length > PAGE_SIZE && (
-        <div className="flex justify-end">
-          <PaginationBar currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
+      {/* Tabla: una para todas las pantallas; las columnas secundarias se ocultan al reducir el ancho. */}
+      {loading ? (
+        <div className="space-y-2" aria-busy="true" aria-label="Cargando empleados">
+          {Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+        </div>
+      ) : filtered.length === 0 ? (
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+          {records.length === 0
+            ? (isReadOnly
+                ? 'No hay empleados registrados.'
+                : 'No hay empleados registrados. Usa el botón “Nuevo empleado” para crear el primero.')
+            : 'Sin empleados que coincidan con el filtro.'}
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Empleados de nuevo ingreso</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-32 lg:table-cell")}>Ingreso</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-32 sm:table-cell")}>Eval. 1er mes</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-32 lg:table-cell")}>Eval. 2do mes</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-32 xl:table-cell")}>Eval. 3er mes</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-40 xl:table-cell")}>Contrato</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "w-28")}>RG-REC-048</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginatedFiltered.map(r => {
+                const rgDias = daysFromToday(r.fecha_vencimiento_rg)
+                const entregado = r.rg_rec_048 === 'Entregado'
+                const rgUrgente = !entregado && rgDias !== null && rgDias <= 7
+                return (
+                  <TableRow key={r.id} className="cursor-pointer" onClick={() => handleEdit(r)}>
+                    <TableCell>
+                      {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
+                      <button type="button" aria-label={`Editar empleado ${r.nombre}`}
+                        onClick={event => { event.stopPropagation(); handleEdit(r) }}
+                        className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                        <span className="block truncate text-label-sm text-foreground">{r.nombre}</span>
+                        <span className="block truncate text-body-sm text-muted-foreground">
+                          {[`#${r.numero ?? '—'}`, r.puesto, r.turno && `Turno ${r.turno}`].filter(Boolean).join(' · ')}
+                        </span>
+                      </button>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <span className="block truncate text-body-sm text-foreground">{formatDate(r.fecha_ingreso)}</span>
+                      <span className="block truncate text-body-sm text-muted-foreground">{r.departamento}</span>
+                    </TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <EvalCell fecha={r.eval_1_fecha} calificacion={r.eval_1_calificacion} numeroEvaluacion={1} />
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell">
+                      <EvalCell fecha={r.eval_2_fecha} calificacion={r.eval_2_calificacion} numeroEvaluacion={2} />
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <EvalCell fecha={r.eval_3_fecha} calificacion={r.eval_3_calificacion} numeroEvaluacion={3} />
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <ContratoTerminoCell tipo={r.tipo_contrato} fecha={r.termino_contrato} indeterminado={r.tipo_contrato === 'Indeterminado'} />
+                    </TableCell>
+                    <TableCell>
+                      <span className={cn("block truncate text-body-sm", entregado ? "text-success" : rgUrgente ? "text-destructive" : "text-warning-deep")}>
+                        {r.rg_rec_048}
+                      </span>
+                      <span className="block truncate text-body-sm text-muted-foreground">{formatDate(r.fecha_vencimiento_rg)}</span>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
-
-
 
       {/* Dialog de creación de nuevo empleado */}
       {loadedDialogs.create && <CreateEmployeeDialog

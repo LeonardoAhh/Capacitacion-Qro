@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { History, Trash2 } from "lucide-react"
 import { folioExamen, formatFechaExamen, useHistorialExamenes } from "@/lib/hooks/useHistorialExamenes"
-import { History, Calendar, FileText, Trash2, Loader2 } from "lucide-react"
 import { SearchInput } from "@/components/ui/search-input"
 import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,19 +23,30 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { examenHojaHref } from "@/components/content/examenes-tabs"
+import { cn } from "@/lib/utils"
 
+// 9 filas de dos líneas caben con la barra superior en una pantalla de escritorio sin scroll.
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+
+/** Historial: tabla de exámenes generados; cada fila abre su hoja de respuestas. */
 export default function HistorialExamenesContent() {
+  const router = useRouter()
   const { examenes, loading, error, buscar, eliminar } = useHistorialExamenes()
   const [searchTerm, setSearchTerm] = useState("")
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
-    // Initial fetch
     buscar("")
   }, [buscar])
 
+  const totalPages = Math.max(1, Math.ceil(examenes.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageRows = examenes.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
   return (
-    <div className="space-y-6">
-      {/* Búsqueda en la línea de las pestañas */}
+    <div className="space-y-4">
+      {/* Búsqueda y página en la línea de las pestañas */}
       <TabsToolbar>
         <SearchInput
           label="Buscar exámenes"
@@ -40,101 +54,89 @@ export default function HistorialExamenesContent() {
           className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
-          onSearch={buscar}
+          onSearch={value => { setPage(1); buscar(value) }}
           loading={loading}
         />
+        <CompactPager label="Paginación de exámenes" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
       </TabsToolbar>
 
       {loading ? (
-        <div className="flex justify-center py-12 text-muted-foreground">
-          <Loader2 size={32} className="animate-spin" />
+        <div className="space-y-2" aria-label="Cargando exámenes">
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
         </div>
       ) : error ? (
-        <div className="text-destructive text-center py-8">{error}</div>
+        <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-(--card-padding) text-body-md text-destructive">{error}</p>
       ) : examenes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-muted-foreground bg-card rounded-xl border border-dashed">
-          <History size={48} className="mb-4 opacity-20" />
-          <p className="text-lg font-medium">No se encontraron exámenes</p>
-          <p className="text-sm text-center max-w-sm mt-1 opacity-70">
-            Los exámenes generados aparecerán aquí para que puedas consultar sus hojas de respuestas.
-          </p>
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+          <History className="size-6 text-muted-foreground" aria-hidden="true" />
+          <p className="text-label-sm text-foreground">No se encontraron exámenes</p>
+          <p className="text-body-sm text-muted-foreground">Los exámenes generados aparecerán aquí para consultar sus hojas de respuestas.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {examenes.map((ex) => {
-            const folio = folioExamen(ex)
-            return (
-            // Toda la tarjeta abre la hoja de respuestas (enlace extendido); borrar queda encima.
-            <Card
-              key={ex.id}
-              className="relative transition-colors hover:border-primary/50 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-ring"
-            >
-              <CardContent className="space-y-3 p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <span className="text-[10px] font-bold text-muted-foreground">FOLIO</span>
-                    <p className="font-sans text-sm">{folio}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded">
-                      Categoría {ex.categoria_destino}
-                    </div>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="relative z-10 h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mr-2"
-                          aria-label={`Eliminar examen ${folio}`}
-                        >
-                          <Trash2 size={14} />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar examen?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará el historial de este examen (Folio: {folio}).
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction
-                            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                            onClick={() => eliminar(ex.id)}
-                          >
-                            Eliminar
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-
-                <div>
-                  <Link href={examenHojaHref(ex.id)}
-                    className="block truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-[inherit]">
-                    {ex.empleado?.nombre ?? "Empleado Desconocido"}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">
-                    #{ex.empleado?.numero ?? "—"} · {ex.departamento}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
-                  <div className="flex items-center gap-1">
-                    <Calendar size={12} />
-                    <span>{formatFechaExamen(ex.created_at)}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <FileText size={12} />
-                    <span>{ex.preguntas.length} preguntas</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            )
-          })}
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Exámenes generados</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 md:table-cell")}>Folio</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "w-28")}>Categoría</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 lg:table-cell")}>Fecha</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-24 text-right sm:table-cell")}>Preguntas</TableHead>
+                <TableHead scope="col" className="w-14 px-1"><span className="sr-only">Eliminar</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pageRows.map(ex => {
+                const folio = folioExamen(ex)
+                const href = examenHojaHref(ex.id)
+                const nombre = ex.empleado?.nombre ?? "Empleado desconocido"
+                return (
+                  <TableRow key={ex.id} className="cursor-pointer" onClick={() => router.push(href)}>
+                    <TableCell>
+                      {/* El enlace da acceso con teclado; toda la fila también abre la hoja. */}
+                      <Link href={href} onClick={event => event.stopPropagation()}
+                        className="block truncate rounded-sm text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                        {nombre}
+                      </Link>
+                      <span className="block truncate text-body-sm text-muted-foreground md:hidden">{folio}</span>
+                      <span className="hidden truncate text-body-sm text-muted-foreground md:block">
+                        #{ex.empleado?.numero ?? "—"} · {ex.departamento}
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden truncate text-body-sm tabular-nums text-foreground md:table-cell">{folio}</TableCell>
+                    <TableCell className="text-body-sm text-foreground">Categoría {ex.categoria_destino}</TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground lg:table-cell">{formatFechaExamen(ex.created_at)}</TableCell>
+                    <TableCell className="hidden text-right text-body-sm tabular-nums text-foreground sm:table-cell">{ex.preguntas.length}</TableCell>
+                    <TableCell className="px-1 text-center" onClick={event => event.stopPropagation()}>
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                            aria-label={`Eliminar examen ${folio}`}>
+                            <Trash2 aria-hidden="true" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>¿Eliminar examen?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Esta acción no se puede deshacer. Se eliminará el historial de este examen (Folio: {folio}).
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => eliminar(ex.id)}>
+                              Eliminar
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

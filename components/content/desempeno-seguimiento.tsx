@@ -1,29 +1,22 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
-import { motion, useReducedMotion } from "framer-motion"
-import {
-  AlertTriangle, CalendarClock, CheckCircle2, Clock,
-  ExternalLink, RefreshCw,
-  UserX, X,
-} from "lucide-react"
+import { AlertTriangle, CheckCircle2, FilterX, RefreshCw, UserX } from "lucide-react"
 import { SearchInput } from "@/components/ui/search-input"
 import { TOOLBAR_FILTER, TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { CompactPager } from "@/components/ui/compact-pager"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Select, SelectContent, SelectItem,
   SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ScoreBadge } from "./desempeno-score-badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { supabase } from "@/lib/supabase/client"
 import { PERIODOS_DESEMPENO, TIPO_LABEL } from "@/lib/catalogo"
 import { useRole } from "@/lib/hooks"
+import { cn } from "@/lib/utils"
 
 // All period strings flattened into one array for filter dropdown
 const ALL_PERIODOS: string[] = [
@@ -93,184 +86,78 @@ function getRevisionStatus(fechaRevision: string | null): RevisionStatus {
 // ─────────────────────────────────────────────────────────────────────────────
 
 
-const REVISION_CFG: Record<
-  RevisionStatus,
-  { icon: typeof Clock; className: string; prefix: string }
-> = {
-  vencido:   { icon: AlertTriangle, className: "bg-destructive/10 text-destructive", prefix: "Vencido" },
-  proximo:   { icon: Clock,         className: "bg-warning/10 text-warning-deep",         prefix: "Próximo" },
-  pendiente: { icon: CalendarClock, className: "bg-muted text-muted-foreground",     prefix: "Rev." },
-  sin_fecha: { icon: CalendarClock, className: "bg-muted text-muted-foreground",     prefix: "" },
+// 9 filas de dos líneas caben con la barra superior en una pantalla de escritorio sin scroll.
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+
+/** Estado de la revisión: color solo cuando pide atención (vencida o próxima). */
+const REVISION_CFG: Record<RevisionStatus, { label: string; className: string }> = {
+  vencido:   { label: "Vencida",    className: "text-destructive" },
+  proximo:   { label: "Próxima",    className: "text-warning-deep" },
+  pendiente: { label: "Programada", className: "text-foreground" },
+  sin_fecha: { label: "Sin fecha",  className: "text-muted-foreground" },
 }
 
-function RevisionPill({ fechaRevision }: { fechaRevision: string | null }) {
-  const status = getRevisionStatus(fechaRevision)
-  const { icon: Icon, className, prefix } = REVISION_CFG[status]
-  const label =
-    status === "sin_fecha"
-      ? "Sin fecha de revisión"
-      : `${prefix} · ${formatDate(fechaRevision)}`
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${className}`}
-    >
-      <Icon size={12} aria-hidden="true" />
-      {label}
-    </span>
-  )
-}
-
-/** Card para móvil/tablet */
-function EvalCard({ row }: { row: EvalRow }) {
-  return (
-    <Card 
-      className="bg-card border-border/60 hover:border-border transition-colors"
-      aria-label={`Evaluación de ${row.nombre ?? row.numero_empleado}`}
-    >
-      <CardContent className="p-(--card-padding) space-y-3">
-        {/* Top: employee + score */}
-        <div className="flex items-start gap-3">
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground text-sm truncate">
-              {row.nombre ?? row.numero_empleado}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {row.puesto ?? "—"} · N.º {row.numero_empleado}
-            </p>
-          </div>
-          <ScoreBadge score={row.calificacion_final} />
-        </div>
-
-        {/* Meta pills */}
-        <div className="flex flex-wrap gap-1.5">
-          <Badge variant="secondary" className="text-xs">
-            {TIPO_LABEL[row.tipo] ?? row.tipo}
-          </Badge>
-          {row.periodo && (
-            <Badge variant="outline" className="text-xs">
-              {row.periodo}
-            </Badge>
-          )}
-          <RevisionPill fechaRevision={row.fecha_revision} />
-        </div>
-
-        {/* Compromisos */}
-        <div className="rounded-md bg-muted/50 px-3 py-2">
-          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-            Compromisos acordados
-          </p>
-          <p className="text-sm text-foreground line-clamp-3 whitespace-pre-line">
-            {row.compromisos}
-          </p>
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-muted-foreground truncate">
-            Evaluador: {row.evaluador_nombre ?? "—"}
-          </p>
-          <Button asChild size="sm" variant="outline" className="h-9 shrink-0 text-xs gap-1">
-            <Link href={`/desempeno?n=${encodeURIComponent(row.numero_empleado)}`}>
-              Ver evaluación <ExternalLink size={12} aria-hidden="true" />
-            </Link>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-/** Tabla para desktop (lg+) — más legible para escanear muchos registros */
+/**
+ * Compromisos por evaluación: una tabla para todas las pantallas. Columnas con
+ * ancho fijo y texto en una o dos líneas; en pantallas chicas se ocultan las
+ * secundarias y el periodo pasa debajo del nombre.
+ */
 function EvalTable({ rows }: { rows: EvalRow[] }) {
   return (
-    <Card className="bg-card overflow-hidden">
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <caption className="sr-only">
-            Evaluaciones de desempeño con compromisos de mejora registrados
-          </caption>
-          <thead>
-            <tr className="border-b border-border bg-muted/40 text-left">
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Empleado</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Tipo / Período</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground text-center">Calif.</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Compromisos</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Revisión</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2 font-semibold text-muted-foreground">Evaluador</th>
-              <th scope="col" className="px-4 py-3 dense:px-3 dense:py-2">
-                <span className="sr-only">Acciones</span>
-              </th>
-            </tr>
-          </thead>
-          <TooltipProvider delayDuration={300}>
-            <tbody className="divide-y divide-border">
-              {rows.map(row => (
-              <tr key={row.id} className="hover:bg-muted/30 transition-colors">
-                <td className="px-4 py-3 dense:px-3 dense:py-2">
-                  <p className="font-medium text-foreground">
-                    {row.nombre ?? row.numero_empleado}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {row.puesto ?? "—"} · N.º {row.numero_empleado}
-                  </p>
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2">
-                  <div className="flex flex-col gap-1">
-                    <Badge variant="secondary" className="w-fit text-xs">
-                      {TIPO_LABEL[row.tipo] ?? row.tipo}
-                    </Badge>
-                    {row.periodo && (
-                      <span className="text-xs text-muted-foreground">{row.periodo}</span>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2 text-center">
-                  <ScoreBadge score={row.calificacion_final} />
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2 max-w-xs">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <p className="text-sm text-foreground line-clamp-2 whitespace-pre-line cursor-help">
-                        {row.compromisos}
-                      </p>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-sm whitespace-pre-line">
-                      <p className="text-sm">{row.compromisos}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2 whitespace-nowrap">
-                  <RevisionPill fechaRevision={row.fecha_revision} />
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2 text-muted-foreground max-w-[10rem]">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <p className="truncate cursor-help">
-                        {row.evaluador_nombre ?? "—"}
-                      </p>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">
-                      <p className="text-sm">{row.evaluador_nombre ?? "Sin evaluador registrado"}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </td>
-                <td className="px-4 py-3 dense:px-3 dense:py-2 text-right">
-                  <Button asChild size="sm" variant="outline" className="h-8 text-xs gap-1">
-                    <Link
-                      href={`/desempeno?n=${encodeURIComponent(row.numero_empleado)}`}
-                      aria-label={`Ver evaluación de ${row.nombre ?? row.numero_empleado}`}
-                    >
-                      Ver <ExternalLink size={12} aria-hidden="true" />
-                    </Link>
-                  </Button>
-                </td>
-              </tr>
-              ))}
-            </tbody>
-          </TooltipProvider>
-        </table>
-      </div>
-    </Card>
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <Table className="table-fixed">
+        <caption className="sr-only">Evaluaciones de desempeño con compromisos de mejora registrados</caption>
+        <TableHeader className="bg-muted/50">
+          <TableRow className="hover:bg-transparent">
+            <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-36 md:table-cell")}>Periodo</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "w-20 text-right")}>Calif.</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-[30%] lg:table-cell")}>Compromisos</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-32 sm:table-cell")}>Revisión</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-44 xl:table-cell")}>Evaluador</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {rows.map(row => {
+            const tipo = TIPO_LABEL[row.tipo] ?? row.tipo
+            const revision = REVISION_CFG[getRevisionStatus(row.fecha_revision)]
+            const reprobada = row.calificacion_final < UMBRAL_CALIFICACION_APROBATORIA
+            return (
+              <TableRow key={row.id}>
+                <TableCell>
+                  <span className="block truncate text-label-sm text-foreground">{row.nombre ?? `#${row.numero_empleado}`}</span>
+                  <span className="block truncate text-body-sm text-muted-foreground md:hidden">
+                    {[row.periodo, tipo].filter(Boolean).join(" · ")}
+                  </span>
+                  <span className="hidden truncate text-body-sm text-muted-foreground md:block">
+                    {[`#${row.numero_empleado}`, row.puesto].filter(Boolean).join(" · ")}
+                  </span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <span className="block truncate text-body-sm text-foreground">{row.periodo ?? "—"}</span>
+                  <span className="block truncate text-body-sm text-muted-foreground">{tipo}</span>
+                </TableCell>
+                <TableCell className={cn("text-right text-label-sm tabular-nums", reprobada ? "text-destructive" : "text-foreground")}>
+                  {row.calificacion_final}%
+                  {reprobada && <span className="sr-only"> (reprobada)</span>}
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <p className="line-clamp-2 whitespace-pre-line break-words text-body-sm text-foreground">{row.compromisos}</p>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <span className={cn("block truncate text-body-sm", revision.className)}>{revision.label}</span>
+                  <span className="block truncate text-body-sm text-muted-foreground">{formatDate(row.fecha_revision)}</span>
+                </TableCell>
+                <TableCell className="hidden truncate text-body-sm text-muted-foreground xl:table-cell">
+                  {row.evaluador_nombre ?? "—"}
+                </TableCell>
+              </TableRow>
+            )
+          })}
+        </TableBody>
+      </Table>
+    </div>
   )
 }
 
@@ -293,7 +180,6 @@ const STATUS_OPTIONS: { value: string; label: string; dot?: string }[] = [
 
 export default function DesempenoSeguimiento() {
   useRole() // ensures auth guard if needed
-  const shouldReduceMotion = useReducedMotion()
 
   const [rows, setRows] = useState<EvalRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -302,6 +188,7 @@ export default function DesempenoSeguimiento() {
   const [search, setSearch] = useState("")
   const [filterPeriodo, setFilterPeriodo] = useState("all")
   const [filterStatus, setFilterStatus] = useState("all")
+  const [page, setPage] = useState(1)
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
 
@@ -394,22 +281,22 @@ export default function DesempenoSeguimiento() {
   }, [rows, search, filterPeriodo, filterStatus])
 
   const hasActiveFilters = search !== "" || filterPeriodo !== "all" || filterStatus !== "all"
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  // Si un filtro reduce las páginas, se queda en la última disponible.
+  const currentPage = Math.min(page, totalPages)
+  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   const clearFilters = () => {
     setSearch("")
     setFilterPeriodo("all")
     setFilterStatus("all")
+    setPage(1)
   }
 
   // ─── Render ──────────────────────────────────────────────────────────────
 
   return (
-    <motion.div
-      className="space-y-5"
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-    >
+    <div className="space-y-4">
       {/* Error */}
       {error && (
         <Alert variant="destructive">
@@ -420,10 +307,9 @@ export default function DesempenoSeguimiento() {
               variant="outline"
               size="sm"
               onClick={load}
-              className="h-8 gap-1.5"
               data-testid="retry-load-button"
             >
-              <RefreshCw size={13} aria-hidden="true" /> Reintentar
+              <RefreshCw aria-hidden="true" /> Reintentar
             </Button>
           </AlertDescription>
         </Alert>
@@ -441,12 +327,12 @@ export default function DesempenoSeguimiento() {
             placeholder="Buscar por nombre, número o puesto…"
             className={TOOLBAR_SEARCH}
             value={search}
-            onValueChange={setSearch}
+            onValueChange={value => { setSearch(value); setPage(1) }}
             data-testid="seguimiento-search-input"
           />
 
           {/* Periodo filter */}
-          <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
+          <Select value={filterPeriodo} onValueChange={value => { setFilterPeriodo(value); setPage(1) }}>
             <SelectTrigger
               className={TOOLBAR_FILTER}
               aria-label="Filtrar por período"
@@ -463,7 +349,7 @@ export default function DesempenoSeguimiento() {
           </Select>
 
           {/* Status filter */}
-          <Select value={filterStatus} onValueChange={setFilterStatus}>
+          <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setPage(1) }}>
             <SelectTrigger
               className={TOOLBAR_FILTER}
               aria-label="Filtrar por estado de revisión"
@@ -478,7 +364,7 @@ export default function DesempenoSeguimiento() {
                     {dot && (
                       <span
                         aria-hidden="true"
-                        className={`h-2 w-2 shrink-0 rounded-md ${dot}`}
+                        className={`size-2 shrink-0 rounded-full ${dot}`}
                       />
                     )}
                     {label}
@@ -487,42 +373,33 @@ export default function DesempenoSeguimiento() {
               ))}
             </SelectContent>
           </Select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="icon" onClick={clearFilters} aria-label="Limpiar filtros" data-testid="clear-filters-toolbar-button">
+              <FilterX aria-hidden="true" />
+            </Button>
+          )}
+
+          <div className="ml-auto">
+            <CompactPager label="Paginación de compromisos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+          </div>
         </div>
       )}
 
       {/* Loading */}
       {loading && (
-        <div className="space-y-3" role="status" aria-live="polite" aria-label="Cargando evaluaciones">
+        <div className="space-y-2" role="status" aria-live="polite" aria-label="Cargando evaluaciones">
           <span className="sr-only">Cargando evaluaciones…</span>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <Card key={i} className="bg-card">
-              <CardContent className="p-(--card-padding) space-y-3">
-                <div className="flex items-start gap-3">
-                  <div className="flex-1 space-y-2">
-                    <Skeleton className="h-4 w-2/3" />
-                    <Skeleton className="h-3 w-1/3" />
-                  </div>
-                  <Skeleton className="h-7 w-10 rounded-md" />
-                </div>
-                <div className="flex gap-2">
-                  <Skeleton className="h-5 w-20 rounded-md" />
-                  <Skeleton className="h-5 w-28 rounded-md" />
-                </div>
-                <Skeleton className="h-16 w-full rounded-md" />
-              </CardContent>
-            </Card>
-          ))}
+          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
         </div>
       )}
 
       {/* Empty state — no data */}
       {!loading && rows.length === 0 && !error && (
-        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-          <div className="grid h-14 w-14 place-items-center rounded-md bg-success/10 text-success">
-            <CheckCircle2 size={26} aria-hidden="true" />
-          </div>
-          <p className="text-base font-semibold text-foreground">¡Todo en orden!</p>
-          <p className="text-sm text-muted-foreground max-w-xs">
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+          <CheckCircle2 className="size-6 text-success" aria-hidden="true" />
+          <p className="text-label-sm text-foreground">Todo en orden</p>
+          <p className="text-body-sm text-muted-foreground">
             No hay evaluaciones reprobadas con compromisos pendientes de seguimiento.
           </p>
         </div>
@@ -530,50 +407,19 @@ export default function DesempenoSeguimiento() {
 
       {/* Empty state — filters too strict */}
       {!loading && rows.length > 0 && filtered.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-          <UserX size={28} className="text-muted-foreground" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+          <UserX className="size-6 text-muted-foreground" aria-hidden="true" />
+          <p className="text-body-md text-muted-foreground">
             No se encontraron resultados con los filtros actuales.
           </p>
-          <Button variant="ghost" size="sm" onClick={clearFilters} data-testid="clear-filters-button">
+          <Button variant="outline" size="sm" onClick={clearFilters} data-testid="clear-filters-button">
             Limpiar filtros
           </Button>
         </div>
       )}
 
       {/* Results */}
-      {!loading && filtered.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground" role="status" aria-live="polite">
-              {filtered.length} de {rows.length} registro{rows.length !== 1 ? "s" : ""}
-            </p>
-            {hasActiveFilters && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="h-7 text-xs text-muted-foreground"
-              >
-                <X size={12} aria-hidden="true" className="mr-1" />
-                Limpiar filtros
-              </Button>
-            )}
-          </div>
-
-          {/* Mobile / tablet: cards */}
-          <div className="space-y-3 lg:hidden">
-            {filtered.map(row => (
-              <EvalCard key={row.id} row={row} />
-            ))}
-          </div>
-
-          {/* Desktop: table */}
-          <div className="hidden lg:block">
-            <EvalTable rows={filtered} />
-          </div>
-        </div>
-      )}
-    </motion.div>
+      {!loading && filtered.length > 0 && <EvalTable rows={pageRows} />}
+    </div>
   )
 }

@@ -1,10 +1,12 @@
 "use client"
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { FileQuestion, Plus } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { CompactPager } from "@/components/ui/compact-pager"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { cn } from "@/lib/utils"
 import { useRole } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 import { supabase } from "@/lib/supabase/client"
@@ -15,6 +17,9 @@ import {
   type RegistroPorDia, type RegistroPorDiaConfig, type ValoresDia,
 } from "@/lib/plantilla/registros-por-dia"
 import { RegistroPorDiaFormDialog } from "@/components/content/registros-por-dia-form-dialog"
+
+const PAGE_SIZE = 9
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 interface RegistrosPorDiaPageProps {
   config: RegistroPorDiaConfig
@@ -32,8 +37,8 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
   const [formCount, setFormCount] = useState("1")
   const [formMinutes, setFormMinutes] = useState("0")
   const [formError, setFormError] = useState<string | null>(null)
+  const [page, setPage] = useState(1)
   const newRecordRef = useRef<HTMLButtonElement>(null)
-  const titleId = useId()
 
   const load = useCallback(async () => {
     setRecords(await reloadByEmpleado(numeroEmpleado))
@@ -62,16 +67,19 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
     }
   }, [fetchByEmpleado, numeroEmpleado])
 
-  const months = useMemo(() => {
-    const grouped = new Map<string, RegistroPorDia[]>()
-    for (const record of records) grouped.set(record.mes, [...(grouped.get(record.mes) ?? []), record])
-    return [...grouped.entries()].map(([month, days]) => ({
-      month,
-      days,
-      total: days.reduce((sum, day) => sum + day.cantidad, 0),
-      totalMinutes: days.reduce((sum, day) => sum + (day.minutos ?? 0), 0),
-    }))
+  /** Total por mes; las filas se paginan por día y cada mes abre su grupo. */
+  const monthTotals = useMemo(() => {
+    const totals = new Map<string, ValoresDia>()
+    for (const { mes, cantidad, minutos } of records) {
+      const current = totals.get(mes) ?? { cantidad: 0, minutos: 0 }
+      totals.set(mes, { cantidad: current.cantidad + cantidad, minutos: current.minutos + (minutos ?? 0) })
+    }
+    return totals
   }, [records])
+  const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageRows = records.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+  const columns = config.conMinutos ? 3 : 2
 
   const findByDate = (date: string) => records.find(record => recordDate(record) === date)
   const describe = ({ cantidad, minutos }: ValoresDia) =>
@@ -144,70 +152,78 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
   }
 
   return (
-    <div className="space-y-6">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div className="min-w-0 space-y-1">
-          <p className="text-body-sm tabular-nums text-muted-foreground">Núm. {numeroEmpleado}</p>
-          <h2 className="break-words text-heading-md text-foreground">{nombreEmpleado ?? "Empleado"}</h2>
-          <p className="text-body-md text-muted-foreground">{config.descripcion}</p>
+    <div className="space-y-4">
+      {/* Barra única: empleado a la izquierda; captura y página a la derecha. */}
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+        <div className="min-w-0">
+          {nombreEmpleado ? <p className="truncate text-label-sm text-foreground">{nombreEmpleado}</p> : <Skeleton className="mb-1 h-4 w-48" />}
+          <p className="text-body-sm tabular-nums text-muted-foreground">#{numeroEmpleado}</p>
         </div>
-        {canCapturePlantilla && (
-          <Button ref={newRecordRef} type="button" size="sm" className="pl-2 pr-3" onClick={openForm}>
-            <Plus aria-hidden="true" />
-            Nuevo {config.singular}
-          </Button>
-        )}
-      </header>
-
-      <section aria-labelledby={titleId} className="space-y-3">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <h3 id={titleId} className="text-label-sm text-foreground">Meses con {config.plural}</h3>
-          {!loading && months.length > 0 && (
-            <Badge variant="outline" className="font-medium text-muted-foreground">
-              {months.length} {months.length === 1 ? "mes" : "meses"}
-            </Badge>
+        <div className="ml-auto flex items-center gap-2">
+          {canCapturePlantilla && (
+            <Button ref={newRecordRef} type="button" size="sm" onClick={openForm}>
+              <Plus aria-hidden="true" />
+              Nuevo {config.singular}
+            </Button>
           )}
+          <CompactPager label={`Paginación de ${config.plural}`} page={currentPage} totalPages={totalPages} onPageChange={setPage} />
         </div>
+      </div>
 
-        {loading ? (
-          <div role="status" aria-busy="true" className="grid gap-4 lg:grid-cols-2">
-            <span className="sr-only">Cargando {config.plural}</span>
-            {[0, 1].map(item => <Skeleton key={item} aria-hidden="true" className="h-32 w-full rounded-xl" />)}
-          </div>
-        ) : error ? (
-          <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
-            <p className="text-body-md text-destructive">{error}</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reintentar</Button>
-          </div>
-        ) : months.length === 0 ? (
-          <div className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card px-4 py-8 text-center">
-            <FileQuestion className="size-6 text-muted-foreground" aria-hidden="true" />
-            <p className="text-label-sm text-foreground">Sin {config.plural}</p>
-            <p className="text-body-sm text-muted-foreground">No hay días con registros para este empleado.</p>
-          </div>
-        ) : (
-          <div className="grid items-start gap-4 lg:grid-cols-2">
-            {months.map(({ month, days, total, totalMinutes }) => (
-              <section key={month} aria-label={formatMonth(month)} className="rounded-xl border border-border bg-card p-4">
-                <header className="mb-1 flex flex-wrap items-baseline justify-between gap-2">
-                  <h4 className="text-label-sm text-foreground">{formatMonth(month)}</h4>
-                  <p className="text-body-sm tabular-nums text-muted-foreground">
-                    {config.conMinutos ? describe({ cantidad: total, minutos: totalMinutes }) : formatCount(total, config)}
-                  </p>
-                </header>
-                <ul className="divide-y divide-border">
-                  {days.map(({ dia, cantidad, minutos }) => (
-                    <li key={dia} className="flex items-center justify-between gap-4 py-2">
-                      <span className="text-body-md text-foreground">Día {dia}</span>
-                      <span className="text-body-sm tabular-nums text-muted-foreground">{describe({ cantidad, minutos: minutos ?? 0 })}</span>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
-      </section>
+      {loading ? (
+        <div role="status" aria-label={`Cargando ${config.plural}`} className="space-y-2">
+          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} aria-hidden="true" className="h-(--control-height) w-full" />)}
+        </div>
+      ) : error ? (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-(--card-padding) py-3">
+          <p className="text-body-md text-destructive">{error}</p>
+          <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reintentar</Button>
+        </div>
+      ) : records.length === 0 ? (
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+          No hay días con {config.plural} para este empleado.
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">{capitalize(config.plural)} de {nombreEmpleado ?? `#${numeroEmpleado}`} por día</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Día</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "w-32 text-right")}>Cantidad</TableHead>
+                {config.conMinutos && <TableHead scope="col" className={cn(HEAD, "w-32 text-right")}>Minutos</TableHead>}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {pageRows.map((record, index) => {
+                const opensMonth = index === 0 || pageRows[index - 1].mes !== record.mes
+                const total = monthTotals.get(record.mes)
+                return (
+                  <Fragment key={recordDate(record)}>
+                    {opensMonth && total && (
+                      <TableRow className="bg-muted/30 hover:bg-muted/30">
+                        <TableHead scope="colgroup" colSpan={columns} className="h-auto py-2">
+                          <span className="flex items-baseline justify-between gap-4">
+                            <span className="text-label-sm text-foreground">{formatMonth(record.mes)}</span>
+                            <span className="text-body-sm font-normal tabular-nums text-muted-foreground">{describe(total)}</span>
+                          </span>
+                        </TableHead>
+                      </TableRow>
+                    )}
+                    <TableRow>
+                      <TableCell className="text-label-sm text-foreground">
+                        <time dateTime={recordDate(record)}>Día {record.dia}</time>
+                      </TableCell>
+                      <TableCell className="text-right text-body-sm tabular-nums text-muted-foreground">{record.cantidad}</TableCell>
+                      {config.conMinutos && <TableCell className="text-right text-body-sm tabular-nums text-muted-foreground">{record.minutos ?? 0}</TableCell>}
+                    </TableRow>
+                  </Fragment>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       {canCapturePlantilla && (
         <RegistroPorDiaFormDialog
