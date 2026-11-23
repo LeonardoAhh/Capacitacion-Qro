@@ -124,8 +124,36 @@ export const _OBJETIVOS_JEFE_TALLER_MOLDES: Objetivo[] = [
 export const _OBJETIVOS_COORDINADOR_TALLER_MOLDES: Objetivo[] = [
     {
         numero: 1,
-        descripcion: "OBJETIVOS PENDIENTES DE DEFINIR",
-        resultado: "N/A",
+        descripcion: "Cumplimiento de manttos preventivos a moldes del 100%",
+        resultado: "100%",
+        porcentaje: "",
+        comentarios: "",
+    },
+    {
+        numero: 2,
+        descripcion: "No presentar hallazgos en auditorias de clientes o sistema de gestion",
+        resultado: "100%",
+        porcentaje: "",
+        comentarios: "",
+    },
+    {
+        numero: 3,
+        descripcion: "Asegurar la comunicación oportuna entre jefe y gerente de planta",
+        resultado: "100%",
+        porcentaje: "",
+        comentarios: "",
+    },
+    {
+        numero: 4,
+        descripcion: "Cumplimiento 100% con sus auditorias  LPA",
+        resultado: "100%",
+        porcentaje: "",
+        comentarios: "",
+    },
+    {
+        numero: 5,
+        descripcion: "Mantener vigente y actualizada al 100% la base de datos de talleres externos con su respectiva evaluacion con el objetivo de conocer el alcance de c/u de ellos.",
+        resultado: "100%",
         porcentaje: "",
         comentarios: "",
     }
