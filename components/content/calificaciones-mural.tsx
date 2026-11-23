@@ -33,7 +33,7 @@ import { PaginationBar } from "@/components/ui/pagination-bar"
 function scoreColor(cal: number | null): string {
   if (cal === null) return "text-muted-foreground"
   if (cal >= 90) return "text-success"
-  if (cal >= 70) return "text-chart-2"
+  if (cal >= 70) return "text-chart-1-deep"
   if (cal >= 60) return "text-warning-deep"
   return "text-destructive"
 }
@@ -41,7 +41,7 @@ function scoreColor(cal: number | null): string {
 function scoreBgClass(cal: number | null): string {
   if (cal === null) return "bg-muted text-muted-foreground"
   if (cal >= 90) return "bg-success/15 text-success border-success/30"
-  if (cal >= 70) return "bg-chart-2/15 text-chart-2 border-chart-2/30"
+  if (cal >= 70) return "bg-chart-1/15 text-chart-1-deep border-chart-1/30"
   if (cal >= 60) return "bg-warning/15 text-warning-deep border-warning/30"
   return "bg-destructive/15 text-destructive border-destructive/30"
 }
@@ -81,7 +81,7 @@ function ScoreRing({ value }: { value: number | null }) {
       : value >= 90
       ? "stroke-success"
       : value >= 70
-      ? "stroke-chart-2"
+      ? "stroke-chart-1"
       : value >= 60
       ? "stroke-warning"
       : "stroke-destructive"

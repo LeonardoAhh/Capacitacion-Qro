@@ -19,14 +19,14 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 > Source pages analyzed: the home page, the AI Gateway page, the customers page, and the pricing page. The ink/canvas/hairline trio recurs on every page; the accent blue (`{colors.link}`) surfaces on pricing, and the mesh-gradient stops live in the hero.
 
-**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #475569; dark mode uses grafito oscuro surfaces and `--primary` #cbd5e1. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
+**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #0070f3 (Vercel Blue); dark mode uses grafito oscuro surfaces and a lighter `--primary` blue (#3d9bff) with dark text. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
 
 | UI token | Light | Dark |
 |---|---|---|
 | Background | `#f4f5f7` | `#121418` |
 | Foreground | `#14171c` | `#eceff3` |
 | Card / popover | `#ffffff` | `#1a1d23` |
-| Primary / ring | `#475569` | `#cbd5e1` |
+| Primary / ring | `#0070f3` | `#3d9bff` |
 | Secondary | `#e4e7ec` | `#262b33` |
 | Muted | `#eceef1` | `#20242b` |
 | Accent | `#e4e7ec` | `#262b33` |
@@ -37,11 +37,11 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 | Success | `#0070f3` | `#0070f3` |
 | Warning | `#f5a623` | `#f5a623` |
 
-Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. Charts use at most five distinct hues, `--chart-1` to `--chart-5` (teal, blue, amber, violet, rose; lighter in dark mode), never several grays: `--chart-2` marks approved/meets goal (success blue) and `--chart-3` marks pending/partial (warning amber); failures use `--destructive`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
+Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. Charts use at most five distinct hues, `--chart-1` to `--chart-5` (teal, blue, amber, violet, rose; lighter in dark mode), never several grays: `--chart-1` marks approved/meets goal (teal, so blue stays for actions), `--chart-2` is the primary blue and `--chart-3` marks pending/partial (warning amber); failures use `--destructive`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).
-- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links and pricing highlights. Workspace focus rings use the active theme's graphite primary. Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
+- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links and pricing highlights. It is also the workspace `--primary`: actions, selected states and focus rings. Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
 - **Violet** (`{colors.violet}` — #7928ca), **Cyan** (`{colors.cyan}` — #50e3c2), **Pink** (`{colors.pink}` — #ff0080), **Magenta** (`{colors.magenta}` — #eb367f): the chromatic accent family, used sparingly for illustration accents and as mesh-gradient stops, never as chrome fills.
 
 ### Surface

@@ -24,46 +24,43 @@ const stepNumber = (index: number) => String(index + 1).padStart(2, "0")
 export function GuiaEvaluadorPage() {
   return (
     <div className="min-h-dvh bg-background text-foreground">
+      {/* Presentación y acceso en una sola franja: a la izquierda la guía, a la derecha qué se necesita para entrar. */}
       <header className="border-b border-border">
-        <WorkspaceContainer className="grid justify-items-start gap-4 py-16 sm:py-24">
-          <p className={EYEBROW}>Viñoplastic · Capacitación Planta Querétaro</p>
-          <h1 className="text-display-lg sm:text-display-xl">Guía del evaluador</h1>
-          <p className="max-w-2xl text-body-lg text-muted-foreground">
-            Una guia paso a paso para evaluar a nuestros colaboradores.
-          </p>
-          <div className="flex flex-wrap gap-3 pt-4">
-            <Button asChild>
-              <Link href="/login">Acceder al sistema<ArrowRight aria-hidden="true" /></Link>
-            </Button>
-            <Button asChild variant="outline">
-              <a href="#flujo">Consultar pasos</a>
-            </Button>
+        <WorkspaceContainer className="grid items-center gap-10 py-16 sm:py-24 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
+          <div className="grid justify-items-start gap-4">
+            <p className={EYEBROW}>Viñoplastic · Capacitación Planta Querétaro</p>
+            <h1 className="text-display-lg sm:text-display-xl">Guía del evaluador</h1>
+            <p className="max-w-2xl text-body-lg text-muted-foreground">
+              Una guía paso a paso para evaluar a nuestros colaboradores.
+            </p>
+            <div className="flex flex-wrap gap-3 pt-4">
+              <Button asChild>
+                <Link href="/login">Acceder al sistema<ArrowRight aria-hidden="true" /></Link>
+              </Button>
+              <Button asChild variant="outline">
+                <a href="#flujo">Consultar pasos</a>
+              </Button>
+            </div>
           </div>
+
+          <section aria-labelledby="antes-heading" className="overflow-hidden rounded-xl border border-border bg-card">
+            <div className="grid gap-1 border-b border-border p-(--card-padding)">
+              <p className={EYEBROW}>Antes de iniciar</p>
+              <h2 id="antes-heading" className="text-heading-md">Acceso y alcance</h2>
+            </div>
+            <ul className="divide-y divide-border">
+              <InfoRow icon={LockKeyhole} title="Cuenta asignada">
+                Las credenciales se entregan por correo electrónico por Recursos Humanos. No compartas el acceso.
+              </InfoRow>
+              <InfoRow icon={ShieldCheck} title="Departamentos autorizados">
+                Un evaluador consulta únicamente a los colaboradores asignados a su cargo.
+              </InfoRow>
+            </ul>
+          </section>
         </WorkspaceContainer>
       </header>
 
       <main>
-        <section className={SECTION} aria-labelledby="antes-heading">
-          <WorkspaceContainer className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
-            <div className="grid content-start gap-3">
-              <p className={EYEBROW}>Antes de iniciar</p>
-              <h2 id="antes-heading" className="text-display-lg">Acceso y alcance</h2>
-              <p className="text-body-md text-muted-foreground">
-                Ingresa con la cuenta que te fue asignada. El rol y los departamentos asociados a
-                esa cuenta determinan qué colaboradores y pendientes puedes consultar.
-              </p>
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InfoCard icon={LockKeyhole} title="Cuenta asignada">
-                Las credenciales se entregan por correo electrónico por Recursos Humanos. No compartas el acceso.
-              </InfoCard>
-              <InfoCard icon={ShieldCheck} title="Departamentos autorizados">
-                Un evaluador consulta únicamente a los colaboradores asignados a su cargo.
-              </InfoCard>
-            </div>
-          </WorkspaceContainer>
-        </section>
-
         <section id="flujo" className={cn(SECTION, "scroll-mt-4")} aria-labelledby="flujo-heading">
           <WorkspaceContainer className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
             <div className="grid content-start gap-3 lg:sticky lg:top-6 lg:self-start">
@@ -268,12 +265,16 @@ function MockField({ label, multiline = false, children }: { label: string; mult
   )
 }
 
-function InfoCard({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+function InfoRow({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
   return (
-    <article className="grid content-start gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
-      <Icon className="size-5 text-primary" aria-hidden="true" />
-      <h3 className="text-label-sm">{title}</h3>
-      <p className="text-body-md text-muted-foreground">{children}</p>
-    </article>
+    <li className="flex items-start gap-3 p-(--card-padding)">
+      <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-primary">
+        <Icon className="size-4" />
+      </span>
+      <div className="grid min-w-0 gap-1">
+        <h3 className="text-label-sm">{title}</h3>
+        <p className="text-body-md text-muted-foreground">{children}</p>
+      </div>
+    </li>
   )
 }

@@ -44,7 +44,7 @@ export function currentYear(): string {
 }
 
 export function colorPctRg(pct: number): string {
-  if (pct >= META_RG) return "hsl(var(--chart-2))"
+  if (pct >= META_RG) return "hsl(var(--chart-1))"
   return "hsl(var(--destructive))"
 }
 

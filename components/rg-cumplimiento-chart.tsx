@@ -154,7 +154,7 @@ export default function RgCumplimientoChart() {
                 </ResponsiveContainer>
               </div>
               <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground justify-end">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--chart-2))" }} /> Cumple (≥ 70%)</span>
+                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--chart-1))" }} /> Cumple (≥ 70%)</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--destructive))" }} /> No cumple (&lt; 70%)</span>
               </div>
             </motion.div>

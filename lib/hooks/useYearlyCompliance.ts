@@ -21,7 +21,7 @@ const APROBADO_MIN = 7
 const YEARS_NUM = [2024, 2025, 2026] as const
 
 export const COLORS_YEARLY = {
-  aprobado:  "hsl(var(--chart-2))",
+  aprobado:  "hsl(var(--chart-1))",
   reprobado: "hsl(var(--destructive))",
   pendiente: "hsl(var(--chart-3))",
 }

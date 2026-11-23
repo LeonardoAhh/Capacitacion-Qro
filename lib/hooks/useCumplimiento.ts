@@ -35,13 +35,13 @@ export const META = 80
 const APROBADO_MIN = 7
 
 export function colorPct(pct: number): string {
-  if (pct >= META) return "hsl(var(--chart-2))"
+  if (pct >= META) return "hsl(var(--chart-1))"
   if (pct >= 50) return "hsl(var(--chart-3))"
   return "hsl(var(--destructive))"
 }
 
 export const COLORS_CUMPLIMIENTO = {
-  aprobado:  "hsl(var(--chart-2))",
+  aprobado:  "hsl(var(--chart-1))",
   reprobado: "hsl(var(--destructive))",
   pendiente: "hsl(var(--chart-3))",
 }
