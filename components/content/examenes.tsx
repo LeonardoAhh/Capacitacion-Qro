@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SearchInput } from "@/components/ui/search-input"
-import { ExamenesToolbar } from "./examenes-toolbar"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
@@ -173,11 +173,11 @@ export default function ExamenesContent({
     <div className="space-y-6">
       <ReadOnlyBanner />
       {/* Búsqueda y "Nueva pregunta" en la línea de las pestañas */}
-      <ExamenesToolbar>
+      <TabsToolbar>
         <SearchInput
           label="Buscar preguntas"
           placeholder="Buscar por pregunta, departamento u opción…"
-          className="w-full max-w-sm"
+          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={handleSearch}
@@ -186,7 +186,7 @@ export default function ExamenesContent({
         <Button size="icon" className="shrink-0" onClick={openCreate} disabled={isReadOnly} aria-label="Nueva pregunta">
           <Plus size={16} />
         </Button>
-      </ExamenesToolbar>
+      </TabsToolbar>
 
       {error && (
         <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">

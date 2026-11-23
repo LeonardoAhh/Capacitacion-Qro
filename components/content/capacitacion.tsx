@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Briefcase, BookOpen, ClipboardList } from "lucide-react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { TabsBar, TabsToolbarProvider } from "@/components/ui/tabs-toolbar"
 import { motion } from "framer-motion"
 import { useCapacitacion, useRole } from "@/lib/hooks"
 import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
@@ -13,7 +14,6 @@ import { notify } from "@/lib/notify"
 import { CapEditEmployeeDialog, type EditEmployeeForm } from "@/components/content/cap-edit-employee-dialog"
 import { CapNewEmployeeDialog } from "@/components/redesign/cap-new-employee-dialog"
 import { CapAddCoursesDialog } from "@/components/content/cap-add-courses-dialog"
-import { CapPositionCoursesDialog } from "@/components/content/cap-position-courses-dialog"
 import { CapNewPositionDialog } from "@/components/content/cap-new-position-dialog"
 import { CapNewCourseDialog } from "@/components/content/cap-new-course-dialog"
 import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog"
@@ -36,21 +36,24 @@ import { validarEmpleadosExistentes } from "@/lib/imports/validar-empleados"
 import { useBulkImport } from "@/lib/hooks/useBulkImport"
 import { useJsonImport } from "@/lib/hooks/useJsonImport"
 
+// Pestañas a su ancho natural desde sm; en celular se reparten la línea.
+const TAB_TRIGGER = "flex-1 gap-2 sm:flex-none"
+
 export default function CapacitacionContent() {
   const { canEdit, isReadOnly, employeesOnly } = useRole()
+  const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null)
   const { replaceMonths: replaceActasMonths } = useActasSeguimiento()
   const { replaceMonths: replaceIncumplimientosMonths } = useReglamentoIncumplimientos()
   const { replaceMonths: replaceRetardosMonths } = useRegistrosPorDia(RETARDOS_CONFIG)
   const {
     importing, importError,
     parseJSON, importData,
-    fetchDepartments, fetchPositions, fetchCourses, fetchPositionCourses,
+    fetchDepartments, fetchPositions, fetchCourses,
     fetchAllPositionCourses, fetchAllEmployeeCourses,
     fetchEmployees,
     clearHistorial, deleteEmployee, createEmployeeManual, updateEmployee,
     addCoursesToEmployee, bulkImportCourseRecords,
     createPosition, createCourse, updateCourse,
-    addCourseToPosition, removeCourseFromPosition,
   } = useCapacitacion()
 
   // ── Shared data ───────────────────────────────────────────────────────────
@@ -70,15 +73,6 @@ export default function CapacitacionContent() {
   const coursesTabDataLoaded = useRef(false)
   const coursesTabDataVersion = useRef(0)
   const coursesTabLoadPromise = useRef<Promise<void> | null>(null)
-
-  // ── Position-courses dialog ───────────────────────────────────────────────
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null)
-  const [posCoursesDlg, setPosCoursesDlg] = useState<PositionCourse[]>([])
-  const [loadingPosDlg, setLoadingPosDlg] = useState(false)
-  const [assignCourseId, setAssignCourseId] = useState("")
-  const [assignSaving, setAssignSaving] = useState(false)
-  const [assignError, setAssignError] = useState<string | null>(null)
 
   // ── New position / new course dialogs ────────────────────────────────────
   const [newPosOpen, setNewPosOpen] = useState(false)
@@ -237,46 +231,6 @@ export default function CapacitacionContent() {
   }, [loadCoursesTabData])
 
   // ── Position handlers ─────────────────────────────────────────────────────
-  const reloadPosCoursesDlg = useCallback(async () => {
-    if (!selectedPosition) return
-    try { setPosCoursesDlg(await fetchPositionCourses(selectedPosition.id)) }
-    catch (err) { console.error(err) }
-  }, [selectedPosition, fetchPositionCourses])
-
-  const handleViewCourses = useCallback(async (pos: Position) => {
-    setSelectedPosition(pos); setDialogOpen(true); setLoadingPosDlg(true)
-    setAssignCourseId(''); setAssignError(null)
-    if (courses.length === 0) loadCoursesData()
-    try { setPosCoursesDlg(await fetchPositionCourses(pos.id)) }
-    catch (err) { console.error(err) }
-    finally { setLoadingPosDlg(false) }
-  }, [courses.length, loadCoursesData, fetchPositionCourses])
-
-  const handleAssignCourse = useCallback(async () => {
-    if (!assignCourseId || !selectedPosition) return
-    if (posCoursesDlg.some(pc => pc.course_id === assignCourseId)) {
-      setAssignError('Este curso ya está asignado al puesto'); return
-    }
-    setAssignSaving(true); setAssignError(null)
-    const nextOrder = posCoursesDlg.length > 0 ? Math.max(...posCoursesDlg.map(pc => pc.order_index)) + 1 : 1
-    const result = await addCourseToPosition(selectedPosition.id, assignCourseId, nextOrder)
-    setAssignSaving(false)
-    if (result.success) {
-      invalidateCoursesTabData()
-      setAssignCourseId(''); await reloadPosCoursesDlg()
-      notify.success('Curso asignado correctamente')
-    } else {
-      setAssignError(result.error ?? 'Error al asignar curso')
-      notify.error(result.error ?? 'Error al asignar curso')
-    }
-  }, [assignCourseId, selectedPosition, posCoursesDlg, addCourseToPosition, invalidateCoursesTabData, reloadPosCoursesDlg])
-
-  const handleRemoveCourseFromPos = useCallback(async (id: string) => {
-    const result = await removeCourseFromPosition(id)
-    if (result.success) { invalidateCoursesTabData(); await reloadPosCoursesDlg(); notify.success('Curso quitado') }
-    else notify.error(result.error ?? 'Error al quitar curso')
-  }, [invalidateCoursesTabData, removeCourseFromPosition, reloadPosCoursesDlg])
-
   const handleSaveNewPos = useCallback(async (name: string, departmentId: string) => {
     setNewPosSaving(true)
     const result = await createPosition(name, departmentId)
@@ -400,77 +354,81 @@ export default function CapacitacionContent() {
   return (
     <>
       <ReadOnlyBanner />
-      <Tabs defaultValue="historial" onValueChange={handleTabChange}>
-        {/* Puestos y cursos no aplican a roles que solo consultan empleados: sin pestañas. */}
-        {!employeesOnly && (
-          <TabsList className="mb-6 flex w-full">
-            <TabsTrigger value="historial" className="flex-1 gap-2 px-2">
-              <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
-            </TabsTrigger>
-            <TabsTrigger value="cursos" className="flex-1 gap-2 px-2">
-              <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
-            </TabsTrigger>
-            <TabsTrigger value="puestos" className="flex-1 gap-2 px-2">
-              <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
-            </TabsTrigger>
-          </TabsList>
-        )}
+      <TabsToolbarProvider value={toolbarSlot}>
+        <Tabs defaultValue="historial" onValueChange={handleTabChange}>
+          {/* Pestañas a la izquierda; búsqueda, filtros y acciones de cada pestaña a la derecha.
+              Puestos y cursos no aplican a roles que solo consultan empleados: sin pestañas. */}
+          <TabsBar slotRef={setToolbarSlot}>
+            {!employeesOnly && (
+              <TabsList className="w-full sm:w-auto">
+                <TabsTrigger value="historial" className={TAB_TRIGGER}>
+                  <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
+                </TabsTrigger>
+                <TabsTrigger value="cursos" className={TAB_TRIGGER}>
+                  <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
+                </TabsTrigger>
+                <TabsTrigger value="puestos" className={TAB_TRIGGER}>
+                  <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
+                </TabsTrigger>
+              </TabsList>
+            )}
+          </TabsBar>
 
-        {!employeesOnly && (
-          <>
-            <TabsContent value="puestos" className="mt-0 outline-none">
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-                <CapPositionsTab
-                  departments={departments}
-                  positions={positions}
-                  loadingPositions={loadingPositions}
-                  isReadOnly={isReadOnly}
-                  onNewPosition={() => setNewPosOpen(true)}
-                  onViewCourses={handleViewCourses}
-                />
-              </motion.div>
-            </TabsContent>
+          {!employeesOnly && (
+            <>
+              <TabsContent value="puestos" className="mt-0 outline-none">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                  <CapPositionsTab
+                    departments={departments}
+                    positions={positions}
+                    loadingPositions={loadingPositions}
+                    isReadOnly={isReadOnly}
+                    onNewPosition={() => setNewPosOpen(true)}
+                  />
+                </motion.div>
+              </TabsContent>
 
-            <TabsContent value="cursos" className="mt-0 outline-none">
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-                <CapCoursesTab
-                  courses={courses}
-                  loadingCourses={loadingCourses}
-                  isReadOnly={isReadOnly}
-                  positions={positions}
-                  positionCourses={positionCourses}
-                  employees={employees}
-                  empCourses={empCourses}
-                  onNewCourse={() => setNewCourseOpen(true)}
-                  onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
-                />
-              </motion.div>
-            </TabsContent>
-          </>
-        )}
+              <TabsContent value="cursos" className="mt-0 outline-none">
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                  <CapCoursesTab
+                    courses={courses}
+                    loadingCourses={loadingCourses}
+                    isReadOnly={isReadOnly}
+                    positions={positions}
+                    positionCourses={positionCourses}
+                    employees={employees}
+                    empCourses={empCourses}
+                    onNewCourse={() => setNewCourseOpen(true)}
+                    onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
+                  />
+                </motion.div>
+              </TabsContent>
+            </>
+          )}
 
-        <TabsContent value="historial" className="mt-0 outline-none">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-            <CapHistorialTab
-              employees={employees}
-              loadingEmployees={loadingEmployees}
-              canEdit={canEdit}
-              newEmpSuccess={newEmpSuccess}
-              addCoursesSuccess={addCoursesSuccess}
-              onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
-              onBulkImport={bulkImport.openDialog}
-              onBulkImportIncumplimientos={() => setReglamentoImportOpen(true)}
-              onBulkImportActas={() => setActasImportOpen(true)}
-              onBulkImportRetardos={() => setRetardosImportOpen(true)}
-              onBulkCreateEmployees={() => setBulkCreateEmpOpen(true)}
-              onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
-              onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
-              onDeleteEmployee={handleDeleteEmployee}
-            />
-          </motion.div>
-        </TabsContent>
+          <TabsContent value="historial" className="mt-0 outline-none">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+              <CapHistorialTab
+                employees={employees}
+                loadingEmployees={loadingEmployees}
+                canEdit={canEdit}
+                newEmpSuccess={newEmpSuccess}
+                addCoursesSuccess={addCoursesSuccess}
+                onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
+                onBulkImport={bulkImport.openDialog}
+                onBulkImportIncumplimientos={() => setReglamentoImportOpen(true)}
+                onBulkImportActas={() => setActasImportOpen(true)}
+                onBulkImportRetardos={() => setRetardosImportOpen(true)}
+                onBulkCreateEmployees={() => setBulkCreateEmpOpen(true)}
+                onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
+                onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
+                onDeleteEmployee={handleDeleteEmployee}
+              />
+            </motion.div>
+          </TabsContent>
 
-      </Tabs>
+        </Tabs>
+      </TabsToolbarProvider>
 
       {/* ── Dialogs ─────────────────────────────────────────────────────── */}
       <CapBulkCreateEmployees
@@ -568,21 +526,6 @@ export default function CapacitacionContent() {
         onSave={handleSaveEditEmp}
       />
 
-      <CapPositionCoursesDialog
-        position={selectedPosition}
-        open={dialogOpen}
-        isReadOnly={isReadOnly}
-        loading={loadingPosDlg}
-        positionCourses={posCoursesDlg}
-        courses={courses}
-        assignCourseId={assignCourseId}
-        assignSaving={assignSaving}
-        assignError={assignError}
-        onClose={() => setDialogOpen(false)}
-        onAssignCourseChange={(v: string) => { setAssignCourseId(v); setAssignError(null) }}
-        onAssignCourse={handleAssignCourse}
-        onRemoveCourse={handleRemoveCourseFromPos}
-      />
 
 
       <CapNewPositionDialog

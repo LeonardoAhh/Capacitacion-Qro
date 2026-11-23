@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils"
 export type NoticeTone = "neutral" | "success" | "error" | "warning" | "info"
 
 const TONE_CLASS: Record<NoticeTone, string> = {
-  neutral: "bg-primary/10 text-primary",
-  success: "bg-success/10 text-success",
-  error: "bg-destructive/10 text-destructive",
-  warning: "bg-warning/10 text-warning-foreground",
-  info: "bg-info/10 text-info",
+  neutral: "text-primary",
+  success: "text-success",
+  error: "text-destructive",
+  warning: "text-warning",
+  info: "text-info",
 }
 
 interface NoticeIconProps {
@@ -24,7 +24,7 @@ interface NoticeIconProps {
 }
 
 /**
- * Ícono de avisos (toast y actualización): mosaico con el tono del aviso. Al
+ * Ícono de avisos (toast y actualización), solo con el color del aviso. Al
  * aparecer se transforma desde un círculo y al cambiar de ícono, de uno a otro
  * (morphicons); con movimiento reducido el cambio es inmediato.
  */
@@ -33,8 +33,8 @@ export function NoticeIcon({ icon, tone = "neutral", spin = false }: NoticeIconP
   useEffect(() => { setCurrent(icon) }, [icon])
 
   return (
-    <span className={cn("grid size-8 shrink-0 place-items-center rounded-md", TONE_CLASS[tone])} aria-hidden="true">
-      <MorphIcon icon={current} size={16} strokeWidth={2} spring="snappy" reducedMotion="user"
+    <span className={cn("flex shrink-0", TONE_CLASS[tone])} aria-hidden="true">
+      <MorphIcon icon={current} size={20} strokeWidth={2} spring="snappy" reducedMotion="user"
         className={cn(spin && "animate-spin motion-reduce:animate-none")} />
     </span>
   )

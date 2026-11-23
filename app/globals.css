@@ -737,12 +737,12 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 /* Sonner injects unlayered CSS. These overrides must be unlayered too. */
-/* Toast: misma superficie que el aviso de actualización (mosaico de ícono, título y descripción). */
+/* Toast: misma superficie que el aviso de actualización (ícono, título y descripción). */
 [data-sonner-toaster] .app-toast[data-sonner-toast][data-styled='true'] {
     align-items: center;
     gap: 0.75rem;
     min-height: 3.5rem;
-    padding: 0.5rem 2.75rem 0.5rem 0.5rem;
+    padding: 0.5rem 2.75rem 0.5rem 0.75rem;
     border: 1px solid hsl(var(--border));
     border-radius: var(--notice-radius);
     background: hsl(var(--card));
@@ -777,7 +777,7 @@ input[type="color"]::-webkit-color-swatch {
     line-height: var(--text-body-sm--line-height);
 }
 
-/* El ícono ya trae su mosaico (components/ui/notice-icon). */
+/* El ícono trae su propio tamaño y color (components/ui/notice-icon). */
 [data-sonner-toaster] .app-toast[data-sonner-toast][data-styled='true'] [data-icon] {
     width: auto;
     height: auto;

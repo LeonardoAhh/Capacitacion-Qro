@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SearchInput } from "@/components/ui/search-input"
-import { ExamenesToolbar } from "./examenes-toolbar"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Badge } from "@/components/ui/badge"
 import {
   useGeneradorExamen,
@@ -162,11 +162,11 @@ export default function GeneradorExamenContent() {
   return (
     <div className="space-y-6">
       {/* Paso 1: buscar empleado (en la línea de las pestañas) */}
-      <ExamenesToolbar>
+      <TabsToolbar>
         <SearchInput
           label="Buscar empleado"
           placeholder="Nombre o número de empleado…"
-          className="w-full max-w-sm"
+          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={handleSearch}
@@ -177,7 +177,7 @@ export default function GeneradorExamenContent() {
             buscarEmpleado("")
           }}
         />
-      </ExamenesToolbar>
+      </TabsToolbar>
 
       {/* Resultados de búsqueda */}
       {resultados.length > 0 && !empleadoSeleccionado && (

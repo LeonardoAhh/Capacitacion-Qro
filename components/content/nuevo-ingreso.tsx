@@ -11,6 +11,7 @@ import { EvalBadge, ContratoTerminoBadge } from "@/components/content/shared/eva
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { SearchInput } from "@/components/ui/search-input"
+import { TOOLBAR_FILTER, TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -42,9 +43,6 @@ const IncidenciasBulkImport = dynamic(
   () => import("@/components/content/incidencias-bulk-import").then((module) => module.IncidenciasBulkImport),
   { ssr: false, loading: dialogLoading },
 )
-// Filtros de la barra: dos por fila en celular, ancho fijo desde sm.
-const FILTER_TRIGGER = "w-[calc(50%-0.25rem)] sm:w-40"
-
 export default function NuevoIngresoContent() {
   const { isReadOnly } = useRole()
   const { loading, saving, error, fetchAll, updateRecord, deleteRecord, createRecord } = useNuevoIngreso()
@@ -222,12 +220,12 @@ export default function NuevoIngresoContent() {
         <SearchInput
           label="Buscar empleado"
           placeholder="Buscar empleado…"
-          className="w-full sm:w-56"
+          className={TOOLBAR_SEARCH}
           value={search}
           onValueChange={setSearch}
         />
         <Select value={filterDept} onValueChange={setFilterDept}>
-          <SelectTrigger className={FILTER_TRIGGER}>
+          <SelectTrigger className={TOOLBAR_FILTER}>
             <SelectValue placeholder="Departamentos" />
           </SelectTrigger>
           <SelectContent className="bg-card">
@@ -236,7 +234,7 @@ export default function NuevoIngresoContent() {
           </SelectContent>
         </Select>
         <Select value={filterContrato} onValueChange={setFilterContrato}>
-          <SelectTrigger className={FILTER_TRIGGER}>
+          <SelectTrigger className={TOOLBAR_FILTER}>
             <SelectValue placeholder="Tipo contrato" />
           </SelectTrigger>
           <SelectContent className="bg-card">
@@ -246,7 +244,7 @@ export default function NuevoIngresoContent() {
           </SelectContent>
         </Select>
         <Select value={filterTurno} onValueChange={setFilterTurno}>
-          <SelectTrigger className={FILTER_TRIGGER}>
+          <SelectTrigger className={TOOLBAR_FILTER}>
             <SelectValue placeholder="Turnos" />
           </SelectTrigger>
           <SelectContent className="bg-card">
@@ -255,7 +253,7 @@ export default function NuevoIngresoContent() {
           </SelectContent>
         </Select>
         <Select value={filterRG} onValueChange={setFilterRG}>
-          <SelectTrigger className={FILTER_TRIGGER}>
+          <SelectTrigger className={TOOLBAR_FILTER}>
             <SelectValue placeholder="Plan de Formación" />
           </SelectTrigger>
           <SelectContent className="bg-card">

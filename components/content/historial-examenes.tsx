@@ -5,7 +5,7 @@ import Link from "next/link"
 import { folioExamen, formatFechaExamen, useHistorialExamenes } from "@/lib/hooks/useHistorialExamenes"
 import { History, Calendar, FileText, Trash2, Loader2 } from "lucide-react"
 import { SearchInput } from "@/components/ui/search-input"
-import { ExamenesToolbar } from "./examenes-toolbar"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -33,17 +33,17 @@ export default function HistorialExamenesContent() {
   return (
     <div className="space-y-6">
       {/* Búsqueda en la línea de las pestañas */}
-      <ExamenesToolbar>
+      <TabsToolbar>
         <SearchInput
           label="Buscar exámenes"
           placeholder="Buscar por folio o nombre…"
-          className="w-full max-w-sm"
+          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={buscar}
           loading={loading}
         />
-      </ExamenesToolbar>
+      </TabsToolbar>
 
       {loading ? (
         <div className="flex justify-center py-12 text-muted-foreground">

@@ -89,7 +89,7 @@ export function UpdateBanner() {
           className="app-update-banner"
         >
           <div role="status" aria-live="polite"
-            className="ui-floating-surface flex min-h-14 items-center gap-3 rounded-(--notice-radius) py-2 pl-2 pr-2">
+            className="ui-floating-surface flex min-h-14 items-center gap-3 rounded-(--notice-radius) py-2 pl-3 pr-2">
             <NoticeIcon icon={updated ? CircleCheck : applying ? LoaderCircle : Download}
               tone={updated ? "success" : "neutral"} spin={applying} />
             <div className="min-w-0 flex-1">

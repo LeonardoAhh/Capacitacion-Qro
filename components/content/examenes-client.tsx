@@ -11,7 +11,7 @@ import ReglasExamenContent from "@/components/content/reglas-examen"
 import HistorialExamenesContent from "@/components/content/historial-examenes"
 import { History } from "lucide-react"
 import { EXAMENES_TABS, type ExamenesTab } from "@/components/content/examenes-tabs"
-import { ExamenesToolbarProvider } from "@/components/content/examenes-toolbar"
+import { TabsBar, TabsToolbarProvider } from "@/components/ui/tabs-toolbar"
 
 export default function ExamenesClient({ initialTab = "generador" }: { initialTab?: ExamenesTab }) {
   const [tab, setTab] = useState<ExamenesTab>(initialTab)
@@ -25,7 +25,7 @@ export default function ExamenesClient({ initialTab = "generador" }: { initialTa
   const [toolbar, setToolbar] = useState<HTMLDivElement | null>(null)
 
   return (
-    <ExamenesToolbarProvider value={toolbar}>
+    <TabsToolbarProvider value={toolbar}>
       <Tabs
         value={tab}
         onValueChange={(v) => {
@@ -36,8 +36,8 @@ export default function ExamenesClient({ initialTab = "generador" }: { initialTa
         className="w-full"
       >
         {/* Sin márgenes propios: pestañas y contenido usan el mismo margen que el header (WorkspaceContainer).
-            La búsqueda y las acciones de cada pestaña van en la misma línea (ExamenesToolbar). */}
-        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+            La búsqueda y las acciones de cada pestaña van en la misma línea (TabsToolbar). */}
+        <TabsBar slotRef={setToolbar}>
           <TabsList className="w-full sm:w-auto">
             <TabsTrigger value="generador" className="gap-1.5 flex-1 sm:flex-none">
               <FileText size={14} />
@@ -56,9 +56,7 @@ export default function ExamenesClient({ initialTab = "generador" }: { initialTa
               Reglas
             </TabsTrigger>
           </TabsList>
-          {/* Baja a su propia línea cuando no caben 18rem junto a las pestañas. */}
-          <div ref={setToolbar} className="flex min-w-0 flex-1 basis-72 items-center justify-end gap-2" />
-        </div>
+        </TabsBar>
 
         <TabsContent value="generador" className="mt-0">
           {mounted.generador && <GeneradorExamenContent />}
@@ -76,7 +74,7 @@ export default function ExamenesClient({ initialTab = "generador" }: { initialTa
           {mounted.reglas && <ReglasExamenContent />}
         </TabsContent>
       </Tabs>
-    </ExamenesToolbarProvider>
+    </TabsToolbarProvider>
   )
 }
 

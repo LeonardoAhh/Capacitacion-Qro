@@ -5,7 +5,7 @@ import { Loader2, Save, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { SearchInput } from "@/components/ui/search-input"
-import { ExamenesToolbar } from "./examenes-toolbar"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
@@ -97,15 +97,15 @@ export default function ReglasExamenContent() {
       )}
 
       {/* Filtro en la línea de las pestañas; filtra en vivo, sin consultar. */}
-      <ExamenesToolbar>
+      <TabsToolbar>
         <SearchInput
           label="Filtrar departamento"
           placeholder="Filtrar departamento…"
-          className="w-full max-w-sm"
+          className={TOOLBAR_SEARCH}
           value={filter}
           onValueChange={setFilter}
         />
-      </ExamenesToolbar>
+      </TabsToolbar>
 
       {filteredDeps.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">

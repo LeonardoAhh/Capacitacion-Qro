@@ -5,10 +5,11 @@ import Link from "next/link"
 import { motion, useReducedMotion } from "framer-motion"
 import {
   AlertTriangle, CalendarClock, CheckCircle2, Clock,
-  ExternalLink, Filter, RefreshCw, Search,
+  ExternalLink, RefreshCw,
   UserX, X,
 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { SearchInput } from "@/components/ui/search-input"
+import { TOOLBAR_FILTER, TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -431,46 +432,26 @@ export default function DesempenoSeguimiento() {
       {/* Filters */}
       {!loading && rows.length > 0 && (
         <div
-          className="flex flex-col sm:flex-row gap-2"
+          className="flex flex-wrap items-center gap-2"
           role="search"
           aria-label="Filtrar seguimiento de compromisos"
         >
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search
-              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none"
-              aria-hidden="true"
-            />
-            <Input
-              type="search"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Buscar por nombre, número o puesto…"
-              aria-label="Buscar empleado por nombre, número o puesto"
-              className="pl-9 pr-9 bg-muted text-foreground"
-              data-testid="seguimiento-search-input"
-            />
-            {search && (
-              <button
-                type="button"
-                onClick={() => setSearch("")}
-                aria-label="Limpiar búsqueda"
-                className="absolute right-1 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-md text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring transition-colors"
-                data-testid="clear-search-button"
-              >
-                <X size={14} aria-hidden="true" />
-              </button>
-            )}
-          </div>
+          <SearchInput
+            label="Buscar empleado por nombre, número o puesto"
+            placeholder="Buscar por nombre, número o puesto…"
+            className={TOOLBAR_SEARCH}
+            value={search}
+            onValueChange={setSearch}
+            data-testid="seguimiento-search-input"
+          />
 
           {/* Periodo filter */}
           <Select value={filterPeriodo} onValueChange={setFilterPeriodo}>
             <SelectTrigger
-              className="w-full sm:w-[180px] bg-muted text-foreground text-sm"
+              className={TOOLBAR_FILTER}
               aria-label="Filtrar por período"
               data-testid="filter-periodo-select"
             >
-              <Filter size={13} className="mr-1 shrink-0 text-muted-foreground" aria-hidden="true" />
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
@@ -484,7 +465,7 @@ export default function DesempenoSeguimiento() {
           {/* Status filter */}
           <Select value={filterStatus} onValueChange={setFilterStatus}>
             <SelectTrigger
-              className="w-full sm:w-[180px] bg-muted text-foreground text-sm"
+              className={TOOLBAR_FILTER}
               aria-label="Filtrar por estado de revisión"
               data-testid="filter-status-select"
             >
@@ -506,19 +487,6 @@ export default function DesempenoSeguimiento() {
               ))}
             </SelectContent>
           </Select>
-
-          {/* Refresh */}
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={load}
-            disabled={loading}
-            aria-label="Recargar datos"
-            className="shrink-0"
-            data-testid="refresh-button"
-          >
-            <RefreshCw size={14} aria-hidden="true" className={loading ? "animate-spin" : undefined} />
-          </Button>
         </div>
       )}
 
