@@ -13,7 +13,8 @@ export function PaginationBar({ currentPage, totalPages, onPageChange }: Paginat
   return (
     <nav
       aria-label="Paginación"
-      className="flex items-center justify-end mb-3"
+      // Sin margen propio: el espacio lo pone quien la usa.
+      className="flex items-center justify-end"
     >
       <div className="flex items-center gap-1">
         <Button

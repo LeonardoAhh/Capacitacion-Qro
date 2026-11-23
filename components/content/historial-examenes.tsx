@@ -1,19 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useHistorialExamenes, type ExamenHistorial } from "@/lib/hooks/useHistorialExamenes"
-import { Search, History, Calendar, FileText, CheckCircle2, Trash2, Loader2 } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import Link from "next/link"
+import { folioExamen, formatFechaExamen, useHistorialExamenes } from "@/lib/hooks/useHistorialExamenes"
+import { History, Calendar, FileText, Trash2, Loader2 } from "lucide-react"
+import { SearchInput } from "@/components/ui/search-input"
+import { ExamenesToolbar } from "./examenes-toolbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,58 +19,31 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { format } from "date-fns"
-import { es } from "date-fns/locale"
-import { generarFolioExamen } from "@/lib/utils"
+import { examenHojaHref } from "@/components/content/examenes-tabs"
 
 export default function HistorialExamenesContent() {
   const { examenes, loading, error, buscar, eliminar } = useHistorialExamenes()
   const [searchTerm, setSearchTerm] = useState("")
-  const [selectedExamen, setSelectedExamen] = useState<ExamenHistorial | null>(null)
 
   useEffect(() => {
     // Initial fetch
     buscar("")
   }, [buscar])
 
-  const handleSearch = () => {
-    buscar(searchTerm)
-  }
-
-  const formatFecha = (iso: string) => {
-    try {
-      return format(new Date(iso), "dd 'de' MMMM, yyyy", { locale: es })
-    } catch {
-      return iso
-    }
-  }
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <div>
-          <h2 className="text-xl font-bold tracking-tight">Historial de Exámenes</h2>
-          <p className="text-sm text-muted-foreground">
-            Consulta los exámenes que se han generado y sus hojas de respuestas.
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-2 max-w-md">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por folio o nombre..."
-            className="pl-9"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-          />
-        </div>
-        <Button onClick={handleSearch} disabled={loading}>
-          Buscar
-        </Button>
-      </div>
+      {/* Búsqueda en la línea de las pestañas */}
+      <ExamenesToolbar>
+        <SearchInput
+          label="Buscar exámenes"
+          placeholder="Buscar por folio o nombre…"
+          className="w-full max-w-sm"
+          value={searchTerm}
+          onValueChange={setSearchTerm}
+          onSearch={buscar}
+          loading={loading}
+        />
+      </ExamenesToolbar>
 
       {loading ? (
         <div className="flex justify-center py-12 text-muted-foreground">
@@ -94,17 +61,19 @@ export default function HistorialExamenesContent() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {examenes.map((ex) => (
+          {examenes.map((ex) => {
+            const folio = folioExamen(ex)
+            return (
+            // Toda la tarjeta abre la hoja de respuestas (enlace extendido); borrar queda encima.
             <Card
               key={ex.id}
-              className="cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => setSelectedExamen(ex)}
+              className="relative transition-colors hover:border-primary/50 has-[a:focus-visible]:outline-2 has-[a:focus-visible]:outline-offset-2 has-[a:focus-visible]:outline-ring"
             >
               <CardContent className="space-y-3 p-6">
                 <div className="flex justify-between items-start">
                   <div>
                     <span className="text-[10px] font-bold text-muted-foreground">FOLIO</span>
-                    <p className="font-sans text-sm">{generarFolioExamen(ex.id, ex.empleado?.numero, ex.created_at)}</p>
+                    <p className="font-sans text-sm">{folio}</p>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="bg-primary/10 text-primary text-xs font-semibold px-2 py-1 rounded">
@@ -115,27 +84,24 @@ export default function HistorialExamenesContent() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mr-2"
-                          onClick={(e) => e.stopPropagation()}
+                          className="relative z-10 h-7 w-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 -mr-2"
+                          aria-label={`Eliminar examen ${folio}`}
                         >
                           <Trash2 size={14} />
                         </Button>
                       </AlertDialogTrigger>
-                      <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+                      <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>¿Eliminar examen?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esta acción no se puede deshacer. Se eliminará el historial de este examen (Folio: {generarFolioExamen(ex.id, ex.empleado?.numero, ex.created_at)}).
+                            Esta acción no se puede deshacer. Se eliminará el historial de este examen (Folio: {folio}).
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                          <AlertDialogCancel onClick={(e) => e.stopPropagation()}>Cancelar</AlertDialogCancel>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction
                             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              eliminar(ex.id)
-                            }}
+                            onClick={() => eliminar(ex.id)}
                           >
                             Eliminar
                           </AlertDialogAction>
@@ -146,9 +112,10 @@ export default function HistorialExamenesContent() {
                 </div>
 
                 <div>
-                  <p className="font-semibold text-sm truncate" title={ex.empleado?.nombre ?? "Desconocido"}>
+                  <Link href={examenHojaHref(ex.id)}
+                    className="block truncate text-sm font-semibold outline-none after:absolute after:inset-0 after:rounded-[inherit]">
                     {ex.empleado?.nombre ?? "Empleado Desconocido"}
-                  </p>
+                  </Link>
                   <p className="text-xs text-muted-foreground">
                     #{ex.empleado?.numero ?? "—"} · {ex.departamento}
                   </p>
@@ -157,7 +124,7 @@ export default function HistorialExamenesContent() {
                 <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2 border-t">
                   <div className="flex items-center gap-1">
                     <Calendar size={12} />
-                    <span>{formatFecha(ex.created_at)}</span>
+                    <span>{formatFechaExamen(ex.created_at)}</span>
                   </div>
                   <div className="flex items-center gap-1">
                     <FileText size={12} />
@@ -166,71 +133,10 @@ export default function HistorialExamenesContent() {
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
-
-      <Dialog open={!!selectedExamen} onOpenChange={(open) => !open && setSelectedExamen(null)}>
-        <DialogContent raw className="w-full sm:max-w-3xl max-h-[90dvh] flex flex-col gap-0 p-0">
-          {/* Header */}
-          <DialogHeader className="px-4 sm:px-5 pt-5 pb-4 border-b shrink-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="grid h-9 w-9 place-items-center rounded-md bg-primary/10 text-primary shrink-0">
-                  <FileText size={18} aria-hidden="true" />
-                </div>
-                <div className="min-w-0 text-left">
-                  <DialogTitle className="text-base leading-tight">Hoja de Respuestas</DialogTitle>
-                  <DialogDescription className="text-xs mt-0.5 line-clamp-1">
-                    Empleado: {selectedExamen?.empleado?.nombre} (#{selectedExamen?.empleado?.numero})
-                  </DialogDescription>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 mt-3">
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-md px-2.5 py-1 font-sans">
-                FOLIO: {selectedExamen ? generarFolioExamen(selectedExamen.id, selectedExamen.empleado?.numero, selectedExamen.created_at) : ""}
-              </span>
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-primary/10 text-primary rounded-md px-2.5 py-1">
-                Categoría: {selectedExamen?.categoria_destino}
-              </span>
-              <span className="flex items-center gap-1 text-[11px] font-medium bg-muted rounded-md px-2.5 py-1">
-                Depto: {selectedExamen?.departamento}
-              </span>
-            </div>
-          </DialogHeader>
-
-          {/* Body */}
-          <div className="p-4 sm:p-5 overflow-y-auto min-h-0 bg-muted/10">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {selectedExamen?.preguntas.map((p, index) => {
-                const correcta = p.respuesta_correcta?.toUpperCase()
-                return (
-                  <div key={p.id} className="bg-background rounded-xl p-3 border border-border shadow-sm flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="font-medium text-[13px] text-foreground leading-snug">
-                        <span className="text-muted-foreground mr-1.5">{index + 1}.</span>
-                        <span className="line-clamp-2" title={p.pregunta}>{p.pregunta}</span>
-                      </p>
-                    </div>
-                    <div className="shrink-0 w-8 h-8 rounded-md border border-success bg-success/10 text-success flex items-center justify-center font-bold text-base">
-                      {correcta}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Footer */}
-          <div className="shrink-0 border-t px-4 sm:px-5 py-3 flex justify-end bg-card">
-            <Button type="button" variant="outline" onClick={() => setSelectedExamen(null)}>
-              Cerrar
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

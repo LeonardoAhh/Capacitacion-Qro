@@ -4,13 +4,13 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import dynamic from "next/dynamic"
 import Link from "next/link"
 import {
-  Search, CheckCircle2, AlertCircle, Clock, Loader2,
-  UserPlus, X, FileUp, Upload, MessageSquareShare,
+  CheckCircle2, AlertCircle, Clock, Loader2,
+  UserPlus, FileUp, MessageSquareShare,
 } from "lucide-react"
 import { EvalBadge, ContratoTerminoBadge } from "@/components/content/shared/eval-badges"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { Card, CardContent } from "@/components/ui/card"
+import { SearchInput } from "@/components/ui/search-input"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -42,10 +42,9 @@ const IncidenciasBulkImport = dynamic(
   () => import("@/components/content/incidencias-bulk-import").then((module) => module.IncidenciasBulkImport),
   { ssr: false, loading: dialogLoading },
 )
-const IngresosBulkImport = dynamic(
-  () => import("@/components/content/ingresos-bulk-import").then((module) => module.IngresosBulkImport),
-  { ssr: false, loading: dialogLoading },
-)
+// Filtros de la barra: dos por fila en celular, ancho fijo desde sm.
+const FILTER_TRIGGER = "w-[calc(50%-0.25rem)] sm:w-40"
+
 export default function NuevoIngresoContent() {
   const { isReadOnly } = useRole()
   const { loading, saving, error, fetchAll, updateRecord, deleteRecord, createRecord } = useNuevoIngreso()
@@ -65,13 +64,11 @@ export default function NuevoIngresoContent() {
   const [createSuccess, setCreateSuccess] = useState(false)
 
   const [bulkImportOpen, setBulkImportOpen] = useState(false)
-  const [ingresosJsonOpen, setIngresosJsonOpen] = useState(false)
   const [capEmployeeNamesLoading, setCapEmployeeNamesLoading] = useState(false)
   const [loadedDialogs, setLoadedDialogs] = useState({
     edit: false,
     create: false,
     incidencias: false,
-    ingresos: false,
   })
 
   const markDialogLoaded = useCallback((dialog: keyof typeof loadedDialogs) => {
@@ -124,7 +121,7 @@ export default function NuevoIngresoContent() {
   })
 
   // Paginación
-  const PAGE_SIZE = 7
+  const PAGE_SIZE = 9
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(currentPage, totalPages)
   const paginatedFiltered = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
@@ -220,109 +217,80 @@ export default function NuevoIngresoContent() {
         </Alert>
       )}
 
-      {/* Card principal con header + filtros */}
-      <Card className="bg-card mb-6">
-        <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="relative min-w-0 flex-1 sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar empleado..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className={`pl-9 ${search ? 'pr-11' : ''}`}
-            />
-            {search && (
-              <button
-                type="button"
-                aria-label="Limpiar búsqueda"
-                onClick={() => setSearch('')}
-                className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              >
-                <X className="h-4 w-4" aria-hidden="true" />
-              </button>
-            )}
+      {/* Búsqueda, filtros y acciones en una sola fila; en pantallas chicas se acomodan en varias. */}
+      <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Filtros de empleados">
+        <SearchInput
+          label="Buscar empleado"
+          placeholder="Buscar empleado…"
+          className="w-full sm:w-56"
+          value={search}
+          onValueChange={setSearch}
+        />
+        <Select value={filterDept} onValueChange={setFilterDept}>
+          <SelectTrigger className={FILTER_TRIGGER}>
+            <SelectValue placeholder="Departamentos" />
+          </SelectTrigger>
+          <SelectContent className="bg-card">
+            <SelectItem value="all">Departamentos</SelectItem>
+            {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterContrato} onValueChange={setFilterContrato}>
+          <SelectTrigger className={FILTER_TRIGGER}>
+            <SelectValue placeholder="Tipo contrato" />
+          </SelectTrigger>
+          <SelectContent className="bg-card">
+            <SelectItem value="all">Tipo contrato</SelectItem>
+            <SelectItem value="A prueba">A prueba</SelectItem>
+            <SelectItem value="Indeterminado">Indeterminado</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={filterTurno} onValueChange={setFilterTurno}>
+          <SelectTrigger className={FILTER_TRIGGER}>
+            <SelectValue placeholder="Turnos" />
+          </SelectTrigger>
+          <SelectContent className="bg-card">
+            <SelectItem value="all">Turnos</SelectItem>
+            {turnos.map(t => <SelectItem key={t} value={t}>Turno {t}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <Select value={filterRG} onValueChange={setFilterRG}>
+          <SelectTrigger className={FILTER_TRIGGER}>
+            <SelectValue placeholder="Plan de Formación" />
+          </SelectTrigger>
+          <SelectContent className="bg-card">
+            <SelectItem value="all">Plan de Formación</SelectItem>
+            <SelectItem value="Pendiente">Pendiente</SelectItem>
+            <SelectItem value="Entregado">Entregado</SelectItem>
+          </SelectContent>
+        </Select>
+        {!isReadOnly && (
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <Button asChild className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline">
+              <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes" title="Compartir pendientes">
+                <span className="hidden sm:inline">Pendientes</span>
+                <MessageSquareShare className="size-4 sm:hidden" aria-hidden="true" />
+              </Link>
+            </Button>
+            <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
+              <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando..." : "Incidencias"}</span>
+              {capEmployeeNamesLoading
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <FileUp className="h-4 w-4 sm:hidden" />}
+            </Button>
+            <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" onClick={() => {
+              markDialogLoaded("create")
+              setNuevoOpen(true)
+            }} aria-label="Nuevo Empleado" title="Nuevo Empleado">
+              <span className="hidden sm:inline">Nuevo empleado</span>
+              <UserPlus className="h-4 w-4 sm:hidden" />
+            </Button>
           </div>
-          <div className="flex min-w-0 items-center justify-end gap-3">
-            {!isReadOnly && (
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Button asChild className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline">
-                  <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes" title="Compartir pendientes">
-                    <span className="hidden sm:inline">Pendientes</span>
-                    <MessageSquareShare className="size-4 sm:hidden" aria-hidden="true" />
-                  </Link>
-                </Button>
-                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar Incidencias" title="Importar Incidencias">
-                  <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando..." : "Incidencias"}</span>
-                  {capEmployeeNamesLoading
-                    ? <Loader2 className="h-4 w-4 animate-spin" />
-                    : <FileUp className="h-4 w-4 sm:hidden" />}
-                </Button>
-                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" variant="outline" onClick={() => {
-                  markDialogLoaded("ingresos")
-                  setIngresosJsonOpen(true)
-                }} aria-label="Importar empleados desde JSON" title="Importar empleados desde JSON">
-                  <span className="hidden sm:inline">Cargar</span>
-                  <Upload className="h-4 w-4 sm:hidden" />
-                </Button>
-                <Button className="h-(--control-height) w-11 p-0 sm:w-auto sm:px-3" onClick={() => {
-                  markDialogLoaded("create")
-                  setNuevoOpen(true)
-                }} aria-label="Nuevo Empleado" title="Nuevo Empleado">
-                  <span className="hidden sm:inline">Nuevo empleado</span>
-                  <UserPlus className="h-4 w-4 sm:hidden" />
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {/* Filters — flex wrap, 2 por fila en móvil */}
-          <div className="flex flex-wrap gap-2">
-            <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="flex-1 min-w-[140px]">
-                <SelectValue placeholder="Departamentos" />
-              </SelectTrigger>
-              <SelectContent className="bg-card">
-                <SelectItem value="all">Departamentos</SelectItem>
-                {departments.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterContrato} onValueChange={setFilterContrato}>
-              <SelectTrigger className="flex-1 min-w-[140px]">
-                <SelectValue placeholder="Tipo contrato" />
-              </SelectTrigger>
-              <SelectContent className="bg-card">
-                <SelectItem value="all">Tipo contrato</SelectItem>
-                <SelectItem value="A prueba">A prueba</SelectItem>
-                <SelectItem value="Indeterminado">Indeterminado</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={filterTurno} onValueChange={setFilterTurno}>
-              <SelectTrigger className="flex-1 min-w-[140px]">
-                <SelectValue placeholder="Turnos" />
-              </SelectTrigger>
-              <SelectContent className="bg-card">
-                <SelectItem value="all">Turnos</SelectItem>
-                {turnos.map(t => <SelectItem key={t} value={t}>Turno {t}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Select value={filterRG} onValueChange={setFilterRG}>
-              <SelectTrigger className="flex-1 min-w-[140px]">
-                <SelectValue placeholder="Plan de Formación" />
-              </SelectTrigger>
-              <SelectContent className="bg-card">
-                <SelectItem value="all">Plan de Formación</SelectItem>
-                <SelectItem value="Pendiente">Pendiente</SelectItem>
-                <SelectItem value="Entregado">Entregado</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+        )}
+      </div>
 
       {/* Tabla */}
-      <Card className="bg-card mb-6">
+      <Card className="bg-card">
         <CardContent className="p-0">
           {loading ? (
             <div className="divide-y" aria-busy="true" aria-label="Cargando empleados">
@@ -503,7 +471,7 @@ export default function NuevoIngresoContent() {
 
       {/* Paginación inferior */}
       {filtered.length > PAGE_SIZE && (
-        <div className="mb-6 flex justify-end">
+        <div className="flex justify-end">
           <PaginationBar currentPage={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
       )}
@@ -531,12 +499,6 @@ export default function NuevoIngresoContent() {
         open={bulkImportOpen}
         onClose={() => setBulkImportOpen(false)}
         employeeNames={employeeNames}
-      />}
-
-      {loadedDialogs.ingresos && <IngresosBulkImport
-        open={ingresosJsonOpen}
-        onClose={() => setIngresosJsonOpen(false)}
-        onImported={load}
       />}
 
     </>

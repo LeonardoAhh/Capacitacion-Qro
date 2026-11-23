@@ -1,9 +1,11 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Loader2, Save, Search, Settings2, X } from "lucide-react"
+import { Loader2, Save, Search } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { SearchInput } from "@/components/ui/search-input"
+import { ExamenesToolbar } from "./examenes-toolbar"
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
@@ -85,14 +87,8 @@ export default function ReglasExamenContent() {
   }
 
   return (
-    <div className="px-4 sm:px-6 pb-6 space-y-4">
+    <div className="space-y-4">
       <ReadOnlyBanner />
-      <div className="flex items-center gap-2 mb-1">
-        <Settings2 size={16} className="text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
-          Define cuántas preguntas aleatorias se generan por departamento y categoría de promoción.
-        </p>
-      </div>
 
       {error && (
         <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
@@ -100,24 +96,16 @@ export default function ReglasExamenContent() {
         </div>
       )}
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Filtrar departamento..."
-          className={`pl-9 ${filter ? "pr-9" : ""}`}
+      {/* Filtro en la línea de las pestañas; filtra en vivo, sin consultar. */}
+      <ExamenesToolbar>
+        <SearchInput
+          label="Filtrar departamento"
+          placeholder="Filtrar departamento…"
+          className="w-full max-w-sm"
           value={filter}
-          onChange={(e) => setFilter(e.target.value)}
+          onValueChange={setFilter}
         />
-        {filter && (
-          <button
-            onClick={() => setFilter("")}
-            aria-label="Limpiar filtro"
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X size={15} />
-          </button>
-        )}
-      </div>
+      </ExamenesToolbar>
 
       {filteredDeps.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">

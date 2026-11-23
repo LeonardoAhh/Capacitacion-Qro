@@ -1,11 +1,7 @@
-import type { Metadata } from "next"
-import Dashboard from "@/components/Dashboard"
-import { SafetyHome } from "@/components/content/safety-home/safety-home"
+import { redirect } from "next/navigation"
+import { SAFETY_HOME_PATH } from "@/lib/workspace-paths"
 
-export const metadata: Metadata = {
-  title: "Home",
-}
-
-export default function SafetyHomePage() {
-  return <Dashboard content={<SafetyHome />} />
+// Ruta anterior de Safe Walk: los accesos guardados (favoritos, PWA) llegan a /ehs.
+export default function LegacySafetyHomePage() {
+  redirect(SAFETY_HOME_PATH)
 }

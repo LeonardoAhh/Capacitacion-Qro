@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useState } from "react"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,6 @@ import { supabase } from "@/lib/supabase/client"
 import { LoginSubmitButton, type LoginSubmitStatus } from "@/components/login-submit-button"
 import LoginWelcome from "@/components/login-welcome"
 import { LOGIN, loginStyles } from "@/lib/login/presentation"
-import { POST_LOGIN_PATH } from "@/lib/navigation"
 import { APP_TRANSITION_EXIT_MS, useAppReducedMotion } from "@/components/app-transition"
 
 export default function LoginForm() {
@@ -23,7 +22,6 @@ export default function LoginForm() {
   const [errorMessage, setErrorMessage] = useState("")
 
   const router = useRouter()
-  const searchParams = useSearchParams()
   const reducedMotion = useAppReducedMotion()
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -51,15 +49,11 @@ export default function LoginForm() {
       })
       if (authError) throw authError
 
-      const requestedPath = searchParams.get("redirectTo")
-      const rawRedirect = requestedPath?.startsWith("/") && !requestedPath.startsWith("//") && requestedPath !== "/" && !requestedPath.startsWith("/auth/redirect")
-        ? requestedPath
-        : POST_LOGIN_PATH
       setSubmitStatus("success")
 
       // Deja que la tarjeta termine de salir (login-shell) antes de cambiar de pantalla.
-      const destination = "/auth/redirect?to=" + encodeURIComponent(rawRedirect)
-      window.setTimeout(() => router.push(destination), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
+      // La pantalla de carga decide el destino: siempre /workspace (o el inicio fijo del rol).
+      window.setTimeout(() => router.push("/auth/redirect"), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
     } catch {
       setErrorMessage(LOGIN.error)
       setSubmitStatus("error")

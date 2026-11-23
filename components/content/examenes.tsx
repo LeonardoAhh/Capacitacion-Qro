@@ -8,13 +8,13 @@ import {
   Trash2,
   Loader2,
   ClipboardCheck,
-  X,
   Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Input } from "@/components/ui/input"
+import { SearchInput } from "@/components/ui/search-input"
+import { ExamenesToolbar } from "./examenes-toolbar"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
@@ -105,18 +105,11 @@ export default function ExamenesContent({
   const totalPages = Math.max(1, Math.ceil(preguntas.length / PAGE_SIZE))
   const paginadas = preguntas.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const handleSearch = useCallback(() => {
-    setHasSearched(true)
+  const handleSearch = useCallback((term: string) => {
+    setHasSearched(term.trim() !== "")
     setPage(1)
-    onBuscar(searchTerm)
-  }, [searchTerm, onBuscar])
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === "Enter") handleSearch()
-    },
-    [handleSearch]
-  )
+    onBuscar(term)
+  }, [onBuscar])
 
   const openCreate = () => {
     setEditingId(null)
@@ -177,46 +170,23 @@ export default function ExamenesContent({
   }
 
   return (
-    <div className="px-4 sm:px-6 pb-6 space-y-6">
+    <div className="space-y-6">
       <ReadOnlyBanner />
-      {/* Barra de búsqueda + botón crear */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar por pregunta, departamento u opción..."
-            className={`pl-9 ${searchTerm ? "pr-9" : ""}`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onKeyDown={handleKeyDown}
-          />
-          {searchTerm && (
-            <button
-              onClick={() => { setSearchTerm(""); setHasSearched(false); onBuscar("") }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X size={15} />
-            </button>
-          )}
-        </div>
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={handleSearch}
-          disabled={loading}
-          aria-label="Buscar"
-          title="Buscar"
-        >
-          {loading ? (
-            <Loader2 size={16} className="animate-spin" />
-          ) : (
-            <Search size={16} />
-          )}
-        </Button>
-        <Button size="icon" onClick={openCreate} disabled={isReadOnly} aria-label="Nueva pregunta" title="Nueva pregunta">
+      {/* Búsqueda y "Nueva pregunta" en la línea de las pestañas */}
+      <ExamenesToolbar>
+        <SearchInput
+          label="Buscar preguntas"
+          placeholder="Buscar por pregunta, departamento u opción…"
+          className="w-full max-w-sm"
+          value={searchTerm}
+          onValueChange={setSearchTerm}
+          onSearch={handleSearch}
+          loading={loading}
+        />
+        <Button size="icon" className="shrink-0" onClick={openCreate} disabled={isReadOnly} aria-label="Nueva pregunta">
           <Plus size={16} />
         </Button>
-      </div>
+      </ExamenesToolbar>
 
       {error && (
         <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">

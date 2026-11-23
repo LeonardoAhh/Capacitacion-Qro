@@ -3,6 +3,9 @@
 import { useState, useCallback } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
+import { format } from "date-fns"
+import { es } from "date-fns/locale"
+import { generarFolioExamen } from "@/lib/utils"
 import type { PreguntaExamen } from "./useExamenes"
 
 export interface ExamenHistorial {
@@ -19,6 +22,36 @@ export interface ExamenHistorial {
   } | null
 }
 
+const HISTORIAL_SELECT = `
+  *,
+  empleado:employees(nombre, numero)
+`
+
+/** Folio legible del examen (mismo formato en el historial y en la hoja de respuestas). */
+export function folioExamen(examen: ExamenHistorial) {
+  return generarFolioExamen(examen.id, examen.empleado?.numero, examen.created_at)
+}
+
+/** Fecha de generación, p. ej. "23 de noviembre, 2026". */
+export function formatFechaExamen(iso: string) {
+  try {
+    return format(new Date(iso), "dd 'de' MMMM, yyyy", { locale: es })
+  } catch {
+    return iso
+  }
+}
+
+/** Un examen del historial por id; null si no existe. */
+export async function obtenerExamenHistorial(id: string): Promise<ExamenHistorial | null> {
+  const { data, error } = await supabase
+    .from("historial_examenes")
+    .select(HISTORIAL_SELECT)
+    .eq("id", id)
+    .maybeSingle()
+  if (error) throw error
+  return (data as ExamenHistorial | null) ?? null
+}
+
 export function useHistorialExamenes() {
   const [examenes, setExamenes] = useState<ExamenHistorial[]>([])
   const [loading, setLoading] = useState(false)
@@ -31,10 +64,7 @@ export function useHistorialExamenes() {
       // Traemos los últimos 100 exámenes generados
       const { data, error: err } = await supabase
         .from("historial_examenes")
-        .select(`
-          *,
-          empleado:employees(nombre, numero)
-        `)
+        .select(HISTORIAL_SELECT)
         .order("created_at", { ascending: false })
         .limit(100)
       

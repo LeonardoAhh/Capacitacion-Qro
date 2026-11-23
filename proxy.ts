@@ -1,6 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
-import { WORKSPACE_SELECTION_PATH } from '@/lib/workspace-paths'
 
 const PUBLIC_ROUTES = ['/login', '/guia-evaluador', '/manifest.webmanifest', '/sw.js', '/api/whatsapp/webhook']
 
@@ -36,9 +35,8 @@ export async function proxy(request: NextRequest) {
 
   // Sin sesión → redirigir a login
   if (!user) {
-    const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('redirectTo', pathname === '/' || pathname.startsWith('/auth/redirect') ? WORKSPACE_SELECTION_PATH : pathname)
-    return NextResponse.redirect(loginUrl)
+    // Tras iniciar sesión siempre se pasa por /workspace, sin volver a la ruta original.
+    return NextResponse.redirect(new URL('/login', request.url))
   }
 
   return response

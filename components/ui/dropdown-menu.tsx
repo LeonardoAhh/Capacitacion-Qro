@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu"
-import { Check, ChevronRight, Circle } from "lucide-react"
+import { Check, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
@@ -152,19 +152,18 @@ const DropdownMenuRadioItem = React.forwardRef<
   <DropdownMenuPrimitive.RadioItem
     ref={ref}
     className={cn(
-      "relative flex min-h-(--menu-item-height) cursor-pointer select-none items-center rounded-md pl-8 pr-2 outline-none",
-      "transition-colors focus:bg-accent focus:text-accent-foreground",
+      // El texto alinea con las demás opciones; la elegida lleva ✓ a la derecha.
+      "relative flex min-h-(--menu-item-height) cursor-pointer select-none items-center gap-2 rounded-md px-2 outline-none",
+      "transition-colors focus:bg-accent focus:text-accent-foreground data-[state=checked]:font-medium",
       "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}
   >
-    <span className="absolute left-2 flex size-4 items-center justify-center">
-      <DropdownMenuPrimitive.ItemIndicator>
-        <Circle className="size-2 fill-current" aria-hidden="true" />
-      </DropdownMenuPrimitive.ItemIndicator>
-    </span>
-    {children}
+    <span className="min-w-0 flex-1 truncate">{children}</span>
+    <DropdownMenuPrimitive.ItemIndicator className="flex shrink-0 items-center">
+      <Check className="size-4" aria-hidden="true" />
+    </DropdownMenuPrimitive.ItemIndicator>
   </DropdownMenuPrimitive.RadioItem>
 ))
 DropdownMenuRadioItem.displayName = DropdownMenuPrimitive.RadioItem.displayName

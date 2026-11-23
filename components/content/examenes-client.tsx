@@ -10,70 +10,73 @@ import GeneradorExamenContent from "@/components/content/generador-examen"
 import ReglasExamenContent from "@/components/content/reglas-examen"
 import HistorialExamenesContent from "@/components/content/historial-examenes"
 import { History } from "lucide-react"
+import { EXAMENES_TABS, type ExamenesTab } from "@/components/content/examenes-tabs"
+import { ExamenesToolbarProvider } from "@/components/content/examenes-toolbar"
 
-type TabKey = "generador" | "historial" | "banco" | "reglas"
-
-export default function ExamenesClient() {
-  const [tab, setTab] = useState<TabKey>("generador")
+export default function ExamenesClient({ initialTab = "generador" }: { initialTab?: ExamenesTab }) {
+  const [tab, setTab] = useState<ExamenesTab>(initialTab)
   // Lazy-mount tabs: only instantiate a tab's heavy hook the first time the
   // user visits it. This avoids running Supabase queries for all tres tabs
   // on /examenes entry.
-  const [mounted, setMounted] = useState<Record<TabKey, boolean>>({
-    generador: true,
-    historial: false,
-    banco: false,
-    reglas: false,
-  })
+  const [mounted, setMounted] = useState<Record<ExamenesTab, boolean>>(
+    () => Object.fromEntries(EXAMENES_TABS.map((key) => [key, key === initialTab])) as Record<ExamenesTab, boolean>,
+  )
+
+  const [toolbar, setToolbar] = useState<HTMLDivElement | null>(null)
 
   return (
-    <Tabs
-      value={tab}
-      onValueChange={(v) => {
-        const key = v as TabKey
-        setTab(key)
-        setMounted((prev) => (prev[key] ? prev : { ...prev, [key]: true }))
-      }}
-      className="w-full"
-    >
-      <div className="px-4 sm:px-6 pt-2">
-        <TabsList className="mb-4 w-full sm:w-auto">
-          <TabsTrigger value="generador" className="gap-1.5 flex-1 sm:flex-none">
-            <FileText size={14} />
-            <span className="hidden xs:inline">Generar Examen</span>
-            <span className="xs:hidden">Generar</span>
-          </TabsTrigger>
-          <TabsTrigger value="historial" className="gap-1.5 flex-1 sm:flex-none">
-            <History size={14} />
-            Historial
-          </TabsTrigger>
-          <TabsTrigger value="banco" className="gap-1.5 flex-1 sm:flex-none">
-            <BookOpen size={14} />
-            <span className="hidden xs:inline">Banco de Preguntas</span>
-            <span className="xs:hidden">Banco</span>
-          </TabsTrigger>
-          <TabsTrigger value="reglas" className="gap-1.5 flex-1 sm:flex-none">
-            <Settings2 size={14} />
-            Reglas
-          </TabsTrigger>
-        </TabsList>
-      </div>
+    <ExamenesToolbarProvider value={toolbar}>
+      <Tabs
+        value={tab}
+        onValueChange={(v) => {
+          const key = v as ExamenesTab
+          setTab(key)
+          setMounted((prev) => (prev[key] ? prev : { ...prev, [key]: true }))
+        }}
+        className="w-full"
+      >
+        {/* Sin márgenes propios: pestañas y contenido usan el mismo margen que el header (WorkspaceContainer).
+            La búsqueda y las acciones de cada pestaña van en la misma línea (ExamenesToolbar). */}
+        <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-3">
+          <TabsList className="w-full sm:w-auto">
+            <TabsTrigger value="generador" className="gap-1.5 flex-1 sm:flex-none">
+              <FileText size={14} />
+              Generar
+            </TabsTrigger>
+            <TabsTrigger value="historial" className="gap-1.5 flex-1 sm:flex-none">
+              <History size={14} />
+              Historial
+            </TabsTrigger>
+            <TabsTrigger value="banco" className="gap-1.5 flex-1 sm:flex-none">
+              <BookOpen size={14} />
+              Banco
+            </TabsTrigger>
+            <TabsTrigger value="reglas" className="gap-1.5 flex-1 sm:flex-none">
+              <Settings2 size={14} />
+              Reglas
+            </TabsTrigger>
+          </TabsList>
+          {/* Baja a su propia línea cuando no caben 18rem junto a las pestañas. */}
+          <div ref={setToolbar} className="flex min-w-0 flex-1 basis-72 items-center justify-end gap-2" />
+        </div>
 
-      <TabsContent value="generador" className="mt-0">
-        {mounted.generador && <GeneradorExamenContent />}
-      </TabsContent>
+        <TabsContent value="generador" className="mt-0">
+          {mounted.generador && <GeneradorExamenContent />}
+        </TabsContent>
 
-      <TabsContent value="historial" className="mt-0">
-        {mounted.historial && <HistorialExamenesContent />}
-      </TabsContent>
+        <TabsContent value="historial" className="mt-0">
+          {mounted.historial && <HistorialExamenesContent />}
+        </TabsContent>
 
-      <TabsContent value="banco" className="mt-0">
-        {mounted.banco && <BancoTab />}
-      </TabsContent>
+        <TabsContent value="banco" className="mt-0">
+          {mounted.banco && <BancoTab />}
+        </TabsContent>
 
-      <TabsContent value="reglas" className="mt-0">
-        {mounted.reglas && <ReglasExamenContent />}
-      </TabsContent>
-    </Tabs>
+        <TabsContent value="reglas" className="mt-0">
+          {mounted.reglas && <ReglasExamenContent />}
+        </TabsContent>
+      </Tabs>
+    </ExamenesToolbarProvider>
   )
 }
 

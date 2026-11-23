@@ -7,7 +7,7 @@ import { PanelLeft, PanelLeftDashed, X } from "lucide-react"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import { MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
-import { WorkspaceSwitcher } from "@/components/workspace-switcher"
+import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountMenu } from "@/components/account-menu"
 import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW } from "@/components/sidebar-density"
@@ -28,6 +28,7 @@ export interface SidebarApi {
   openMobileSidebar: () => void
   isSidebarCollapsed: boolean
   toggleSidebar: () => void
+  collapseSidebar: () => void
 }
 
 export function useSidebar(): SidebarApi & {
@@ -39,6 +40,7 @@ export function useSidebar(): SidebarApi & {
 
   const openMobileSidebar = useCallback(() => setShowMobileSidebar(true), [])
   const toggleSidebar = useCallback(() => setIsSidebarCollapsed((collapsed) => !collapsed), [])
+  const collapseSidebar = useCallback(() => setIsSidebarCollapsed(true), [])
 
   useEffect(() => {
     try {
@@ -76,26 +78,20 @@ export function useSidebar(): SidebarApi & {
     openMobileSidebar,
     isSidebarCollapsed,
     toggleSidebar,
+    collapseSidebar,
   }
 }
 
 function SidebarBrand({
   onClose,
   workspace,
-  onWorkspaceChange,
 }: {
   onClose?: () => void
   workspace: WorkspaceId
-  onWorkspaceChange: (workspace: WorkspaceId) => void
 }) {
   return (
     <div className="relative flex h-[var(--workspace-header-height)] shrink-0 items-center px-3">
-      <WorkspaceSwitcher
-        workspace={workspace}
-        onWorkspaceChange={onWorkspaceChange}
-        onClose={onClose}
-        mobile
-      />
+      <WorkspaceBrand workspace={workspace} mobile />
       {onClose && (
         <button
           type="button"
@@ -117,11 +113,14 @@ function SidebarBrand({
 function NavTree({
   pathname,
   onNavigate,
+  mobile = false,
   isCollapsed = false,
   workspace,
 }: {
   pathname: string
+  /** Al elegir una ruta: cierra el menú móvil o contrae la barra de escritorio. */
   onNavigate?: () => void
+  mobile?: boolean
   isCollapsed?: boolean
   workspace: WorkspaceId
 }) {
@@ -146,7 +145,7 @@ function NavTree({
   return (
     <TooltipProvider delayDuration={300}>
       <nav
-        id={!onNavigate ? "workspace-desktop-navigation" : undefined}
+        id={!mobile ? "workspace-desktop-navigation" : undefined}
         aria-label="Secciones"
         className={cn(
           "min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-2 scrollbar-thin",
@@ -182,7 +181,7 @@ function NavTree({
 
             return (
               <li key={leaf.href}>
-                {isCollapsed && !onNavigate ? (
+                {isCollapsed && !mobile ? (
                   <Tooltip>
                     <TooltipTrigger asChild>{link}</TooltipTrigger>
                     <TooltipContent side="right">{leaf.label}</TooltipContent>
@@ -204,6 +203,8 @@ interface SidebarProps {
   setShowMobileSidebar: (v: boolean) => void
   isCollapsed: boolean
   onToggleCollapse: () => void
+  /** Tras navegar desde la barra de escritorio, se contrae para dejar espacio al contenido. */
+  onCollapse: () => void
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
 }
@@ -213,6 +214,7 @@ export default function Sidebar({
   setShowMobileSidebar,
   isCollapsed,
   onToggleCollapse,
+  onCollapse,
   workspace,
   onWorkspaceChange,
 }: SidebarProps) {
@@ -236,14 +238,10 @@ export default function Sidebar({
               Navegación entre las secciones de la aplicación
             </DrawerDescription>
 
-            <SidebarBrand
-              onClose={closeMobile}
-              workspace={workspace}
-              onWorkspaceChange={onWorkspaceChange}
-            />
-            <NavTree pathname={pathname} onNavigate={closeMobile} workspace={workspace} />
+            <SidebarBrand onClose={closeMobile} workspace={workspace} />
+            <NavTree pathname={pathname} onNavigate={closeMobile} mobile workspace={workspace} />
             <div className="safe-bottom-content shrink-0 px-3 py-2">
-              <AccountMenu onNavigate={closeMobile} />
+              <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
             </div>
           </div>
         </DrawerContent>
@@ -255,50 +253,42 @@ export default function Sidebar({
         data-collapsed={isCollapsed}
         className="workspace-sidebar hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex"
       >
-        {/* Encabezado sin contenedor; misma altura que el header. El texto se alinea con los iconos de navegación. */}
-        <div className={cn(
-          "mt-2 mb-1 flex h-[var(--workspace-header-height)] shrink-0 items-center",
-          isCollapsed ? "justify-center px-2" : "px-2",
-        )}>
-          <WorkspaceSwitcher
-            workspace={workspace}
-            onWorkspaceChange={onWorkspaceChange}
-            collapsed={isCollapsed}
-          />
-        </div>
-        <NavTree pathname={pathname} isCollapsed={isCollapsed} workspace={workspace} />
-        <div className={cn(
-          "shrink-0 pb-2",
-          isCollapsed ? "px-2" : "flex items-center gap-1 px-2",
-        )}>
-          <AccountMenu isCollapsed={isCollapsed} />
-          {!isCollapsed && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label="Contraer navegación"
-              aria-controls="workspace-desktop-navigation"
-              aria-expanded="true"
-              title="Contraer navegación"
-              className={cn(controlBase, "md:size-8")}
-            >
-              <PanelLeftDashed className="size-4" aria-hidden="true" />
-            </button>
-          )}
-          {isCollapsed && (
-            <button
-              type="button"
-              onClick={onToggleCollapse}
-              aria-label="Expandir navegación"
-              aria-controls="workspace-desktop-navigation"
-              aria-expanded="false"
-              title="Expandir navegación"
-              className={cn(controlBase, "mt-1 w-full md:h-8")}
-            >
-              <PanelLeft className="size-4" aria-hidden="true" />
-            </button>
-          )}
-        </div>
+        {/* Sin title nativo: los controles de solo ícono usan el Tooltip de la app. */}
+        <TooltipProvider delayDuration={300}>
+          {/* Encabezado sin contenedor; misma altura que el header. El texto se alinea con los iconos de navegación. */}
+          <div className={cn(
+            "mt-2 mb-1 flex h-[var(--workspace-header-height)] shrink-0 items-center",
+            isCollapsed ? "justify-center px-2" : "px-2",
+          )}>
+            <WorkspaceBrand workspace={workspace} collapsed={isCollapsed} />
+          </div>
+          <NavTree pathname={pathname} onNavigate={isCollapsed ? undefined : onCollapse} isCollapsed={isCollapsed} workspace={workspace} />
+          <div className={cn(
+            "shrink-0 pb-2",
+            isCollapsed ? "px-2" : "flex items-center gap-1 px-2",
+          )}>
+            <AccountMenu isCollapsed={isCollapsed} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={onToggleCollapse}
+                  aria-label={isCollapsed ? "Expandir navegación" : "Contraer navegación"}
+                  aria-controls="workspace-desktop-navigation"
+                  aria-expanded={!isCollapsed}
+                  className={cn(controlBase, isCollapsed ? "mt-1 w-full md:h-8" : "md:size-8")}
+                >
+                  {isCollapsed
+                    ? <PanelLeft className="size-4" aria-hidden="true" />
+                    : <PanelLeftDashed className="size-4" aria-hidden="true" />}
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side={isCollapsed ? "right" : "top"}>
+                {isCollapsed ? "Expandir navegación" : "Contraer navegación"}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </aside>
     </>
   )

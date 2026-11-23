@@ -1,20 +1,14 @@
 "use client"
 
-import { useCallback, useEffect, useId, useMemo, useState } from "react"
-import {
-  AlertCircle,
-  BarChart3,
-  FileCheck2,
-  ShieldAlert,
-} from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { AlertCircle, BarChart3 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import RecontratacionLft from "@/components/content/recontratacion-lft"
-import { EmpleadoRow, Pagination, SkeletonRow } from "@/components/content/recontratacion-employee-row"
+import { Table, TableBody, TableHeader } from "@/components/ui/table"
+import { EmpleadoHeader, EmpleadoRow, SkeletonRow } from "@/components/content/recontratacion-employee-row"
+import { CompactPager } from "@/components/ui/compact-pager"
 import { RecontratacionFilters } from "@/components/content/recontratacion-filters"
-import { PAGE_SIZE, SKELETON_COUNT, sortByTermino } from "@/components/content/recontratacion-logic"
+import { PAGE_SIZE, sortByTermino } from "@/components/content/recontratacion-logic"
 import { useNuevoIngreso, type NuevoIngreso } from "@/lib/hooks"
 
 export default function RecontratacionContent() {
@@ -24,8 +18,6 @@ export default function RecontratacionContent() {
   const [search, setSearch] = useState("")
   const [filterDept, setFilterDept] = useState("all")
   const [page, setPage] = useState(1)
-
-  const searchId = useId()
 
   const load = useCallback(async () => {
     setRecords(await fetchAll())
@@ -83,128 +75,63 @@ export default function RecontratacionContent() {
   }
 
   return (
-    <Tabs defaultValue="vencimientos" className="space-y-4">
-      <TabsList
-        className="grid h-auto w-full grid-cols-2 p-1 md:w-auto"
-        data-testid="recontratacion-tabs"
-      >
-        <TabsTrigger
-          value="vencimientos"
-          data-testid="tab-vencimientos"
-          className="min-h-(--control-height) gap-2 px-3 py-0 text-sm"
-        >
-          <FileCheck2 className="size-4" aria-hidden="true" />
-          <span>Vencimientos</span>
-        </TabsTrigger>
-        <TabsTrigger
-          value="lft"
-          data-testid="tab-lft"
-          className="min-h-(--control-height) gap-2 px-3 py-0 text-sm"
-        >
-          <ShieldAlert className="size-4" aria-hidden="true" />
-          <span>Baja LFT Art. 47</span>
-        </TabsTrigger>
-      </TabsList>
+    <div className="grid gap-4">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="size-4" aria-hidden="true" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-      <TabsContent value="vencimientos" className="mt-0">
-        {error && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertCircle className="size-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <RecontratacionFilters
+          search={search}
+          onSearchChange={setSearch}
+          departments={departments}
+          filterDepartment={filterDept}
+          onDepartmentChange={setFilterDept}
+          hasFilters={hasFilters}
+          onClear={clearFilters}
+        />
+        {/* Conteo y paginación mínimos, en la misma línea que la búsqueda y el filtro. */}
+        {!loading && (
+          <div className="ml-auto flex items-center gap-3">
+            <p className="text-body-sm tabular-nums text-muted-foreground" aria-live="polite">
+              {filtered.length === records.length
+                ? `${records.length} empleados`
+                : `${filtered.length} de ${records.length}`}
+            </p>
+            <CompactPager label="Paginación de empleados" page={page} totalPages={pageCount} onPageChange={setPage} />
+          </div>
         )}
+      </div>
 
-        <Card>
-          <CardHeader className="pb-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                <FileCheck2 className="size-4 text-primary" aria-hidden="true" />
-                Detalle de contratos
-              </CardTitle>
-              {!loading && (
-                <p className="text-sm text-muted-foreground" aria-live="polite">
-                  {filtered.length === records.length
-                    ? `${records.length} empleados`
-                    : `${filtered.length} de ${records.length}`}
-                </p>
-              )}
-            </div>
-          </CardHeader>
-
-          <CardContent className="space-y-4 pt-0">
-            <RecontratacionFilters
-              search={search}
-              onSearchChange={setSearch}
-              searchId={searchId}
-              departments={departments}
-              filterDepartment={filterDept}
-              onDepartmentChange={setFilterDept}
-              hasFilters={hasFilters}
-              onClear={clearFilters}
-            />
-
-            {loading ? (
-              <ul
-                className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-                aria-label="Cargando empleados"
-              >
-                {Array.from({ length: SKELETON_COUNT }).map((_, index) => (
-                  <SkeletonRow key={index} />
-                ))}
-              </ul>
-            ) : filtered.length === 0 ? (
-              <div className="flex flex-col items-center justify-center gap-4 py-12 text-muted-foreground md:py-16" role="status">
-                <BarChart3 className="size-8 opacity-25" aria-hidden="true" />
-                <p className="text-center text-sm">
-                  {hasFilters
-                    ? "Sin resultados para los filtros aplicados."
-                    : "No hay empleados de nuevo ingreso."}
-                </p>
-                {hasFilters && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-(--control-height) gap-2 px-3 py-0 text-sm"
-                    onClick={clearFilters}
-                  >
-                    Quitar filtros
-                  </Button>
-                )}
-              </div>
-            ) : (
-              <>
-                <ul
-                  className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3"
-                  aria-label="Lista de empleados"
-                >
-                  {paged.map((record) => (
-                    <EmpleadoRow
-                      key={record.id}
-                      record={record}
-                      onImprimir={imprimir}
-                    />
-                  ))}
-                </ul>
-
-                {pageCount > 1 && (
-                  <Pagination
-                    page={page}
-                    pageCount={pageCount}
-                    total={filtered.length}
-                    pageSize={PAGE_SIZE}
-                    onPrev={() => setPage((current) => Math.max(1, current - 1))}
-                    onNext={() => setPage((current) => Math.min(pageCount, current + 1))}
-                  />
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </TabsContent>
-
-      <TabsContent value="lft" className="mt-0">
-        <RecontratacionLft />
-      </TabsContent>
-    </Tabs>
+      {!loading && filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card py-12 text-muted-foreground md:py-16" role="status">
+          <BarChart3 className="size-8 opacity-25" aria-hidden="true" />
+          <p className="text-center text-body-md">
+            {hasFilters ? "Sin resultados para los filtros aplicados." : "No hay empleados de nuevo ingreso."}
+          </p>
+          {hasFilters && (
+            <Button variant="outline" size="sm" onClick={clearFilters}>
+              Quitar filtros
+            </Button>
+          )}
+        </div>
+      ) : (
+        <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
+          <Table className="table-fixed" aria-label={loading ? "Cargando empleados" : "Contratos por vencer"} aria-busy={loading}>
+            <TableHeader className="bg-muted/50">
+              <EmpleadoHeader />
+            </TableHeader>
+            <TableBody>
+              {loading
+                ? Array.from({ length: PAGE_SIZE }, (_, index) => <SkeletonRow key={index} />)
+                : paged.map((record) => <EmpleadoRow key={record.id} record={record} onImprimir={imprimir} />)}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+    </div>
   )
 }

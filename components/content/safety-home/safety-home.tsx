@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { LayoutGrid, List } from "lucide-react"
 import { ImageExpansion } from "@/components/content/safety-home/image-expansion"
 import { Button } from "@/components/ui/button"
 import { FindingCard, type FindingPreview } from "@/components/content/safety-home/finding-card"
 import { CreateFindingDialog } from "@/components/content/safety-home/create-finding-dialog"
 import { CompletionEvidenceDialog } from "@/components/content/safety-home/completion-evidence-dialog"
 import { CompletionEvidenceViewer } from "@/components/content/safety-home/completion-evidence-viewer"
-import { FindingPager } from "@/components/content/safety-home/finding-pager"
+import { CompactPager } from "@/components/ui/compact-pager"
 import { deleteFinding, loadFindings } from "@/components/content/safety-home/findings-data"
 import { EditFindingDialog } from "@/components/content/safety-home/edit-finding-dialog"
 import {
@@ -17,6 +18,10 @@ import {
 import { useRole } from "@/lib/hooks/useRole"
 import { Skeleton } from "@/components/ui/skeleton"
 import { FINDING_PREVIEW_RATIO } from "@/components/content/safety-home/finding-constraints"
+import { FindingList, FindingListSkeleton } from "@/components/content/safety-home/finding-list"
+import { FINDING_DETAIL_SIDE_QUERY, FindingDetailPanel } from "@/components/content/safety-home/finding-detail"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import {
   Select,
   SelectContent,
@@ -26,6 +31,9 @@ import {
 } from "@/components/ui/select"
 
 const FINDINGS_PER_PAGE = 2
+
+type FindingsView = "tarjetas" | "lista"
+const VIEW_TRIGGER = "gap-1.5 [&_svg]:size-4 [&_svg]:shrink-0"
 
 function FindingSkeletons({ isPreview = false }: { isPreview?: boolean }) {
   const still = isPreview ? "animate-none" : ""
@@ -66,6 +74,9 @@ export function SafetyHome() {
   )
   const [selectedWeek, setSelectedWeek] = useState("")
   const [page, setPage] = useState(1)
+  const [view, setView] = useState<FindingsView>("lista")
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const detailSide = useMediaQuery(FINDING_DETAIL_SIDE_QUERY)
   useEffect(() => {
     let active = true
     loadFindings().then((findings) => {
@@ -86,31 +97,54 @@ export function SafetyHome() {
   const currentPage = Math.min(page, Math.max(1, totalPages))
   const pageStart = (currentPage - 1) * FINDINGS_PER_PAGE
   const visibleFindings = filteredFindings.slice(pageStart, pageStart + FINDINGS_PER_PAGE)
+  // Se deriva de la semana visible: si el hallazgo se borra o cambia de semana, el panel se cierra solo.
+  const selectedIndex = filteredFindings.findIndex((finding) => finding.id === selectedId)
+  const selectedFinding = selectedIndex >= 0 ? filteredFindings[selectedIndex] : null
+  /** En la hoja inferior, las acciones abren su propio diálogo: primero se cierra la hoja. */
+  const fromDetail = (action: (finding: FindingPreview) => void) => (finding: FindingPreview) => {
+    if (!detailSide) setSelectedId(null)
+    action(finding)
+  }
 
   return (
-    <section className="space-y-6">
+    <Tabs asChild value={view} onValueChange={(value) => setView(value as FindingsView)}>
+    <section className="flex flex-col gap-6">
+      {/* gap y no space-y: el panel inactivo de las pestañas sigue en el DOM (oculto) y space-y le sumaría margen al visible. */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1) }} disabled={!populatedWeeks.length}>
-          <SelectTrigger aria-label="Seleccionar semana" className="w-[10rem] sm:w-[12rem]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent matchTriggerWidth>
-            {populatedWeeks.map((key) => (
-              <SelectItem key={key} value={key}>
-                Semana {key.split("-")[1]} · {key.split("-")[0]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap items-center gap-3">
+          <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
+            <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent matchTriggerWidth>
+              {populatedWeeks.map((key) => (
+                <SelectItem key={key} value={key}>
+                  Semana {key.split("-")[1]} · {key.split("-")[0]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <TabsList aria-label="Vista de hallazgos">
+            <TabsTrigger value="lista" className={VIEW_TRIGGER}>
+              <List aria-hidden="true" /><span className="sr-only sm:not-sr-only">Lista</span>
+            </TabsTrigger>
+            <TabsTrigger value="tarjetas" className={VIEW_TRIGGER}>
+              <LayoutGrid aria-hidden="true" /><span className="sr-only sm:not-sr-only">Tarjetas</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <div className="flex items-center gap-3">
-          <FindingPager page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+          {view === "tarjetas" && <CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
           {canEdit && <Button type="button" onClick={() => setIsCreateOpen(true)}>Crear</Button>}
         </div>
       </div>
 
-      <div className="space-y-4">
-        {error ? <p role="alert" className="text-body-md text-destructive">{error}</p> : loading ? (
+      {error && <p role="alert" className="text-body-md text-destructive">{error}</p>}
+
+      <TabsContent value="tarjetas" className="mt-0 space-y-4">
+        {error ? null : loading ? (
           <FindingSkeletons />
         ) : filteredFindings.length > 0 ? (
           visibleFindings.map((finding, index) => (
@@ -129,7 +163,34 @@ export function SafetyHome() {
         ) : (
           <FindingSkeletons isPreview />
         )}
-      </div>
+      </TabsContent>
+
+      <TabsContent value="lista" className="mt-0">
+        {error ? null : loading ? (
+          <FindingListSkeleton />
+        ) : filteredFindings.length > 0 ? (
+          <div className={selectedFinding && detailSide
+            ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_28rem] 2xl:grid-cols-[minmax(0,1fr)_32rem]"
+            : undefined}>
+            <FindingList findings={filteredFindings} selectedId={selectedFinding?.id ?? null}
+              narrow={!!selectedFinding && detailSide}
+              onSelect={(finding) => setSelectedId(finding.id)}
+              canEdit={canEdit} onEdit={setEditing} onDelete={setDeleting} />
+            {selectedFinding && (
+              <FindingDetailPanel
+                key={selectedFinding.id}
+                side={detailSide}
+                finding={selectedFinding}
+                index={selectedIndex}
+                onClose={() => setSelectedId(null)}
+                onExpand={fromDetail(setExpandedImage)}
+              />
+            )}
+          </div>
+        ) : (
+          <FindingListSkeleton isPreview />
+        )}
+      </TabsContent>
 
       {expandedImage && (
         <ImageExpansion
@@ -222,5 +283,6 @@ export function SafetyHome() {
         }}
       />
     </section>
+    </Tabs>
   )
 }

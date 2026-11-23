@@ -25,6 +25,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     openMobileSidebar,
     isSidebarCollapsed,
     toggleSidebar,
+    collapseSidebar,
   } = useSidebar()
 
   const pathname = usePathname()
@@ -74,6 +75,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             setShowMobileSidebar={setShowMobileSidebar}
             isCollapsed={isSidebarCollapsed}
             onToggleCollapse={toggleSidebar}
+            onCollapse={collapseSidebar}
             workspace={workspace}
             onWorkspaceChange={handleWorkspaceChange}
           />

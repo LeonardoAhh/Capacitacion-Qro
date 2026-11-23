@@ -13,9 +13,9 @@ interface FindingDescriptionProps {
 export function FindingDescription({ title, description, isOpen, onOpenChange }: FindingDescriptionProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader><DialogTitle>{title}</DialogTitle></DialogHeader>
-        <p className="whitespace-pre-wrap text-body-md text-foreground">{description}</p>
+        <p className="whitespace-pre-wrap text-body-lg text-foreground">{description}</p>
       </DialogContent>
     </Dialog>
   )

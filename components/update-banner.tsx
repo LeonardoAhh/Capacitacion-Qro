@@ -2,10 +2,9 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion"
 import { CircleCheck, Download, LoaderCircle } from "lucide"
-import { MorphIcon } from "morphicons/react"
 import { Button } from "@/components/ui/button"
+import { NoticeIcon } from "@/components/ui/notice-icon"
 import { APP_UPDATE_COMPLETED_KEY, useAppUpdate } from "@/lib/hooks/useAppUpdate"
-import { useMobileNoticePlacement } from "@/lib/hooks/useMobileNoticePlacement"
 import { useEffect, useState } from "react"
 
 type BannerPreview = "available" | "applying" | "updated" | null
@@ -15,12 +14,17 @@ type BannerPreviewWindow = Window & {
   __hideUpdateBanner?: () => void
 }
 
+const COPY = {
+  available: { title: "Nueva versión disponible", description: "Actualiza para usar lo más reciente." },
+  applying: { title: "Actualizando…", description: "Esto tarda unos segundos." },
+  updated: { title: "Aplicación actualizada", description: "Ya tienes la versión más reciente." },
+} as const
+
 export function UpdateBanner() {
   const { status, applyUpdate } = useAppUpdate()
   const [preview, setPreview] = useState<BannerPreview>(null)
   const [completed, setCompleted] = useState(false)
   const reduced = useReducedMotion()
-  const isMobile = useMobileNoticePlacement()
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return
@@ -62,7 +66,8 @@ export function UpdateBanner() {
   const applying = preview === "applying" || (preview === null && status === "applying")
   const updated = preview === "updated" || (preview === null && completed)
   const visible = preview !== null || completed || status === "available" || applying
-  const label = updated ? "Actualizado" : applying ? "Actualizando" : "Actualizar"
+  const state = updated ? "updated" : applying ? "applying" : "available"
+  const copy = COPY[state]
 
   const handleUpdate = () => {
     if (preview !== null) {
@@ -75,44 +80,28 @@ export function UpdateBanner() {
   return (
     <AnimatePresence>
       {visible && (
+        // Arriba al centro en todos los tamaños; en celular ocupa el ancho (globals.css).
         <motion.div
-          initial={reduced ? false : { opacity: 0, y: isMobile ? -16 : 16 }}
+          initial={reduced ? false : { opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: isMobile ? -16 : 16 }}
+          exit={reduced ? undefined : { opacity: 0, y: -16 }}
           transition={{ duration: 0.2 }}
           className="app-update-banner"
         >
-          <div className="ui-floating-surface p-1">
-            <span className="sr-only" role="status" aria-live="polite">
-              {updated ? "Aplicación actualizada" : applying ? "Actualizando aplicación" : "Nueva versión disponible"}
-            </span>
-            <Button
-              type="button"
-              size="sm"
-              className="min-h-11 gap-2 px-3 disabled:opacity-100"
-              onClick={handleUpdate}
-              disabled={applying || updated}
-              aria-busy={applying}
-            >
-              <MorphIcon
-                icon={updated ? CircleCheck : applying ? LoaderCircle : Download}
-                spring="snappy"
-                reducedMotion="user"
-                strokeWidth={2}
-                className={applying && !reduced ? "animate-spin" : undefined}
-              />
-              <AnimatePresence mode="wait" initial={false}>
-                <motion.span
-                  key={label}
-                  initial={reduced ? false : { opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={reduced ? undefined : { opacity: 0, y: -4 }}
-                  transition={{ duration: 0.15 }}
-                >
-                  {label}
-                </motion.span>
-              </AnimatePresence>
-            </Button>
+          <div role="status" aria-live="polite"
+            className="ui-floating-surface flex min-h-14 items-center gap-3 rounded-(--notice-radius) py-2 pl-2 pr-2">
+            <NoticeIcon icon={updated ? CircleCheck : applying ? LoaderCircle : Download}
+              tone={updated ? "success" : "neutral"} spin={applying} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-label-sm text-foreground">{copy.title}</p>
+              <p className="truncate text-body-sm text-muted-foreground">{copy.description}</p>
+            </div>
+            {!updated && (
+              <Button type="button" size="sm" className="shrink-0" onClick={handleUpdate}
+                disabled={applying} aria-busy={applying}>
+                Actualizar
+              </Button>
+            )}
           </div>
         </motion.div>
       )}

@@ -12,14 +12,24 @@ const SelectGroup = SelectPrimitive.Group
 
 const SelectValue = SelectPrimitive.Value
 
+/**
+ * default: campo de formulario, con borde como Input.
+ * ghost: sin fondo ni borde, para filtros y barras de herramientas.
+ */
+const TRIGGER_VARIANTS = {
+  default: "w-full border border-input bg-card px-3",
+  ghost: "w-auto border border-transparent bg-transparent px-2 hover:bg-muted data-[state=open]:bg-muted",
+} as const
+
 const SelectTrigger = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Trigger>,
-  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger>
->(({ className, children, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.Trigger> & { variant?: keyof typeof TRIGGER_VARIANTS }
+>(({ className, children, variant = "default", ...props }, ref) => (
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-(--control-height) w-full items-center justify-between gap-2 rounded-md border border-input bg-card px-3 text-base text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 md:text-sm",
+      "flex h-(--control-height) items-center justify-between gap-2 rounded-md text-base transition-colors text-foreground placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1 md:text-sm",
+      TRIGGER_VARIANTS[variant],
       className
     )}
     {...props}

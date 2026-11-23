@@ -1,20 +1,20 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, type CSSProperties } from "react"
 import { Toaster, toast } from "sonner"
-import { CircleCheck, CircleX, Info, LoaderCircle, TriangleAlert, X } from "lucide-react"
+import { CircleCheck, CircleX, Info, LoaderCircle, TriangleAlert } from "lucide"
+import { X } from "lucide-react"
 import { useTheme } from "@/components/theme-context"
-import { useMobileNoticePlacement } from "@/lib/hooks/useMobileNoticePlacement"
+import { NoticeIcon } from "@/components/ui/notice-icon"
 
+// Arriba al centro en todos los tamaños; en celular ocupa el ancho (globals.css: .app-toast).
 const noticeOffset = {
   top: "calc(env(safe-area-inset-top, 0px) + var(--notice-edge))",
   right: "var(--notice-edge)",
-  bottom: "calc(env(safe-area-inset-bottom, 0px) + var(--notice-edge))",
   left: "var(--notice-edge)",
 }
 
 export function SonnerProvider() {
-  const isMobile = useMobileNoticePlacement()
   const { themeMode } = useTheme()
   // Dev-only handle: lets you trigger toasts from the browser console
   // (window.__toast.success(...)) to verify styles per variant.
@@ -29,29 +29,25 @@ export function SonnerProvider() {
       theme={themeMode}
       closeButton
       icons={{
-        success: <CircleCheck aria-hidden="true" />,
-        error: <CircleX aria-hidden="true" />,
-        warning: <TriangleAlert aria-hidden="true" />,
-        info: <Info aria-hidden="true" />,
-        loading: <LoaderCircle aria-hidden="true" className="animate-spin" />,
+        success: <NoticeIcon icon={CircleCheck} tone="success" />,
+        error: <NoticeIcon icon={CircleX} tone="error" />,
+        warning: <NoticeIcon icon={TriangleAlert} tone="warning" />,
+        info: <NoticeIcon icon={Info} tone="info" />,
+        loading: <NoticeIcon icon={LoaderCircle} spin />,
         close: <X aria-hidden="true" />,
       }}
       expand={false}
       visibleToasts={1}
-      position={isMobile ? "top-center" : "bottom-right"}
+      position="top-center"
       offset={noticeOffset}
       mobileOffset={noticeOffset}
       gap={12}
+      // Ancho del área de toasts en escritorio; cada toast se ajusta a su contenido.
+      style={{ "--width": "var(--notice-width)" } as CSSProperties}
       toastOptions={{
         duration: 4000,
         closeButtonAriaLabel: "Cerrar notificación",
-        classNames: {
-          toast: "app-toast",
-          success: "app-toast--success",
-          error: "app-toast--error",
-          warning: "app-toast--warning",
-          info: "app-toast--info",
-        },
+        classNames: { toast: "app-toast" },
       }}
     />
   )

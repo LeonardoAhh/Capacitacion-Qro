@@ -1,7 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { ChevronDown, CircleUserRound, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
+import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
+import type { ReactNode } from "react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,20 +18,34 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useProfile, useRole, useUser } from "@/lib/hooks"
-import { SETTINGS_PATH } from "@/lib/navigation"
+import { SETTINGS_PATH, type WorkspaceId } from "@/lib/navigation"
+import { WorkspaceMenuSub } from "@/components/workspace-switcher"
 import { ROLE_LABELS } from "@/lib/constants/roles"
 import { cn } from "@/lib/utils"
 import { useLogout } from "@/components/use-logout"
 import { useTheme } from "@/components/theme-context"
 import { THEME_MODE_LABELS } from "@/lib/theme/constants"
-import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
+import { SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
 
 type AccountMenuProps = {
   isCollapsed?: boolean
   onNavigate?: () => void
+  workspace: WorkspaceId
+  onWorkspaceChange: (workspace: WorkspaceId) => void
 }
 
-export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProps) {
+/** Barra contraída: nombre y puesto en el Tooltip de la app (sin title nativo). */
+function AccountTooltip({ label, children }: { label: string | null; children: ReactNode }) {
+  if (!label) return children
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{children}</TooltipTrigger>
+      <TooltipContent side="right">{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWorkspaceChange }: AccountMenuProps) {
   const { user } = useUser()
   const { profile } = useProfile(user?.id)
   const { role, isEvaluador, loading: roleLoading } = useRole()
@@ -36,6 +53,7 @@ export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProp
   const { themeMode, setThemeMode } = useTheme()
 
   const displayName = profile?.displayName || user?.email?.split("@")[0] || "Usuario"
+  const initial = displayName.trim().charAt(0).toUpperCase()
   // El puesto describe mejor a la persona; sin puesto capturado se muestra el rol.
   // Se espera al perfil para no mostrar el rol y luego cambiarlo por el puesto.
   const roleLabel = profile && !roleLoading ? profile.puesto || ROLE_LABELS[role] : null
@@ -44,32 +62,35 @@ export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProp
   return (
     <>
       {user && <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            aria-label={accountLabel}
-            title={isCollapsed ? accountLabel : undefined}
-            className={cn(
-              "flex min-h-11 min-w-0 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-              isCollapsed ? "w-full justify-center px-0" : "w-full gap-2 px-2.5",
-            )}
-          >
-            {isCollapsed ? (
-              <span className={cn("flex shrink-0 items-center justify-center", SIDEBAR_ICON_BOX)} aria-hidden="true">
-                <CircleUserRound className={SIDEBAR_ICON} />
-              </span>
-            ) : (
-              <>
-                {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
-                <span className="flex min-w-0 flex-1 flex-col text-left">
-                  <span className="truncate text-label-sm text-foreground">{displayName}</span>
-                  <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
-                </span>
-                <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              </>
-            )}
-          </button>
-        </DropdownMenuTrigger>
+        <AccountTooltip label={isCollapsed ? accountLabel : null}>
+          <DropdownMenuTrigger asChild>
+            <button
+              type="button"
+              aria-label={accountLabel}
+              className={cn(
+                "flex min-h-11 min-w-0 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                isCollapsed ? "w-full justify-center px-0" : "w-full gap-2 px-2.5",
+              )}
+            >
+              {isCollapsed ? (
+                // Barra contraída: foto de perfil o, sin foto, la inicial del nombre.
+                <Avatar className="size-7 shrink-0" aria-hidden="true">
+                  <AvatarImage src={profile?.avatar || undefined} alt="" />
+                  <AvatarFallback className="bg-primary text-body-sm font-medium text-primary-foreground">{initial}</AvatarFallback>
+                </Avatar>
+              ) : (
+                <>
+                  {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
+                  <span className="flex min-w-0 flex-1 flex-col text-left">
+                    <span className="truncate text-label-sm text-foreground">{displayName}</span>
+                    <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
+                  </span>
+                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                </>
+              )}
+            </button>
+          </DropdownMenuTrigger>
+        </AccountTooltip>
 
         <DropdownMenuContent
           align={isCollapsed ? "end" : "start"}
@@ -88,6 +109,8 @@ export function AccountMenu({ isCollapsed = false, onNavigate }: AccountMenuProp
               <DropdownMenuSeparator />
             </>
           )}
+
+          <WorkspaceMenuSub workspace={workspace} onWorkspaceChange={onWorkspaceChange} onChanged={onNavigate} />
 
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className={cn(SIDEBAR_MENU_ITEM, "justify-between")}>

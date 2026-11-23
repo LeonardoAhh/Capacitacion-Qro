@@ -178,9 +178,6 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
         </div>
       </section>
 
-      <p className="text-body-sm text-muted-foreground">
-        Recomendación orientativa: la decisión final corresponde al Jefe de Departamento.
-      </p>
     </div>
   )
 }

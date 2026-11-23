@@ -1,11 +1,35 @@
 import Link from "next/link"
-import { ChevronLeft, ChevronRight, Printer } from "lucide-react"
+import { Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 import type { NuevoIngreso } from "@/lib/hooks"
 import { getUrgencyLevel, urgencyLabel } from "@/components/content/recontratacion-logic"
 import { StatusBadge } from "@/components/content/recontratacion-ui"
 import { cn } from "@/lib/utils"
+
+/**
+ * Columnas de la lista. Empleado toma el resto; las demás tienen ancho fijo y
+ * aparecen según la pantalla. En celular el término va bajo el nombre.
+ */
+const COL = {
+  departamento: "hidden w-48 lg:table-cell",
+  termino: "hidden w-56 sm:table-cell",
+  acciones: "w-32 text-right",
+} as const
+
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+
+export function EmpleadoHeader() {
+  return (
+    <TableRow className="hover:bg-transparent">
+      <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+      <TableHead scope="col" className={cn(COL.departamento, HEAD)}>Departamento</TableHead>
+      <TableHead scope="col" className={cn(COL.termino, HEAD)}>Término</TableHead>
+      <TableHead scope="col" className={COL.acciones}><span className="sr-only">Acciones</span></TableHead>
+    </TableRow>
+  )
+}
 
 export function EmpleadoRow({
   record,
@@ -15,144 +39,57 @@ export function EmpleadoRow({
   onImprimir: (numero: string) => void
 }) {
   const urgency = getUrgencyLevel(record)
-  const ariaDescription = urgencyLabel(urgency, record)
+  const detalle = [record.numero && `#${record.numero}`, record.puesto].filter(Boolean).join(" · ")
 
   return (
-    <li
-      className={cn(
-        "flex min-w-0 flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3",
-        "transition-colors hover:bg-accent/20",
-      )}
-      aria-label={`${record.nombre}. ${ariaDescription}`}
-    >
-      <div className="flex min-w-0 items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
-            {record.nombre}
-          </p>
-          {record.puesto && (
-            <p className="mt-1 truncate text-sm text-muted-foreground">{record.puesto}</p>
-          )}
-        </div>
-        {record.numero && (
-          <span className="shrink-0 pt-0.5 font-sans text-xs tabular-nums text-muted-foreground">
-            #{record.numero}
-          </span>
-        )}
-      </div>
-
-      <hr className="border-border" />
-
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <TableRow aria-label={`${record.nombre}. ${urgencyLabel(urgency, record)}`}>
+      <TableCell className="max-w-0">
+        <p className="truncate text-label-sm text-foreground" title={record.nombre}>{record.nombre}</p>
+        {detalle && <p className="truncate text-body-sm text-muted-foreground" title={detalle}>{detalle}</p>}
+        <div className="mt-1 sm:hidden"><StatusBadge urgency={urgency} record={record} /></div>
+      </TableCell>
+      <TableCell className={COL.departamento}>
+        <p className="truncate text-body-sm text-muted-foreground">{record.departamento || "—"}</p>
+      </TableCell>
+      <TableCell className={COL.termino}>
         <StatusBadge urgency={urgency} record={record} />
-        <div className="flex shrink-0 items-center gap-2">
+      </TableCell>
+      <TableCell className={cn(COL.acciones, "py-0")}>
+        <div className="flex items-center justify-end gap-1">
           {record.numero ? (
-            <Button asChild variant="ghost" size="sm" className="h-(--control-height) px-3 py-0 text-sm">
-              <Link
-                href={`/recontratacion/${encodeURIComponent(record.numero)}`}
-                aria-label={`Revisar a ${record.nombre}`}
-              >
+            <Button asChild variant="ghost" size="sm">
+              <Link href={`/recontratacion/${encodeURIComponent(record.numero)}`} aria-label={`Revisar a ${record.nombre}`}>
                 Revisar
               </Link>
             </Button>
           ) : (
-            <Button variant="ghost" size="sm" className="h-(--control-height) px-3 py-0 text-sm" disabled title="Sin número asignado">
-              Revisar
-            </Button>
+            <Button variant="ghost" size="sm" disabled aria-label="Revisar: sin número asignado">Revisar</Button>
           )}
           <Button
-            size="sm"
-            className="h-(--control-height) gap-2 px-3 py-0 text-sm"
+            variant="ghost"
+            size="icon"
             onClick={() => record.numero && onImprimir(record.numero)}
             disabled={!record.numero}
-            aria-label={record.numero ? `Imprimir formato de ${record.nombre}` : "Sin número asignado"}
-            title={record.numero ? undefined : "Sin número asignado"}
+            aria-label={record.numero ? `Imprimir formato de ${record.nombre}` : "Imprimir: sin número asignado"}
           >
-            <Printer className="size-4" aria-hidden="true" />
-            Imprimir
+            <Printer aria-hidden="true" />
           </Button>
         </div>
-      </div>
-    </li>
+      </TableCell>
+    </TableRow>
   )
 }
 
 export function SkeletonRow() {
   return (
-    <li
-      className="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card p-4 dense:gap-3 dense:p-3"
-      aria-hidden="true"
-    >
-      <div className="space-y-2">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-      </div>
-      <div className="flex gap-2">
-        <Skeleton className="h-6 w-20 rounded-md" />
-        <Skeleton className="h-6 w-16 rounded-md" />
-      </div>
-      <Skeleton className="h-px w-full" />
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-4 w-24 rounded-md" />
-        <div className="flex gap-2">
-          <Skeleton className="h-(--control-height) w-20 rounded-md" />
-          <Skeleton className="h-(--control-height) w-24 rounded-md" />
-        </div>
-      </div>
-    </li>
-  )
-}
-
-export function Pagination({
-  page,
-  pageCount,
-  total,
-  pageSize,
-  onPrev,
-  onNext,
-}: {
-  page: number
-  pageCount: number
-  total: number
-  pageSize: number
-  onPrev: () => void
-  onNext: () => void
-}) {
-  const from = (page - 1) * pageSize + 1
-  const to = Math.min(page * pageSize, total)
-
-  return (
-    <nav className="flex items-center justify-between gap-3 pt-2" aria-label="Paginación">
-      <p className="text-sm tabular-nums text-muted-foreground">
-        {from}–{to} de {total}
-      </p>
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-(--control-height) gap-2 px-3 py-0 text-sm"
-          disabled={page <= 1}
-          onClick={onPrev}
-          aria-label="Página anterior"
-        >
-          <ChevronLeft className="size-4" aria-hidden="true" />
-          <span className="hidden sm:inline">Anterior</span>
-        </Button>
-        <span className="px-2 text-sm tabular-nums text-muted-foreground" aria-live="polite">
-          {page} / {pageCount}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-(--control-height) gap-2 px-3 py-0 text-sm"
-          disabled={page >= pageCount}
-          onClick={onNext}
-          aria-label="Página siguiente"
-        >
-          <span className="hidden sm:inline">Siguiente</span>
-          <ChevronRight className="size-4" aria-hidden="true" />
-        </Button>
-      </div>
-    </nav>
+    <TableRow aria-hidden="true" className="hover:bg-transparent">
+      <TableCell>
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="mt-2 h-3 w-1/2" />
+      </TableCell>
+      <TableCell className={COL.departamento}><Skeleton className="h-3 w-24" /></TableCell>
+      <TableCell className={COL.termino}><Skeleton className="h-4 w-36" /></TableCell>
+      <TableCell className={COL.acciones}><Skeleton className="ml-auto h-(--control-height-sm) w-24" /></TableCell>
+    </TableRow>
   )
 }

@@ -13,7 +13,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { SearchInput } from "@/components/ui/search-input"
+import { ExamenesToolbar } from "./examenes-toolbar"
 import { Badge } from "@/components/ui/badge"
 import {
   useGeneradorExamen,
@@ -46,15 +47,11 @@ export default function GeneradorExamenContent() {
 
   const printRef = useRef<HTMLDivElement>(null)
 
-  const handleSearch = useCallback(() => {
-    if (!searchTerm.trim()) return
+  const handleSearch = useCallback((term: string) => {
+    if (!term.trim()) return
     setHasSearched(true)
-    buscarEmpleado(searchTerm)
-  }, [buscarEmpleado, searchTerm])
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") handleSearch()
-  }
+    buscarEmpleado(term)
+  }, [buscarEmpleado])
 
   const handleSeleccionarEmpleado = (emp: EmpleadoBusqueda) => {
     setEmpleadoSeleccionado(emp)
@@ -105,7 +102,7 @@ export default function GeneradorExamenContent() {
     return (
       <>
         {/* Controles (se ocultan al imprimir) */}
-        <div className="no-print px-4 sm:px-6 pb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+        <div className="no-print pb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div>
             <p className="font-semibold">{examen.empleado.nombre}</p>
             <p className="text-sm text-muted-foreground">
@@ -149,7 +146,7 @@ export default function GeneradorExamenContent() {
         </div>
 
         {/* Hoja de examen — visible en pantalla y se imprime */}
-        <div className="px-4 sm:px-6 pb-6">
+        <div>
           <div
             className="print-area rounded-xl border border-border bg-card p-6 sm:p-8 print:border-gray-200 print:bg-white"
             ref={printRef}
@@ -163,51 +160,24 @@ export default function GeneradorExamenContent() {
 
   // ── Pantalla de búsqueda / configuración ────────────────────────────────
   return (
-    <div className="px-4 sm:px-6 pb-6 space-y-6">
-      {/* Paso 1: buscar empleado */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-          1. Buscar empleado
-        </p>
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Nombre o número de empleado..."
-              className={`pl-9 ${searchTerm ? "pr-9" : ""}`}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            {searchTerm && (
-              <button
-                onClick={() => {
-                  setSearchTerm("")
-                  setHasSearched(false)
-                  setEmpleadoSeleccionado(null)
-                  buscarEmpleado("")
-                }}
-                aria-label="Limpiar búsqueda"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
-          <Button
-            variant="outline"
-            onClick={handleSearch}
-            disabled={buscando || !searchTerm.trim()}
-            aria-label="Buscar empleado"
-          >
-            {buscando ? (
-              <Loader2 size={16} className="animate-spin" />
-            ) : (
-              <Search size={16} />
-            )}
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* Paso 1: buscar empleado (en la línea de las pestañas) */}
+      <ExamenesToolbar>
+        <SearchInput
+          label="Buscar empleado"
+          placeholder="Nombre o número de empleado…"
+          className="w-full max-w-sm"
+          value={searchTerm}
+          onValueChange={setSearchTerm}
+          onSearch={handleSearch}
+          loading={buscando}
+          onClear={() => {
+            setHasSearched(false)
+            setEmpleadoSeleccionado(null)
+            buscarEmpleado("")
+          }}
+        />
+      </ExamenesToolbar>
 
       {/* Resultados de búsqueda */}
       {resultados.length > 0 && !empleadoSeleccionado && (
@@ -283,7 +253,7 @@ export default function GeneradorExamenContent() {
           {/* Paso 2: seleccionar transición */}
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              2. Tipo de examen (categoría)
+              Tipo de examen (categoría)
             </p>
             {transiciones.length === 0 ? (
               <p className="text-sm text-muted-foreground">

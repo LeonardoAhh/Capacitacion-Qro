@@ -90,10 +90,10 @@ export const NAV_SECTIONS: NavSection[] = [
 
 export const SAFETY_NAV_SECTIONS: NavSection[] = [
   {
-    label: "Home",
+    label: "Safe Walk",
     pinned: true,
     items: [
-      { label: "Home", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
+      { label: "Safe Walk", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
     ],
   },
 ]
@@ -107,7 +107,7 @@ export function getWorkspaceNavSections(workspace: WorkspaceId): NavSection[] {
  * but still need a display title in the header.
  */
 const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
-  [SAFETY_HOME_PATH]: "Home",
+  [SAFETY_HOME_PATH]: "Safe Walk",
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",

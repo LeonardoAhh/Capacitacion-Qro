@@ -403,14 +403,14 @@ export default function CapacitacionContent() {
       <Tabs defaultValue="historial" onValueChange={handleTabChange}>
         {/* Puestos y cursos no aplican a roles que solo consultan empleados: sin pestañas. */}
         {!employeesOnly && (
-          <TabsList className="mb-6 flex h-12 w-full rounded-md bg-muted p-1">
-            <TabsTrigger value="historial" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+          <TabsList className="mb-6 flex w-full">
+            <TabsTrigger value="historial" className="flex-1 gap-2 px-2">
               <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
             </TabsTrigger>
-            <TabsTrigger value="cursos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+            <TabsTrigger value="cursos" className="flex-1 gap-2 px-2">
               <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
             </TabsTrigger>
-            <TabsTrigger value="puestos" className="min-h-(--control-height) flex-1 gap-2 rounded-md px-2 py-0 text-sm font-medium text-muted-foreground data-[state=active]:border-border data-[state=active]:bg-card data-[state=active]:text-primary">
+            <TabsTrigger value="puestos" className="flex-1 gap-2 px-2">
               <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
             </TabsTrigger>
           </TabsList>
