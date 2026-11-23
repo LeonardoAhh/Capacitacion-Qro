@@ -98,7 +98,7 @@ const REVISION_CFG: Record<
   { icon: typeof Clock; className: string; prefix: string }
 > = {
   vencido:   { icon: AlertTriangle, className: "bg-destructive/10 text-destructive", prefix: "Vencido" },
-  proximo:   { icon: Clock,         className: "bg-warning/10 text-warning",         prefix: "Próximo" },
+  proximo:   { icon: Clock,         className: "bg-warning/10 text-warning-deep",         prefix: "Próximo" },
   pendiente: { icon: CalendarClock, className: "bg-muted text-muted-foreground",     prefix: "Rev." },
   sin_fecha: { icon: CalendarClock, className: "bg-muted text-muted-foreground",     prefix: "" },
 }

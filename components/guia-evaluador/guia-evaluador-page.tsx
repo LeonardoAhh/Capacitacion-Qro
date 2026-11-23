@@ -1,220 +1,132 @@
+import type { ReactNode } from "react"
 import Link from "next/link"
 import {
-  ArrowRight,
-  Check,
-  CheckCircle2,
-  ClipboardCheck,
-  ClipboardList,
-  FileText,
-  Info,
-  LockKeyhole,
-  Printer,
-  Search,
-  ShieldCheck,
-  SquarePen,
-  UserRoundPlus,
-  Users,
+  ArrowRight, CheckCircle2, Info, LockKeyhole, Printer, Save, Search, ShieldCheck,
+  UserRoundPlus, type LucideIcon,
 } from "lucide-react"
+import { Button, buttonVariants } from "@/components/ui/button"
+import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { GUIDE_COPY, GUIDE_STEPS, type GuideStep } from "@/components/content/desempeno/guide-steps"
-import { DESEMPENO } from "@/lib/desempeno/presentation"
+import { DESEMPENO, EVALUATION_STEPS } from "@/lib/desempeno/presentation"
+import { cn } from "@/lib/utils"
 
-const FORM_STEPS = ["Datos", "Objetivos", "Responsabilidades", "Competencias", "Revisión"] as const
+/*
+ * Guía pública del evaluador. El contenido de cada paso sale de guide-steps y el
+ * vocabulario de lib/desempeno/presentation: así la guía sigue el flujo real de
+ * /desempeno. Tipografía, espaciado y controles con los tokens de design.md.
+ */
+
+const EYEBROW = "text-eyebrow uppercase text-muted-foreground"
+const SECTION = "border-b border-border py-16 sm:py-24"
+const stepAnchor = (id: GuideStep["id"]) => `paso-${id}`
+const stepNumber = (index: number) => String(index + 1).padStart(2, "0")
 
 export function GuiaEvaluadorPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-dvh bg-background text-foreground">
       <header className="border-b border-border">
-        <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-18">
-          <p className="font-sans text-xs font-medium uppercase tracking-wide text-muted-foreground">
-            Viñoplastic · Evaluación de desempeño
+        <WorkspaceContainer className="grid justify-items-start gap-4 py-16 sm:py-24">
+          <p className={EYEBROW}>Viñoplastic · Capacitación Planta Querétaro</p>
+          <h1 className="text-display-lg sm:text-display-xl">Guía del evaluador</h1>
+          <p className="max-w-2xl text-body-lg text-muted-foreground">
+            Una guia paso a paso para evaluar a nuestros colaboradores.
           </p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            Guía del evaluador
-          </h1>
-          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground sm:text-lg">
-            Consulta el flujo vigente para buscar a una persona, revisar el periodo asignado,
-            completar la evaluación, guardarla e imprimir el formato oficial.
-          </p>
-
-          <div className="mt-8 flex flex-wrap gap-3">
-            <Link
-              href="/login"
-              className="inline-flex min-h-11 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              Acceder al sistema
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-            <a
-              href="#flujo"
-              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              Consultar pasos
-            </a>
+          <div className="flex flex-wrap gap-3 pt-4">
+            <Button asChild>
+              <Link href="/login">Acceder al sistema<ArrowRight aria-hidden="true" /></Link>
+            </Button>
+            <Button asChild variant="outline">
+              <a href="#flujo">Consultar pasos</a>
+            </Button>
           </div>
-        </div>
+        </WorkspaceContainer>
       </header>
 
       <main>
-        <section className="border-b border-border bg-muted/20" aria-labelledby="antes-heading">
-          <div className="mx-auto grid max-w-6xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
-              <p className="font-sans text-xs font-medium uppercase tracking-wide text-primary">Antes de iniciar</p>
-              <h2 id="antes-heading" className="mt-3 text-2xl font-semibold tracking-tight">
-                Acceso y alcance
-              </h2>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+        <section className={SECTION} aria-labelledby="antes-heading">
+          <WorkspaceContainer className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
+            <div className="grid content-start gap-3">
+              <p className={EYEBROW}>Antes de iniciar</p>
+              <h2 id="antes-heading" className="text-display-lg">Acceso y alcance</h2>
+              <p className="text-body-md text-muted-foreground">
                 Ingresa con la cuenta que te fue asignada. El rol y los departamentos asociados a
                 esa cuenta determinan qué colaboradores y pendientes puedes consultar.
               </p>
             </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <InfoCard
-                icon={LockKeyhole}
-                title="Cuenta asignada"
-                body="Las credenciales se entregan por el canal definido por Recursos Humanos. No compartas el acceso."
-              />
-              <InfoCard
-                icon={ShieldCheck}
-                title="Departamentos autorizados"
-                body="Un evaluador consulta únicamente a las personas incluidas en el alcance de su perfil."
-              />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoCard icon={LockKeyhole} title="Cuenta asignada">
+                Las credenciales se entregan por correo electrónico por Recursos Humanos. No compartas el acceso.
+              </InfoCard>
+              <InfoCard icon={ShieldCheck} title="Departamentos autorizados">
+                Un evaluador consulta únicamente a los colaboradores asignados a su cargo.
+              </InfoCard>
             </div>
-          </div>
+          </WorkspaceContainer>
         </section>
 
-        <section id="flujo" className="scroll-mt-4 border-b border-border" aria-labelledby="flujo-heading">
-          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-18">
-            <div className="grid gap-8 lg:grid-cols-[18rem_minmax(0,1fr)]">
-              <div className="lg:sticky lg:top-6 lg:self-start">
-                <p className="font-sans text-xs font-medium uppercase tracking-wide text-primary">Flujo vigente</p>
-                <h2 id="flujo-heading" className="mt-3 text-2xl font-semibold tracking-tight">
-                  {GUIDE_COPY.title}
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  {GUIDE_COPY.description}
-                </p>
-
-                <nav className="mt-6" aria-label={GUIDE_COPY.navigation}>
-                  <ol className="space-y-1">
-                    {GUIDE_STEPS.map((step, index) => (
-                      <li key={step.id}>
-                        <a
-                          href={`#paso-${step.id}`}
-                          className="flex min-h-11 items-center gap-3 rounded-md px-3 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                        >
-                          <span className="font-sans text-xs tabular-nums text-primary">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
-                          {step.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ol>
-                </nav>
-              </div>
-
-              <div className="min-w-0 space-y-5">
-                {GUIDE_STEPS.map((step, index) => (
-                  <GuideStepSection key={step.id} step={step} index={index} />
-                ))}
-              </div>
+        <section id="flujo" className={cn(SECTION, "scroll-mt-4")} aria-labelledby="flujo-heading">
+          <WorkspaceContainer className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
+            <div className="grid content-start gap-3 lg:sticky lg:top-6 lg:self-start">
+              <p className={EYEBROW}>Flujo vigente</p>
+              <h2 id="flujo-heading" className="text-display-lg">{GUIDE_COPY.title}</h2>
+              <p className="text-body-md text-muted-foreground">{GUIDE_COPY.description}</p>
+              <nav className="pt-3" aria-label={GUIDE_COPY.navigation}>
+                <ol className="grid gap-1">
+                  {GUIDE_STEPS.map((step, index) => (
+                    <li key={step.id}>
+                      <a href={`#${stepAnchor(step.id)}`}
+                        className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start gap-3 px-3 text-body-md font-normal text-muted-foreground")}>
+                        <span className="text-label-sm tabular-nums text-primary">{stepNumber(index)}</span>
+                        {step.title}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+              </nav>
             </div>
-          </div>
+
+            <ol className="grid min-w-0 gap-6">
+              {GUIDE_STEPS.map((step, index) => (
+                <li key={step.id}><GuideStepSection step={step} index={index} /></li>
+              ))}
+            </ol>
+          </WorkspaceContainer>
         </section>
 
-        <section className="border-b border-border bg-muted/20" aria-labelledby="vistas-heading">
-          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-18">
-            <p className="font-sans text-xs font-medium uppercase tracking-wide text-primary">Navegación</p>
-            <h2 id="vistas-heading" className="mt-3 text-2xl font-semibold tracking-tight">
-              Vistas disponibles en Desempeño
-            </h2>
-            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted-foreground">
-              Evaluar y Pendientes son las vistas de trabajo disponibles para el evaluador.
-            </p>
-
-            <div className="mt-8 grid gap-4 md:grid-cols-2">
-              <ViewCard
-                icon={SquarePen}
-                title={DESEMPENO.pages.evaluation.title}
-                body={DESEMPENO.pages.evaluation.description}
-                href={DESEMPENO.routes.home}
-              />
-              <ViewCard
-                icon={ClipboardList}
-                title={DESEMPENO.pages.pending.title}
-                body="Consulta Nuevo Ingreso o Semestrales. Los resultados respetan los departamentos asignados a tu perfil."
-                href={DESEMPENO.routes.pending}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section aria-labelledby="entrega-heading">
-          <div className="mx-auto max-w-6xl px-5 py-14 sm:px-8 sm:py-18">
-            <div className="grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-start">
-              <div>
-                <p className="font-sans text-xs font-medium uppercase tracking-wide text-primary">Cierre del proceso</p>
-                <h2 id="entrega-heading" className="mt-3 text-2xl font-semibold tracking-tight">
-                  Impresión y entrega
-                </h2>
-                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                  El botón Imprimir se habilita después de guardar. El sistema abre el diálogo de
-                  impresión del navegador; desde ahí puedes imprimir o guardar como PDF si el
-                  dispositivo lo permite.
-                </p>
-              </div>
-
-              <ol className="grid gap-3 sm:grid-cols-3">
-                <DeliveryStep n="1" icon={Printer} text="Imprime el formato RG-ADM-062 o RG-ADM-063 generado por el sistema." />
-                <DeliveryStep n="2" icon={ClipboardCheck} text="Recaba las firmas del colaborador y del evaluador." />
-                <DeliveryStep n="3" icon={FileText} text="Entrega el documento físico al Departamento de Capacitación." />
-              </ol>
-            </div>
-          </div>
-        </section>
       </main>
 
-      <footer className="border-t border-border bg-muted/20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <span>Viñoplastic · Planta Querétaro</span>
+      <footer>
+        <WorkspaceContainer className="flex flex-col gap-2 py-6 text-body-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <span>ViñoPlastic · Capacitación Planta Querétaro</span>
           <span>Desarrollado e Implementado por LAHH</span>
-        </div>
+        </WorkspaceContainer>
       </footer>
     </div>
   )
 }
 
 function GuideStepSection({ step, index }: { step: GuideStep; index: number }) {
+  const headingId = `${stepAnchor(step.id)}-heading`
   return (
-    <article
-      id={`paso-${step.id}`}
-      className="scroll-mt-6 overflow-hidden rounded-xl border border-border bg-card"
-      aria-labelledby={`paso-${step.id}-heading`}
-    >
-      <header className="border-b border-border px-5 py-5 sm:px-6">
-        <div className="flex items-start gap-4">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 font-sans text-xs font-semibold text-primary">
-            {String(index + 1).padStart(2, "0")}
-          </span>
-          <div>
-            <p className="font-sans text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-              {step.label}
-            </p>
-            <h3 id={`paso-${step.id}-heading`} className="mt-1 text-xl font-semibold tracking-tight">
-              {step.title}
-            </h3>
-            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-          </div>
+    <article id={stepAnchor(step.id)} aria-labelledby={headingId}
+      className="scroll-mt-6 overflow-hidden rounded-xl border border-border bg-card">
+      <header className="flex items-start gap-4 border-b border-border p-(--card-padding)">
+        <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-md bg-primary/10 text-label-sm tabular-nums text-primary">
+          {stepNumber(index)}
+        </span>
+        <div className="grid min-w-0 gap-1">
+          <p className={EYEBROW}>{step.label}</p>
+          <h3 id={headingId} className="text-heading-md">{step.title}</h3>
+          <p className="text-body-md text-muted-foreground">{step.description}</p>
         </div>
       </header>
 
-      <div className="grid gap-6 p-5 sm:p-6 xl:grid-cols-[minmax(0,1fr)_minmax(20rem,0.9fr)]">
-        <div>
-          <ol className="space-y-3">
+      <div className="grid gap-6 p-(--card-padding) xl:grid-cols-[minmax(0,1fr)_minmax(18rem,1fr)]">
+        <div className="grid content-start gap-4">
+          <ol className="grid gap-3">
             {step.instructions.map((instruction, instructionIndex) => (
-              <li key={instruction} className="flex items-start gap-3 text-sm leading-relaxed">
-                <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/5 font-sans text-[10px] font-semibold text-primary">
+              <li key={instruction} className="flex items-start gap-3 text-body-md">
+                <span aria-hidden="true" className="grid size-5 shrink-0 place-items-center rounded-md border border-primary/30 bg-primary/5 text-eyebrow tabular-nums text-primary">
                   {instructionIndex + 1}
                 </span>
                 <span>{instruction}</span>
@@ -223,19 +135,21 @@ function GuideStepSection({ step, index }: { step: GuideStep; index: number }) {
           </ol>
 
           {step.weights && (
-            <dl className="mt-5 grid gap-2 sm:grid-cols-3">
-              {step.weights.map((weight) => (
-                <div key={weight.label} className="rounded-md border border-border bg-muted/20 p-3">
-                  <dt className="text-xs leading-snug text-muted-foreground">{weight.label}</dt>
-                  <dd className="mt-1 font-sans text-lg font-semibold tabular-nums">{weight.value * 100}%</dd>
+            <dl className="grid gap-2 sm:grid-cols-3" aria-label={GUIDE_COPY.weights}>
+              {step.weights.map(weight => (
+                <div key={weight.label} className="grid gap-1 rounded-md border border-border p-3">
+                  <dt className="text-body-sm text-muted-foreground">{weight.label}</dt>
+                  <dd className="text-heading-md tabular-nums">{weight.value * 100}%</dd>
                 </div>
               ))}
             </dl>
           )}
 
-          <div role="note" className="mt-5 flex items-start gap-3 rounded-md border border-primary/20 bg-primary/5 p-3">
+          <div role="note" className="flex items-start gap-3 rounded-md border border-primary/20 bg-primary/5 p-3">
             <Info className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
-            <p className="text-xs leading-relaxed text-muted-foreground">{step.note}</p>
+            <p className="text-body-sm text-muted-foreground">
+              <span className="sr-only">{GUIDE_COPY.reminder}: </span>{step.note}
+            </p>
           </div>
         </div>
 
@@ -245,174 +159,121 @@ function GuideStepSection({ step, index }: { step: GuideStep; index: number }) {
   )
 }
 
+/** Vista de referencia de cada paso: imita la pantalla real de /desempeno, sin controles activos. */
 function StepPreview({ id }: { id: GuideStep["id"] }) {
-  if (id === "search") {
-    return (
-      <PreviewFrame label="Evaluar · Buscar empleado">
-        <div className="space-y-3 p-4">
-          <MockSearch value="3204 o nombre del colaborador" />
-          <div className="flex items-center justify-between gap-3 rounded-md border border-border bg-background px-3 py-2 text-sm">
-            <span className="text-muted-foreground">Periodo</span>
-            <span className="font-medium">Se asigna al buscar</span>
+  switch (id) {
+    case "search":
+      return (
+        <PreviewFrame label={`${DESEMPENO.pages.evaluation.title} · ${DESEMPENO.search.title}`}>
+          <MockControl icon={Search}>{DESEMPENO.search.placeholder}</MockControl>
+          <PeriodMock value="Se asigna automáticamente" />
+          <p className="text-body-sm text-muted-foreground">{DESEMPENO.search.help}</p>
+        </PreviewFrame>
+      )
+    case "period":
+      return (
+        <PreviewFrame label={DESEMPENO.search.period}>
+          <PeriodMock value={`${DESEMPENO.modes.semestrales} · periodo vigente`} />
+          <div className="flex items-center gap-3 rounded-md border border-border bg-card p-3">
+            <CheckCircle2 className="size-5 shrink-0" aria-hidden="true" />
+            <div className="grid min-w-0 flex-1 gap-1">
+              <p className="text-label-sm">Evaluación ya guardada</p>
+              <p className="text-body-sm text-muted-foreground">Este periodo ya está completo. Busca otra persona para continuar.</p>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">La búsqueda acepta número o nombre y muestra sugerencias.</p>
-        </div>
-      </PreviewFrame>
-    )
-  }
-
-  if (id === "period") {
-    return (
-      <PreviewFrame label="Periodo de evaluación">
-        <div className="space-y-3 p-4">
-          <MockField label="Empleado" value="Nombre y número del empleado" />
-          <MockField label="Periodo asignado" value="Modalidad · periodo vigente" />
-          <div className="rounded-md border border-border bg-muted/20 p-3 text-xs leading-relaxed text-muted-foreground">
-            La modalidad y el periodo se asignan al buscar. Si ya existe una evaluación guardada, puedes abrirla para revisarla o editarla.
-          </div>
-        </div>
-      </PreviewFrame>
-    )
-  }
-
-  if (id === "evaluate") {
-    return (
-      <PreviewFrame label="Asistente de evaluación">
-        <div className="space-y-4 p-4">
-          <ol className="grid grid-cols-5 gap-1" aria-label="Cinco pasos de la evaluación">
-            {FORM_STEPS.map((label, index) => (
-              <li key={label} className="min-w-0">
-                <div className={`flex min-h-10 items-center justify-center rounded-md border px-1 text-xs ${index === 0 ? "border-primary bg-primary text-primary-foreground" : "border-border bg-background text-muted-foreground"}`}>
-                  <span className="sm:hidden">{index + 1}</span>
-                  <span className="hidden truncate sm:inline">{label}</span>
-                </div>
+        </PreviewFrame>
+      )
+    case "evaluate":
+      return (
+        <PreviewFrame label="Asistente de evaluación">
+          <ol className="grid grid-cols-5 gap-1">
+            {EVALUATION_STEPS.map((label, index) => (
+              <li key={label} className={cn(buttonVariants({ size: "sm", variant: index === 0 ? "default" : "outline" }), "min-w-0 px-1")}>
+                <span className="sm:hidden">{index + 1}</span>
+                <span className="hidden truncate sm:inline">{label}</span>
               </li>
             ))}
           </ol>
-          <MockField label="Evaluador" value="Selecciona al responsable" />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <MockRule text="Objetivos y responsabilidades: 0 a 100 o No aplica." />
-            <MockRule text="Competencias: selecciona una respuesta de 0 a 4." />
-          </div>
-        </div>
-      </PreviewFrame>
-    )
-  }
-
-  if (id === "save") {
-    return (
-      <PreviewFrame label="Revisión y compromisos">
-        <div className="space-y-3 p-4">
-          <MockField label="Compromisos / Acuerdos" value="Campo obligatorio cuando el resultado es menor a 80%" multiline />
-          <MockField label="Fecha de revisión" value="dd/mm/aaaa" />
-          <MockField label="Observaciones" value="Información adicional" />
+          <MockField label={DESEMPENO.fields.evaluator}>Selecciona al responsable</MockField>
+          <p className="text-body-sm text-muted-foreground">Objetivos y responsabilidades: 0 a 100% o No aplica. Competencias: 0 a 4.</p>
+        </PreviewFrame>
+      )
+    case "save":
+      return (
+        <PreviewFrame label={`${EVALUATION_STEPS[4]} y compromisos`}>
+          <MockField label={DESEMPENO.fields.commitments} multiline>Acuerdos de seguimiento</MockField>
+          <MockField label={DESEMPENO.fields.reviewDate}>dd/mm/aaaa</MockField>
           <div className="flex justify-end">
-            <div className="inline-flex min-h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground">
-              <Check className="size-4" aria-hidden="true" />
-              Guardar evaluación
+            <span className={buttonVariants({ size: "sm" })}><Save aria-hidden="true" />{DESEMPENO.actions.save}</span>
+          </div>
+        </PreviewFrame>
+      )
+    default:
+      return (
+        <PreviewFrame label="Evaluación guardada">
+          <div className="flex items-start gap-3">
+            <CheckCircle2 className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+            <div className="grid gap-1">
+              <p className="text-heading-md">Evaluación guardada</p>
+              <p className="text-body-sm text-muted-foreground">Nombre del empleado · calificación · resultado</p>
             </div>
           </div>
-        </div>
-      </PreviewFrame>
-    )
+          <div className="grid gap-2 sm:grid-cols-2">
+            <span className={buttonVariants({ size: "sm", variant: "outline" })}><UserRoundPlus aria-hidden="true" />Evaluar otra persona</span>
+            <span className={buttonVariants({ size: "sm" })}><Printer aria-hidden="true" />Imprimir</span>
+          </div>
+        </PreviewFrame>
+      )
   }
-
-  return (
-    <PreviewFrame label="Evaluación guardada">
-      <div className="space-y-4 p-4">
-        <div className="flex items-start gap-3 rounded-md border border-primary/30 bg-primary/5 p-3">
-          <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-          <div>
-            <p className="text-sm font-semibold">Evaluación guardada</p>
-            <p className="mt-1 text-xs text-muted-foreground">El formato ya está disponible para imprimir.</p>
-          </div>
-        </div>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <div className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md border border-border bg-background px-3 text-sm font-medium">
-            <UserRoundPlus className="size-4" aria-hidden="true" />
-            Evaluar otra persona
-          </div>
-          <div className="inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground">
-            <Printer className="size-4" aria-hidden="true" />
-            Imprimir
-          </div>
-        </div>
-      </div>
-    </PreviewFrame>
-  )
 }
 
-function PreviewFrame({ label, children }: { label: string; children: React.ReactNode }) {
+/** Ilustración: el pie la nombra y el contenido simulado se oculta a lectores de pantalla. */
+function PreviewFrame({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <figure className="overflow-hidden rounded-xl border border-border bg-muted/10">
-      <figcaption className="border-b border-border px-4 py-2 font-sans text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-        {label}
+    <figure className="overflow-hidden rounded-xl border border-border bg-muted/30">
+      <figcaption className={cn(EYEBROW, "border-b border-border px-4 py-2")}>
+        <span className="sr-only">{GUIDE_COPY.preview}: </span>{label}
       </figcaption>
-      {children}
+      <div aria-hidden="true" className="pointer-events-none grid gap-3 p-4 select-none">{children}</div>
     </figure>
   )
 }
 
-function InfoCard({ icon: Icon, title, body }: { icon: typeof LockKeyhole; title: string; body: string }) {
+const MOCK_CONTROL = "flex h-(--control-height) min-w-0 items-center gap-2 rounded-md border border-input bg-card px-3 text-body-md text-muted-foreground"
+
+function MockControl({ icon: Icon, children }: { icon?: LucideIcon; children: ReactNode }) {
   return (
-    <article className="rounded-xl border border-border bg-card p-5">
+    <div className={MOCK_CONTROL}>
+      {Icon && <Icon className="size-4 shrink-0" />}
+      <span className="truncate">{children}</span>
+    </div>
+  )
+}
+
+function PeriodMock({ value }: { value: string }) {
+  return (
+    <div className={cn(MOCK_CONTROL, "text-foreground")}>
+      <span className="shrink-0 text-muted-foreground">Periodo</span>
+      <span className="truncate text-label-sm">{value}</span>
+    </div>
+  )
+}
+
+function MockField({ label, multiline = false, children }: { label: string; multiline?: boolean; children: ReactNode }) {
+  return (
+    <div className="grid gap-1.5">
+      <p className="text-label-sm">{label}</p>
+      <div className={cn(MOCK_CONTROL, multiline && "h-auto min-h-20 items-start py-2")}>{children}</div>
+    </div>
+  )
+}
+
+function InfoCard({ icon: Icon, title, children }: { icon: LucideIcon; title: string; children: ReactNode }) {
+  return (
+    <article className="grid content-start gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
       <Icon className="size-5 text-primary" aria-hidden="true" />
-      <h3 className="mt-4 font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{body}</p>
+      <h3 className="text-label-sm">{title}</h3>
+      <p className="text-body-md text-muted-foreground">{children}</p>
     </article>
-  )
-}
-
-function ViewCard({ icon: Icon, title, body, href }: { icon: typeof Users; title: string; body: string; href: string }) {
-  return (
-    <article className="flex flex-col rounded-xl border border-border bg-card p-5">
-      <Icon className="size-5 text-primary" aria-hidden="true" />
-      <h3 className="mt-4 font-semibold">{title}</h3>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-muted-foreground">{body}</p>
-      <Link href={href} className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-        Abrir {title.toLowerCase()}
-        <ArrowRight className="size-4" aria-hidden="true" />
-      </Link>
-    </article>
-  )
-}
-
-function DeliveryStep({ n, icon: Icon, text }: { n: string; icon: typeof Printer; text: string }) {
-  return (
-    <li className="rounded-xl border border-border bg-card p-4">
-      <div className="flex items-center justify-between">
-        <span className="font-sans text-xs font-semibold text-primary">{n.padStart(2, "0")}</span>
-        <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-      </div>
-      <p className="mt-3 text-sm leading-relaxed">{text}</p>
-    </li>
-  )
-}
-
-function MockSearch({ value }: { value: string }) {
-  return (
-    <div className="flex min-h-11 items-center gap-2 rounded-md border border-border bg-background px-3 text-sm text-muted-foreground">
-      <Search className="size-4 shrink-0" aria-hidden="true" />
-      {value}
-    </div>
-  )
-}
-
-function MockField({ label, value, multiline = false }: { label: string; value: string; multiline?: boolean }) {
-  return (
-    <div>
-      <p className="mb-1.5 font-sans text-[10px] font-medium uppercase tracking-wide text-muted-foreground">{label}</p>
-      <div className={`rounded-md border border-border bg-background px-3 py-2 text-xs text-muted-foreground ${multiline ? "min-h-16" : "min-h-9"}`}>
-        {value}
-      </div>
-    </div>
-  )
-}
-
-function MockRule({ text }: { text: string }) {
-  return (
-    <div className="rounded-md border border-border bg-background p-3 text-xs leading-relaxed text-muted-foreground">
-      {text}
-    </div>
   )
 }

@@ -15,7 +15,7 @@ const cardVariants: Record<CardVariant, string> = {
 
 const statusTones: Record<StatusTone, string> = {
   success: "border-success/20 bg-success/10 text-success",
-  warning: "border-warning/30 bg-warning/10 text-warning",
+  warning: "border-warning/30 bg-warning/10 text-warning-deep",
   muted: "border-border bg-muted text-muted-foreground",
   destructive: "border-destructive/20 bg-destructive/10 text-destructive",
 };

@@ -5,7 +5,8 @@ import {
   ResponsiveContainer, Cell, LabelList, ReferenceLine,
 } from "recharts"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { PanelHeader, PanelStats } from "@/components/dashboard-panel"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -86,44 +87,31 @@ export default function RgCumplimientoChart() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-col justify-between gap-3 pb-2 sm:flex-row sm:items-start">
-        <div className="min-w-0 flex-1">
-          <CardTitle className="text-xl font-semibold tracking-tight">Cumplimiento RG-REC-048</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">Por departamento · Trimestral</p>
-          {/* KPI badges — solo cuando hay datos */}
-          {!loading && totalGeneral > 0 && (
-            <div className="flex flex-wrap items-center gap-3 mt-2">
-              {kpiBadges.map(({ color, label, value }) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: color }} />
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                  <Badge variant="secondary" className="text-xs px-1.5">{value}</Badge>
-                </div>
-              ))}
-              <Badge className="text-[10px] px-1.5" variant="outline"
-                style={{ backgroundColor: colorPct(pctGeneral) + "22", color: colorPct(pctGeneral), borderColor: colorPct(pctGeneral) + "44" }}>
-                {pctGeneral >= META ? "Cumple" : "No cumple"}
-              </Badge>
-            </div>
-          )}
-          {/* Tabs trimestres debajo del título */}
-          <Tabs value={quarter} onValueChange={v => setQuarter(v as QuarterId)} className="mt-3">
-            <TabsList className="grid h-auto min-h-11 grid-cols-4">
-              {QUARTERS.map(q => (
-                <TabsTrigger key={q.id} value={q.id} className="min-h-11 px-2 text-sm">{q.label}</TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-        </div>
-        <div className="w-full min-w-0 sm:w-auto sm:max-w-full">
+      <PanelHeader description="Por departamento · Trimestral" actions={
           <Select value={año} onValueChange={setAño}>
-            <SelectTrigger aria-label="Filtrar por año" className="h-11 w-full text-sm sm:w-auto sm:max-w-full"><SelectValue /></SelectTrigger>
+            <SelectTrigger aria-label="Filtrar por año" className="w-full sm:w-auto"><SelectValue /></SelectTrigger>
             <SelectContent>
-              {añosDisponibles.map(y => <SelectItem key={y} value={y} className="text-xs">{y}</SelectItem>)}
+              {añosDisponibles.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-        </div>
-      </CardHeader>
+      }>
+        {/* Cifras solo con datos; el estado frente a la meta va junto a ellas. */}
+        {!loading && totalGeneral > 0 && (
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <PanelStats items={kpiBadges} />
+            <Badge variant={pctGeneral >= META ? "success" : "destructive"} size="sm">
+              {pctGeneral >= META ? "Cumple" : "No cumple"}
+            </Badge>
+          </div>
+        )}
+        <Tabs value={quarter} onValueChange={v => setQuarter(v as QuarterId)}>
+          <TabsList className="grid w-full grid-cols-4">
+            {QUARTERS.map(q => (
+              <TabsTrigger key={q.id} value={q.id}>{q.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+      </PanelHeader>
 
       <CardContent>
         <AnimatePresence mode="wait">

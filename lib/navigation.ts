@@ -6,16 +6,20 @@
  */
 import type { LucideIcon } from "lucide-react"
 import { SAFETY_HOME_PATH, SETTINGS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
   Cake,
-  ClipboardCheck,
+  ClipboardList,
   ClipboardPenLine,
+  FolderOpen,
   Handshake,
   LayoutDashboard,
   SquareKanban,
+  SquarePen,
   TableProperties,
   Tags,
+  Target,
   UserPlus,
   UserRoundCog,
   UsersRound,
@@ -62,6 +66,18 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
+    // Fijas y en orden de flujo: evaluar, lo que falta y lo ya hecho. Cada rol ve
+    // las que puede abrir (lib/constants/roles); el evaluador, las dos primeras.
+    label: "Desempeño",
+    pinned: true,
+    items: [
+      { label: DESEMPENO.pages.evaluation.title, href: DESEMPENO.routes.home, icon: SquarePen },
+      { label: DESEMPENO.pages.pending.title, href: DESEMPENO.routes.pending, icon: ClipboardList },
+      { label: DESEMPENO.pages.saved.title, href: DESEMPENO.routes.saved, icon: FolderOpen },
+      { label: DESEMPENO.pages.objectives.title, href: DESEMPENO.routes.objectives, icon: Target },
+    ],
+  },
+  {
     label: "Personal",
     items: [
       { label: "Nuevos Empleados", href: "/ingresos", icon: UserPlus },
@@ -79,11 +95,10 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    label: "Desempeño",
+    label: "Seguimiento de desempeño",
     items: [
-      { label: "Evaluaciones", href: "/desempeno", icon: ClipboardCheck },
-      { label: "Cumplimiento", href: "/desempeno/cumplimiento", icon: BadgeCheck },
-      { label: "Compromisos", href: "/desempeno/seguimiento", icon: Handshake },
+      { label: "Cumplimiento", href: "/cumplimiento", icon: BadgeCheck },
+      { label: "Compromisos", href: "/seguimiento", icon: Handshake },
     ],
   },
 ]
@@ -118,12 +133,13 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   "/calificaciones": "Calificaciones",
   "/cursos": "Cursos",
   "/desempeno": "Evaluación de Desempeño",
-  "/desempeno/cumplimiento": "Cumplimiento de Evaluaciones",
+  "/cumplimiento": "Cumplimiento de Evaluaciones",
   "/desempeno/formatos": "Formatos de Evaluación en Blanco",
-  "/desempeno/objetivos": "Historial",
-  "/desempeno/pendientes": "Pendientes",
+  [DESEMPENO.routes.saved]: DESEMPENO.pages.saved.title,
+  [DESEMPENO.routes.pending]: DESEMPENO.pages.pending.title,
+  [DESEMPENO.routes.objectives]: DESEMPENO.pages.objectives.title,
   "/desempeno/regularizacion": "Captura tardía",
-  "/desempeno/seguimiento": "Seguimiento de Compromisos",
+  "/seguimiento": "Seguimiento de Compromisos",
 }
 
 const EXTRA_ROUTE_LABELS: Record<string, string> = {

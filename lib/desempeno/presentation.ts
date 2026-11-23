@@ -3,13 +3,15 @@ export const DESEMPENO = {
   title: "Evaluación de Desempeño",
   pages: {
     evaluation: { title: "Evaluar", description: "Busca un empleado, revisa el periodo asignado y completa su evaluación." },
-    pending: { title: "Pendientes", description: "Consulta las evaluaciones pendientes por departamento y tipo de periodo." },
-    saved: { title: "Historial", description: "Consulta objetivos por puesto y revisa las evaluaciones guardadas." },
+    pending: { title: "Por evaluar", description: "Consulta las evaluaciones pendientes por departamento y tipo de periodo." },
+    saved: { title: "Evaluadas", description: "Revisa e imprime las evaluaciones guardadas por empleado." },
+    objectives: { title: "Objetivos", description: "Consulta los objetivos SMART de cada puesto." },
   },
   routes: {
     home: "/desempeno",
-    saved: "/desempeno/objetivos",
-    pending: "/desempeno/pendientes",
+    saved: "/evaluadas",
+    objectives: "/objetivos",
+    pending: "/pendientes",
     late: "/desempeno/regularizacion",
   },
   search: {
@@ -47,6 +49,9 @@ export const DESEMPENO = {
   },
   actions: { save: "Guardar evaluación", next: "Siguiente", back: "Atrás", edit: "Capturar", guide: "Guía" },
 } as const
+
+/** Pasos del asistente de evaluación, en orden (formulario y guía del evaluador). */
+export const EVALUATION_STEPS = ["Datos", "Objetivos", "Responsabilidades", "Competencias", "Revisión"] as const
 
 export const EVALUATION_WEIGHTS = { objetivos: 0.4, cumplimiento: 0.3, competencias: 0.3 } as const
 

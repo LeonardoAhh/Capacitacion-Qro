@@ -12,7 +12,7 @@ const timeFormatter = new Intl.DateTimeFormat("es-MX", {
   minute: "2-digit",
 })
 
-export function WorkspaceClock({ isCompact = false }: { isCompact?: boolean }) {
+export function WorkspaceClock() {
   const [now, setNow] = useState<Date | null>(null)
 
   useEffect(() => {

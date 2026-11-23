@@ -21,7 +21,7 @@ import {
 // Solo la bandera lleva color; el texto de la prioridad la acompaña en tono neutro.
 export const COLOR_PRIORIDAD: Record<KanbanPrioridad, string> = {
   alta: "text-destructive",
-  media: "text-warning",
+  media: "text-warning-deep",
   baja: "text-success",
 }
 
@@ -120,7 +120,7 @@ export function KanbanApoyo({ tarjeta }: { tarjeta: KanbanTarjeta }) {
 export function KanbanBloqueo({ tarjeta }: { tarjeta: KanbanTarjeta }) {
   if (!tarjeta.bloqueo_motivo) return null
   return (
-    <p className="flex min-w-0 items-center gap-1.5 text-body-sm text-warning">
+    <p className="flex min-w-0 items-center gap-1.5 text-body-sm text-warning-deep">
       <CircleSlash className="size-3.5 shrink-0" aria-hidden="true" />
       <span className="truncate" title={tarjeta.bloqueo_motivo}>Esperando: {tarjeta.bloqueo_motivo}</span>
     </p>

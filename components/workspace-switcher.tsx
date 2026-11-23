@@ -1,6 +1,6 @@
 "use client"
 
-import { GraduationCap, HardHat } from "lucide-react"
+import { ClipboardCheck, GraduationCap, HardHat } from "lucide-react"
 import {
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -11,6 +11,7 @@ import {
 import { cn } from "@/lib/utils"
 import { BRAND_NAME, APP_NAME } from "@/lib/constants/company"
 import { WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
 import { AppMark } from "@/components/app-transition"
 import { useRole } from "@/lib/hooks/useRole"
 import { SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
@@ -29,8 +30,11 @@ interface WorkspaceBrandProps {
 
 /** Encabezado de la barra lateral: espacio de trabajo actual y empresa. Se cambia desde el menú de cuenta. */
 export function WorkspaceBrand({ workspace, mobile = false, collapsed = false }: WorkspaceBrandProps) {
-  const label = workspaceLabel(workspace)
-  const Icon = WORKSPACE_ICON[workspace]
+  // Sin espacio de trabajo (evaluador): su área es Evaluación de Desempeño.
+  const { workspaces } = useRole()
+  const sinEspacio = workspaces.length === 0
+  const label = sinEspacio ? DESEMPENO.title : workspaceLabel(workspace)
+  const Icon = sinEspacio ? ClipboardCheck : WORKSPACE_ICON[workspace]
 
   return (
     <div
@@ -62,6 +66,8 @@ interface WorkspaceMenuSubProps {
 export function WorkspaceMenuSub({ workspace, onWorkspaceChange, onChanged }: WorkspaceMenuSubProps) {
   const { workspaces } = useRole()
   const Icon = WORKSPACE_ICON[workspace]
+  // Sin espacios de trabajo (evaluador) no hay nada que cambiar.
+  if (workspaces.length === 0) return null
 
   return (
     <DropdownMenuSub>

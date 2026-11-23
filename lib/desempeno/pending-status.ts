@@ -9,3 +9,10 @@ export function pendingEvalStatus(diasDiff: number, numeroEvaluacion: HitoNuevoI
   if (diasDiff <= (numeroEvaluacion === 3 ? 15 : 7)) return "proximas"
   return "a-tiempo"
 }
+
+/** Distancia a una fecha en palabras: "Hoy", "En 3 días" o "Hace 1 día". */
+export function dias(diff: number): string {
+  if (diff === 0) return "Hoy"
+  if (diff < 0) return `Hace ${Math.abs(diff)} día${Math.abs(diff) !== 1 ? "s" : ""}`
+  return `En ${diff} día${diff !== 1 ? "s" : ""}`
+}

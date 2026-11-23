@@ -17,13 +17,13 @@ import type { FindingDeadline } from "./finding-constraints"
 
 const STATUS_META: Record<FindingPreview["status"], { icon: LucideIcon; className: string }> = {
   Abierto: { icon: CircleAlert, className: "border-destructive/20 bg-destructive/10 text-destructive" },
-  "En seguimiento": { icon: Clock3, className: "border-warning/30 bg-warning/10 text-warning-foreground" },
+  "En seguimiento": { icon: Clock3, className: "border-warning/30 bg-warning/10 text-warning-deep" },
   Cerrado: { icon: CircleCheck, className: "border-success/20 bg-success/10 text-success" },
 }
 
 const DEADLINE_CLASS: Record<FindingDeadline, string> = {
   "Corrección Inmediata": "border-destructive/20 bg-destructive/10 text-destructive",
-  "1 semana": "border-warning/30 bg-warning/10 text-warning-foreground",
+  "1 semana": "border-warning/30 bg-warning/10 text-warning-deep",
   "15 días": "border-urgency-low/30 bg-urgency-low/10 text-urgency-low",
 }
 

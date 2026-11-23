@@ -76,7 +76,7 @@ export function PromAccionesMenu({
         )}
         {onDesempeño && (
           <DropdownMenuItem onClick={onDesempeño} data-testid="prom-accion-desempeno">
-            <ChartNoAxesColumnIncreasing className={`${PROMOTION_ICON.control} text-warning`} aria-hidden="true" />
+            <ChartNoAxesColumnIncreasing className={`${PROMOTION_ICON.control} text-warning-deep`} aria-hidden="true" />
             Evaluar desempeño
           </DropdownMenuItem>
         )}

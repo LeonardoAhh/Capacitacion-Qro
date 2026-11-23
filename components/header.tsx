@@ -4,10 +4,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { ArrowLeft, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { useRole } from "@/lib/hooks"
+import { cn } from "@/lib/utils"
 import { getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
-import { EvaluatorHeaderActions } from "@/components/EvaluatorHeaderActions"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
 
@@ -17,6 +16,8 @@ interface HeaderProps {
   showMobileSidebar: boolean
   onOpenSidebar: () => void
   fullWidth?: boolean
+  /** Solo en móvil (menú y título): en escritorio la hora y los avisos van en la barra lateral. */
+  mobileOnly?: boolean
 }
 
 export default function Header({
@@ -25,31 +26,27 @@ export default function Header({
   showMobileSidebar,
   onOpenSidebar,
   fullWidth = false,
+  mobileOnly = false,
 }: HeaderProps) {
   const pathname = usePathname()
-  // Dashboard solo monta el header con el rol ya cargado.
-  const { isEvaluador } = useRole()
   const pageLabel = getRouteLabel(pathname)
 
   return (
     // Altura y barra de estado: .workspace-header en globals.css.
-    <header className="workspace-header sticky top-0 z-20 shrink-0 bg-card">
+    <header className={cn("workspace-header sticky top-0 z-20 shrink-0 bg-card", mobileOnly && "md:hidden")}>
       <WorkspaceContainer fullWidth={fullWidth} className="flex h-full items-center gap-2 border-b border-border">
-        {/* Los evaluadores no tienen barra lateral. */}
-        {!isEvaluador && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={onOpenSidebar}
-            aria-label="Abrir menú de navegación"
-            aria-controls={showMobileSidebar ? MOBILE_NAV_ID : undefined}
-            aria-expanded={showMobileSidebar}
-            className="shrink-0 text-muted-foreground md:hidden"
-          >
-            <Menu className="size-5" aria-hidden="true" />
-          </Button>
-        )}
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onOpenSidebar}
+          aria-label="Abrir menú de navegación"
+          aria-controls={showMobileSidebar ? MOBILE_NAV_ID : undefined}
+          aria-expanded={showMobileSidebar}
+          className="shrink-0 text-muted-foreground md:hidden"
+        >
+          <Menu className="size-5" aria-hidden="true" />
+        </Button>
 
         {/* Page title */}
         <div className="flex min-w-0 flex-1 items-center">
@@ -63,11 +60,10 @@ export default function Header({
           )}
         </div>
 
-        <WorkspaceClock isCompact={isEvaluador} />
-
-        <KanbanAvisos />
-
-        {isEvaluador && <EvaluatorHeaderActions />}
+        {!mobileOnly && <>
+          <WorkspaceClock />
+          <KanbanAvisos />
+        </>}
       </WorkspaceContainer>
     </header>
   )

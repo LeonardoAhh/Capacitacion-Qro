@@ -7,7 +7,7 @@ import { DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTit
 import { useRouter } from "next/navigation";
 import { type EmployeePending } from "@/lib/hooks/usePendingEvals";
 import { formatDate } from "@/lib/hooks/useNuevoIngreso";
-import { dias } from "@/lib/hooks/useDashboardAlertas";
+import { dias } from "@/lib/desempeno/pending-status";
 import { estadoVentanaEvaluacion } from "@/lib/desempeno/hitos-nuevo-ingreso";
 import { pendingEvalStatus } from "@/lib/hooks/usePendingEvals";
 import { cn } from "@/lib/utils";

@@ -1,11 +1,10 @@
 "use client";
 
-import { evaluationStyles, SectionTitle } from "./presentation";
+import { evaluationStyles, FieldValue, SectionTitle } from "./presentation";
 import { DESEMPENO } from "@/lib/desempeno/presentation";
 
 import type { EvaluationFormContext } from "./use-evaluation-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { InfoField } from "./form-controls";
 export function CommitmentsCard({
   context
 }: {
@@ -15,22 +14,20 @@ export function CommitmentsCard({
     data,
   } = context;
   return <Card>
-    <CardHeader className="pb-3">
-      <div className={evaluationStyles.sectionHeader}>
-        <SectionTitle>{DESEMPENO.sections.compromisos}</SectionTitle>
-    </div>
+    <CardHeader className="p-(--card-padding) pb-3">
+      <SectionTitle>{DESEMPENO.sections.compromisos}</SectionTitle>
       <p className={evaluationStyles.description}>{DESEMPENO.descriptions.compromisos}</p>
   </CardHeader>
-    <CardContent className="space-y-3 text-sm">
-      <InfoField label={DESEMPENO.fields.commitments}>
+    <CardContent className="space-y-3 p-(--card-padding) pt-0">
+      <FieldValue label={DESEMPENO.fields.commitments}>
         <p className="whitespace-pre-line">{data.compromisos || "—"}</p>
-    </InfoField>
-      <InfoField label={DESEMPENO.fields.reviewDate}>
+    </FieldValue>
+      <FieldValue label={DESEMPENO.fields.reviewDate}>
         <p>{data.fecha_revision || "—"}</p>
-    </InfoField>
-      <InfoField label={DESEMPENO.fields.observations}>
+    </FieldValue>
+      <FieldValue label={DESEMPENO.fields.observations}>
         <p>{data.observaciones || "—"}</p>
-    </InfoField>
+    </FieldValue>
   </CardContent>
 </Card>;
 }

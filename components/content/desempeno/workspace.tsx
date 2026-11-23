@@ -1,62 +1,27 @@
 "use client";
 
 import type { ReactNode } from "react";
-import Link from "next/link";
-import { ClipboardList, FolderOpen, SquarePen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useRole } from "@/lib/hooks";
-import { DESEMPENO } from "@/lib/desempeno/presentation";
 import { evaluationStyles } from "./presentation";
-import { useRouter } from "next/navigation";
-const navigation = [{
-  key: "evaluation",
-  href: DESEMPENO.routes.home,
-  icon: SquarePen
-}, {
-  key: "pending",
-  href: DESEMPENO.routes.pending,
-  icon: ClipboardList
-}, {
-  key: "saved",
-  href: DESEMPENO.routes.saved,
-  icon: FolderOpen
-}] as const;
+
+/**
+ * Marco de las vistas de evaluación. La navegación entre vistas vive en la barra
+ * lateral (lib/navigation); aquí solo van las acciones de la vista: `start` a la
+ * izquierda y `actions` a la derecha.
+ */
 export function EvaluationWorkspace({
-  section,
+  start,
   actions,
-  confirmNavigation,
   children
 }: {
-  section: keyof typeof DESEMPENO.pages;
+  start?: ReactNode;
   actions?: ReactNode;
-  confirmNavigation?: () => Promise<boolean>;
   children: ReactNode;
 }) {
-  const {
-    isEvaluador
-  } = useRole();
-  const router = useRouter();
   return <div className={evaluationStyles.page}>
-    <header className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 print:hidden">
-      <nav aria-label="Evaluación de desempeño" className="grid min-w-max flex-1 grid-flow-col auto-cols-fr gap-1 sm:flex sm:flex-none">
-        {navigation.filter(item => item.key !== "saved" || !isEvaluador).map(({
-          key,
-          href,
-          icon: Icon
-        }) => <Button key={key} asChild size="sm" variant={section === key ? "default" : "ghost"} className={section === key ? "min-w-0 px-2 sm:px-3" : "min-w-0 px-2 text-muted-foreground sm:px-3"}>
-            <Link href={href} aria-current={section === key ? "page" : undefined} onNavigate={confirmNavigation ? event => {
-              event.preventDefault();
-              void confirmNavigation().then(confirmed => {
-                if (confirmed) router.push(href);
-              });
-            } : undefined}>
-              <Icon className="hidden sm:block" aria-hidden="true" />
-              {DESEMPENO.pages[key].title}
-            </Link>
-          </Button>)}
-      </nav>
-      {actions && <div className="ml-auto flex shrink-0 flex-wrap items-center justify-end gap-2">{actions}</div>}
-    </header>
+    {(start || actions) && <header className="flex flex-wrap items-center justify-between gap-2 print:hidden">
+      <div className="flex items-center gap-2">{start}</div>
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">{actions}</div>
+    </header>}
     {children}
   </div>;
 }

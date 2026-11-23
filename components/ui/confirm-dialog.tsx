@@ -42,7 +42,7 @@ export function confirm(options: ConfirmOptions): Promise<boolean> {
 const TONE_STYLES: Record<ConfirmTone, { container: string; icon: React.ReactNode }> = {
   default: { container: "bg-primary/10 text-primary", icon: <CircleHelp aria-hidden="true" /> },
   destructive: { container: "bg-destructive/10 text-destructive", icon: <Trash2 aria-hidden="true" /> },
-  warning: { container: "bg-warning/10 text-warning", icon: <OctagonAlert aria-hidden="true" /> },
+  warning: { container: "bg-warning/10 text-warning-deep", icon: <OctagonAlert aria-hidden="true" /> },
   info: { container: "bg-info/10 text-info", icon: <Info aria-hidden="true" /> },
   success: { container: "bg-success/10 text-success", icon: <BadgeCheck aria-hidden="true" /> },
 }

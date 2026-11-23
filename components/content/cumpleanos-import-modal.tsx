@@ -415,7 +415,7 @@ export function CumpleanosImportModal({
             {/* No encontrados */}
             {nfCount > 0 && (
               <article>
-                <h3 className="mb-2 text-sm font-semibold text-warning">
+                <h3 className="mb-2 text-sm font-semibold text-warning-deep">
                   Números no encontrados en la base de datos
                 </h3>
                 <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">

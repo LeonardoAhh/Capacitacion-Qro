@@ -92,7 +92,7 @@ export function StatusBadge({
       <CalendarClock
         className={cn(
           "size-4 shrink-0",
-          urgency === "warning" && "text-warning",
+          urgency === "warning" && "text-warning-deep",
           urgency === "critical" && "text-destructive",
         )}
         aria-hidden="true"

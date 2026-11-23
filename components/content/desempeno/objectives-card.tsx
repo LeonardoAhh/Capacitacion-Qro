@@ -16,13 +16,11 @@ export function ObjectivesCard({
     ponderacion,
   } = context;
   return <Card>
-    <CardHeader className="pb-3">
-      <div className={evaluationStyles.sectionHeader}>
-        <SectionTitle>{`${DESEMPENO.sections.objetivos} (${EVALUATION_WEIGHTS.objetivos * 100}%)`}</SectionTitle>
-      </div>
+    <CardHeader className="p-(--card-padding) pb-3">
+      <SectionTitle>{`${DESEMPENO.sections.objetivos} (${EVALUATION_WEIGHTS.objetivos * 100}%)`}</SectionTitle>
       <p className={evaluationStyles.description}>{DESEMPENO.descriptions.objetivos}</p>
     </CardHeader>
-    <CardContent>
+    <CardContent className="p-(--card-padding) pt-0">
       <div className="overflow-x-auto">
         <Table>
           <caption className="sr-only">Evaluación de Objetivos SMART</caption>

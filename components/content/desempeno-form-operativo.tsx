@@ -3,7 +3,7 @@
 import { useId } from "react";
 import type { DesempenoData } from "@/lib/types/desempeno";
 import { ESCALA_COMPETENCIAS, UMBRAL_CALIFICACION_APROBATORIA, validarEvaluacion, esPorcentajeValido, CumplimientoOperativoIndex } from "@/lib/types/desempeno";
-import { EVALUATION_WEIGHTS } from "@/lib/desempeno/presentation";
+import { EVALUATION_STEPS, EVALUATION_WEIGHTS } from "@/lib/desempeno/presentation";
 import { EmployeeCard } from "./desempeno/employee-card";
 import { useEvaluationForm, type EvaluationFormContext } from "./desempeno/use-evaluation-form";
 import { ScoreCard } from "./desempeno/score-card";
@@ -38,8 +38,6 @@ interface Props {
   onExit?: () => void;
 }
 
-const STEPS = ["Datos", "Objetivos", "Responsabilidades", "Competencias", "Revisión"] as const;
-
 // Fila de etiqueta compartida: alinea columnas aunque una lleve pista o acción.
 const FIELD_HEAD = "flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-1";
 
@@ -65,7 +63,7 @@ function PercentageControl({ id, label, value, noAplica, automatic, helpId, show
       }}
       disabled={noAplica || automatic} readOnly={automatic} aria-describedby={helpId}
       aria-invalid={showError && pending} className={cn("w-20 shrink-0 font-medium tabular-nums", showError && pending && "border-destructive")} />
-    {!automatic && <label className="inline-flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-sm font-medium hover:bg-muted">
+    {!automatic && <label className="inline-flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-label-sm hover:bg-muted">
       <input type="checkbox" checked={noAplica === true} onChange={(event) => onChange("", event.target.checked)} className="size-4 accent-primary" />
       No aplica
     </label>}
@@ -88,21 +86,20 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
   const validation = validarEvaluacion(data);
   const requiereCompromisos = context.ponderacion.calificacionFinal < UMBRAL_CALIFICACION_APROBATORIA;
 
-  if (!canEdit) return <div className="space-y-6 dense:space-y-4 print:space-y-6">
+  if (!canEdit) return <div className="space-y-6 dense:space-y-4">
     <EmployeeCard context={context} /><ObjectivesCard context={context} /><ResponsibilitiesCard context={context} /><CompetenciesCard context={context} />
     <div className="grid gap-6 dense:gap-4 md:grid-cols-2"><CommitmentsCard context={context} /><ScoreCard context={context} /></div>
   </div>;
 
   const submit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (activeView < STEPS.length) return goNextView();
+    if (activeView < EVALUATION_STEPS.length) return goNextView();
     if (validation.valida && !guardarDisabled && !saving) onGuardar?.();
   };
 
   return <form className="space-y-6 dense:space-y-4 print:hidden" onSubmit={submit} noValidate>
     <p id={percentageHelpId} className="sr-only">Ingresa un porcentaje entero de 0 a 100 o marca No aplica.</p>
     <p id={automaticHelpId} className="sr-only">Calculado por el sistema para el periodo seleccionado.</p>
-
 
     {activeView === 1 && <div className="space-y-4"><StepHeading context={context} title="Datos de la evaluación" description="Verifica a la persona, el periodo y selecciona al evaluador responsable." /><EmployeeCard context={context} /></div>}
 
@@ -144,7 +141,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
 
     {activeView === 4 && <div className="space-y-4">
       <StepHeading context={context} title={`Competencias (${EVALUATION_WEIGHTS.competencias * 100}%)`} description="Selecciona una calificación para cada competencia. El cero es una respuesta válida." />
-      <div role="note" aria-label="Escala de competencias" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs leading-4 text-muted-foreground">
+      <div role="note" aria-label="Escala de competencias" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-muted-foreground">
         <span className="font-medium text-foreground">Escala</span>
         {ESCALA_COMPETENCIAS.map(({ valor, etiqueta }) => <span key={valor}>
           <span className="font-medium text-foreground">{valor}</span> {etiqueta}
@@ -199,7 +196,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
 
     <div role="group" aria-label="Navegación de la evaluación" className="flex items-center justify-between gap-3">
       <Button type="button" variant="outline" size="sm" onClick={activeView === 1 && onExit ? onExit : goPrevView} disabled={(activeView === 1 && !onExit) || saving} className="pl-2 pr-3"><ChevronLeft aria-hidden="true" />Atrás</Button>
-      {activeView < STEPS.length ? <Button type="submit" size="sm" className="pl-3 pr-2">Siguiente<ChevronRight aria-hidden="true" /></Button>
+      {activeView < EVALUATION_STEPS.length ? <Button type="submit" size="sm" className="pl-3 pr-2">Siguiente<ChevronRight aria-hidden="true" /></Button>
         : <Button type="submit" size="sm" className="pl-2 pr-3" disabled={!validation.valida || guardarDisabled || saving} aria-busy={saving || undefined}>{saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Save aria-hidden="true" />}{saving ? "Guardando…" : "Guardar evaluación"}</Button>}
     </div>
   </form>;

@@ -92,20 +92,19 @@ export function VistaMensual({
           </div>
         </DepartmentPage> : null}
     </div>}
-
-    {/* Leyenda */}
-    {!loading && totalEmployees > 0 && <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1 text-xs text-muted-foreground">
-      <span className="flex items-center gap-1">
-        <span className="inline-block size-2 rounded-sm bg-destructive" aria-hidden="true" />
-          Vencida
-      </span>
-      <span className="flex items-center gap-1">
-        <span className="inline-block size-2 rounded-sm bg-success" aria-hidden="true" />
-          Pendiente
-      </span>
-      <span className="text-xs font-medium text-foreground sm:ml-auto">
-          Toca un número para ver el detalle
-      </span>
-    </div>}
   </div>;
+}
+
+const LEGEND = [
+  { label: "Vencida", className: "bg-destructive" },
+  { label: "Pendiente", className: "bg-success" },
+] as const;
+
+/** Leyenda de colores de los números de evaluación (va en la barra de la vista). */
+export function PendingLegend() {
+  return <ul aria-label="Leyenda" className="flex items-center gap-3 text-body-sm text-muted-foreground">
+    {LEGEND.map(({ label, className }) => <li key={label} className="flex items-center gap-1.5">
+      <span className={`size-2 rounded-full ${className}`} aria-hidden="true" />{label}
+    </li>)}
+  </ul>;
 }

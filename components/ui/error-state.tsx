@@ -42,7 +42,7 @@ export function ErrorState({
     tone === "destructive"
       ? "bg-destructive/10 text-destructive"
       : tone === "warning"
-        ? "bg-warning/10 text-warning"
+        ? "bg-warning/10 text-warning-deep"
         : "bg-muted text-muted-foreground"
 
   return (

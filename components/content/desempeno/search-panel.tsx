@@ -1,18 +1,21 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type ReactNode } from "react";
 import { DESEMPENO, SEARCH_OPTIONS } from "@/lib/desempeno/presentation";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { esPeriodoSemestral } from "@/lib/desempeno/elegibilidad";
 import type { EvaluationSearchContext } from "./use-evaluation-search";
 import { ActionButton } from "./search-controls";
 import { Skeleton } from "@/components/ui/skeleton";
+/** Buscador de la evaluación: búsqueda, periodo y acciones de la vista en una sola fila. */
 export function SearchPanel({
-  context
+  context,
+  actions
 }: {
   context: EvaluationSearchContext;
+  /** Acciones de la vista (Practicar, Vencidas…), al final de la fila. */
+  actions?: ReactNode;
 }) {
   const searchId = useId();
   const listId = `${searchId}-options`;
@@ -38,11 +41,11 @@ export function SearchPanel({
     doBuscar,
     onInputKeyDown,
   } = context;
-  return <Card>
-    <CardContent className="p-(--card-padding)">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-[minmax(0,1fr)_auto] xl:grid-cols-[minmax(0,1fr)_auto_auto] xl:items-center">
+  return <div role="search" aria-label={DESEMPENO.search.label} className="print:hidden">
+      {/* Los botones chicos de la fila toman la altura del buscador para alinear. */}
+      <div className="flex flex-col gap-2 [--control-height-sm:var(--control-height)] md:flex-row md:items-center">
         {/* Campo de búsqueda */}
-        <div className="flex w-full min-w-0 gap-2 md:col-start-1 md:row-start-1">
+        <div className="flex w-full min-w-0 gap-2 md:flex-1">
           <div className="relative min-w-0 flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
             <Input ref={inputRef} value={numeroBuscado} enterKeyHint="search" onChange={e => {
@@ -94,8 +97,9 @@ export function SearchPanel({
           </div>
         </div>
 
+        <div className="flex min-w-0 items-center gap-2 md:shrink-0">
         {/* El periodo vigente se asigna al buscar; los históricos se abren desde Historial. */}
-        <div className="flex min-h-(--control-height) min-w-0 items-center gap-2 rounded-md border border-border bg-card px-3 md:col-span-2 md:row-start-2 xl:col-span-1 xl:col-start-2 xl:row-start-1" role="status" aria-live="polite">
+        <div className="flex min-h-(--control-height) min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 md:max-w-xs md:flex-none" role="status" aria-live="polite">
           <span className="shrink-0 text-sm text-muted-foreground">Periodo</span>
           {loading
             ? <><span className="sr-only">Consultando periodo de evaluación</span><Skeleton aria-hidden="true" className="h-4 w-32" /></>
@@ -103,12 +107,11 @@ export function SearchPanel({
                 {periodoVisible ? `${esPeriodoSemestral(periodoVisible) ? DESEMPENO.modes.semestrales : DESEMPENO.modes.mensuales} · ${periodoVisible}` : "Se asigna automáticamente"}
               </span>}
         </div>
-        {(data || existingEvaluation) && <div className="flex shrink-0 items-center gap-2 max-md:justify-end md:col-start-2 md:row-start-1 xl:col-start-3">
-          <ActionButton icon={<X className="size-4" />} label="Cerrar" tooltip="Cerrar evaluación" onClick={closeEvaluation} variant="outline" className="text-foreground" />
-        </div>}
+        {actions}
+        {(data || existingEvaluation) && <ActionButton icon={<X className="size-4" />} label="Cerrar" tooltip="Cerrar evaluación" onClick={closeEvaluation} variant="outline" className="shrink-0 text-foreground" />}
+        </div>
       </div>
 
       <p id={`${searchId}-help`} className="sr-only">{DESEMPENO.search.help}</p>
-    </CardContent>
-  </Card>;
+  </div>;
 }

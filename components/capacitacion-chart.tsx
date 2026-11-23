@@ -5,9 +5,9 @@ import {
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
+import { PanelHeader } from "@/components/dashboard-panel"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
 import { GraduationCap, Info } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -114,27 +114,9 @@ export default function CapacitacionChart() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-col justify-between gap-3 pb-2 sm:flex-row sm:items-start">
-        <div className="min-w-0 flex-1">
-          <CardTitle className="text-xl font-semibold tracking-tight">
-            Comparación Anual de Cursos Impartidos
-          </CardTitle>
-          <div className="flex flex-wrap items-center gap-3 mt-2">
-            {yearTotals.map(({ year, total }) => (
-              <div key={year} className="flex items-center gap-1.5">
-                <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: COLORS[year] }} />
-                <span className="text-xs text-muted-foreground">{year}</span>
-                <Badge variant="secondary" className="text-xs px-1.5">
-                  {total}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="w-full min-w-0 sm:w-auto sm:max-w-full">
+      <PanelHeader stats={yearTotals.map(({ year, total }) => ({ color: COLORS[year], label: year, value: total }))} actions={
           <Select value={selectedDept} onValueChange={setSelectedDept}>
-            <SelectTrigger aria-label="Filtrar por departamento" className="h-11 w-full text-sm sm:w-auto sm:max-w-full">
+            <SelectTrigger aria-label="Filtrar por departamento" className="w-full sm:w-auto">
               <SelectValue placeholder="Departamentos" />
             </SelectTrigger>
             <SelectContent>
@@ -144,8 +126,7 @@ export default function CapacitacionChart() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </CardHeader>
+      } />
 
       <CardContent>
         <AnimatePresence mode="wait">

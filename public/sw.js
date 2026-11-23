@@ -1,4 +1,4 @@
-// TIMESTAMP: 2026-11-23T17:02:26.457Z
+// TIMESTAMP: 2026-11-23T19:16:55.055Z
 const CACHE_NAME = "vinoplastic-v5"
 const STATIC_CACHE = "vinoplastic-static-v5"
 const API_CACHE = "vinoplastic-api-v5"
@@ -147,7 +147,7 @@ self.addEventListener("notificationclick", (event) => {
   } catch {
     destination = new URL("/kanban", self.location.origin)
   }
-  const allowedPath = destination.pathname === "/kanban" || destination.pathname === "/desempeno/pendientes"
+  const allowedPath = destination.pathname === "/kanban" || destination.pathname === "/pendientes"
   const target = destination.origin === self.location.origin && allowedPath
     ? destination.href
     : new URL("/kanban", self.location.origin).href

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: "Empleados con evaluación reprobada y compromisos de mejora pendientes.",
 }
 
-export default function DesempenoSeguimientoPage() {
+export default function SeguimientoPage() {
   return (
     <Dashboard
       content={<DesempenoSeguimiento />}

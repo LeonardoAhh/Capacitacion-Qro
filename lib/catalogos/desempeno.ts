@@ -114,6 +114,23 @@ export function getPeriodoActual(modo: PeriodoModo, fecha = new Date()): string 
   return fecha.getMonth() <= 4 ? periodos[0] : periodos[1]
 }
 
+/** Semestres que se pueden consultar hacia atrás, contando el actual. */
+export const SEMESTRES_CONSULTABLES = 4
+
+/** Semestre en curso y los anteriores, del más reciente al más antiguo. */
+export function getPeriodosSemestralesRecientes(cantidad = SEMESTRES_CONSULTABLES, fecha = new Date()): string[] {
+  const actual = getPeriodoActual("semestrales", fecha)
+  const [rango, anio] = actual.split(" ")
+  let year = Number(anio)
+  let index = getPeriodosDesempeno(year).semestrales.findIndex((periodo) => periodo.startsWith(rango))
+  return Array.from({ length: cantidad }, () => {
+    const periodo = getPeriodosDesempeno(year).semestrales[index]
+    // DIC-MAY de un año va después del JUN-NOV del año anterior.
+    if (index === 0) { index = 1; year -= 1 } else index = 0
+    return periodo
+  })
+}
+
 const CURRENT_DESEMPENO_YEAR = new Date().getFullYear()
 export const PERIODOS_DESEMPENO = getPeriodosDesempeno(CURRENT_DESEMPENO_YEAR)
 

@@ -11,7 +11,7 @@ const TONE_CLASS: Record<NoticeTone, string> = {
   neutral: "text-primary",
   success: "text-success",
   error: "text-destructive",
-  warning: "text-warning",
+  warning: "text-warning-deep",
   info: "text-info",
 }
 

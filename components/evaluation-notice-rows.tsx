@@ -25,7 +25,7 @@ export function EvaluationNoticeRows({ vencidas, proximas, onOpen }: {
   return (
     <button type="button" className={ITEM} onClick={() => onOpen(DESEMPENO.routes.pending)}
       aria-label={`Evaluaciones: ${partes.join(", ")}. Ver detalle`}>
-      <Icon className={cn("size-4 shrink-0", vencidas ? "text-destructive" : "text-warning")} aria-hidden="true" />
+      <Icon className={cn("size-4 shrink-0", vencidas ? "text-destructive" : "text-warning-deep")} aria-hidden="true" />
       <span className="min-w-0 flex-1 truncate text-label-sm tabular-nums text-foreground">
         {vencidas > 0 && <span className="text-destructive">{partes[0]}</span>}
         {vencidas > 0 && proximas > 0 && <span className="text-muted-foreground"> · </span>}

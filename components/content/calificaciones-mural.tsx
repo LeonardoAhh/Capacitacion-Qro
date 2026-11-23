@@ -34,7 +34,7 @@ function scoreColor(cal: number | null): string {
   if (cal === null) return "text-muted-foreground"
   if (cal >= 90) return "text-success"
   if (cal >= 70) return "text-chart-2"
-  if (cal >= 60) return "text-warning"
+  if (cal >= 60) return "text-warning-deep"
   return "text-destructive"
 }
 
@@ -42,7 +42,7 @@ function scoreBgClass(cal: number | null): string {
   if (cal === null) return "bg-muted text-muted-foreground"
   if (cal >= 90) return "bg-success/15 text-success border-success/30"
   if (cal >= 70) return "bg-chart-2/15 text-chart-2 border-chart-2/30"
-  if (cal >= 60) return "bg-warning/15 text-warning border-warning/30"
+  if (cal >= 60) return "bg-warning/15 text-warning-deep border-warning/30"
   return "bg-destructive/15 text-destructive border-destructive/30"
 }
 

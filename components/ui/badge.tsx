@@ -18,7 +18,7 @@ const badgeVariants = cva(
         success:
           "border-success/20 bg-success/10 text-success hover:bg-success/15",
         warning:
-          "border-warning/30 bg-warning/10 text-warning hover:bg-warning/15",
+          "border-warning/30 bg-warning/10 text-warning-deep hover:bg-warning/15",
         info:
           "border-info/20 bg-info/10 text-info hover:bg-info/15",
         error:

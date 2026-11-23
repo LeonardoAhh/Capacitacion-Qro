@@ -29,9 +29,8 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
       <div className="grid grid-cols-5 gap-1 rounded-md border border-border bg-muted p-1">
         {ESCALA_COMPETENCIAS.map(({ valor, etiqueta }) => <label
           key={valor}
-          title={`${valor}: ${etiqueta}`}
           className={cn(
-            "relative flex min-h-(--control-height) min-w-(--control-height) cursor-pointer items-center justify-center rounded-md text-sm font-medium transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
+            "relative flex min-h-(--control-height) min-w-(--control-height) cursor-pointer items-center justify-center rounded-md text-label-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
             item.evaluada && item.calificacion === valor
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-card/70 hover:text-foreground",

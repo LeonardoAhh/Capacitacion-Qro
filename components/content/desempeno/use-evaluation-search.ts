@@ -42,14 +42,8 @@ export function useEvaluationSearch() {
     totalProximas,
     totalATiempo
   } = usePendingEvals();
-  const [guiaRequested, setGuiaRequested] = useState(false);
-  const [practiceAcknowledged, setPracticeAcknowledged] = useState(false);
-  const practiceLocked = isEvaluador && !practiceAcknowledged;
-  const guiaOpen = guiaRequested || practiceLocked;
-  const setGuiaOpen = (open: boolean) => {
-    setGuiaRequested(open);
-    if (!open) setPracticeAcknowledged(true);
-  };
+  // La práctica se abre a petición (botón Guía o aviso de práctica); nunca bloquea la página.
+  const [guiaOpen, setGuiaOpen] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
   const handledEvalIdRef = useRef<string | null>(null);
   const handledQueryRef = useRef<string | null>(null);
@@ -316,7 +310,6 @@ export function useEvaluationSearch() {
     totalATiempo,
     guiaOpen,
     setGuiaOpen,
-    practiceLocked,
     modoEdicion,
     setModoEdicion,
     inputRef,

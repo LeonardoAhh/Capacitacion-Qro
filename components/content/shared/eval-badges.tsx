@@ -11,8 +11,8 @@ import type { HitoNuevoIngreso } from "@/lib/desempeno/hitos-nuevo-ingreso"
 export const EVAL_STATUS_META: Record<EvalStatus, { label: string; icon: React.ElementType; classes: string }> = {
   completada: { label: 'Completada', icon: CheckCircle2, classes: 'text-success' },
   disponible: { label: 'Disponible', icon: CalendarCheck, classes: 'text-success' },
-  proxima: { label: 'Próxima', icon: AlertTriangle, classes: 'text-warning' },
-  hoy: { label: 'Hoy', icon: CalendarCheck, classes: 'text-warning' },
+  proxima: { label: 'Próxima', icon: AlertTriangle, classes: 'text-warning-deep' },
+  hoy: { label: 'Hoy', icon: CalendarCheck, classes: 'text-warning-deep' },
   vencida: { label: 'Vencida', icon: XCircle, classes: 'text-destructive' },
   pendiente: { label: 'Pendiente', icon: Clock, classes: 'text-muted-foreground' },
 }
@@ -62,7 +62,7 @@ export function ContratoTerminoBadge({ fecha, indeterminado }: { fecha: string |
   const urgent = diff <= 10
   const past = diff < 0
   return (
-    <div className={`text-xs font-medium ${past && !indeterminado ? 'text-destructive' : urgent && !indeterminado ? 'text-warning' : 'text-muted-foreground'}`}>
+    <div className={`text-xs font-medium ${past && !indeterminado ? 'text-destructive' : urgent && !indeterminado ? 'text-warning-deep' : 'text-muted-foreground'}`}>
       <div>{formatDate(fecha)}</div>
       {!indeterminado && (
         <div className="opacity-70">

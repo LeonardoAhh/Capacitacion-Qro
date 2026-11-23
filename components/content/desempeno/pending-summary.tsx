@@ -9,93 +9,68 @@ import type { PendingEvalStatus } from "@/lib/hooks/usePendingEvals";
 import { PendingSummaryDetail } from "./pending-summary-detail";
 import type { EvaluationSearchContext } from "./use-evaluation-search";
 import { Skeleton } from "@/components/ui/skeleton";
-export function PendingSummary({
-  context
-}: {
-  context: EvaluationSearchContext;
-}) {
+
+const TONE = {
+  danger: "text-destructive",
+  warning: "text-warning-deep",
+  success: "text-success",
+} as const;
+
+const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+
+/** Resumen de evaluaciones pendientes: un aviso de una línea y tres cifras que abren su detalle. */
+export function PendingSummary({ context }: { context: EvaluationSearchContext }) {
   const [activeStatus, setActiveStatus] = useState<PendingEvalStatus | null>(null);
   const [highlightedStatus, setHighlightedStatus] = useState<PendingEvalStatus | null>(null);
-  const {
-    data,
-    existingEvaluation,
-    pendingLoading,
-    loading,
-    deptGroups,
-    totalEvals,
-    totalVencidas,
-    totalProximas,
-    totalATiempo
-  } = context;
-  return <>{pendingLoading && !loading && !data && !existingEvaluation && <div role="status" aria-busy="true" className="mx-auto w-full max-w-[var(--evaluation-summary-max-width)] rounded-xl border bg-card p-6">
-      <span className="sr-only">Consultando evaluaciones pendientes</span>
-      <div aria-hidden="true" className="space-y-4">
-        <div className="flex items-center gap-4">
-          <Skeleton className="size-12 shrink-0" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <Skeleton className="h-5 w-2/5 max-w-64" />
-            <Skeleton className="h-4 w-full max-w-xl" />
-          </div>
-        </div>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {[0, 1, 2].map(item => <Skeleton key={item} className="h-11 w-full" />)}
-        </div>
-      </div>
-    </div>}
-    {!loading && !pendingLoading && !data && !existingEvaluation && totalEvals > 0 && <div className="mx-auto w-full max-w-[var(--evaluation-summary-max-width)]">
-      {(() => {
-        const hasVencidas = totalVencidas > 0;
-        const hasProximas = totalProximas > 0;
-        let bgClass = "bg-card border-success";
-        let iconBgClass = "border border-success/20 bg-success/10 text-success";
-        let titleText = "Evaluaciones al día";
-        let descText = `Tienes ${totalEvals} ${totalEvals === 1 ? 'evaluación pendiente' : 'evaluaciones pendientes'} con tiempo suficiente.`;
-        if (hasVencidas) {
-          bgClass = "bg-card border-destructive";
-          iconBgClass = "border border-destructive/20 bg-destructive/10 text-destructive";
-          titleText = `${totalVencidas} ${totalVencidas === 1 ? 'evaluación atrasada' : 'evaluaciones atrasadas'}`;
-          descText = "Ya pasaron su fecha límite. Atiéndelas primero para regularizar el seguimiento.";
-        } else if (hasProximas) {
-          bgClass = "bg-card border-warning";
-          iconBgClass = "border border-warning/30 bg-warning/10 text-warning";
-          titleText = `${totalProximas} ${totalProximas === 1 ? 'evaluación vence' : 'evaluaciones vencen'} pronto`;
-          descText = "Revisa tu lista para asegurar su evaluación oportuna esta semana.";
-        }
-        const stats = [
-          { status: "vencidas", label: "Vencidas", value: totalVencidas, color: "text-destructive" },
-          { status: "proximas", label: "Próximas", value: totalProximas, color: "text-warning" },
-          { status: "a-tiempo", label: "A tiempo", value: totalATiempo, color: "text-success" },
-        ] as const;
-        return <><div className={cn("flex flex-col items-center justify-between gap-6 rounded-xl border p-6 sm:flex-row", bgClass)}>
-          <div className="flex w-full flex-col items-start gap-4 sm:flex-row sm:items-center">
-            <div className={cn("flex shrink-0 rounded-md p-3", iconBgClass)}>
-              <ClipboardList className="size-6" aria-hidden="true" />
-            </div>
-            <div className="space-y-4 w-full flex-1">
-              <div className="space-y-1">
-                <h2 className="text-heading-md text-foreground">
-                  {titleText}
-                </h2>
-                <p className="text-body-md text-muted-foreground">
-                  {descText}
-                </p>
-              </div>
+  const { data, existingEvaluation, pendingLoading, loading, deptGroups, totalEvals, totalVencidas, totalProximas, totalATiempo } = context;
+  if (loading || data || existingEvaluation) return null;
 
-              <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-3">
-                {stats.map(({ status, label, value, color }) => (
-                  <button key={status} type="button" onClick={() => setActiveStatus(status)} onMouseEnter={() => setHighlightedStatus(status)} onMouseLeave={() => setHighlightedStatus(null)} onFocus={() => setHighlightedStatus(status)} onBlur={() => setHighlightedStatus(null)} aria-haspopup="dialog" aria-label={`${label}: ${value} ${value === 1 ? "evaluación" : "evaluaciones"}. Ver detalle`} className="flex min-h-11 min-w-0 items-center justify-between gap-3 rounded-md border bg-card px-3 py-2 text-left transition-colors hover:border-foreground/20 hover:bg-muted/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                    <span className="min-w-0 text-label-sm text-foreground">{label}</span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      <span className={cn("text-heading-md tabular-nums", color)}>{value}</span>
-                      <MorphIcon icon={highlightedStatus === status ? ArrowUpRight : ArrowRight} size={16} strokeWidth={2} spring="snappy" reducedMotion="user" className="text-muted-foreground" />
-                    </span>
-                  </button>
-                ))}
-              </div>
+  if (pendingLoading) return <div role="status" aria-busy="true" className="space-y-3">
+    <span className="sr-only">Consultando evaluaciones pendientes</span>
+    <Skeleton aria-hidden="true" className="h-5 w-2/5 max-w-80" />
+    <Skeleton aria-hidden="true" className="h-16 w-full rounded-xl" />
+  </div>;
 
-            </div>
-          </div>
-        </div><PendingSummaryDetail status={activeStatus} groups={deptGroups} onOpenChange={open => { if (!open) setActiveStatus(null); }} /></>;
-      })()}
-    </div>}</>;
+  if (totalEvals === 0) return null;
+
+  const notice = totalVencidas > 0
+    ? { tone: TONE.danger, title: plural(totalVencidas, "evaluación atrasada", "evaluaciones atrasadas"), text: "Ya pasaron su fecha límite; atiéndelas primero." }
+    : totalProximas > 0
+      ? { tone: TONE.warning, title: `${plural(totalProximas, "evaluación vence", "evaluaciones vencen")} pronto`, text: "Ya pueden evaluarse; atiéndelas pronto." }
+      : { tone: TONE.success, title: "Evaluaciones al día", text: `${plural(totalEvals, "pendiente", "pendientes")} con tiempo suficiente.` };
+
+  const stats = [
+    { status: "vencidas", label: "Vencidas", hint: "Pasó su fecha límite", value: totalVencidas, tone: TONE.danger },
+    { status: "proximas", label: "Próximas", hint: "Ya pueden evaluarse", value: totalProximas, tone: TONE.warning },
+    { status: "a-tiempo", label: "A tiempo", hint: "Aún no llega su fecha", value: totalATiempo, tone: TONE.success },
+  ] as const;
+
+  return <section aria-label="Evaluaciones pendientes" className="space-y-3">
+    <p className="flex min-w-0 items-start gap-2">
+      <ClipboardList className={cn("mt-0.5 size-4 shrink-0", notice.tone)} aria-hidden="true" />
+      <span className="min-w-0">
+        <span className="text-label-sm text-foreground">{notice.title}</span>
+        <span className="text-body-sm text-muted-foreground"> · {notice.text}</span>
+      </span>
+    </p>
+
+    {/* Cada cifra: qué es a la izquierda; número y acceso al detalle a la derecha. */}
+    <div className="grid divide-y overflow-hidden rounded-xl border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      {stats.map(({ status, label, hint, value, tone }) => <button key={status} type="button"
+        onClick={() => setActiveStatus(status)}
+        onMouseEnter={() => setHighlightedStatus(status)} onMouseLeave={() => setHighlightedStatus(null)}
+        onFocus={() => setHighlightedStatus(status)} onBlur={() => setHighlightedStatus(null)}
+        aria-haspopup="dialog" aria-label={`${label}: ${plural(value, "evaluación", "evaluaciones")}. Ver detalle`}
+        className="flex min-w-0 items-center gap-3 px-(--card-padding) py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-label-sm text-foreground">{label}</span>
+          <span className="block truncate text-body-sm text-muted-foreground">{hint}</span>
+        </span>
+        <span className={cn("text-heading-lg tabular-nums", value > 0 ? tone : "text-muted-foreground")}>{value}</span>
+        <MorphIcon icon={highlightedStatus === status ? ArrowUpRight : ArrowRight} size={16} strokeWidth={2} spring="snappy" reducedMotion="user" className="shrink-0 text-muted-foreground" />
+      </button>)}
+    </div>
+
+    <PendingSummaryDetail status={activeStatus} groups={deptGroups} onOpenChange={open => { if (!open) setActiveStatus(null); }} />
+  </section>;
 }

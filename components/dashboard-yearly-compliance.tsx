@@ -5,8 +5,8 @@ import {
   Tooltip, ResponsiveContainer, Legend,
 } from "recharts"
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
+import { Card, CardContent } from "@/components/ui/card"
+import { PanelHeader } from "@/components/dashboard-panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { TrendingUp } from "lucide-react"
 import {
@@ -102,26 +102,8 @@ export default function DashboardYearlyCompliance() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-2">
-        <div>
-          <CardTitle className="text-xl font-semibold tracking-tight">Cumplimiento por Año de Ingreso</CardTitle>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Avance en cursos asignados por puesto según fecha de ingreso
-          </p>
-          {/* KPI badges inline — mismo patrón CapacitacionChart */}
-          {!loading && !isEmpty && (
-            <div className="flex flex-wrap items-center gap-3 mt-2">
-              {kpiBadges.map(({ color, label, value }) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-md shrink-0" style={{ background: color }} />
-                  <span className="text-xs text-muted-foreground">{label}</span>
-                  <Badge variant="secondary" className="text-xs px-1.5">{value}</Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </CardHeader>
+      <PanelHeader description="Avance en cursos asignados por puesto según fecha de ingreso"
+        stats={!loading && !isEmpty ? kpiBadges : undefined} />
 
       <CardContent>
         <AnimatePresence mode="wait">

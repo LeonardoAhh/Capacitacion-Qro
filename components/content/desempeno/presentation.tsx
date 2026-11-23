@@ -9,8 +9,6 @@ export const evaluationStyles = {
   description: "text-body-md text-muted-foreground",
   fieldLabel: "text-label-sm text-muted-foreground",
   caption: "text-body-sm text-muted-foreground",
-  actions: "flex flex-wrap items-center gap-2",
-  sectionHeader: "flex flex-wrap items-start justify-between gap-3",
   tableNumber: "w-28 tabular-nums",
   summary: "mt-4 flex flex-wrap justify-between gap-3 border-t pt-4 text-label-sm"
 } as const;

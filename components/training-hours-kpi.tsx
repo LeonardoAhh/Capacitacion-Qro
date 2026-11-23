@@ -2,377 +2,179 @@
 
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LabelList, Cell,
+  ResponsiveContainer, LabelList,
 } from "recharts"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertTriangle, BookOpen, Clock, Info, TrendingDown, TrendingUp, Users } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Accordion, AccordionItem, AccordionTrigger, AccordionContent
-} from "@/components/ui/accordion"
-import {
-  Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider
-} from "@/components/ui/tooltip"
-import {
-  Clock, AlertTriangle, Users, BookOpen, TrendingUp, Maximize2, Info, TrendingDown
-} from "lucide-react"
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
+import { Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
+import { PanelHeader } from "@/components/dashboard-panel"
 import { cn } from "@/lib/utils"
 import { useTrainingHours, type TrainingHoursYearStat } from "@/lib/hooks/useTrainingHours"
 
-// ─── Tooltip ───────────────────────────────────────────────────────────────
+const HORAS_HOMBRE = "Horas-hombre: la duración de cada curso multiplicada por la cantidad de empleados que lo tomaron."
+const formatNumber = (value: number) => value.toLocaleString("es-MX", { maximumFractionDigits: 2 })
+const monthLabel = (month: number) => new Date(2000, month - 1).toLocaleString("es-MX", { month: "short" }).replace(".", "")
+
+// ─── Tooltip de la gráfica ───────────────────────────────────────────────────
 
 interface TooltipEntry { payload: TrainingHoursYearStat; value: number }
 
-function HoursTooltip({
-  active, payload, label,
-}: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
+function HoursTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipEntry[]; label?: string }) {
   if (!active || !payload?.length) return null
-  const d = payload[0]?.payload
+  const d = payload[0].payload
+  const rows = [
+    { icon: Clock, label: "Total horas", value: formatNumber(d.totalHours) },
+    { icon: Users, label: "Empleados", value: d.uniqueEmployees },
+    { icon: TrendingUp, label: "Promedio por empleado", value: `${d.avgHoursPerEmployee} h` },
+    { icon: BookOpen, label: "Cursos contabilizados", value: d.coursesWithDuration },
+  ]
   return (
-    <div data-testid="hours-kpi-tooltip" className="min-w-[200px] rounded-md border bg-popover p-3 text-sm shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-semibold text-foreground mb-1.5">Año {label}</p>
-      <div className="space-y-1 text-muted-foreground">
-        <div className="flex justify-between gap-4">
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-3.5 w-3.5 text-primary" />
-            Total horas
-          </span>
-          <span className="font-bold text-foreground">{d.totalHours}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" />
-            Empleados
-          </span>
-          <span className="font-medium text-foreground">{d.uniqueEmployees}</span>
-        </div>
-        <div className="flex justify-between gap-4">
-          <span className="flex items-center gap-1.5">
-            <TrendingUp className="h-3.5 w-3.5" />
-            Promedio/empleado
-          </span>
-          <span className="font-bold text-primary">{d.avgHoursPerEmployee} h</span>
-        </div>
-        <div className="flex justify-between gap-4 pt-1 mt-1 border-t">
-          <span className="flex items-center gap-1.5">
-            <BookOpen className="h-3.5 w-3.5" />
-            Cursos contabilizados
-          </span>
-          <span className="font-medium">{d.coursesWithDuration}</span>
-        </div>
-      </div>
+    <div data-testid="hours-kpi-tooltip" className="min-w-52 space-y-1 rounded-md border bg-popover p-3 shadow-[var(--floating-shadow)]">
+      <p className="text-label-sm text-foreground">Año {label}</p>
+      {rows.map(({ icon: Icon, label: rowLabel, value }) => (
+        <p key={rowLabel} className="flex items-center justify-between gap-4 text-body-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5"><Icon className="size-3.5" aria-hidden="true" />{rowLabel}</span>
+          <span className="tabular-nums text-foreground">{value}</span>
+        </p>
+      ))}
     </div>
   )
 }
 
-// ─── Componente principal ─────────────────────────────────────────────────
+// ─── Resumen ─────────────────────────────────────────────────────────────────
 
+function Summary({ items }: { items: { label: string; value: string; hint?: string; testId: string }[] }) {
+  return (
+    <dl className="grid grid-cols-2 overflow-hidden rounded-xl border">
+      {items.map(({ label, value, hint, testId }, index) => (
+        <div key={label} data-testid={testId}
+          className={cn("min-w-0 space-y-1 p-(--card-padding)", index % 2 === 1 && "border-l", index >= 2 && "border-t")}>
+          <dt className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
+            <span className="truncate">{label}</span>
+            {hint && (
+              <TooltipUI delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <button type="button" aria-label={`Qué incluye: ${label}`} className="shrink-0 rounded-sm hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                    <Info className="size-3.5" aria-hidden="true" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-64">{hint}</TooltipContent>
+              </TooltipUI>
+            )}
+          </dt>
+          <dd className="text-heading-lg tabular-nums text-foreground">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  )
+}
+
+// ─── Detalle por año ─────────────────────────────────────────────────────────
+
+function YearRow({ year, previous }: { year: TrainingHoursYearStat; previous: TrainingHoursYearStat | null }) {
+  const change = previous && previous.totalHours > 0 ? ((year.totalHours - previous.totalHours) / previous.totalHours) * 100 : null
+  const Trend = change !== null && change < 0 ? TrendingDown : TrendingUp
+  return (
+    <AccordionItem value={year.year} className="border-b-0">
+      <AccordionTrigger className="gap-3 px-(--card-padding) hover:no-underline">
+        <span data-testid={`hours-kpi-year-${year.year}`} className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-left">
+          <span className="flex items-center gap-2">
+            <span className="text-label-sm tabular-nums text-foreground">{year.year}</span>
+            {change !== null && (
+              <span className={cn("flex items-center gap-0.5 text-body-sm tabular-nums", change > 0 ? "text-success" : change < 0 ? "text-destructive" : "text-muted-foreground")}>
+                {change !== 0 && <Trend className="size-3.5" aria-hidden="true" />}
+                {change > 0 ? "+" : ""}{change.toFixed(1)}%
+                <span className="sr-only"> frente al año anterior</span>
+              </span>
+            )}
+          </span>
+          <span className="text-body-sm text-muted-foreground">
+            {formatNumber(year.totalHours)} h · {year.uniqueEmployees} empleados · {year.coursesWithDuration} cursos · {year.avgHoursPerEmployee} h por empleado
+          </span>
+        </span>
+      </AccordionTrigger>
+      <AccordionContent className="px-(--card-padding)">
+        <p className="mb-2 text-body-sm text-muted-foreground">Cursos contabilizados por mes</p>
+        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+          {year.months.map(m => (
+            <li key={m.month} className="rounded-md border px-3 py-2">
+              <p className="text-eyebrow uppercase text-muted-foreground">{monthLabel(m.month)}</p>
+              <p className="text-label-sm tabular-nums text-foreground">{m.uniqueCourses} cursos</p>
+              {m.inductionCourses > 0 && <p className="truncate text-body-sm text-muted-foreground">{m.inductionCourses} de inducción</p>}
+            </li>
+          ))}
+        </ul>
+      </AccordionContent>
+    </AccordionItem>
+  )
+}
+
+// ─── Componente principal ────────────────────────────────────────────────────
+
+/** Horas de capacitación: resumen, gráfica por año y detalle mensual de cada año. */
 export default function TrainingHoursKPI() {
-  const {
-    loading, years, coursesWithDurationCount,
-  } = useTrainingHours()
+  const { loading, years, coursesWithDurationCount } = useTrainingHours()
 
   const grandTotal = years.reduce((s, y) => s + y.totalHours, 0)
   const totalTakings = years.reduce((s, y) => s + y.coursesWithDuration, 0)
   const globalAvg = years.length > 0
     ? Math.round((years.reduce((s, y) => s + y.avgHoursPerEmployee, 0) / years.length) * 100) / 100
     : 0
-
   const hasNoDuration = coursesWithDurationCount === 0
-  const hasNoYearData = !hasNoDuration && years.length === 0
-  const showChart = !loading && years.length > 0
-
-  // Datos para el dashboard compacto (año actual si existe)
   const currentYear = String(new Date().getFullYear())
   const currentYearData = years.find(y => y.year === currentYear)
-
-  const ModalContent = () => (
-    <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
-        <div
-          data-testid="hours-kpi-total"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-primary/10"
-        >
-          <div className="flex flex-col min-w-0">
-            <span className="text-2xl font-bold leading-none text-foreground tabular-nums">
-              {grandTotal.toLocaleString("es-MX", { maximumFractionDigits: 2 })}
-            </span>
-            <span className="text-[11px] text-muted-foreground mt-1 leading-tight flex items-center gap-1">
-              Horas totales ({years.length} años)
-              <TooltipProvider>
-                <TooltipUI delayDuration={300}>
-                  <TooltipTrigger asChild>
-                    <Info size={12} className="text-muted-foreground hover:text-foreground cursor-help" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-[250px] text-xs font-normal">
-                    <p>Representa las <strong>horas-hombre</strong> totales. Se calcula sumando la duración de cada curso multiplicada por la cantidad de empleados que lo tomaron.</p>
-                  </TooltipContent>
-                </TooltipUI>
-              </TooltipProvider>
-            </span>
-          </div>
-        </div>
-        <div
-          data-testid="hours-kpi-avg"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-success/10"
-        >
-          <div className="flex flex-col min-w-0">
-            <span className="text-2xl font-bold leading-none text-foreground tabular-nums">
-              {globalAvg.toLocaleString("es-MX", { maximumFractionDigits: 2 })}
-            </span>
-            <span className="text-[11px] text-muted-foreground mt-1 leading-tight">
-              Promedio general ({years.length} años)
-            </span>
-          </div>
-        </div>
-        <div
-          data-testid="hours-kpi-takings"
-          className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/60 col-span-2 sm:col-span-1"
-        >
-          <div className="flex flex-col min-w-0">
-            <span className="text-2xl font-bold leading-none text-foreground tabular-nums">
-              {totalTakings.toLocaleString("es-MX")}
-            </span>
-            <span className="text-[11px] text-muted-foreground mt-1 leading-tight">
-              Cursos contabilizados ({years.length} años)
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div className="w-full" data-testid="hours-kpi-chart">
-        <ResponsiveContainer width="100%" height={Math.max(220, years.length * 70)}>
-          <BarChart
-            data={years}
-            layout="vertical"
-            margin={{ top: 4, right: 60, left: 0, bottom: 4 }}
-            barSize={28}
-          >
-            <CartesianGrid
-              strokeDasharray="3 3"
-              horizontal={false}
-              className="stroke-muted-foreground/15"
-            />
-            <XAxis
-              type="number"
-              tick={{ fontSize: 11, fill: "currentColor" }}
-              className="text-muted-foreground"
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(v) => `${v}h`}
-            />
-            <YAxis
-              type="category"
-              dataKey="year"
-              tick={{ fontSize: 12, fill: "currentColor", fontWeight: 600 }}
-              className="text-foreground"
-              tickLine={false}
-              axisLine={false}
-              width={56}
-            />
-            <Tooltip content={<HoursTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-            <Bar dataKey="totalHours" radius={[0, 6, 6, 0]}>
-              {years.map((_, i) => (
-                <Cell key={i} fill="hsl(var(--primary))" />
-              ))}
-              <LabelList
-                dataKey="totalHours"
-                position="right"
-                formatter={(v: unknown) => `${v} h`}
-                style={{ fontSize: 11, fontWeight: 700, fill: "currentColor" }}
-              />
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-
-        <Accordion type="single" collapsible className="mt-4 w-full space-y-2" data-testid="hours-kpi-year-list">
-          {years.map((y, index) => {
-            const prevYear = index > 0 ? years[index - 1] : null;
-            const yoyChange = prevYear && prevYear.totalHours > 0 
-              ? ((y.totalHours - prevYear.totalHours) / prevYear.totalHours) * 100 
-              : null;
-            const isPositive = yoyChange !== null && yoyChange > 0;
-            const isNegative = yoyChange !== null && yoyChange < 0;
-
-            return (
-            <AccordionItem value={y.year} key={y.year} className="border-none">
-              <AccordionTrigger className="py-2 px-3 hover:no-underline rounded-md border bg-muted/30 data-[state=open]:bg-muted/50 transition-colors">
-                <div
-                  data-testid={`hours-kpi-year-${y.year}`}
-                  className="flex flex-1 items-center justify-between gap-3 text-xs pr-2"
-                >
-                  <div className="flex items-center gap-2 w-28">
-                    <span className="text-base font-bold text-foreground tabular-nums text-left">{y.year}</span>
-                    {yoyChange !== null && (
-                      <span className={cn(
-                        "text-[9px] font-medium px-1.5 py-0.5 rounded-sm flex items-center gap-0.5", 
-                        isPositive ? "bg-success/15 text-success" : isNegative ? "bg-destructive/15 text-destructive" : "bg-muted text-muted-foreground"
-                      )}>
-                        {isPositive ? <TrendingUp size={10} /> : isNegative ? <TrendingDown size={10} /> : null}
-                        {isPositive ? "+" : ""}{yoyChange.toFixed(1)}%
-                      </span>
-                    )}
-                  </div>
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <Users size={11} />
-                    <span className="tabular-nums">{y.uniqueEmployees}</span> empl.
-                  </span>
-                  <span className="flex items-center gap-1 text-muted-foreground">
-                    <BookOpen size={11} />
-                    <span className="tabular-nums">{y.coursesWithDuration}</span> cursos
-                  </span>
-                  <span className="flex items-center gap-1.5 ml-auto">
-                    <span className="text-muted-foreground hidden sm:inline" title="Promedio de horas de capacitación por empleado">Promedio</span>
-                    <Badge variant="secondary" className="tabular-nums font-normal">
-                      {y.avgHoursPerEmployee} h / empl.
-                    </Badge>
-                  </span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pt-2 pb-2 px-1">
-                <p className="text-[10.5px] text-muted-foreground mb-2 px-1 flex items-center gap-1.5">
-                  <BookOpen size={12} className="text-muted-foreground" />
-                  Cursos contabilizados por mes:
-                </p>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                  {y.months.map(m => (
-                    <div key={m.month} className="flex flex-col items-center justify-center p-2 rounded-md bg-muted/20 border border-muted-foreground/10 text-xs">
-                      <span className="text-foreground text-[11px] uppercase mb-0.5 font-bold tracking-wide">
-                        {new Date(2000, m.month - 1).toLocaleString('es-MX', { month: 'short' }).replace('.', '')}
-                      </span>
-                      <span className="font-bold text-base text-foreground tabular-nums flex items-baseline gap-1 mt-0.5">
-                        {m.uniqueCourses}
-                        <span className="text-[10px] font-medium text-muted-foreground">cursos</span>
-                      </span>
-                      {m.inductionCourses > 0 && (
-                        <div className="flex flex-col gap-0.5 mt-1 items-center">
-                          <span className="text-[9px] font-bold text-primary bg-primary/10 border border-primary/20 px-1.5 py-[2px] rounded-sm max-w-full truncate" title={`${m.inductionCourses} INDUCCIÓN`}>
-                            {m.inductionCourses} INDUCCIÓN
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          )})}
-        </Accordion>
-      </div>
-    </>
-  )
+  const periodo = `${years.length} ${years.length === 1 ? "año" : "años"}`
 
   return (
     <Card data-testid="training-hours-kpi-card">
-      <CardHeader className="pb-2">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-md bg-primary/15">
-              <Clock size={18} className="text-primary" aria-hidden="true" />
-            </div>
-            <div>
-              <CardTitle className="text-xl font-semibold leading-7 tracking-tight">
-                Horas de capacitación
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Últimos {years.length} años
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="h-11 min-h-11 gap-2 px-3 py-0 text-sm" disabled={loading || hasNoYearData}>
-                  <Maximize2 size={14} />
-                  <span className="hidden sm:inline">Detalle</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle className="flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary" />
-                    Horas de capacitación por año
-                  </DialogTitle>
-                </DialogHeader>
-                <div className="py-2">
-                  <ModalContent />
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent>
+      <PanelHeader description={`Horas-hombre de los últimos ${periodo}`} />
+      <CardContent className="space-y-4 p-(--card-padding) pt-0">
         {loading ? (
-          <div className="space-y-4 w-full">
-            <Skeleton className="h-16 w-full rounded-xl" />
-            <Skeleton className="h-10 w-full rounded-xl" />
+          <div className="space-y-4" aria-label="Cargando horas de capacitación">
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-56 w-full rounded-xl" />
           </div>
-        ) : hasNoDuration ? (
-          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground gap-2">
-            <AlertTriangle size={24} className="text-warning" />
-            <p className="text-xs text-center">
-              Falta capturar la duración de los cursos.
+        ) : hasNoDuration || years.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+            {hasNoDuration
+              ? <AlertTriangle className="size-6 text-warning-deep" aria-hidden="true" />
+              : <Clock className="size-6 text-muted-foreground" aria-hidden="true" />}
+            <p className="text-body-md text-muted-foreground">
+              {hasNoDuration ? "Falta capturar la duración de los cursos." : "No hay historial reciente."}
             </p>
           </div>
-        ) : hasNoYearData ? (
-          <div className="flex flex-col items-center justify-center py-6 text-muted-foreground gap-2">
-            <Clock size={24} className="opacity-30" />
-            <p className="text-xs">No hay historial reciente.</p>
-          </div>
         ) : (
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col">
-              <span className="text-3xl font-bold tracking-tight text-foreground">
-                {currentYearData ? currentYearData.totalHours.toLocaleString("es-MX", { maximumFractionDigits: 2 }) : grandTotal.toLocaleString("es-MX", { maximumFractionDigits: 2 })}
-              </span>
-              <span className="text-sm text-muted-foreground flex items-center gap-1.5">
-                {currentYearData ? `Horas totales en ${currentYear}` : "Horas totales (histórico)"}
-                <TooltipProvider>
-                  <TooltipUI delayDuration={300}>
-                    <TooltipTrigger asChild>
-                      <Info size={14} className="text-muted-foreground hover:text-foreground cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[250px] text-xs font-normal">
-                      <p>Representa las <strong>horas-hombre</strong> totales. Se calcula sumando la duración de cada curso multiplicada por la cantidad de empleados que lo tomaron.</p>
-                    </TooltipContent>
-                  </TooltipUI>
-                </TooltipProvider>
-              </span>
+          <TooltipProvider>
+            {/* Resumen (2 × 2) y gráfica lado a lado en pantallas anchas. */}
+            <div className="grid items-center gap-4 lg:grid-cols-2">
+            <Summary items={[
+              { testId: "hours-kpi-current", label: currentYearData ? `Horas en ${currentYear}` : "Horas en el año", value: formatNumber(currentYearData?.totalHours ?? 0), hint: HORAS_HOMBRE },
+              { testId: "hours-kpi-total", label: `Horas totales (${periodo})`, value: formatNumber(grandTotal), hint: HORAS_HOMBRE },
+              { testId: "hours-kpi-avg", label: "Promedio por empleado", value: `${formatNumber(globalAvg)} h` },
+              { testId: "hours-kpi-takings", label: "Cursos contabilizados", value: totalTakings.toLocaleString("es-MX") },
+            ]} />
+
+            <div data-testid="hours-kpi-chart" className="text-muted-foreground">
+              <ResponsiveContainer width="100%" height={Math.max(200, years.length * 56)}>
+                <BarChart data={years} layout="vertical" margin={{ top: 4, right: 60, left: 0, bottom: 4 }} barSize={28}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
+                  <XAxis type="number" tick={{ fill: "currentColor", className: "text-body-sm" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
+                  <YAxis type="category" dataKey="year" tick={{ fill: "hsl(var(--foreground))", className: "text-label-sm" }} tickLine={false} axisLine={false} width={56} />
+                  <Tooltip content={<HoursTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
+                  <Bar dataKey="totalHours" radius={[0, 6, 6, 0]} fill="hsl(var(--primary))">
+                    <LabelList dataKey="totalHours" position="right" className="text-label-sm" fill="hsl(var(--foreground))" formatter={(v: unknown) => `${v} h`} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
-            
-            {showChart && years.length > 1 && (
-              <div className="h-20 w-full mt-2">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={years} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
-                    <Tooltip cursor={{ fill: "transparent" }} contentStyle={{ fontSize: '12px', borderRadius: 'var(--radius-control)' }} formatter={(val: unknown) => [`${val} h`, "Total"]} labelStyle={{ fontWeight: "bold", color: "hsl(var(--foreground))" }} />
-                    <Bar dataKey="totalHours" radius={[4, 4, 0, 0]}>
-                      {years.map((y, i) => (
-                        <Cell key={i} fill={y.year === currentYear ? "hsl(var(--primary))" : "hsl(var(--primary) / 0.3)"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            
-            {showChart && years.length <= 1 && currentYearData && (
-              <div className="flex items-center gap-3 mt-2 bg-muted/40 p-3 rounded-xl border">
-                <Users size={16} className="text-muted-foreground" />
-                <div className="flex flex-col">
-                  <span className="text-sm font-semibold">{currentYearData.uniqueEmployees} empleados</span>
-                  <span className="text-xs text-muted-foreground">capacitados este año</span>
-                </div>
-              </div>
-            )}
-          </div>
+            </div>
+
+            <Accordion type="single" collapsible data-testid="hours-kpi-year-list" className="divide-y overflow-hidden rounded-xl border">
+              {years.map((year, index) => <YearRow key={year.year} year={year} previous={index > 0 ? years[index - 1] : null} />)}
+            </Accordion>
+          </TooltipProvider>
         )}
       </CardContent>
     </Card>

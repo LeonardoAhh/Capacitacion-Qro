@@ -23,6 +23,10 @@ export interface UserProfile {
   dateFormat: string
   skills: string[]
   themePreferences: ThemePreferences
+  /** Ya vio (practicó o cerró) el aviso de práctica de evaluación. */
+  practiceSeen: boolean
+  /** Inicio de sesión anterior al actual (ISO); null en el primer acceso. */
+  previousAccess: string | null
 }
 
 export interface ApiResponse<T> {
@@ -75,6 +79,8 @@ function toProfile(row: ProfileRow, skills: string[] = []): UserProfile {
     dateFormat: row.date_format || 'mm-dd-yyyy',
     skills,
     themePreferences: row.theme_preferences ?? {},
+    practiceSeen: row.desempeno_practica_vista === true,
+    previousAccess: row.acceso_anterior ?? null,
   }
 }
 
@@ -173,7 +179,8 @@ export function useProfile(userId?: string) {
     if (userId) await loadProfile(userId)
   }, [userId])
 
-  const updateProfile = async (updates: Partial<UserProfile>) => {
+  /** `silent`: sin aviso de "Perfil actualizado" (cambios que el usuario no hizo en Configuración). */
+  const updateProfile = async (updates: Partial<UserProfile>, { silent = false }: { silent?: boolean } = {}) => {
     if (!userId || !profile) return { success: false, error: 'No user ID or profile available' }
 
     try {
@@ -187,6 +194,7 @@ export function useProfile(userId?: string) {
       if (updates.avatar !== undefined) dbUpdates.avatar_url = updates.avatar
       if (updates.language !== undefined) dbUpdates.language = updates.language
       if (updates.dateFormat !== undefined) dbUpdates.date_format = updates.dateFormat
+      if (updates.practiceSeen !== undefined) dbUpdates.desempeno_practica_vista = updates.practiceSeen
 
       const { error } = await supabase
         .from('profiles')
@@ -198,13 +206,13 @@ export function useProfile(userId?: string) {
       // Todas las instancias (menú de cuenta, configuración…) ven el cambio al momento.
       const current = entries.get(userId)?.profile ?? profile
       setEntry(userId, { profile: { ...current, ...updates } })
-      notify.success('Perfil actualizado')
+      if (!silent) notify.success('Perfil actualizado')
       return { success: true, message: 'Profile updated successfully' }
     } catch (err) {
       const errorMessage = 'Failed to update profile'
       setEntry(userId, { error: errorMessage })
       console.error('Error updating profile:', err instanceof Error ? err.message : JSON.stringify(err))
-      notify.error('No se pudo actualizar el perfil')
+      if (!silent) notify.error('No se pudo actualizar el perfil')
       return { success: false, error: errorMessage }
     }
   }

@@ -4,7 +4,7 @@ import Dashboard from "@/components/Dashboard"
 import DesempenoObjetivos from "@/components/content/desempeno-objetivos"
 
 export const metadata: Metadata = {
-  title: DESEMPENO.pages.saved.title,
+  title: DESEMPENO.pages.objectives.title,
 }
 
 export default function DesempenoObjetivosPage() {

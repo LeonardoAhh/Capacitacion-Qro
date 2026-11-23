@@ -1,5 +1,6 @@
 import type { WorkspaceId } from "@/lib/navigation"
 import { SAFETY_HOME_PATH, SETTINGS_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
 
 /**
  * Roles y permisos: única fuente de verdad en la app.
@@ -70,7 +71,7 @@ export const ROLE_POLICIES: Record<AppRole, RolePolicy> = {
   },
   evaluador: {
     label: "Evaluador", workspaces: [], home: "/desempeno",
-    routes: ["/desempeno", "/desempeno/pendientes/*", "/cursos/*"],
+    routes: [DESEMPENO.routes.home, `${DESEMPENO.routes.pending}/*`, "/cursos/*"],
     canEdit: false, readOnly: true, canEvaluate: true, canCapturePlantilla: false,
     canManageSafety: false, supervisesEvaluations: false, employeesOnly: false,
   },

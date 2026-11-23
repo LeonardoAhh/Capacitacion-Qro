@@ -145,7 +145,7 @@ function ActaRow({ acta, canEdit, canDelete, onChangeEstatus, onDelete }: RowPro
                 vencido
                   ? "bg-destructive/10 text-destructive"
                   : proximo
-                  ? "bg-warning/10 text-warning"
+                  ? "bg-warning/10 text-warning-deep"
                   : "bg-muted/50 text-muted-foreground"
               }`}
             >
@@ -175,7 +175,7 @@ function ActaRow({ acta, canEdit, canDelete, onChangeEstatus, onDelete }: RowPro
                 </div>
                 <div>
                   <dt className="text-muted-foreground">Fecha de revisión</dt>
-                  <dd className={`mt-1 flex items-center gap-1 font-medium ${vencido ? "text-destructive" : proximo ? "text-warning" : "text-foreground"}`}>
+                  <dd className={`mt-1 flex items-center gap-1 font-medium ${vencido ? "text-destructive" : proximo ? "text-warning-deep" : "text-foreground"}`}>
                     {formatDate(acta.fecha_seguimiento)}
                     {vencido && (
                       <span className="inline-flex items-center gap-1">

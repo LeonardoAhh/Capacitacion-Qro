@@ -7,5 +7,5 @@ export const metadata: Metadata = {
 }
 
 export default function HomePage() {
-  return <Dashboard content={<DashboardHome />} />
+  return <Dashboard content={<DashboardHome />} fullWidth />
 }

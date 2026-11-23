@@ -107,7 +107,7 @@ export function CapCourseDetailView({
           <div className="text-xs text-muted-foreground">Reprobados</div>
         </div>
         <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-xl font-semibold text-warning">
+          <div className="text-xl font-semibold text-warning-deep">
             {empleadosConEstado.filter(e => e.estado === 'pendiente').length}
           </div>
           <div className="text-xs text-muted-foreground">Pendientes</div>

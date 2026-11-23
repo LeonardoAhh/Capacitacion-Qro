@@ -7,7 +7,7 @@ import type { EvaluationFormContext } from "./use-evaluation-form";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TIPO_LABEL } from "@/lib/catalogo";
-import { InfoField } from "./form-controls";
+import { FieldValue } from "./presentation";
 import { ComboboxEvaluador } from "./evaluator-select";
 import { HITOS_NUEVO_INGRESO } from "@/lib/desempeno/hitos-nuevo-ingreso";
 function getTipoLabel(tipo: string | undefined): string {
@@ -23,54 +23,40 @@ export function EmployeeCard({
     canEdit,
     handleEvaluadorChange
   } = context;
-  return <>
-    {/* ── Header ── */}
-    <Card className="@container">
+  return <Card className="@container">
       <CardHeader className="space-y-3 p-(--card-padding)">
-        <p className="text-xs leading-4 text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           <span className="font-medium text-foreground">Instrucciones para el evaluador:</span> {DESEMPENO.instructions}
       </p>
 
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <SectionTitle>
-                  EVALUACIÓN DE DESEMPEÑO PERSONAL {getTipoLabel(data.tipo)}
-            </SectionTitle>
-              <Badge variant="default" className="text-xs font-medium">{data.periodo || "—"}</Badge>
-              {data.hito_nuevo_ingreso && <Badge variant="outline" className="text-xs font-medium">{HITOS_NUEVO_INGRESO[data.hito_nuevo_ingreso - 1].etiqueta}</Badge>}
+          <div className="flex flex-wrap items-center gap-2">
+            <SectionTitle>EVALUACIÓN DE DESEMPEÑO PERSONAL {getTipoLabel(data.tipo)}</SectionTitle>
+            <Badge variant="default" className="font-medium">{data.periodo || "—"}</Badge>
+            {data.hito_nuevo_ingreso && <Badge variant="outline" className="font-medium">{HITOS_NUEVO_INGRESO[data.hito_nuevo_ingreso - 1].etiqueta}</Badge>}
           </div>
-        </div>
           <Image src="/logo-vino-plastic.png" alt="Logotipo de VIÑOPLASTIC" width={400} height={400} className="h-10 w-auto object-contain" onError={e => {
-            ;
-            (e.currentTarget as HTMLImageElement).style.display = "none";
+            e.currentTarget.style.display = "none";
           }} />
-      </div>
-    </CardHeader>
+        </div>
+      </CardHeader>
 
-      <CardContent className="space-y-4 p-(--card-padding) pt-0">
-        <div className="grid grid-cols-1 gap-x-6 gap-y-4 @lg:grid-cols-2">
-          <InfoField label={DESEMPENO.fields.employeeNumber}>
-            <span className="text-base font-medium leading-6">{data.numero_empleado || "—"}</span>
-        </InfoField>
-
-          <InfoField label={DESEMPENO.fields.name}>
-            <span className="text-base font-medium leading-6">{data.nombre || "—"}</span>
-        </InfoField>
-
-          <InfoField label={DESEMPENO.fields.position}>
-            <span className="text-base font-medium leading-6">{data.puesto || "—"}</span>
-        </InfoField>
-
-          <InfoField label={DESEMPENO.fields.evaluator}>
-            <div className="min-w-0">
-              {canEdit ? <ComboboxEvaluador value={data.evaluador_nombre ?? ""} onChange={handleEvaluadorChange} puestoEvaluado={data.puesto} nombreEvaluado={data.nombre} /> : <span className="break-words font-medium" aria-label={`Evaluador: ${data.evaluador_nombre || "sin asignar"}`}>
-                {data.evaluador_nombre || "—"}
-              </span>}
-            </div>
-        </InfoField>
-      </div>
-    </CardContent>
-  </Card>
-</>;
+      {/* El valor toma la tipografía de FieldValue; aquí solo se enfatiza. */}
+      <CardContent className="grid grid-cols-1 gap-x-6 gap-y-4 p-(--card-padding) pt-0 @lg:grid-cols-2">
+        <FieldValue label={DESEMPENO.fields.employeeNumber}>
+          <span className="font-medium">{data.numero_empleado || "—"}</span>
+        </FieldValue>
+        <FieldValue label={DESEMPENO.fields.name}>
+          <span className="font-medium">{data.nombre || "—"}</span>
+        </FieldValue>
+        <FieldValue label={DESEMPENO.fields.position}>
+          <span className="font-medium">{data.puesto || "—"}</span>
+        </FieldValue>
+        <FieldValue label={DESEMPENO.fields.evaluator}>
+          {canEdit
+            ? <ComboboxEvaluador value={data.evaluador_nombre ?? ""} onChange={handleEvaluadorChange} puestoEvaluado={data.puesto} nombreEvaluado={data.nombre} />
+            : <span className="font-medium">{data.evaluador_nombre || "—"}</span>}
+        </FieldValue>
+      </CardContent>
+    </Card>;
 }

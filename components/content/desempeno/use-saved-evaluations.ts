@@ -1,19 +1,11 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import { DEFAULT_OBJETIVOS_POR_TIPO, UMBRAL_CALIFICACION_APROBATORIA, type Objetivo } from "@/lib/types/desempeno";
-import { OBJETIVOS_POR_PUESTO } from "@/lib/desempeno/objetivos-catalogo";
-import { CATALOGO_ORGANIZACIONAL, getTipoDesempenoByPuesto, getDepartamentoByPuesto, DEPARTAMENTO_SIN_ASIGNAR } from "@/lib/catalogo";
+import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno";
+import { getDepartamentoByPuesto, DEPARTAMENTO_SIN_ASIGNAR } from "@/lib/catalogo";
 import { useDesempeno, type EvaluacionHistorial } from "@/lib/hooks/useDesempeno";
 import { useRole } from "@/lib/hooks/useRole";
-function getObjetivosForPuesto(puesto: string): Objetivo[] {
-  if (OBJETIVOS_POR_PUESTO[puesto]) {
-    return OBJETIVOS_POR_PUESTO[puesto];
-  }
-  const tipo = getTipoDesempenoByPuesto(puesto);
-  return DEFAULT_OBJETIVOS_POR_TIPO[tipo];
-}
-interface EmpleadoAgrupado {
+export interface EmpleadoAgrupado {
   numero: string;
   nombre: string;
   puesto: string;
@@ -21,13 +13,15 @@ interface EmpleadoAgrupado {
   evals: EvaluacionHistorial[];
   origen?: "planta" | "nuevo_ingreso";
 }
+/** Línea secundaria del empleado (lista y detalle): número, puesto y origen. */
+export function empleadoDetalle(e: EmpleadoAgrupado): string {
+  return [`#${e.numero}`, e.puesto, e.origen === "nuevo_ingreso" && "Nuevo ingreso"].filter(Boolean).join(" · ");
+}
 export function useSavedEvaluations() {
   const { canEdit } = useRole();
-  const departamentos = useMemo(() => Object.entries(CATALOGO_ORGANIZACIONAL), []);
-  const [puesto, setPuesto] = useState("");
   const [histSearch, setHistSearch] = useState("");
   const [selectedNumero, setSelectedNumero] = useState<string | null>(null);
-  const [openDeps, setOpenDeps] = useState<string[]>([]);
+  const [departamento, setDepartamento] = useState<string | null>(null);
   const [pendingPrintId, setPendingPrintId] = useState<string | null>(null);
   const [showPrintDialog, setShowPrintDialog] = useState(false);
   const printLoadingRef = useRef(false);
@@ -44,9 +38,6 @@ export function useSavedEvaluations() {
   useEffect(() => {
     fetchHistorial();
   }, [fetchHistorial]);
-  const objetivos = puesto ? getObjetivosForPuesto(puesto) : [];
-  const hasPuestoObjetivos = puesto ? !!OBJETIVOS_POR_PUESTO[puesto] : false;
-  const tipoLabel = puesto ? getTipoDesempenoByPuesto(puesto) : null;
   const requiereCompromisos = data ? data.calificacion_final < UMBRAL_CALIFICACION_APROBATORIA : false;
   const tieneCompromisos = !!data?.compromisos?.trim();
   const bloqueado = requiereCompromisos && !tieneCompromisos;
@@ -93,6 +84,8 @@ export function useSavedEvaluations() {
     for (const [, arr] of entries) arr.sort((x, y) => x.nombre.localeCompare(y.nombre));
     return entries;
   }, [empleadosFiltrados]);
+  // Departamento elegido en la barra lateral; si la búsqueda lo deja vacío, el primero con resultados.
+  const grupoActivo = gruposPorDepto.find(([dep]) => dep === departamento) ?? gruposPorDepto[0] ?? null;
   const empleadoSel = useMemo(() => empleadosAgrupados.find(e => e.numero === selectedNumero) ?? null, [empleadosAgrupados, selectedNumero]);
 
   // Solo ofrece imprimir cuando termina correctamente la carga solicitada.
@@ -114,36 +107,21 @@ export function useSavedEvaluations() {
     }
   };
   return {
-    departamentos,
     canEdit,
-    puesto,
-    setPuesto,
     histSearch,
     setHistSearch,
-    selectedNumero,
     setSelectedNumero,
-    openDeps,
-    setOpenDeps,
+    setDepartamento,
     pendingPrintId,
-    setPendingPrintId,
     showPrintDialog,
     setShowPrintDialog,
-    historial,
     historialLoading,
-    fetchHistorial,
-    cargarEvaluacion,
     eliminarEvaluacion,
     data,
     loading,
-    objetivos,
-    hasPuestoObjetivos,
-    tipoLabel,
-    requiereCompromisos,
-    tieneCompromisos,
     bloqueado,
-    empleadosAgrupados,
-    empleadosFiltrados,
     gruposPorDepto,
+    grupoActivo,
     empleadoSel,
     handlePrint
   };

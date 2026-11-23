@@ -30,7 +30,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   const pathname = usePathname()
   const router = useRouter()
-  const { role, isEvaluador, workspaces, canAccess, loading: roleLoading } = useRole()
+  const { role, workspaces, canAccess, isEvaluador, loading: roleLoading } = useRole()
   const [storedWorkspace, setWorkspace] = useActiveWorkspace()
   // Un espacio guardado que el rol ya no tiene se cambia por el primero permitido.
   const workspace = storedWorkspace && !workspaces.includes(storedWorkspace)
@@ -69,17 +69,16 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
       </a>
 
       <div className="workspace-panel bg-card md:rounded-xl md:border md:border-border">
-        {!isEvaluador && (
-          <Sidebar
-            showMobileSidebar={showMobileSidebar}
-            setShowMobileSidebar={setShowMobileSidebar}
-            isCollapsed={isSidebarCollapsed}
-            onToggleCollapse={toggleSidebar}
-            onCollapse={collapseSidebar}
-            workspace={workspace}
-            onWorkspaceChange={handleWorkspaceChange}
-          />
-        )}
+        <Sidebar
+          showMobileSidebar={showMobileSidebar}
+          setShowMobileSidebar={setShowMobileSidebar}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+          onCollapse={collapseSidebar}
+          workspace={workspace}
+          onWorkspaceChange={handleWorkspaceChange}
+          showStatus={isEvaluador}
+        />
 
         <div className="workspace-frame">
           <Header
@@ -88,13 +87,16 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             fullWidth={fullWidth}
             showMobileSidebar={showMobileSidebar}
             onOpenSidebar={openMobileSidebar}
+            mobileOnly={isEvaluador}
           />
 
           <main
             id="main-content"
-            className="min-w-0 flex-1 safe-right safe-bottom-content"
+            className="min-w-0 flex-1 safe-right"
           >
-            <WorkspaceContainer fullWidth={fullWidth} className="py-(--workspace-content-padding-y)">
+            {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor.
+                Sumar ambos dejaba espacio extra y provocaba scroll aunque el contenido cupiera. */}
+            <WorkspaceContainer fullWidth={fullWidth} className="pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]">
               {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
               <div className="surface-enter min-w-0 space-y-6">
                 {content}

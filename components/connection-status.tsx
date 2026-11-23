@@ -79,7 +79,7 @@ export function ConnectionStatus() {
           className="pointer-events-none fixed left-1/2 top-[max(env(safe-area-inset-top),0.75rem)] z-[60] -translate-x-1/2"
         >
           <div className="pointer-events-auto flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-            <WifiOff className="size-3.5 text-warning" aria-hidden />
+            <WifiOff className="size-3.5 text-warning-deep" aria-hidden />
             <span>Sin conexión</span>
           </div>
         </motion.div>

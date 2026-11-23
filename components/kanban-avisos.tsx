@@ -143,7 +143,7 @@ export function KanbanAvisos() {
             {porVencer.map(tarjeta => (
               <li key={tarjeta.id}>
                 <button type="button" className={ITEM} onClick={() => abrirRuta(`/kanban?${PARAM_TARJETA}=${tarjeta.id}`)}>
-                  <CalendarDays className="size-4 shrink-0 text-warning" aria-hidden="true" />
+                  <CalendarDays className="size-4 shrink-0 text-warning-deep" aria-hidden="true" />
                   <span className="grid min-w-0 flex-1" title={tarjeta.titulo}>
                     <span className="truncate text-label-sm text-foreground">{tarjeta.titulo}</span>
                     <span className="text-body-sm text-muted-foreground">

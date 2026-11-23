@@ -9,6 +9,11 @@ export function registerUnsavedChangesGuard(guard: UnsavedChangesGuard) {
   }
 }
 
+/** Hay una captura sin guardar registrada (las páginas solo registran su guardia mientras hay cambios). */
+export function hasUnsavedChanges() {
+  return guards.size > 0
+}
+
 export async function confirmUnsavedChanges() {
   for (const guard of guards) {
     if (!(await guard())) return false

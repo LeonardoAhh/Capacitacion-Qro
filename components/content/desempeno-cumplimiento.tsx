@@ -1,173 +1,118 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CheckCircle2, ChevronDown, ChevronRight, Clock3, FileText, Search } from "lucide-react"
+import { CheckCircle2, Clock3, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
+import { SearchInput } from "@/components/ui/search-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { useRole } from "@/lib/hooks"
-import { useCumplimientoDesempeno, type DeptCumplimiento, type EmpleadoCumplimiento } from "@/lib/hooks/useCumplimientoDesempeno"
+import { useCumplimientoDesempeno, type EmpleadoCumplimiento } from "@/lib/hooks/useCumplimientoDesempeno"
 import { getPeriodoActual, type PeriodoModo } from "@/lib/catalogo"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
 import { getVentanaEntrega } from "@/lib/desempeno/ventana-entrega"
+import { cn } from "@/lib/utils"
 
 type StatusFilter = "all" | "pendiente" | "entregada" | "no_aplica"
 
-const dateFormatter = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", year: "numeric" })
+const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
+  { value: "all", label: "Todos" },
+  { value: "entregada", label: "Entregadas" },
+  { value: "pendiente", label: "Pendientes" },
+  { value: "no_aplica", label: "No aplica" },
+]
 
-function Metric({ label, value, detail, loading }: { label: string; value: number; detail: string; loading: boolean }) {
-  return (
-    <Card className="min-w-0">
-      <CardContent className="space-y-2 p-(--card-padding)">
-        <p className="text-xs text-muted-foreground">{label}</p>
-        {loading ? <Skeleton className="h-8 w-16" /> : <p className="text-2xl font-semibold leading-8 tabular-nums">{value}</p>}
-        {loading ? <Skeleton className="h-4 w-24" /> : <p className="text-xs text-muted-foreground">{detail}</p>}
-      </CardContent>
-    </Card>
-  )
-}
+const MODES: PeriodoModo[] = ["semestrales", "mensuales"]
+
+const STATUSES = {
+  auto: { icon: CheckCircle2, label: "Evaluación guardada", variant: "success" },
+  manual: { icon: FileText, label: "Entrega manual", variant: "info" },
+  pendiente: { icon: Clock3, label: "Pendiente", variant: "warning" },
+  no_aplica: { icon: Clock3, label: "No aplica", variant: "secondary" },
+} as const
+
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+const dateFormatter = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric" })
+
+type OnManual = (numero: string, checked: boolean, fechaIngreso: string | null) => void
+type OnPhysical = (numero: string, checked: boolean) => void
 
 function EmployeeStatus({ employee }: { employee: EmpleadoCumplimiento }) {
-  const statuses = {
-    auto: { icon: CheckCircle2, label: "Evaluación guardada", variant: "success" },
-    manual: { icon: FileText, label: "Entrega manual", variant: "info" },
-    pendiente: { icon: Clock3, label: "Pendiente", variant: "warning" },
-    no_aplica: { icon: Clock3, label: "No aplica", variant: "secondary" },
-  } as const
-  const status = statuses[employee.estatus]
+  const status = STATUSES[employee.estatus]
   const Icon = status.icon
   return (
-    <Badge variant={status.variant} className="gap-1.5 whitespace-nowrap font-medium">
-      <Icon className="size-3.5" aria-hidden="true" />
-      {status.label}
+    <Badge variant={status.variant} size="sm" className="gap-1 whitespace-nowrap font-medium [&_svg]:size-3">
+      <Icon aria-hidden="true" />{status.label}
     </Badge>
   )
 }
 
-function EmployeeRow({
-  employee,
-  saving,
-  isReadOnly,
-  onManual,
-  onPhysical,
-}: {
-  employee: EmpleadoCumplimiento
-  saving: boolean
-  isReadOnly: boolean
-  onManual: (numero: string, checked: boolean, fechaIngreso: string | null) => void
-  onPhysical: (numero: string, checked: boolean) => void
+/** Detalle del estado: calificación, elegibilidad o físico (solo lectura). */
+function statusDetail(employee: EmpleadoCumplimiento, isReadOnly: boolean): string {
+  if (employee.estatus === "no_aplica" && employee.motivoNoAplica) return "No elegible para este semestre"
+  if (employee.estatus !== "auto") return ""
+  return [
+    employee.calificacionFinal != null && `${employee.calificacionFinal}%`,
+    isReadOnly && `Físico ${employee.fisicoEntregado ? "recibido" : "pendiente"}`,
+  ].filter(Boolean).join(" · ")
+}
+
+/** Interruptor de la fila: físico recibido (con evaluación) o entrega manual con confirmación. */
+function EmployeeAction({ employee, saving, onManual, onPhysical }: {
+  employee: EmpleadoCumplimiento; saving: boolean; onManual: OnManual; onPhysical: OnPhysical
 }) {
   const [pendingManual, setPendingManual] = useState<boolean | null>(null)
-  const hasEvaluation = employee.estatus === "auto"
-  const canMarkManual = employee.estatus !== "auto" && employee.estatus !== "no_aplica"
+  const switchId = `cumplimiento-${employee.id}`
 
-  const confirmManual = () => {
-    if (pendingManual === null) return
-    onManual(employee.numero, pendingManual, employee.fechaIngreso)
-    setPendingManual(null)
+  if (employee.estatus === "no_aplica") return null
+  if (pendingManual !== null) {
+    return (
+      <Button type="button" size="sm" autoFocus disabled={saving}
+        onClick={() => { onManual(employee.numero, pendingManual, employee.fechaIngreso); setPendingManual(null) }}
+        onBlur={() => setPendingManual(null)}
+        onKeyDown={(event) => { if (event.key === "Escape") setPendingManual(null) }}
+        aria-label={`Confirmar ${pendingManual ? "entrega manual" : "retiro de entrega manual"} de ${employee.nombre}`}>
+        Confirmar
+      </Button>
+    )
   }
-
+  const physical = employee.estatus === "auto"
   return (
-    <li className="min-w-0 rounded-md border border-border bg-card px-3 py-2.5">
-      <div className="flex min-w-0 flex-wrap items-center justify-between gap-x-4 gap-y-2">
-        <div className="min-w-0 flex-1 basis-48 space-y-0.5">
-          <p className="text-xs tabular-nums text-muted-foreground">#{employee.numero}{employee.origen === "nuevo_ingreso" ? " · Nuevo ingreso" : ""}</p>
-          <p className="break-words text-sm font-medium text-foreground">{employee.nombre}</p>
-          {employee.puesto && <p className="break-words text-xs text-muted-foreground">{employee.puesto}</p>}
-          {employee.estatus === "no_aplica" && employee.motivoNoAplica && (
-            <p className="text-xs text-muted-foreground">No elegible para este semestre.</p>
-          )}
-        </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-          <EmployeeStatus employee={employee} />
-          {hasEvaluation && employee.calificacionFinal != null && (
-            <span className="text-sm font-medium tabular-nums">{employee.calificacionFinal}%</span>
-          )}
-          {hasEvaluation && !isReadOnly && (
-            <div className="flex min-h-(--control-height) items-center gap-2">
-              <Switch id={`physical-${employee.id}`} checked={employee.fisicoEntregado} disabled={saving} onCheckedChange={(checked) => onPhysical(employee.numero, checked)} aria-label={`Formato físico recibido de ${employee.nombre}`} />
-              <label htmlFor={`physical-${employee.id}`} className="cursor-pointer whitespace-nowrap text-sm text-muted-foreground">Físico recibido</label>
-            </div>
-          )}
-          {hasEvaluation && isReadOnly && (
-            <span className="text-xs text-muted-foreground">Físico {employee.fisicoEntregado ? "recibido" : "pendiente"}</span>
-          )}
-          {canMarkManual && !isReadOnly && (
-            <div className="flex min-h-(--control-height) items-center">
-              {pendingManual === null ? (
-                <Switch checked={employee.estatus === "manual"} disabled={saving} onCheckedChange={setPendingManual} aria-label={`${employee.estatus === "manual" ? "Quitar" : "Registrar"} entrega manual de ${employee.nombre}`} />
-              ) : (
-                <Button
-                  type="button"
-                  size="sm"
-                  className="min-h-(--control-height)"
-                  autoFocus
-                  disabled={saving}
-                  onClick={confirmManual}
-                  onBlur={() => setPendingManual(null)}
-                  onKeyDown={(event) => { if (event.key === "Escape") setPendingManual(null) }}
-                  aria-label={`Confirmar ${pendingManual ? "entrega manual" : "retiro de entrega manual"} de ${employee.nombre}`}
-                >
-                  Confirmar
-                </Button>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    </li>
+    <span className="inline-flex items-center gap-2">
+      <label htmlFor={switchId} className="cursor-pointer whitespace-nowrap text-body-sm text-muted-foreground">{physical ? "Físico" : "Manual"}</label>
+      <Switch id={switchId} disabled={saving}
+        checked={physical ? employee.fisicoEntregado : employee.estatus === "manual"}
+        onCheckedChange={(checked) => physical ? onPhysical(employee.numero, checked) : setPendingManual(checked)}
+        aria-label={physical ? `Formato físico recibido de ${employee.nombre}` : `${employee.estatus === "manual" ? "Quitar" : "Registrar"} entrega manual de ${employee.nombre}`} />
+    </span>
   )
 }
 
-function Department({
-  group,
-  expanded,
-  onToggle,
-  saving,
-  isReadOnly,
-  onManual,
-  onPhysical,
-}: {
-  group: DeptCumplimiento
-  expanded: boolean
-  onToggle: () => void
-  saving: boolean
-  isReadOnly: boolean
-  onManual: (numero: string, checked: boolean, fechaIngreso: string | null) => void
-  onPhysical: (numero: string, checked: boolean) => void
-}) {
-  const Icon = expanded ? ChevronDown : ChevronRight
+/** Resumen del periodo en una sola franja. */
+function Summary({ loading, items }: { loading: boolean; items: { label: string; value: number; detail: string }[] }) {
   return (
-    <Card className="overflow-hidden">
-      <button type="button" onClick={onToggle} aria-expanded={expanded} className="flex min-h-16 dense:min-h-12 w-full min-w-0 items-center gap-3 px-4 text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-foreground">{group.departamento}</span>
-          <span className="block text-xs text-muted-foreground">{group.entregadas} de {group.total} entregadas · {group.fisicos} físicos recibidos</span>
-        </span>
-        <span className="flex shrink-0 items-center gap-2">
-          <Progress value={group.porcentajeEntregadas} className="w-20 sm:w-28" aria-hidden="true" />
-          <span className="min-w-8 text-right text-sm font-medium tabular-nums">{group.porcentajeEntregadas}%</span>
-        </span>
-      </button>
-      {expanded && (
-        <div className="border-t border-border p-3 sm:p-4">
-          <ul className="grid min-w-0 gap-2 lg:grid-cols-2">
-            {group.empleados.map((employee) => (
-              <EmployeeRow key={employee.id} employee={employee} saving={saving} isReadOnly={isReadOnly} onManual={onManual} onPhysical={onPhysical} />
-            ))}
-          </ul>
+    <dl className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card lg:grid-cols-4">
+      {items.map(({ label, value, detail }, index) => (
+        <div key={label} className={cn("min-w-0 space-y-1 p-(--card-padding)", index % 2 === 1 && "border-l", index >= 2 && "border-t lg:border-t-0", index === 2 && "lg:border-l")}>
+          <dt className="text-body-sm text-muted-foreground">{label}</dt>
+          <dd className="text-heading-lg tabular-nums text-foreground">{loading ? <Skeleton className="h-7 w-12" /> : value}</dd>
+          <dd className="truncate text-body-sm text-muted-foreground">{loading ? <Skeleton className="h-4 w-20" /> : detail}</dd>
         </div>
-      )}
-    </Card>
+      ))}
+    </dl>
   )
 }
 
+/**
+ * Cumplimiento: barra lateral interna con modalidad, búsqueda, estado y
+ * departamentos (en móvil, controles apilados); a la derecha el periodo, el
+ * resumen y las personas del departamento elegido.
+ */
 export default function DesempenoCumplimientoContent() {
   const { isReadOnly } = useRole()
   const [mode, setMode] = useState<PeriodoModo>("semestrales")
@@ -175,7 +120,7 @@ export default function DesempenoCumplimientoContent() {
   const { loading, saving, error, deptGroups, resumen, marcarEntrega, marcarFisico } = useCumplimientoDesempeno(periodo)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const [departamento, setDepartamento] = useState<string | null>(null)
   const delivery = mode === "semestrales" ? getVentanaEntrega(periodo) : null
 
   const visibleGroups = useMemo(() => {
@@ -193,91 +138,142 @@ export default function DesempenoCumplimientoContent() {
     })).filter((group) => group.empleados.length > 0)
   }, [deptGroups, search, statusFilter])
 
+  // Departamento elegido; si los filtros lo dejan vacío, el primero con resultados.
+  const active = visibleGroups.find((group) => group.departamento === departamento) ?? visibleGroups[0] ?? null
   const filtersActive = Boolean(search.trim() || statusFilter !== "all")
+  const onManual: OnManual = (numero, checked, fechaIngreso) => void marcarEntrega(numero, checked, { fechaIngreso })
+  const onPhysical: OnPhysical = (numero, checked) => void marcarFisico(numero, checked)
 
   return (
     <div className="min-w-0 space-y-6 dense:space-y-4">
       {isReadOnly && <ReadOnlyBanner />}
 
-      <Card>
-        <CardContent className="flex flex-wrap items-center justify-between gap-4 p-(--card-padding)">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Periodo asignado automáticamente</p>
-            <p className="text-base font-semibold">{periodo}</p>
-          </div>
-          <div className="inline-flex rounded-md border border-border bg-muted p-1" role="group" aria-label="Modalidad de evaluación">
-            <Button size="sm" variant={mode === "semestrales" ? "outline" : "ghost"} className="min-h-10 dense:min-h-(--control-height-sm)" aria-pressed={mode === "semestrales"} disabled={saving} onClick={() => setMode("semestrales")}>Semestral</Button>
-            <Button size="sm" variant={mode === "mensuales" ? "outline" : "ghost"} className="min-h-10 dense:min-h-(--control-height-sm)" aria-pressed={mode === "mensuales"} disabled={saving} onClick={() => setMode("mensuales")}>Mensual</Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {delivery && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3 text-sm">
-          <div>
-            <p className="font-medium">Recepción de formatos físicos · {delivery.estado}</p>
-            <p className="text-xs text-muted-foreground">{dateFormatter.format(delivery.inicio)} – {dateFormatter.format(delivery.fin)}</p>
-          </div>
-          <span className="text-xs text-muted-foreground">Periodo {periodo}</span>
-        </div>
-      )}
-
-      <section aria-label="Resumen de cumplimiento" className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric label="Personas" value={resumen.total} detail="En este periodo" loading={loading} />
-        <Metric label="Entregadas" value={resumen.entregadas} detail={`${resumen.porcentajeEntregadas}% del total`} loading={loading} />
-        <Metric label="Pendientes" value={resumen.total - resumen.entregadas} detail="Sin evaluación o entrega" loading={loading} />
-        <Metric label="Físicos recibidos" value={resumen.fisicos} detail={`${resumen.porcentaje}% del total`} loading={loading} />
-      </section>
-
-      <section className="space-y-4" aria-labelledby="cumplimiento-departamentos">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="cumplimiento-departamentos" className="text-base font-semibold tracking-tight">Por departamento</h2>
-            <p className="text-sm text-muted-foreground">{isReadOnly ? "Consulta el estado de cada persona." : "Activa el interruptor junto al estado y confirma para registrar una entrega manual."}</p>
-          </div>
-          <div className="flex w-full flex-wrap gap-2 sm:w-auto">
-            <div className="relative min-w-0 flex-1 sm:w-64 sm:flex-none">
-              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-              <Input type="search" value={search} onChange={(event) => setSearch(event.target.value)} aria-label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" className="h-(--control-height) pl-9" />
-            </div>
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-              <SelectTrigger className="h-(--control-height) w-full sm:w-40" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="entregada">Entregadas</SelectItem>
-                <SelectItem value="pendiente">Pendientes</SelectItem>
-                <SelectItem value="no_aplica">No aplica</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {error && <div role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</div>}
-        {loading ? (
-          <div className="space-y-2" aria-label="Cargando departamentos">
-            {Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-16 rounded-xl" />)}
-          </div>
-        ) : visibleGroups.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card px-4 py-10 text-center text-sm text-muted-foreground">
-            {filtersActive ? "No hay personas que coincidan con los filtros." : "No hay personas para este periodo."}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {visibleGroups.map((group) => (
-              <Department
-                key={`${periodo}:${group.departamento}`}
-                group={group}
-                expanded={expanded[group.departamento] ?? filtersActive}
-                onToggle={() => setExpanded((current) => ({ ...current, [group.departamento]: !(current[group.departamento] ?? filtersActive) }))}
-                saving={saving}
-                isReadOnly={isReadOnly}
-                onManual={(numero, checked, fechaIngreso) => void marcarEntrega(numero, checked, { fechaIngreso })}
-                onPhysical={(numero, checked) => void marcarFisico(numero, checked)}
-              />
+      <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[16rem_minmax(0,1fr)]">
+        <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-0 md:max-h-[calc(100dvh-var(--workspace-header-height)-2*var(--workspace-inset))]">
+          <div role="group" aria-label="Modalidad de evaluación" className="grid grid-cols-2 gap-1 rounded-md border bg-muted p-1">
+            {MODES.map((value) => (
+              <Button key={value} type="button" size="sm" variant={mode === value ? "outline" : "ghost"}
+                aria-pressed={mode === value} disabled={saving} onClick={() => setMode(value)}>
+                {DESEMPENO.modes[value]}
+              </Button>
             ))}
           </div>
-        )}
-      </section>
+          <SearchInput value={search} onValueChange={setSearch} label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" />
+          <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
+            <SelectTrigger className="w-full" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {STATUS_FILTERS.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {active && (
+            <Select value={active.departamento} onValueChange={setDepartamento}>
+              <SelectTrigger aria-label="Departamento" className="w-full md:hidden"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {visibleGroups.map((group) => <SelectItem key={group.departamento} value={group.departamento}>{group.departamento} · {group.porcentajeEntregadas}%</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <nav aria-label="Departamentos" className="hidden min-h-0 flex-1 overflow-y-auto md:block">
+            {loading ? (
+              <div className="space-y-1" aria-hidden="true">
+                {Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-(--control-height-sm) w-full" />)}
+              </div>
+            ) : (
+              <ul className="space-y-0.5">
+                {visibleGroups.map((group) => {
+                  const current = group.departamento === active?.departamento
+                  return (
+                    <li key={group.departamento}>
+                      <button type="button" aria-current={current || undefined} onClick={() => setDepartamento(group.departamento)}
+                        className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-body-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                          current ? "bg-muted text-label-sm text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
+                        <span className="min-w-0 flex-1 truncate">{group.departamento}</span>
+                        <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">{group.porcentajeEntregadas}%</span>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            )}
+          </nav>
+        </aside>
+
+        <div className="min-w-0 space-y-4 dense:space-y-3">
+          <div className="min-w-0">
+            <p className="text-label-sm text-foreground">{periodo}</p>
+            <p className="text-body-sm text-muted-foreground">
+              {delivery ? `Recepción de físicos · ${delivery.estado} · ${dateFormatter.format(delivery.inicio)} – ${dateFormatter.format(delivery.fin)}` : "Periodo asignado automáticamente"}
+            </p>
+          </div>
+
+          <Summary loading={loading} items={[
+            { label: "Personas", value: resumen.total, detail: "En este periodo" },
+            { label: "Entregadas", value: resumen.entregadas, detail: `${resumen.porcentajeEntregadas}% del total` },
+            { label: "Pendientes", value: resumen.total - resumen.entregadas, detail: "Sin evaluación o entrega" },
+            { label: "Físicos recibidos", value: resumen.fisicos, detail: `${resumen.porcentaje}% del total` },
+          ]} />
+
+          {error && <p role="alert" className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-body-md text-destructive">{error}</p>}
+
+          {loading ? (
+            <div className="space-y-2" aria-label="Cargando personas">
+              {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+            </div>
+          ) : !active ? (
+            <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+              {filtersActive ? "No hay personas que coincidan con los filtros." : "No hay personas para este periodo."}
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-xl border bg-card">
+              {/* Avance del departamento elegido. */}
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-(--card-padding) py-3">
+                <p className="min-w-0 flex-1 text-body-sm text-muted-foreground">
+                  {active.entregadas} de {active.total} entregadas · {active.fisicos} físicos recibidos
+                </p>
+                <span className="flex shrink-0 items-center gap-2">
+                  <Progress value={active.porcentajeEntregadas} className="w-24 sm:w-32" aria-hidden="true" />
+                  <span className="w-10 text-right text-label-sm tabular-nums text-foreground">{active.porcentajeEntregadas}%</span>
+                </span>
+              </div>
+              <Table className="table-fixed">
+                <caption className="sr-only">Cumplimiento de {active.departamento}</caption>
+                <TableHeader className="bg-muted/50">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                    <TableHead scope="col" className={cn(HEAD, "hidden w-52 sm:table-cell")}>Estado</TableHead>
+                    {!isReadOnly && <TableHead scope="col" className={cn(HEAD, "w-32 text-right")}><span className="sr-only">Registro</span></TableHead>}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {active.empleados.map((employee) => {
+                    const detail = statusDetail(employee, isReadOnly)
+                    return (
+                      <TableRow key={`${periodo}:${employee.id}`}>
+                        <TableCell>
+                          <span className="block truncate text-label-sm text-foreground">{employee.nombre}</span>
+                          <span className="block truncate text-body-sm text-muted-foreground">
+                            {[`#${employee.numero}`, employee.puesto, employee.origen === "nuevo_ingreso" && "Nuevo ingreso"].filter(Boolean).join(" · ")}
+                          </span>
+                          <span className="mt-1 block sm:hidden"><EmployeeStatus employee={employee} /></span>
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <EmployeeStatus employee={employee} />
+                          <span className="mt-0.5 block truncate text-body-sm text-muted-foreground">{detail || " "}</span>
+                        </TableCell>
+                        {!isReadOnly && (
+                          <TableCell className="text-right">
+                            <EmployeeAction employee={employee} saving={saving} onManual={onManual} onPhysical={onPhysical} />
+                          </TableCell>
+                        )}
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

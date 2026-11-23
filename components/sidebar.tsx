@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { PanelLeft, PanelLeftDashed, X } from "lucide-react"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
@@ -10,10 +10,13 @@ import { MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceI
 import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountMenu } from "@/components/account-menu"
+import { WorkspaceClock } from "@/components/workspace-clock"
+import { KanbanAvisos } from "@/components/kanban-avisos"
 import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW } from "@/components/sidebar-density"
 // Mismo límite que `md`; la visibilidad del panel sigue en CSS.
 import { DESKTOP_QUERY } from "@/lib/hooks/useMediaQuery"
 import { useRole } from "@/lib/hooks/useRole"
+import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
@@ -106,9 +109,19 @@ function SidebarBrand({
   )
 }
 
+/** Fecha, hora y avisos sobre la cuenta (vista sin encabezado). Contraída, solo la campana. */
+function SidebarStatus({ isCollapsed = false }: { isCollapsed?: boolean }) {
+  return (
+    <div className={cn("flex shrink-0 items-center gap-2 px-3 pb-1", isCollapsed && "justify-center px-2")}>
+      {!isCollapsed && <span className="min-w-0 flex-1"><WorkspaceClock /></span>}
+      <KanbanAvisos />
+    </div>
+  )
+}
+
 /**
  * Full navigation tree shared by the desktop panel and mobile drawer.
- * Dashboard no monta la barra lateral para evaluadores: aquí no se revisa el rol.
+ * Cada rol ve solo las rutas que puede abrir (el evaluador, Evaluar y Pendientes).
  */
 function NavTree({
   pathname,
@@ -127,6 +140,7 @@ function NavTree({
   const navSections = getWorkspaceNavSections(workspace)
   // Secciones fijas (pinned) primero y en su orden declarado; el resto, alfabético.
   const { canAccess } = useRole()
+  const router = useRouter()
   // Cada rol solo ve las secciones que puede abrir (lib/constants/roles).
   const toItems = (sections: typeof navSections) => sections.flatMap((section) => {
     const items = section.items.filter((leaf) => canAccess(leaf.href))
@@ -157,7 +171,17 @@ function NavTree({
             const link = (
               <Link
                 href={leaf.href}
-                onClick={onNavigate}
+                // Con una captura sin guardar se confirma antes de salir; cerrar o contraer
+                // la barra solo ocurre si de verdad se navega.
+                onNavigate={event => {
+                  if (!hasUnsavedChanges()) return onNavigate?.()
+                  event.preventDefault()
+                  void confirmUnsavedChanges().then(confirmed => {
+                    if (!confirmed) return
+                    onNavigate?.()
+                    router.push(leaf.href)
+                  })
+                }}
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   navLinkBase,
@@ -207,6 +231,8 @@ interface SidebarProps {
   onCollapse: () => void
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
+  /** Hora y avisos en la barra, para la vista sin encabezado. */
+  showStatus?: boolean
 }
 
 export default function Sidebar({
@@ -217,6 +243,7 @@ export default function Sidebar({
   onCollapse,
   workspace,
   onWorkspaceChange,
+  showStatus = false,
 }: SidebarProps) {
   const pathname = usePathname()
   const closeMobile = useCallback(() => setShowMobileSidebar(false), [setShowMobileSidebar])
@@ -240,6 +267,7 @@ export default function Sidebar({
 
             <SidebarBrand onClose={closeMobile} workspace={workspace} />
             <NavTree pathname={pathname} onNavigate={closeMobile} mobile workspace={workspace} />
+            {showStatus && <SidebarStatus />}
             <div className="safe-bottom-content shrink-0 px-3 py-2">
               <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
             </div>
@@ -263,6 +291,7 @@ export default function Sidebar({
             <WorkspaceBrand workspace={workspace} collapsed={isCollapsed} />
           </div>
           <NavTree pathname={pathname} onNavigate={isCollapsed ? undefined : onCollapse} isCollapsed={isCollapsed} workspace={workspace} />
+          {showStatus && <SidebarStatus isCollapsed={isCollapsed} />}
           <div className={cn(
             "shrink-0 pb-2",
             isCollapsed ? "px-2" : "flex items-center gap-1 px-2",

@@ -90,7 +90,6 @@
         /* design.md: header de 48px y workspace de 1408px. */
         --workspace-header-height: 3rem;
         --workspace-max-width: 88rem;
-        --evaluation-summary-max-width: 60rem;
         --notice-width: 24rem;
         --notice-edge: 1rem;
         --notice-radius: 0.75rem;
@@ -163,6 +162,8 @@
         --success-foreground: 0 0% 98%;
         --warning: 37.43 91.78% 54.9%;
         --warning-foreground: 217.5 16.67% 9.41%;
+        /* Texto de advertencia sobre superficies tenues (bg-warning/10): ámbar profundo, sin chillar. */
+        --warning-deep: 30 85% 30%;
         --urgency-low: 152 48% 30%;
         --info: 200 60% 46%;
         --info-foreground: 0 0% 98%;
@@ -266,6 +267,7 @@
         --sidebar-border: 217.5 12.9% 24.31%;
         --sidebar-ring: var(--primary);
 
+        --warning-deep: 38 90% 66%;
         --info: 200 70% 62%;
         --info-foreground: 220 14.29% 8.24%;
         --urgency-low: 152 48% 70%;

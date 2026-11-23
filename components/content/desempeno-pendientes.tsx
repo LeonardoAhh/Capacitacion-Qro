@@ -1,39 +1,33 @@
 "use client";
 
-import { SectionTitle } from "./desempeno/presentation";
 import { EvaluationWorkspace } from "./desempeno/workspace";
 import { EASE_OUT } from "./desempeno/pending-presentation";
 import { useEvaluationReducedMotion } from "./desempeno/use-evaluation-motion";
-import { VistaMensual } from "./desempeno/pending-monthly";
+import { PendingLegend, VistaMensual } from "./desempeno/pending-monthly";
 import { DepartmentPager } from "./desempeno/department-pager";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, CalendarRange } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { usePendingEvals } from "@/lib/hooks/usePendingEvals";
 import { useSemestralPendientes } from "@/lib/hooks/useSemestralPendientes";
-import { PERIODOS_DESEMPENO } from "@/lib/catalogo";
+import { getPeriodosSemestralesRecientes } from "@/lib/catalogo";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DesempenoSemestralPendientes from "./desempeno-semestral-pendientes";
 type Vista = "mensual" | "semestral";
-interface Props {
-  /** Optional department filter for administrative views; RLS scopes evaluators. */
-  filterDepartamentos?: string[] | null;
-  periodoSemestral?: string;
-}
-export default function DesempenoPendientes({
-  filterDepartamentos,
-  periodoSemestral
-}: Props = {}) {
+export default function DesempenoPendientes() {
   const {
     loading,
     deptGroups,
     totalEmployees,
-  } = usePendingEvals(filterDepartamentos);
+  } = usePendingEvals();
   const [vista, setVista] = useState<Vista>("mensual");
   const reducedMotion = useEvaluationReducedMotion();
-  const periodoActual = periodoSemestral ?? PERIODOS_DESEMPENO.semestrales[0];
-  const semestrales = useSemestralPendientes(periodoActual, filterDepartamentos, vista === "semestral");
+  // RLS limita los departamentos del evaluador.
+  // Semestre en curso por defecto; los anteriores se consultan desde el selector.
+  const periodosSemestrales = getPeriodosSemestralesRecientes();
+  const [periodoSemestral, setPeriodoSemestral] = useState(periodosSemestrales[0]);
+  const semestrales = useSemestralPendientes(periodoSemestral, null, vista === "semestral");
   // The first available department is the default page for each view.
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const currentTab = deptGroups.some(group => group.departamento === activeTab)
@@ -66,12 +60,29 @@ export default function DesempenoPendientes({
     setSemestralDirection(direction);
     setSemestralTab(next.departamento);
   };
-  return <EvaluationWorkspace section="pending"><Card>
-      {/* Header */}
-      <CardHeader className="p-6">
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <SectionTitle>Evaluaciones pendientes</SectionTitle>
-          <div className="min-w-0">
+  // Sin contenedor envolvente: a la izquierda el tipo de evaluación; a la derecha, el departamento.
+  return <EvaluationWorkspace>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 sm:w-auto">
+        <div role="group" aria-label="Tipo de evaluación" className="grid w-full grid-cols-2 gap-2 sm:inline-grid sm:w-auto">
+          <Button variant={vista === "mensual" ? "default" : "outline"} onClick={() => setVista("mensual")} aria-pressed={vista === "mensual"}>
+            <UserPlus aria-hidden="true" />
+            Nuevo ingreso
+          </Button>
+          <Button variant={vista === "semestral" ? "default" : "outline"} onClick={() => setVista("semestral")} aria-pressed={vista === "semestral"}>
+            <CalendarRange aria-hidden="true" />
+            Semestrales
+          </Button>
+        </div>
+        {vista === "semestral" && <Select value={periodoSemestral} onValueChange={setPeriodoSemestral}>
+          <SelectTrigger variant="ghost" aria-label="Periodo semestral" className="text-label-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {periodosSemestrales.map((periodo, index) => <SelectItem key={periodo} value={periodo}>{index === 0 ? `${periodo} · Actual` : periodo}</SelectItem>)}
+          </SelectContent>
+        </Select>}
+        </div>
+          <div className="flex min-w-0 items-center justify-between gap-4 max-sm:w-full">
+            {vista === "mensual" && !loading && totalEmployees > 0 && <PendingLegend />}
             {vista === "mensual" && !loading && deptGroups.length > 1 && monthlyIndex >= 0 && <DepartmentPager
               label={monthlyGroup.departamento}
               index={monthlyIndex}
@@ -91,21 +102,7 @@ export default function DesempenoPendientes({
               onNext={() => navigateSemestral(1)}
             />}
           </div>
-        </div>
-    </CardHeader>
-
-      <CardContent className="space-y-4 p-6 pt-0">
-        {/* Toggle de vista */}
-        <div role="group" aria-label="Tipo de evaluación" className="grid grid-cols-2 gap-2 sm:inline-grid">
-          <Button variant={vista === "mensual" ? "default" : "outline"} onClick={() => setVista("mensual")} aria-pressed={vista === "mensual"}>
-            <UserPlus aria-hidden="true" />
-            Nuevo ingreso
-          </Button>
-          <Button variant={vista === "semestral" ? "default" : "outline"} onClick={() => setVista("semestral")} aria-pressed={vista === "semestral"}>
-            <CalendarRange aria-hidden="true" />
-            Semestrales
-          </Button>
-        </div>
+      </div>
 
         {/* Contenido por vista */}
         <AnimatePresence mode="wait">
@@ -133,6 +130,5 @@ export default function DesempenoPendientes({
             <VistaMensual loading={loading} deptGroups={deptGroups} totalEmployees={totalEmployees} activeTab={currentTab} direction={monthlyDirection} selectedId={currentSelectedId} onSelectId={setSelectedId} />
         </motion.div>}
       </AnimatePresence>
-    </CardContent>
-  </Card></EvaluationWorkspace>;
+  </EvaluationWorkspace>;
 }

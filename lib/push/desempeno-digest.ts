@@ -4,6 +4,7 @@ import {
 } from "@/lib/desempeno/push-digest"
 import { claimDigest, releaseDigest, type DigestResult, type PushConfig, sendPush, type PushSubscriptionRow } from "@/lib/push/send"
 import { loadServerRows } from "@/lib/supabase/server-pagination"
+import { DESEMPENO } from "@/lib/desempeno/presentation"
 
 /**
  * Recordatorio diario de evaluaciones vencidas o próximas: a cada evaluador las
@@ -49,7 +50,7 @@ export async function enviarRecordatorioDesempeno(
     const payload = JSON.stringify({
       title: "Evaluaciones de desempeño",
       body: parts.join(" · "),
-      url: "/desempeno/pendientes",
+      url: DESEMPENO.routes.pending,
       tag: `desempeno-${fecha.iso}`,
     })
     const result = await sendPush(db, subscriptions, payload, config)

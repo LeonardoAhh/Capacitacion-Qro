@@ -13,7 +13,7 @@ export function ScoreBadge({ score, className = "" }: ScoreBadgeProps) {
   const pct = Math.min(100, Math.max(0, score))
   const color =
     pct < 60 ? "bg-destructive/15 text-destructive border-destructive/30" :
-    pct < UMBRAL_CALIFICACION_APROBATORIA ? "bg-warning/15 text-warning border-warning/30" :
+    pct < UMBRAL_CALIFICACION_APROBATORIA ? "bg-warning/15 text-warning-deep border-warning/30" :
     "bg-success/15 text-success border-success/30"
 
   return (

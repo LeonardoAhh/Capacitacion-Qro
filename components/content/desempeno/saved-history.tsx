@@ -1,128 +1,99 @@
 "use client";
 
-import { SectionTitle } from "./presentation";
-import { Printer, Search, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardDescription } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Loader2 } from "lucide-react";
+import { SearchInput } from "@/components/ui/search-input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { esPeriodoSemestral } from "@/lib/desempeno/elegibilidad";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import type { SavedEvaluationsContext } from "./use-saved-evaluations";
-export function SavedHistory({
-  context
-}: {
-  context: SavedEvaluationsContext;
-}) {
-  const {
-    histSearch,
-    setHistSearch,
-    setSelectedNumero,
-    openDeps,
-    setOpenDeps,
-    setShowPrintDialog,
-    historialLoading,
-    data,
-    loading,
-    bloqueado,
-    gruposPorDepto
-  } = context;
-  return <Card>
-    <CardHeader className="p-(--card-padding) pb-3">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <SectionTitle>Historial de evaluaciones</SectionTitle>
-          <CardDescription>Selecciona un empleado para consultar sus evaluaciones.</CardDescription>
-        </div>
-        {data && <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="icon" className="shrink-0" onClick={() => setShowPrintDialog(true)} disabled={bloqueado} aria-label="Imprimir">
-              <Printer aria-hidden="true" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{bloqueado ? `Captura compromisos primero (calificación < ${UMBRAL_CALIFICACION_APROBATORIA}%)` : "Imprimir evaluación cargada"}</TooltipContent>
-        </Tooltip>}
-      </div>
-    </CardHeader>
-    <CardContent className="space-y-3 p-(--card-padding) pt-0">
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-        <Input value={histSearch} onChange={e => setHistSearch(e.target.value)} placeholder="Buscar por nombre, número o periodo..." aria-label="Buscar evaluaciones guardadas por nombre, número o periodo" className="pl-9" />
-      </div>
+import { DESEMPENO } from "@/lib/desempeno/presentation";
+import { cn } from "@/lib/utils";
+import { evaluationStyles } from "./presentation";
+import { empleadoDetalle, type SavedEvaluationsContext } from "./use-saved-evaluations";
 
-      {historialLoading ? <div className="space-y-2">
-        {Array.from({
-          length: 5
-        }).map((_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
-      </div> : gruposPorDepto.length === 0 ? <div className="text-center py-8 text-sm text-muted-foreground">
+const HEAD = "whitespace-nowrap text-eyebrow uppercase";
+
+/**
+ * Evaluadas: barra lateral interna con la búsqueda y los departamentos (en móvil,
+ * búsqueda y selector arriba) y, a la derecha, los empleados del departamento elegido.
+ */
+export function SavedHistory({ context }: { context: SavedEvaluationsContext }) {
+  const { histSearch, setHistSearch, setSelectedNumero, setDepartamento, historialLoading, loading, gruposPorDepto, grupoActivo } = context;
+  const [activo, empleados] = grupoActivo ?? [null, []];
+
+  return <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[14rem_minmax(0,1fr)]">
+    <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-0 md:max-h-[calc(100dvh-var(--workspace-header-height)-2*var(--workspace-inset))]">
+      <SearchInput value={histSearch} onValueChange={setHistSearch} label="Buscar evaluaciones por nombre, número o periodo"
+        placeholder="Nombre, número o periodo…" />
+      {activo && <Select value={activo} onValueChange={setDepartamento}>
+        <SelectTrigger aria-label="Departamento" className="w-full md:hidden"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {gruposPorDepto.map(([dep, lista]) => <SelectItem key={dep} value={dep}>{dep} · {lista.length}</SelectItem>)}
+        </SelectContent>
+      </Select>}
+      <nav aria-label="Departamentos" className="hidden min-h-0 flex-1 overflow-y-auto md:block">
+        {historialLoading ? <div className="space-y-1" aria-hidden="true">
+          {Array.from({ length: 8 }, (_, i) => <Skeleton key={i} className="h-(--control-height-sm) w-full" />)}
+        </div> : <ul className="space-y-0.5">
+          {gruposPorDepto.map(([dep, lista]) => {
+            const current = dep === activo;
+            return <li key={dep}>
+              <button type="button" aria-current={current || undefined} onClick={() => setDepartamento(dep)}
+                className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-body-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  current ? "bg-muted text-label-sm text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
+                <span className="min-w-0 flex-1 truncate">{dep}</span>
+                <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">{lista.length}</span>
+              </button>
+            </li>;
+          })}
+        </ul>}
+      </nav>
+    </aside>
+
+    <div className="min-w-0 space-y-4 dense:space-y-3">
+      {historialLoading ? <div className="space-y-2" aria-label="Cargando evaluaciones">
+        {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+      </div> : !activo ? <p className={cn(evaluationStyles.description, "rounded-xl border border-dashed px-(--card-padding) py-12 text-center")}>
         {histSearch ? "Sin resultados." : "No hay evaluaciones guardadas."}
-      </div> : <Accordion type="multiple" value={histSearch ? gruposPorDepto.map(([dep]) => dep) : openDeps} onValueChange={histSearch ? undefined : setOpenDeps} className="w-full">
-        {gruposPorDepto.map(([departamento, empleados]) => <AccordionItem key={departamento} value={departamento}>
-            <AccordionTrigger className="text-sm">
-              <span className="flex min-w-0 flex-wrap items-center gap-2 text-left">
-                <span className="font-semibold">{departamento}</span>
-                <Badge variant="secondary" className="text-xs">{empleados.length} empleados</Badge>
-              </span>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <caption className="sr-only">Evaluaciones guardadas por empleado</caption>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead scope="col" className="w-16">N.º</TableHead>
-                      <TableHead scope="col">Nombre</TableHead>
-                      <TableHead scope="col" className="hidden md:table-cell">Puesto</TableHead>
-                      <TableHead scope="col" className="hidden md:table-cell">Último Periodo</TableHead>
-                      <TableHead scope="col" className="text-center w-20"><span className="hidden sm:inline">Evaluaciones</span><span className="sm:hidden">Total</span></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {empleados.length === 0 ? <TableRow>
-                      <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                          No se encontraron empleados en este departamento.
-                      </TableCell>
-                    </TableRow> : empleados.map(e => {
-                    const lastEval = e.evals[0];
-                    const isSemestral = Boolean(lastEval?.periodo && esPeriodoSemestral(lastEval.periodo));
-                    return <TableRow key={e.numero} className="hover:bg-muted/50">
-                        <TableCell className="py-2 font-sans text-xs">{e.numero}</TableCell>
-                        <TableCell className="py-2 font-medium break-words">
-                          <div className="flex flex-col items-start gap-1">
-                            <button type="button" onClick={() => setSelectedNumero(e.numero)} className="min-h-(--control-height) w-full rounded-md text-left font-medium underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring" aria-label={`Ver evaluaciones de ${e.nombre}`}>{e.nombre}</button>
-                            <span className="text-xs font-normal text-muted-foreground md:hidden">{e.puesto || "—"} · {lastEval?.periodo || "—"}</span>
-                            {e.origen === "nuevo_ingreso" && <Badge variant="secondary" className="w-fit text-xs">Nuevo Ingreso</Badge>}
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell py-2 text-xs text-muted-foreground whitespace-normal break-words">{e.puesto || "—"}</TableCell>
-                        <TableCell className="hidden md:table-cell py-2">
-                          {lastEval ? <div className="flex flex-wrap items-center gap-1.5">
-                            <span className="text-xs text-muted-foreground">{lastEval.periodo}</span>
-                            <Badge variant="secondary" className="text-xs">
-                              {isSemestral ? "Semestral" : "Mensual"}
-                            </Badge>
-                          </div> : "—"}
-                        </TableCell>
-                        <TableCell className="py-2 text-center">
-                          <Badge variant="outline" className="text-xs">{e.evals.length}</Badge>
-                        </TableCell>
-                      </TableRow>;
-                  })}
-                  </TableBody>
-                </Table>
-              </div>
-            </AccordionContent>
-          </AccordionItem>)}
-      </Accordion>}
-
-      {loading && <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        <span className="text-sm">Cargando evaluación...</span>
+      </p> : <div className="overflow-hidden rounded-xl border bg-card">
+        {/* Filas de dos líneas iguales: dato principal arriba y secundario abajo, sin saltos de altura. */}
+        <Table className="table-fixed">
+          <caption className="sr-only">Evaluaciones guardadas de {activo}</caption>
+          <TableHeader className="bg-muted/50">
+            <TableRow className="hover:bg-transparent">
+              <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+              <TableHead scope="col" className={cn(HEAD, "hidden w-44 sm:table-cell")}>Último periodo</TableHead>
+              <TableHead scope="col" className={cn(HEAD, "w-16 text-right")}>Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {empleados.map(e => {
+              const lastEval = e.evals[0];
+              const tipo = lastEval?.periodo && (esPeriodoSemestral(lastEval.periodo) ? DESEMPENO.modes.semestrales : DESEMPENO.modes.mensuales);
+              return <TableRow key={e.numero} className="cursor-pointer" onClick={() => setSelectedNumero(e.numero)}>
+                <TableCell>
+                  {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
+                  <button type="button" aria-label={`Ver evaluaciones de ${e.nombre}`}
+                    onClick={event => { event.stopPropagation(); setSelectedNumero(e.numero); }}
+                    className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                    <span className="block truncate text-label-sm text-foreground">{e.nombre}</span>
+                    <span className="block truncate text-body-sm text-muted-foreground">{empleadoDetalle(e)}</span>
+                  </button>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <span className="block truncate text-body-sm text-foreground">{lastEval?.periodo || "—"}</span>
+                  <span className="block truncate text-body-sm text-muted-foreground">{tipo || "—"}</span>
+                </TableCell>
+                <TableCell className="text-right text-body-sm tabular-nums text-foreground">{e.evals.length}</TableCell>
+              </TableRow>;
+            })}
+          </TableBody>
+        </Table>
       </div>}
-    </CardContent>
-  </Card>;
+
+      {loading && <p role="status" className="flex items-center justify-center gap-2 py-4 text-body-sm text-muted-foreground">
+        <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />Cargando evaluación…
+      </p>}
+    </div>
+  </div>;
 }

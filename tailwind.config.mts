@@ -94,6 +94,7 @@ const config: Config = {
         warning: {
           DEFAULT:    "hsl(var(--warning) / <alpha-value>)",
           foreground: "hsl(var(--warning-foreground))",
+          deep:       "hsl(var(--warning-deep) / <alpha-value>)",
         },
         "urgency-low": "hsl(var(--urgency-low) / <alpha-value>)",
         info: {

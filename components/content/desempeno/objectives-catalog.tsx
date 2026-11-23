@@ -1,48 +1,41 @@
-import { ChevronDown, Target } from "lucide-react";
+"use client";
+
+import { Target } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { PositionSelector } from "./position-selector";
-import { evaluationStyles, SectionTitle } from "./presentation";
-import type { SavedEvaluationsContext } from "./use-saved-evaluations";
+import { evaluationStyles } from "./presentation";
+import { useObjectivesCatalog } from "./use-objectives-catalog";
 
 const COPY = {
-  title: "Catálogo de objetivos",
-  description: "Consulta los objetivos SMART de cada puesto.",
-  choose: "Selecciona un puesto para consultar sus objetivos.",
+  choose: "Selecciona un puesto para consultar sus objetivos SMART.",
   empty: "Sin objetivos para este puesto.",
-  specific: "Objetivos específicos definidos en el catálogo.",
-  generic: "Objetivos generales correspondientes al tipo de evaluación.",
+  specific: "Objetivos del puesto",
+  generic: "Generales por tipo",
 } as const;
 
-export function ObjectivesCatalog({ context }: { context: SavedEvaluationsContext }) {
-  const { puesto, objetivos, hasPuestoObjetivos } = context;
-  return (
-    <details className="group rounded-xl border bg-card text-card-foreground print:hidden">
-      <summary className="flex min-h-(--control-height) cursor-pointer list-none items-center gap-3 rounded-xl px-4 py-3 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden">
-        <Target className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="min-w-0 flex-1 space-y-1">
-          <span className="block text-label-sm">{COPY.title}</span>
-          <span className="block text-body-sm text-muted-foreground">{puesto || COPY.description}</span>
-        </span>
-        <ChevronDown className="size-4 shrink-0 group-open:rotate-180" aria-hidden="true" />
-      </summary>
-      <div className="grid items-start gap-4 border-t p-4 lg:grid-cols-3">
-        <PositionSelector context={context} />
-        <section className="min-w-0 space-y-3 lg:col-span-2">
-          {puesto ? <>
-            <div className="space-y-1">
-              <SectionTitle className="text-label-sm">{puesto}</SectionTitle>
-              <p className={evaluationStyles.caption}>{hasPuestoObjetivos ? COPY.specific : COPY.generic}</p>
-            </div>
-            {objetivos.length ? <ol className="divide-y rounded-md border">
-              {objetivos.map(obj => (
-                <li key={obj.numero} className="flex items-start gap-3 p-3 text-body-md">
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-xs font-medium tabular-nums text-muted-foreground" aria-hidden="true">{obj.numero}</span>
-                  <span className="min-w-0 break-words">{obj.descripcion}</span>
-                </li>
-              ))}
-            </ol> : <p className={evaluationStyles.description}>{COPY.empty}</p>}
-          </> : <p className="py-4 text-sm text-muted-foreground">{COPY.choose}</p>}
-        </section>
-      </div>
-    </details>
-  );
+/** Catálogo de objetivos SMART: el puesto y su origen en la barra; los objetivos debajo. */
+export function ObjectivesCatalog() {
+  const context = useObjectivesCatalog();
+  const { puesto, objetivos, hasPuestoObjetivos, tipoLabel } = context;
+  return <>
+    <div className="flex flex-wrap items-center gap-2">
+      <PositionSelector context={context} className="w-full sm:w-80" />
+      {puesto && <>
+        {tipoLabel && <Badge variant="secondary" className="capitalize">{tipoLabel}</Badge>}
+        <Badge variant={hasPuestoObjetivos ? "default" : "outline"}>{hasPuestoObjetivos ? COPY.specific : COPY.generic}</Badge>
+      </>}
+    </div>
+
+    <section aria-label="Objetivos del puesto" aria-live="polite">
+      {!puesto ? <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+        <Target className="size-6 text-muted-foreground" aria-hidden="true" />
+        <p className={evaluationStyles.description}>{COPY.choose}</p>
+      </div> : objetivos.length ? <ol className="divide-y rounded-xl border bg-card">
+        {objetivos.map(obj => <li key={obj.numero} className="flex items-start gap-3 px-(--table-cell-padding-x) py-(--table-cell-padding-y)">
+          <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-muted text-label-sm tabular-nums text-muted-foreground" aria-hidden="true">{obj.numero}</span>
+          <span className="min-w-0 break-words text-body-md text-foreground">{obj.descripcion}</span>
+        </li>)}
+      </ol> : <p className={evaluationStyles.description}>{COPY.empty}</p>}
+    </section>
+  </>;
 }

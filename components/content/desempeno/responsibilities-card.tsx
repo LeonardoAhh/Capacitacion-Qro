@@ -16,13 +16,11 @@ export function ResponsibilitiesCard({
     ponderacion,
   } = context;
   return <Card>
-    <CardHeader className="pb-3">
-      <div className={evaluationStyles.sectionHeader}>
-        <SectionTitle>{`${DESEMPENO.sections.cumplimiento} (${EVALUATION_WEIGHTS.cumplimiento * 100}%)`}</SectionTitle>
-      </div>
+    <CardHeader className="p-(--card-padding) pb-3">
+      <SectionTitle>{`${DESEMPENO.sections.cumplimiento} (${EVALUATION_WEIGHTS.cumplimiento * 100}%)`}</SectionTitle>
       <p className={evaluationStyles.description}>{DESEMPENO.descriptions.cumplimiento}</p>
     </CardHeader>
-    <CardContent>
+    <CardContent className="p-(--card-padding) pt-0">
       <div className="overflow-x-auto">
         <Table>
           <caption className="sr-only">Evaluación de Cumplimiento de Responsabilidades</caption>
