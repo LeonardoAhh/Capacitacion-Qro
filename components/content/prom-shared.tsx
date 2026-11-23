@@ -1,14 +1,7 @@
 "use client"
 
 import React from "react"
-import {
-  CircleCheck,
-  CircleX,
-  ClipboardPenLine,
-  ScanSearch,
-  ShieldAlert,
-  Timer,
-} from "lucide-react"
+import { CircleCheck, CircleX } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import type { BadgeProps } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,23 +10,19 @@ import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 
 // ─── Insignia de aptitud ───────────────────────────────────────────────────
 
-const aptitudCfg: Record<AptitudStatus, { label: string; icon: React.ElementType; variant: NonNullable<BadgeProps['variant']> }> = {
-  apto: { label: "Apto", icon: CircleCheck, variant: "success" },
-  no_apto: { label: "No Apto", icon: CircleX, variant: "error" },
-  pendiente: { label: "Espera", icon: Timer, variant: "secondary" },
-  pendiente_examen: { label: "Examen", icon: ClipboardPenLine, variant: "warning" },
-  en_revision: { label: "Revisión", icon: ScanSearch, variant: "info" },
-  bloqueado_examen: { label: "Penalizado", icon: ShieldAlert, variant: "destructive" },
+const aptitudCfg: Record<AptitudStatus, { label: string; variant: NonNullable<BadgeProps['variant']> }> = {
+  apto: { label: "Apto", variant: "success" },
+  no_apto: { label: "No Apto", variant: "error" },
+  pendiente: { label: "Espera", variant: "secondary" },
+  pendiente_examen: { label: "Examen", variant: "warning" },
+  en_revision: { label: "Revisión", variant: "info" },
+  bloqueado_examen: { label: "Penalizado", variant: "destructive" },
 }
 
 export function AptitudBadge({ status }: { status: AptitudStatus }) {
   const cfg = aptitudCfg[status]
-  const Icon = cfg.icon
   return (
-    <Badge variant={cfg.variant} className="min-w-24 justify-center px-2.5 py-0.5 text-center font-medium">
-      <Icon aria-hidden="true" className={`${PROMOTION_ICON.badge} shrink-0`} />
-      {cfg.label}
-    </Badge>
+    <Badge variant={cfg.variant} size="sm" className="font-medium">{cfg.label}</Badge>
   )
 }
 

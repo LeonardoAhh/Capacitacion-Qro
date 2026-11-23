@@ -104,7 +104,8 @@
         --menu-item-height: 2.75rem;
         --table-head-height: 3rem;
         --table-cell-padding-x: 1rem;
-        --table-cell-padding-y: 1rem;
+        /* Filas de dos líneas (nombre + detalle) compactas: el texto ya da la altura. */
+        --table-cell-padding-y: 0.625rem;
         --card-padding: 1.5rem;
         --workspace-content-padding-y: 1.25rem;
         /* Elevación nivel 2 — Floating (design.md) y velo de modales. */

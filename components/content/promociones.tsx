@@ -8,12 +8,9 @@ import {
   FileSpreadsheet,
   FileText,
   FilterX,
-  Search,
   SlidersHorizontal,
-  X,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   DropdownMenu,
@@ -30,7 +27,9 @@ import {
 } from "@/components/ui/tooltip"
 import { useRole } from "@/lib/hooks"
 import { ReadOnlyBanner } from "@/components/read-only-banner"
-import { PaginationBar } from "@/components/ui/pagination-bar"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { SearchInput } from "@/components/ui/search-input"
+import { TOOLBAR_FILTER } from "@/components/ui/tabs-toolbar"
 import type { ConfirmarPromocionInput, EmpleadoPromocion, ExamenPromocionInput } from "@/lib/promociones/types"
 import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 
@@ -43,7 +42,7 @@ import { PromPromoverDialog } from "./prom-promover-dialog"
 import { PromExamDialog } from "./prom-exam-dialog"
 import { PromReglasPreview, PromDatosPreview } from "./prom-import-tab"
 import { usePromocionesImport } from "@/lib/hooks/usePromocionesImport"
-import { DesktopTable, MobileList } from "./prom-table-rows"
+import { PromotionTable } from "./prom-table-rows"
 
 // Re-export types for backward compat (page.tsx may import from here)
 export type { AptitudStatus, CursoRequerido, ReglaPromocion, EvaluacionDesempeño, EmpleadoPromocion } from "@/lib/promociones/types"
@@ -177,55 +176,39 @@ export default function PromocionesContent({
         />
       )}
 
-      <div className="flex min-w-0 items-center gap-2 overflow-x-auto pb-1">
-        <div className="relative min-w-[220px] flex-1">
-          <Search aria-hidden="true" className={`absolute left-3 top-1/2 -translate-y-1/2 ${PROMOTION_ICON.control} text-muted-foreground`} />
-          <Input
-            placeholder="Buscar empleado, puesto, número..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            className={`h-(--control-height) w-full pl-9 text-sm ${busqueda ? "pr-11" : ""}`}
-          />
-          {busqueda && (
-            <button
-              type="button"
-              aria-label="Limpiar búsqueda"
-              onClick={() => setBusqueda("")}
-              className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            >
-              <X aria-hidden="true" className={PROMOTION_ICON.control} />
-            </button>
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-2">
+      {/* Barra única: búsqueda y filtros a la izquierda; descargar, reglas y página a la derecha.
+          Se acomoda en varias líneas si no cabe (sin scroll horizontal). */}
+      <div className="flex flex-wrap items-center gap-2">
+        <SearchInput value={busqueda} onValueChange={setBusqueda} label="Buscar empleado, puesto o número"
+          placeholder="Buscar empleado, puesto, número…" className="w-full sm:w-64" />
             <Select value={filtroDept} onValueChange={setFiltroDept}>
-              <SelectTrigger className="h-(--control-height) w-[140px] text-sm">
+              <SelectTrigger aria-label="Filtrar por departamento" className={TOOLBAR_FILTER}>
                 <SelectValue placeholder="Departamento" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">DEPTOS.</SelectItem>
+                <SelectItem value="todos">Departamentos</SelectItem>
                 {departamentos.map((d) => (
                   <SelectItem key={d} value={d}>{d}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={filtroPuesto} onValueChange={setFiltroPuesto}>
-              <SelectTrigger className="h-(--control-height) w-[150px] text-sm">
+              <SelectTrigger aria-label="Filtrar por puesto" className={TOOLBAR_FILTER}>
                 <SelectValue placeholder="Puesto" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">PUESTOS</SelectItem>
+                <SelectItem value="todos">Puestos</SelectItem>
                 {puestos.map((p) => (
                   <SelectItem key={p} value={p}>{p}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger className="h-(--control-height) w-[130px] text-sm">
+              <SelectTrigger aria-label="Filtrar por estado" className={TOOLBAR_FILTER}>
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="todos">ESTADOS</SelectItem>
+                <SelectItem value="todos">Estados</SelectItem>
                 <SelectItem value="apto">Apto</SelectItem>
                 <SelectItem value="no_apto">No Apto</SelectItem>
                 <SelectItem value="pendiente">Espera</SelectItem>
@@ -238,24 +221,22 @@ export default function PromocionesContent({
               <Button
                 variant="ghost"
                 size="icon"
-                className="size-(--control-height)"
                 onClick={() => { setBusqueda(""); setFiltroDept("todos"); setFiltroStatus("todos"); setFiltroPuesto("todos") }}
                 aria-label="Limpiar filtros"
-                title="Limpiar filtros"
               >
-                <FilterX aria-hidden="true" className={PROMOTION_ICON.control} />
+                <FilterX aria-hidden="true" />
               </Button>
             )}
+        <div className="ml-auto flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-(--control-height) gap-1.5 px-3 text-sm"
                   disabled={exporting || todosOrdenados.length === 0}
                   data-testid="promociones-export-trigger"
                 >
-                  <Download aria-hidden="true" className={PROMOTION_ICON.control} />
+                  <Download aria-hidden="true" />
                   <span>{exporting ? "Generando…" : "Descargar"}</span>
                 </Button>
               </DropdownMenuTrigger>
@@ -275,12 +256,15 @@ export default function PromocionesContent({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button asChild variant="outline" size="sm" className="h-(--control-height) gap-1.5 px-3 text-sm">
+            <Button asChild variant="outline" size="sm">
               <Link href="/promociones/reglas">
-                <SlidersHorizontal aria-hidden="true" className={PROMOTION_ICON.control} />
+                <SlidersHorizontal aria-hidden="true" />
                 <span>Reglas</span>
               </Link>
             </Button>
+            {empleados.length > 0 && todosOrdenados.length > 0 && (
+              <CompactPager label="Paginación de empleados" page={pagina} totalPages={totalPaginas} onPageChange={setPagina} />
+            )}
         </div>
       </div>
 
@@ -299,7 +283,7 @@ export default function PromocionesContent({
         <div className="text-center py-10 text-muted-foreground text-sm">Sin resultados para los filtros aplicados</div>
       ) : (
         <>
-          <MobileList
+          <PromotionTable
             conCategoria={paginadosConCategoria}
             sinCategoria={paginadosSinCategoria}
             onPromover={setEmpleadoPromover}
@@ -307,17 +291,6 @@ export default function PromocionesContent({
             onDesempeño={setEmpleadoDesempeño}
           />
 
-          <DesktopTable
-            conCategoria={paginadosConCategoria}
-            sinCategoria={paginadosSinCategoria}
-            onPromover={setEmpleadoPromover}
-            onCapturarExamen={setEmpleadoExamen}
-            onDesempeño={setEmpleadoDesempeño}
-          />
-
-          {totalPaginas > 1 && (
-            <PaginationBar currentPage={pagina} totalPages={totalPaginas} onPageChange={setPagina} />
-          )}
         </>
       )}
 

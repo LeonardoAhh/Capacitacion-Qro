@@ -1,587 +1,138 @@
 "use client"
 
-import {
-  CircleCheck,
-  CircleX,
-} from "lucide-react"
+import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { EmpleadoPromocion } from "@/lib/promociones/types"
-import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
-import {
-  formatShortPromotionDate,
-  getCriterionTone,
-  getUnavailableCategoryLabel,
-  PROMOTION_TABLE_COPY,
-  PROMOTION_TABLE_STYLE,
-} from "@/lib/promociones/table-config"
+import { getCriterionTone, getUnavailableCategoryLabel, PROMOTION_TABLE_COPY as COPY } from "@/lib/promociones/table-config"
 import { formatMeses, ultimaEvaluacion } from "@/lib/promociones/utils"
 import { getPromotionRowView } from "@/lib/promociones/table-view"
+import { cn } from "@/lib/utils"
 import { AptitudBadge } from "./prom-shared"
 import { PromAccionesMenu } from "./prom-acciones-menu"
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+/**
+ * Columnas por ancho de pantalla, con ancho fijo y texto en una línea: Empleado
+ * toma el resto. En móvil quedan Empleado, Estado y Acciones; los criterios van
+ * en una línea debajo del nombre.
+ */
+const COL = {
+  department: "hidden w-44 xl:table-cell",
+  tenure: "hidden w-32 lg:table-cell",
+  courses: "hidden w-20 md:table-cell",
+  performance: "hidden w-24 md:table-cell",
+  exam: "hidden w-20 lg:table-cell",
+  status: "w-28",
+  actions: "w-14 px-1",
+} as const
 
-const LABEL_CLASS = PROMOTION_TABLE_STYLE.mobileMetricLabel
-const MIN_CLASS = PROMOTION_TABLE_STYLE.supportingText
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+const NUMBER = "text-right text-body-sm tabular-nums"
 
-// ─── Desktop Table ──────────────────────────────────────────────────────────
-
-export function DesktopTable({
-  conCategoria,
-  sinCategoria,
-  onPromover,
-  onCapturarExamen,
-  onDesempeño,
-}: {
-  conCategoria: EmpleadoPromocion[]
-  sinCategoria: EmpleadoPromocion[]
+interface Handlers {
   onPromover: (emp: EmpleadoPromocion) => void
   onCapturarExamen: (emp: EmpleadoPromocion) => void
   onDesempeño: (emp: EmpleadoPromocion) => void
-}) {
-  return (
-    <div className="hidden overflow-hidden rounded-xl border border-border bg-card md:block">
-      <Table aria-label={PROMOTION_TABLE_COPY.accessibleName} className="min-w-[64rem] [&_td]:!px-4 [&_td]:!py-2">
-        <TableHeader className="[&_th]:h-(--table-head-height) [&_th]:py-0 [&_th]:text-sm [&_th]:font-medium">
-          <TableRow className="bg-muted">
-            <TableHead>{PROMOTION_TABLE_COPY.employee}</TableHead>
-            <TableHead>{PROMOTION_TABLE_COPY.department}</TableHead>
-            <TableHead className="text-center">
-              <Tooltip>
-                <TooltipTrigger className="mx-auto flex items-center gap-1 cursor-default">
-                  {PROMOTION_TABLE_COPY.tenure}
-                </TooltipTrigger>
-                <TooltipContent>{PROMOTION_TABLE_COPY.tenureHelp}</TooltipContent>
-              </Tooltip>
-            </TableHead>
-            <TableHead className="text-center">{PROMOTION_TABLE_COPY.courses}</TableHead>
-            <TableHead className="text-center">{PROMOTION_TABLE_COPY.performance}</TableHead>
-            <TableHead className="text-center">{PROMOTION_TABLE_COPY.exam}</TableHead>
-            <TableHead>{PROMOTION_TABLE_COPY.status}</TableHead>
-            <TableHead className="w-16 text-right">{PROMOTION_TABLE_COPY.actions}</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {conCategoria.map((emp) => (
-            <DesktopRow
-              key={emp.id}
-              emp={emp}
-              onPromover={() => onPromover(emp)}
-              onCapturarExamen={() => onCapturarExamen(emp)}
-              onDesempeño={() => onDesempeño(emp)}
-            />
-          ))}
-          {sinCategoria.length > 0 && (
-            <TableRow>
-              <TableCell colSpan={8} className="bg-muted/50 py-2">
-                  <span className="text-xs font-medium text-muted-foreground">
-                  {PROMOTION_TABLE_COPY.unavailableGroup}
-                </span>
-              </TableCell>
-            </TableRow>
-          )}
-          {sinCategoria.map((emp) => (
-            <DesktopRowInhabilitado
-              key={emp.id}
-              emp={emp}
-              onDesempeño={() => onDesempeño(emp)}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
 }
 
-// ─── Mobile List ────────────────────────────────────────────────────────────
-
-export function MobileList({
-  conCategoria,
-  sinCategoria,
-  onPromover,
-  onCapturarExamen,
-  onDesempeño,
-}: {
-  conCategoria: EmpleadoPromocion[]
-  sinCategoria: EmpleadoPromocion[]
-  onPromover: (emp: EmpleadoPromocion) => void
-  onCapturarExamen: (emp: EmpleadoPromocion) => void
-  onDesempeño: (emp: EmpleadoPromocion) => void
-}) {
-  return (
-    <ul className="flex flex-col gap-2 md:hidden" aria-label={PROMOTION_TABLE_COPY.accessibleName}>
-      {conCategoria.map((emp) => (
-        <MobileRow
-          key={emp.id}
-          emp={emp}
-          onPromover={() => onPromover(emp)}
-          onCapturarExamen={() => onCapturarExamen(emp)}
-          onDesempeño={() => onDesempeño(emp)}
-        />
-      ))}
-      {sinCategoria.length > 0 && (
-        <li className="mt-1 flex items-center gap-2 px-1 py-1">
-          <div className="h-px flex-1 bg-muted" />
-          <span className="text-xs text-muted-foreground">
-            {PROMOTION_TABLE_COPY.unavailableGroup}
-          </span>
-          <div className="h-px flex-1 bg-muted" />
-        </li>
-      )}
-      {sinCategoria.map((emp) => (
-        <MobileCardInhabilitado
-          key={emp.id}
-          emp={emp}
-          onDesempeño={() => onDesempeño(emp)}
-        />
-      ))}
-    </ul>
-  )
+/** Valor de un criterio: en rojo solo si no cumple (el color no es la única señal). */
+function Criterio({ value, cumple }: { value: ReactNode; cumple: boolean | null }) {
+  return <span className={getCriterionTone(cumple)}>
+    {value}{cumple === false && <span className="sr-only"> ({COPY.doesNotMeet.toLowerCase()})</span>}
+  </span>
 }
 
-// ─── Desktop Row ────────────────────────────────────────────────────────────
-
-function DesktopRow({
-  emp,
-  onPromover,
-  onCapturarExamen,
-  onDesempeño,
-}: {
-  emp: EmpleadoPromocion
-  onPromover: () => void
-  onCapturarExamen: () => void
-  onDesempeño: () => void
-}) {
-  const {
-    aptitud,
-    regla,
-    meses,
-    porcentajeCompletado: pctCursos,
-    cursosCompletados,
-    evaluacion: evalActual,
-    cumpleTemporalidad: cumpleTemp,
-    cumpleCursos,
-    cumpleEvaluacion: cumpleEval,
-    cumpleExamen,
-  } = getPromotionRowView(emp)
-
-  return (
-      <TableRow>
-        <TableCell>
-          <div className="text-sm font-medium text-foreground">
-            {emp.numero && <span className="text-muted-foreground font-normal mr-1.5">#{emp.numero}</span>}
-            {emp.nombre}
-          </div>
-          <div className="mt-1 text-xs text-muted-foreground">{emp.puesto}</div>
-        </TableCell>
-        <TableCell>
-          <div className="text-sm text-foreground">
-            {emp.departamento}
-          </div>
-          {emp.area && emp.area !== emp.departamento && (
-            <div className="mt-1 text-xs text-muted-foreground">{emp.area}</div>
-          )}
-        </TableCell>
-        <TableCell className="text-center">
-          {cumpleTemp !== null ? (
-            <Tooltip>
-              <TooltipTrigger
-                className="cursor-default inline-flex items-center justify-center"
-                aria-label={`${cumpleTemp ? PROMOTION_TABLE_COPY.meets : PROMOTION_TABLE_COPY.doesNotMeet} ${PROMOTION_TABLE_COPY.tenure.toLowerCase()}: ${formatMeses(meses)}`}
-              >
-                {cumpleTemp ? (
-                  <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.control} text-success`} />
-                ) : (
-                  <CircleX aria-hidden="true" className={`${PROMOTION_ICON.control} text-destructive`} />
-                )}
-                <span className="ml-1 text-sm text-foreground">{formatMeses(meses)}</span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p className="font-medium">{formatMeses(meses)}</p>
-                {regla && <p className="mt-1 text-xs text-muted-foreground">{PROMOTION_TABLE_COPY.required}: {formatMeses(regla.minTemporalidadMeses)}</p>}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className="text-sm text-foreground whitespace-nowrap">
-              {formatMeses(meses)}
-            </span>
-          )}
-        </TableCell>
-        <TableCell className="text-center">
-          <Tooltip>
-            <TooltipTrigger className="cursor-default inline-flex items-center justify-center gap-1.5">
-              {cumpleCursos !== null &&
-                (cumpleCursos ? (
-                  <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.control} shrink-0 text-success`} />
-                ) : (
-                  <CircleX aria-hidden="true" className={`${PROMOTION_ICON.control} shrink-0 text-destructive`} />
-                ))}
-              <span
-                className={`text-sm font-medium ${getCriterionTone(cumpleCursos)}`}
-              >
-                {pctCursos}%
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p className="font-medium">
-                {cursosCompletados} de {emp.cursosRequeridos.length} cursos completados
-              </p>
-              {regla && (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {PROMOTION_TABLE_COPY.required}: {regla.minPorcentajeCursos}%
-                </p>
-              )}
-            </TooltipContent>
-          </Tooltip>
-        </TableCell>
-        <TableCell className="text-center">
-          {evalActual ? (
-            <Tooltip>
-              <TooltipTrigger className="cursor-default inline-flex items-center justify-center gap-1.5">
-                {cumpleEval !== null &&
-                  (cumpleEval ? (
-                    <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.control} shrink-0 text-success`} />
-                  ) : (
-                    <CircleX aria-hidden="true" className={`${PROMOTION_ICON.control} shrink-0 text-destructive`} />
-                  ))}
-                <span
-                  className={`text-sm font-medium ${getCriterionTone(cumpleEval)}`}
-                >
-                  {evalActual.calificacion}
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                {evalActual.periodo && <p className="font-medium uppercase tracking-wide">{evalActual.periodo}</p>}
-                {regla && (
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {PROMOTION_TABLE_COPY.required}: {regla.minCalificacionEvaluacion}
-                  </p>
-                )}
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              {PROMOTION_TABLE_COPY.noEvaluation}
-            </span>
-          )}
-        </TableCell>
-        <TableCell className="text-center">
-          {emp.calificacionExamen != null ? (
-            <div className="flex flex-col items-center justify-center leading-tight">
-              <span
-                className={`text-sm font-medium ${
-                  getCriterionTone(cumpleExamen)
-                }`}
-              >
-                {emp.calificacionExamen}
-              </span>
-              {emp.fechaExamenGuardada && (
-                <span className={PROMOTION_TABLE_STYLE.supportingText}>
-                  {formatShortPromotionDate(emp.fechaExamenGuardada)}
-                </span>
-              )}
-            </div>
-          ) : (
-            <span className="text-xs text-muted-foreground">
-              {PROMOTION_TABLE_COPY.unavailableValue}
-            </span>
-          )}
-        </TableCell>
-        <TableCell>
-          <AptitudBadge status={aptitud} />
-        </TableCell>
-        <TableCell className="text-right">
-          <PromAccionesMenu
-            empleado={emp}
-            onPromover={onPromover}
-            onCapturarExamen={onCapturarExamen}
-            onDesempeño={onDesempeño}
-          />
-        </TableCell>
-      </TableRow>
-  )
+function EmployeeCell({ emp, metrics }: { emp: EmpleadoPromocion; metrics?: ReactNode }) {
+  return <TableCell>
+    <span className="block truncate text-label-sm text-foreground">{emp.nombre}</span>
+    <span className="block truncate text-body-sm text-muted-foreground">
+      {[emp.numero && `#${emp.numero}`, emp.puesto].filter(Boolean).join(" · ")}
+    </span>
+    {metrics && <span className="block truncate text-body-sm text-muted-foreground md:hidden">{metrics}</span>}
+  </TableCell>
 }
 
-// ─── Desktop Row Inhabilitado ───────────────────────────────────────────────
-
-function DesktopRowInhabilitado({
-  emp,
-  onDesempeño,
-}: {
-  emp: EmpleadoPromocion
-  onDesempeño: () => void
-}) {
-  const evalActual = ultimaEvaluacion(emp.evaluaciones)
-  return (
-    <TableRow className="bg-muted/20">
-      <TableCell>
-        <div className="text-sm font-medium text-foreground">
-          {emp.numero && <span className="text-muted-foreground font-normal mr-1.5">#{emp.numero}</span>}
-          {emp.nombre}
-        </div>
-        <div className="mt-1 text-xs text-muted-foreground">{emp.puesto}</div>
-      </TableCell>
-      <TableCell>
-        <span className="text-sm text-muted-foreground">{emp.departamento}</span>
-      </TableCell>
-      <UnavailableCell />
-      <UnavailableCell />
-      <TableCell className="text-center">
-        {evalActual ? (
-          <span
-            className="text-sm font-medium text-foreground"
-          >
-            {evalActual.calificacion}
-          </span>
-        ) : (
-          <span className="text-xs text-muted-foreground">
-            {PROMOTION_TABLE_COPY.noEvaluation}
-          </span>
-        )}
-      </TableCell>
-      <UnavailableCell />
-      <TableCell>
-        <Badge
-          variant="outline"
-          className="text-xs text-muted-foreground border-border"
-        >
-          {getUnavailableCategoryLabel(emp.puesto)}
-        </Badge>
-      </TableCell>
-      <TableCell className="text-right">
-          <PromAccionesMenu
-            empleado={emp}
-            onDesempeño={onDesempeño}
-          />
-        </TableCell>
-      </TableRow>
-  )
+function DepartmentCell({ emp }: { emp: EmpleadoPromocion }) {
+  return <TableCell className={COL.department}>
+    <span className="block truncate text-body-sm text-foreground">{emp.departamento}</span>
+    {emp.area && emp.area !== emp.departamento && <span className="block truncate text-body-sm text-muted-foreground">{emp.area}</span>}
+  </TableCell>
 }
 
-// ─── Mobile Row ────────────────────────────────────────────────────────────
-
-function MobileRow({
-  emp,
-  onPromover,
-  onCapturarExamen,
-  onDesempeño,
-}: {
-  emp: EmpleadoPromocion
-  onPromover: () => void
-  onCapturarExamen: () => void
-  onDesempeño: () => void
-}) {
-  const {
-    aptitud,
-    regla,
-    meses,
-    porcentajeCompletado: pctCursos,
-    cursosCompletados,
-    evaluacion: evalActual,
-    cumpleTemporalidad: cumpleTemp,
-    cumpleCursos,
-    cumpleEvaluacion: cumpleEval,
-    cumpleExamen,
-  } = getPromotionRowView(emp)
-
-  return (
-    <li className="w-full rounded-xl border bg-background px-4 py-3 text-left">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm text-foreground leading-tight">
-            {emp.numero && <span className="text-muted-foreground font-normal mr-1.5">#{emp.numero}</span>}
-            {emp.nombre}
-          </h3>
-          <div className="text-xs text-muted-foreground leading-tight mt-0.5">
-            {emp.puesto}
-          </div>
-        </div>
-        <PromAccionesMenu
-          empleado={emp}
-          onPromover={onPromover}
-          onCapturarExamen={onCapturarExamen}
-          onDesempeño={onDesempeño}
-        />
-      </div>
-
-      <div className="mb-3 mt-2 flex items-center justify-between gap-2">
-        <p className="text-xs text-muted-foreground">{emp.departamento}</p>
-        <AptitudBadge status={aptitud} />
-      </div>
-
-      <div className={`${PROMOTION_TABLE_STYLE.mobileMetricGrid} text-xs`}>
-        <MetricaMobile
-          label={PROMOTION_TABLE_COPY.tenure}
-          cumple={cumpleTemp}
-          valor={formatMeses(meses)}
-          min={regla ? `${PROMOTION_TABLE_COPY.minimum} ${formatMeses(regla.minTemporalidadMeses)}` : undefined}
-        />
-        <div className="flex flex-col gap-0.5">
-          <span className={LABEL_CLASS}>{PROMOTION_TABLE_COPY.courses}</span>
-          <div className="flex items-center gap-1">
-            {cumpleCursos !== null &&
-              (cumpleCursos ? (
-                <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-success`} />
-              ) : (
-                <CircleX aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-destructive`} />
-              ))}
-            <span
-              className={`font-semibold ${getCriterionTone(cumpleCursos)}`}
-            >
-              {pctCursos}%
-            </span>
-            <span className="text-muted-foreground">
-              ({cursosCompletados}/
-              {emp.cursosRequeridos.length})
-            </span>
-          </div>
-          <Progress value={pctCursos} className="h-1 mt-0.5" />
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className={LABEL_CLASS}>{PROMOTION_TABLE_COPY.performance}</span>
-          <div className="flex items-center gap-1">
-            {evalActual ? (
-              <>
-                {cumpleEval !== null &&
-                  (cumpleEval ? (
-                    <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-success`} />
-                  ) : (
-                    <CircleX aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-destructive`} />
-                  ))}
-                <span
-                  className={`font-semibold ${getCriterionTone(cumpleEval)}`}
-                >
-                  {evalActual.calificacion}
-                </span>
-              </>
-            ) : (
-              <span className="italic text-muted-foreground">{PROMOTION_TABLE_COPY.noEvaluation}</span>
-            )}
-          </div>
-          {regla && (
-            <span className={MIN_CLASS}>{PROMOTION_TABLE_COPY.minimum} {regla.minCalificacionEvaluacion}</span>
-          )}
-        </div>
-        <div className="flex flex-col gap-0.5">
-          <span className={LABEL_CLASS}>{PROMOTION_TABLE_COPY.exam}</span>
-          <div className="flex items-center gap-1">
-            {emp.calificacionExamen != null ? (
-              <div className="flex flex-col">
-                <span
-                  className={`font-semibold ${
-                    getCriterionTone(cumpleExamen)
-                  }`}
-                >
-                  {emp.calificacionExamen}
-                </span>
-                {emp.fechaExamenGuardada && (
-                  <span className={`${PROMOTION_TABLE_STYLE.supportingText} mt-1 leading-none`}>
-                    {formatShortPromotionDate(emp.fechaExamenGuardada)}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <span className="italic text-muted-foreground">{PROMOTION_TABLE_COPY.unavailableValue}</span>
-            )}
-          </div>
-          {regla?.minCalificacionExamen != null && (
-            <span className={MIN_CLASS}>{PROMOTION_TABLE_COPY.minimum} {regla.minCalificacionExamen}</span>
-          )}
-        </div>
-      </div>
-
-    </li>
-  )
-}
-
-// ─── Mobile Metric ──────────────────────────────────────────────────────────
-
-function MetricaMobile({
-  label,
-  cumple,
-  valor,
-  min,
-}: {
-  label: string
-  cumple: boolean | null
-  valor: string
-  min?: string
-}) {
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className={LABEL_CLASS}>{label}</span>
-      <div className="flex items-center gap-1">
-        {cumple !== null &&
-          (cumple ? (
-            <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-success`} />
-          ) : (
-            <CircleX aria-hidden="true" className={`${PROMOTION_ICON.metric} shrink-0 text-destructive`} />
-          ))}
-        <span className="font-medium text-foreground">{valor}</span>
-      </div>
-      {min && <span className={MIN_CLASS}>{min}</span>}
-    </div>
-  )
-}
-
-function UnavailableCell() {
-  return (
-    <TableCell className="text-center text-muted-foreground">
-      <span aria-hidden="true">{PROMOTION_TABLE_COPY.unavailableValue}</span>
-      <span className="sr-only">{PROMOTION_TABLE_COPY.notApplicable}</span>
+function Row({ emp, onPromover, onCapturarExamen, onDesempeño }: { emp: EmpleadoPromocion } & Handlers) {
+  const view = getPromotionRowView(emp)
+  const cursos = <Criterio value={`${view.porcentajeCompletado}%`} cumple={view.cumpleCursos} />
+  const desempeno = view.evaluacion ? <Criterio value={view.evaluacion.calificacion} cumple={view.cumpleEvaluacion} /> : COPY.noEvaluation
+  return <TableRow>
+    <EmployeeCell emp={emp} metrics={<>{COPY.courses} {cursos} · {COPY.performance} {desempeno}</>} />
+    <DepartmentCell emp={emp} />
+    <TableCell className={cn(COL.tenure, "text-body-sm")}><Criterio value={formatMeses(view.meses)} cumple={view.cumpleTemporalidad} /></TableCell>
+    <TableCell className={cn(COL.courses, NUMBER)}>{cursos}</TableCell>
+    <TableCell className={cn(COL.performance, NUMBER, !view.evaluacion && "text-muted-foreground")}>{desempeno}</TableCell>
+    <TableCell className={cn(COL.exam, NUMBER)}>
+      {emp.calificacionExamen != null ? <Criterio value={emp.calificacionExamen} cumple={view.cumpleExamen} /> : <span className="text-muted-foreground">{COPY.unavailableValue}</span>}
     </TableCell>
-  )
+    <TableCell className={COL.status}><AptitudBadge status={view.aptitud} /></TableCell>
+    <TableCell className={cn(COL.actions, "text-center")}>
+      <PromAccionesMenu empleado={emp} onPromover={() => onPromover(emp)} onCapturarExamen={() => onCapturarExamen(emp)} onDesempeño={() => onDesempeño(emp)} />
+    </TableCell>
+  </TableRow>
 }
 
-// ─── Mobile Card Inhabilitado ───────────────────────────────────────────────
+/** Sin categoría para promover: solo se consulta el desempeño. */
+function UnavailableRow({ emp, onDesempeño }: { emp: EmpleadoPromocion; onDesempeño: Handlers["onDesempeño"] }) {
+  const evaluacion = ultimaEvaluacion(emp.evaluaciones)
+  const empty = <span className="text-muted-foreground"><span aria-hidden="true">{COPY.unavailableValue}</span><span className="sr-only">{COPY.notApplicable}</span></span>
+  return <TableRow>
+    <EmployeeCell emp={emp} />
+    <DepartmentCell emp={emp} />
+    <TableCell className={cn(COL.tenure, "text-body-sm")}>{empty}</TableCell>
+    <TableCell className={cn(COL.courses, NUMBER)}>{empty}</TableCell>
+    <TableCell className={cn(COL.performance, NUMBER, !evaluacion && "text-muted-foreground")}>{evaluacion?.calificacion ?? COPY.noEvaluation}</TableCell>
+    <TableCell className={cn(COL.exam, NUMBER)}>{empty}</TableCell>
+    <TableCell className={COL.status}><Badge variant="outline" size="sm" className="text-muted-foreground">{getUnavailableCategoryLabel(emp.puesto)}</Badge></TableCell>
+    <TableCell className={cn(COL.actions, "text-center")}><PromAccionesMenu empleado={emp} onDesempeño={() => onDesempeño(emp)} /></TableCell>
+  </TableRow>
+}
 
-function MobileCardInhabilitado({
-  emp,
-  onDesempeño,
-}: {
-  emp: EmpleadoPromocion
-  onDesempeño: () => void
-}) {
-  const evalActual = ultimaEvaluacion(emp.evaluaciones)
-  return (
-    <li className="rounded-xl border bg-muted/30 px-4 py-3">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h3 className="font-semibold text-sm text-foreground leading-tight">
-            {emp.numero && <span className="text-muted-foreground font-normal mr-1.5">#{emp.numero}</span>}
-            {emp.nombre}
-          </h3>
-          <div className="text-xs text-muted-foreground leading-tight mt-0.5">
-            {emp.puesto}
-          </div>
-        </div>
-        <PromAccionesMenu empleado={emp} onDesempeño={onDesempeño} />
-      </div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span>{emp.departamento}</span>
-        </div>
-        <Badge variant="outline" className="shrink-0 border-border text-xs text-muted-foreground">
-          {getUnavailableCategoryLabel(emp.puesto)}
-        </Badge>
-      </div>
-      <p className="mt-2 text-xs text-muted-foreground">
-        {PROMOTION_TABLE_COPY.performance}: {evalActual?.calificacion ?? PROMOTION_TABLE_COPY.noEvaluation}
-      </p>
-    </li>
-  )
+function PromotionTableFrame({ label, children }: { label: string; children: ReactNode }) {
+  return <div className="overflow-hidden rounded-xl border bg-card">
+    <Table aria-label={label} className="table-fixed">
+      <TableHeader className="bg-muted/50">
+        <TableRow className="hover:bg-transparent">
+          <TableHead className={HEAD}>{COPY.employee}</TableHead>
+          <TableHead className={cn(HEAD, COL.department)}>{COPY.department}</TableHead>
+          <TableHead className={cn(HEAD, COL.tenure)}>{COPY.tenure}</TableHead>
+          <TableHead className={cn(HEAD, COL.courses, "text-right")}>{COPY.courses}</TableHead>
+          <TableHead className={cn(HEAD, COL.performance, "text-right")}>{COPY.performance}</TableHead>
+          <TableHead className={cn(HEAD, COL.exam, "text-right")}>{COPY.exam}</TableHead>
+          <TableHead className={cn(HEAD, COL.status)}>{COPY.status}</TableHead>
+          <TableHead className={COL.actions}><span className="sr-only">{COPY.actions}</span></TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>{children}</TableBody>
+    </Table>
+  </div>
+}
+
+/**
+ * Seguimiento de promociones: una tabla para todas las pantallas. Quienes no
+ * tienen categoría para promover van en una segunda tabla con su propio rótulo
+ * (sin filas que abarquen columnas ocultas).
+ */
+export function PromotionTable({ conCategoria, sinCategoria, ...handlers }: {
+  conCategoria: EmpleadoPromocion[]
+  sinCategoria: EmpleadoPromocion[]
+} & Handlers) {
+  return <div className="space-y-4">
+    {conCategoria.length > 0 && <PromotionTableFrame label={COPY.accessibleName}>
+      {conCategoria.map(emp => <Row key={emp.id} emp={emp} {...handlers} />)}
+    </PromotionTableFrame>}
+    {sinCategoria.length > 0 && <section aria-label={COPY.unavailableGroup} className="space-y-2">
+      <p className="text-eyebrow uppercase text-muted-foreground">{COPY.unavailableGroup}</p>
+      <PromotionTableFrame label={COPY.unavailableGroup}>
+        {sinCategoria.map(emp => <UnavailableRow key={emp.id} emp={emp} onDesempeño={handlers.onDesempeño} />)}
+      </PromotionTableFrame>
+    </section>}
+  </div>
 }

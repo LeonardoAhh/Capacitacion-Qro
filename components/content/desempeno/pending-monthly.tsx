@@ -1,12 +1,15 @@
 "use client";
 
-import { Layers, CheckCircle2 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+import { CheckCircle2 } from "lucide-react";
 import { Dialog } from "@/components/ui/dialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { usePendingEvals, type EmployeePending } from "@/lib/hooks/usePendingEvals";
+import { cn } from "@/lib/utils";
 import { DepartmentPage } from "./department-page";
 import { DetailModal } from "./pending-detail";
-import { EmployeeBadge } from "./pending-employee";
+import { PendingName, PendingTable } from "./pending-table";
+
 interface MensualProps {
   loading: boolean;
   deptGroups: ReturnType<typeof usePendingEvals>["deptGroups"];
@@ -16,95 +19,108 @@ interface MensualProps {
   selectedId: string | null;
   onSelectId: (id: string | null) => void;
 }
-export function VistaMensual({
-  loading,
-  deptGroups,
-  totalEmployees,
-  activeTab,
-  direction,
-  selectedId,
-  onSelectId
-}: MensualProps) {
-  const activeGroup = deptGroups.find(g => g.departamento === activeTab) ?? null;
-  return <div className="space-y-4">
-    {/* All-clear */}
-    {!loading && totalEmployees === 0 && <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/5 py-8 text-success">
-      <CheckCircle2 className="size-6 opacity-70" aria-hidden="true" />
-      <p className="text-sm font-medium">¡Todo al día! Sin evaluaciones pendientes.</p>
-    </div>}
 
-    {(loading || deptGroups.length > 0) && <div className="space-y-4">
-      {loading ? <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({
-            length: 8
-          }).map((_, i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
-        </div> : activeGroup ? <DepartmentPage pageKey={activeGroup.departamento} direction={direction}>
-          <div className="space-y-3">
-          <div className="space-y-4">
-            {(() => {
-              const getGroupKey = (item: EmployeePending) => {
-                const cleanString = (str: string) => {
-                  return str.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Quitar acentos
-                  .replace(/[^A-Z0-9\s]/g, "") // Quitar puntuación (puntos, comas, guiones)
-                  .replace(/\s+/g, " ") // Normalizar espacios
-                  .trim();
-                };
-                const parts = [];
-                if (item.area && item.area.trim() !== "" && item.area !== "N/A") {
-                  parts.push(cleanString(item.area));
-                }
-                if (item.turno && item.turno.trim() !== "" && item.turno !== "N/A") {
-                  const t = cleanString(item.turno);
-                  parts.push(t.startsWith("TURNO") ? t : `TURNO ${t}`);
-                }
-                return parts.length > 0 ? parts.join(" · ") : "GENERAL";
-              };
-              const grouped = activeGroup.items.reduce((acc, item) => {
-                const key = getGroupKey(item);
-                if (!acc[key]) acc[key] = [];
-                acc[key].push(item);
-                return acc;
-              }, {} as Record<string, EmployeePending[]>);
-              const sortedKeys = Object.keys(grouped).sort((a, b) => {
-                if (a === "GENERAL") return 1;
-                if (b === "GENERAL") return -1;
-                return a.localeCompare(b, "es");
-              });
-              return sortedKeys.map(key => <div key={key} className="space-y-2">
-                  <h4 className="flex items-center gap-2 text-eyebrow uppercase text-muted-foreground">
-                    <Layers className="size-3.5" aria-hidden="true" />
-                    {key}
-                    <span className="text-xs font-normal opacity-70">({grouped[key].length})</span>
-                  </h4>
-                  <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
-                    {grouped[key].map(item => <EmployeeBadge key={item.dbId} item={item} isSelected={selectedId === item.dbId} onSelect={() => onSelectId(selectedId === item.dbId ? null : item.dbId)} />)}
-                  </div>
-                </div>);
-            })()}
-          </div>
+const GENERAL = "GENERAL";
 
-          <Dialog open={!!selectedId} onOpenChange={open => !open && onSelectId(null)}>
-            {(() => {
-              const current = activeGroup.items.find(i => i.dbId === selectedId);
-              return current ? <DetailModal key={current.dbId} item={current} /> : null;
-            })()}
-          </Dialog>
-          </div>
-        </DepartmentPage> : null}
-    </div>}
-  </div>;
+const normalizar = (value: string) => value.toUpperCase().normalize("NFD")
+  .replace(/[̀-ͯ]/g, "")   // acentos
+  .replace(/[^A-Z0-9\s]/g, "")       // puntuación
+  .replace(/\s+/g, " ")
+  .trim();
+
+const valido = (value: string | null): value is string => Boolean(value && value.trim() && value !== "N/A");
+
+/** Grupo de la persona: área y turno ("ALMACEN · TURNO 1"); sin datos, GENERAL. */
+function grupoDe(item: EmployeePending): string {
+  const parts: string[] = [];
+  if (valido(item.area)) parts.push(normalizar(item.area));
+  if (valido(item.turno)) {
+    const turno = normalizar(item.turno);
+    parts.push(turno.startsWith("TURNO") ? turno : `TURNO ${turno}`);
+  }
+  return parts.length ? parts.join(" · ") : GENERAL;
 }
+
+function agrupar(items: EmployeePending[]): [string, EmployeePending[]][] {
+  const grupos = new Map<string, EmployeePending[]>();
+  for (const item of items) {
+    const key = grupoDe(item);
+    grupos.set(key, [...(grupos.get(key) ?? []), item]);
+  }
+  return [...grupos.entries()].sort(([a], [b]) => a === GENERAL ? 1 : b === GENERAL ? -1 : a.localeCompare(b, "es"));
+}
+
+// Sin columnas ocultas por breakpoint: las filas de grupo abarcan todas las columnas
+// (colSpan) y una columna oculta dejaba un hueco en móvil. El estado va en el color
+// del número (ver la leyenda) y en texto para lectores de pantalla.
+const COLUMNS = [
+  { label: "Empleado" },
+  { label: "Pendientes", className: "w-28 text-right" },
+];
 
 const LEGEND = [
   { label: "Vencida", className: "bg-destructive" },
   { label: "Pendiente", className: "bg-success" },
 ] as const;
 
-/** Leyenda de colores de los números de evaluación (va en la barra de la vista). */
+/** Leyenda de colores del estado (va en la barra de la vista). */
 export function PendingLegend() {
   return <ul aria-label="Leyenda" className="flex items-center gap-3 text-body-sm text-muted-foreground">
     {LEGEND.map(({ label, className }) => <li key={label} className="flex items-center gap-1.5">
-      <span className={`size-2 rounded-full ${className}`} aria-hidden="true" />{label}
+      <span className={cn("size-2 rounded-full", className)} aria-hidden="true" />{label}
     </li>)}
   </ul>;
+}
+
+/** Nuevo ingreso: tabla por área y turno; cada fila abre el detalle de sus evaluaciones. */
+export function VistaMensual({ loading, deptGroups, totalEmployees, activeTab, direction, selectedId, onSelectId }: MensualProps) {
+  const activeGroup = deptGroups.find(g => g.departamento === activeTab) ?? null;
+  const current = activeGroup?.items.find(i => i.dbId === selectedId);
+
+  if (loading) return <div className="space-y-2" aria-label="Cargando evaluaciones pendientes">
+    {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+  </div>;
+
+  if (totalEmployees === 0) return <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
+    <CheckCircle2 className="size-6 text-success" aria-hidden="true" />
+    <p className="text-body-md text-muted-foreground">Todo al día: sin evaluaciones pendientes.</p>
+  </div>;
+
+  if (!activeGroup) return null;
+
+  return <DepartmentPage pageKey={activeGroup.departamento} direction={direction}>
+    <PendingTable caption={`Evaluaciones pendientes de ${activeGroup.departamento}`} columns={COLUMNS}>
+      {agrupar(activeGroup.items).map(([grupo, items]) => [
+        <TableRow key={grupo} className="bg-muted/30 hover:bg-muted/30">
+          <TableCell colSpan={COLUMNS.length} className="py-2 text-eyebrow uppercase text-muted-foreground">
+            {grupo} <span className="tabular-nums">· {items.length}</span>
+          </TableCell>
+        </TableRow>,
+        ...items.map(item => {
+          const selected = item.dbId === selectedId;
+          return <TableRow key={item.dbId} data-state={selected ? "selected" : undefined} className="cursor-pointer" onClick={() => onSelectId(item.dbId)}>
+            <TableCell>
+              {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
+              <button type="button" aria-haspopup="dialog" aria-label={`Ver evaluaciones de ${item.nombre}`}
+                onClick={event => { event.stopPropagation(); onSelectId(item.dbId); }}
+                className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <PendingName name={item.nombre} detail={`#${item.numero ?? "—"}`} />
+              </button>
+            </TableCell>
+            <TableCell className="text-right">
+              <span className={cn("inline-flex items-center gap-1.5 text-label-sm tabular-nums", item.hasVencida ? "text-destructive" : "text-foreground")}>
+                <span className={cn("size-2 rounded-full", item.hasVencida ? "bg-destructive" : "bg-success")} aria-hidden="true" />
+                {item.evals.length}
+                <span className="sr-only">{item.hasVencida ? ", con evaluación vencida" : ", a tiempo"}</span>
+              </span>
+            </TableCell>
+          </TableRow>;
+        }),
+      ])}
+    </PendingTable>
+
+    <Dialog open={!!current} onOpenChange={open => !open && onSelectId(null)}>
+      {current ? <DetailModal key={current.dbId} item={current} /> : null}
+    </Dialog>
+  </DepartmentPage>;
 }
