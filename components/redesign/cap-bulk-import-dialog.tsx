@@ -69,7 +69,7 @@ export function CapBulkImportDialog({
           {success !== null && (
             <Alert className="mb-6 border-success/30 bg-success/10">
               <CheckCircle2 className="h-5 w-5 text-success" />
-              <AlertDescription className="text-success font-medium text-base ml-2">
+              <AlertDescription className="text-success font-medium text-body-lg ml-2">
                 ¡{success} registros importados correctamente!
               </AlertDescription>
             </Alert>
@@ -78,7 +78,7 @@ export function CapBulkImportDialog({
           {error && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-5 w-5" />
-              <AlertDescription className="text-sm font-medium ml-2">{error}</AlertDescription>
+              <AlertDescription className="text-body-md font-medium ml-2">{error}</AlertDescription>
             </Alert>
           )}
 
@@ -119,14 +119,14 @@ export function CapBulkImportDialog({
             <div className="space-y-6 dense:space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="flex flex-wrap items-center gap-3">
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline" className="text-sm font-medium px-3 py-1 bg-background">
+                  <Badge variant="outline" className="text-body-md font-medium px-3 py-1 bg-background">
                     {rows.length} registros totales
                   </Badge>
-                  <Badge variant="outline" className="text-sm font-medium px-3 py-1 text-success border-success/30 bg-success/10 flex items-center gap-1.5">
+                  <Badge variant="outline" className="text-body-md font-medium px-3 py-1 text-success border-success/30 bg-success/10 flex items-center gap-1.5">
                     <CheckCircle2 className="h-3.5 w-3.5" /> {validCount} válidos
                   </Badge>
                   {invalidCount > 0 && (
-                    <Badge variant="outline" className="text-sm font-medium px-3 py-1 text-destructive border-destructive/30 bg-destructive/10 flex items-center gap-1.5">
+                    <Badge variant="outline" className="text-body-md font-medium px-3 py-1 text-destructive border-destructive/30 bg-destructive/10 flex items-center gap-1.5">
                       <AlertTriangle className="h-3.5 w-3.5" /> {invalidCount} con errores
                     </Badge>
                   )}
@@ -159,7 +159,7 @@ export function CapBulkImportDialog({
                                 aria-label={`Número de empleado fila ${row.id}`}
                               />
                               {noEmp && (
-                                <p className="text-xs text-destructive mt-1 font-normal truncate flex items-center gap-1">
+                                <p className="text-body-sm text-destructive mt-1 font-normal truncate flex items-center gap-1">
                                   <AlertCircle className="h-3 w-3" /> {row.numero ? 'No encontrado' : 'Falta número'}
                                 </p>
                               )}
@@ -176,7 +176,7 @@ export function CapBulkImportDialog({
                                 </SelectContent>
                               </Select>
                               {!row.courseId && row.cursoRaw && (
-                                <p className="text-xs text-destructive mt-1 font-normal truncate flex items-center gap-1" title={row.cursoRaw}>
+                                <p className="text-body-sm text-destructive mt-1 font-normal truncate flex items-center gap-1" title={row.cursoRaw}>
                                   <AlertCircle className="h-3 w-3" /> No reconocido: {row.cursoRaw}
                                 </p>
                               )}

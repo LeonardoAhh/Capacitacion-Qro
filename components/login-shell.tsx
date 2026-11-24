@@ -33,7 +33,7 @@ export default function LoginShell() {
                     {/* Al entrar, la tarjeta se desvanece antes de pasar a la pantalla de carga. */}
                     <div className="my-auto w-full max-w-sm rounded-xl border border-border bg-card p-6 transition-[opacity,transform] duration-300 ease-out has-[form[data-status=success]]:-translate-y-2 has-[form[data-status=success]]:opacity-0">
                       <Suspense fallback={
-                        <div role="status" className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                        <div role="status" className="flex items-center justify-center gap-2 py-8 text-body-md text-muted-foreground">
                           <Loader2 className="size-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
                           {LOGIN.loading}
                         </div>

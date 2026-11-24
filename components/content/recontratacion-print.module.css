@@ -207,7 +207,7 @@
 
 .planRow > div:first-child {
     border-right: 1px solid var(--print-border);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .planChoice {
@@ -224,7 +224,7 @@
 }
 
 .authQuestion {
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .authComment {
@@ -262,7 +262,7 @@
 
 .signatureRole {
     font-size: var(--fs-xs);
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     color: var(--print-text-secondary);
     margin-top: var(--sp-1);

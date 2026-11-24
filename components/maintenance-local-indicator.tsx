@@ -48,11 +48,11 @@ export function MaintenanceLocalIndicator() {
               <Wrench className="size-4" strokeWidth={1.75} aria-hidden="true" />
             </span>
             <div className="min-w-0 space-y-1">
-              <h2 id={titleId} className="text-sm font-medium leading-5">{COPY.title}</h2>
-              <p id={descriptionId} className="text-xs leading-5 text-muted-foreground">{COPY.description}</p>
+              <h2 id={titleId} className="text-body-md font-medium leading-5">{COPY.title}</h2>
+              <p id={descriptionId} className="text-body-sm leading-5 text-muted-foreground">{COPY.description}</p>
             </div>
           </div>
-          <dl className="divide-y divide-border border-t border-border text-xs">
+          <dl className="divide-y divide-border border-t border-border text-body-sm">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3">
               <dt className="text-muted-foreground">{COPY.local}</dt>
               <dd className="flex items-center gap-2 font-medium text-foreground">

@@ -83,7 +83,7 @@ export function AppTransition({
             transition={transition}
           >
             <span className="sr-only">{message}</span>
-            <span aria-hidden="true" className="pointer-events-none text-heading-md text-foreground sm:text-heading-lg">
+            <span aria-hidden="true" className="pointer-events-none text-heading-md text-foreground sm:text-heading-xl">
               {reducedMotion ? message : <PluckedText text={message} loop strum={false} />}
             </span>
           </motion.div>

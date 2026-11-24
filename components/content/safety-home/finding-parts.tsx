@@ -104,11 +104,13 @@ interface FindingActionsMenuProps {
   finding: FindingPreview
   onEdit: (finding: FindingPreview) => void
   onDelete: (finding: FindingPreview) => void
+  /** Adjuntar o cambiar la evidencia de cumplimiento (la lista no tiene la franja de la tarjeta). */
+  onManageCompletion?: (finding: FindingPreview) => void
   className?: string
 }
 
-/** Menú ⋮ con Editar y Borrar; solo para quien gestiona Seguridad e Higiene. */
-export function FindingActionsMenu({ finding, onEdit, onDelete, className }: FindingActionsMenuProps) {
+/** Menú ⋮ con Editar, evidencia de cumplimiento (opcional) y Borrar; solo para quien gestiona Seguridad e Higiene. */
+export function FindingActionsMenu({ finding, onEdit, onDelete, onManageCompletion, className }: FindingActionsMenuProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -120,6 +122,12 @@ export function FindingActionsMenu({ finding, onEdit, onDelete, className }: Fin
         <DropdownMenuItem onSelect={() => onEdit(finding)}>
           <Pencil aria-hidden="true" />Editar
         </DropdownMenuItem>
+        {onManageCompletion && (
+          <DropdownMenuItem onSelect={() => onManageCompletion(finding)}>
+            <Paperclip aria-hidden="true" />
+            {finding.completionEvidencePaths.length > 0 ? "Cambiar evidencia" : "Adjuntar evidencia"}
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onDelete(finding)} className="text-destructive focus:bg-destructive/10 focus:text-destructive">
           <Trash2 aria-hidden="true" />Borrar

@@ -136,7 +136,7 @@ export function InstallPrompt() {
                 <Smartphone className="size-5" strokeWidth={1.75} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">Instalar la app</p>
+                <p className="truncate text-body-md font-bold text-foreground">Instalar la app</p>
               </div>
               <div className="flex shrink-0 items-center gap-1">
                 <Button
@@ -182,8 +182,8 @@ export function InstallPrompt() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h2 className="text-base font-semibold text-foreground">Instalar en iPhone / iPad</h2>
-                      <p className="mt-1 text-sm text-muted-foreground">Dos pasos en Safari.</p>
+                      <h2 className="text-body-lg font-bold text-foreground">Instalar en iPhone / iPad</h2>
+                      <p className="mt-1 text-body-md text-muted-foreground">Dos pasos en Safari.</p>
                     </div>
                     <Button
                       size="icon"
@@ -195,18 +195,18 @@ export function InstallPrompt() {
                       <X className="size-4" aria-hidden />
                     </Button>
                   </div>
-                  <ol className="mt-5 space-y-4 text-sm">
+                  <ol className="mt-5 space-y-4 text-body-md">
                     <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">1</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-body-sm font-bold text-muted-foreground">1</span>
                       <span className="flex-1 text-foreground">Toca el botón</span>
-                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-body-sm font-medium">
                         <Share className="size-3.5" aria-hidden /> Compartir
                       </span>
                     </li>
                     <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-xs font-semibold text-muted-foreground">2</span>
+                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-body-sm font-bold text-muted-foreground">2</span>
                       <span className="flex-1 text-foreground">Elige</span>
-                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-xs font-medium">
+                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-body-sm font-medium">
                         <Plus className="size-3.5" aria-hidden /> Agregar al inicio
                       </span>
                     </li>

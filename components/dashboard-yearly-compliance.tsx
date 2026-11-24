@@ -20,8 +20,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null
   const row = (payload[0] as unknown as { payload: YearStats }).payload
   return (
-    <div className="min-w-[180px] rounded-md border bg-popover p-3 text-sm shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-semibold text-foreground mb-2">{label}</p>
+    <div className="min-w-[180px] rounded-md border bg-popover p-3 text-body-md shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
+      <p className="font-bold text-foreground mb-2">{label}</p>
       <div className="space-y-1 text-muted-foreground">
         {[
           { label: "Aprobados",  value: row.aprobados,  color: COLORS.aprobado,  cls: "" },
@@ -115,7 +115,7 @@ export default function DashboardYearlyCompliance() {
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
               <TrendingUp size={32} className="opacity-30" />
-              <p className="text-sm">No hay datos de cumplimiento por año aún.</p>
+              <p className="text-body-md">No hay datos de cumplimiento por año aún.</p>
             </motion.div>
           ) : (
             <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
@@ -124,8 +124,8 @@ export default function DashboardYearlyCompliance() {
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={yearStats} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/15" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 11 }} className="text-muted-foreground" axisLine={false} tickLine={false} />
-                    <YAxis type="category" dataKey="year" tick={{ fontSize: 12, fontWeight: 600 }}
+                    <XAxis type="number" tick={{ fontSize: 12 }} className="text-muted-foreground" axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="year" tick={{ fontSize: 12, fontWeight: 700 }}
                       className="text-muted-foreground" axisLine={false} tickLine={false} width={55} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }} />
                     <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
@@ -149,11 +149,11 @@ export default function DashboardYearlyCompliance() {
               <div className="mt-5 space-y-3">
                 {yearStats.map((s, i) => (
                   <div key={s.year} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-body-sm">
                       <span className="font-medium text-foreground">{s.year}</span>
                       <span className="text-muted-foreground">
                         {s.aprobados} / {s.asignados} cursos
-                        <span className="ml-2 font-semibold" style={{ color: COLORS.aprobado }}>{s.pct}%</span>
+                        <span className="ml-2 font-bold" style={{ color: COLORS.aprobado }}>{s.pct}%</span>
                       </span>
                     </div>
                     <div className="h-2 rounded-md bg-muted overflow-hidden">

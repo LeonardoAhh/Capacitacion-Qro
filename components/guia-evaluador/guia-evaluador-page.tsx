@@ -29,7 +29,7 @@ export function GuiaEvaluadorPage() {
         <WorkspaceContainer className="grid items-center gap-10 py-16 sm:py-24 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)] lg:gap-16">
           <div className="grid justify-items-start gap-4">
             <p className={EYEBROW}>Viñoplastic · Capacitación Planta Querétaro</p>
-            <h1 className="text-display-lg sm:text-display-xl">Guía del evaluador</h1>
+            <h1 className="text-heading-lg sm:text-display-xl">Guía del evaluador</h1>
             <p className="max-w-2xl text-body-lg text-muted-foreground">
               Una guía paso a paso para evaluar a nuestros colaboradores.
             </p>
@@ -65,7 +65,7 @@ export function GuiaEvaluadorPage() {
           <WorkspaceContainer className="grid gap-8 lg:grid-cols-[16rem_minmax(0,1fr)]">
             <div className="grid content-start gap-3 lg:sticky lg:top-6 lg:self-start">
               <p className={EYEBROW}>Flujo vigente</p>
-              <h2 id="flujo-heading" className="text-display-lg">{GUIDE_COPY.title}</h2>
+              <h2 id="flujo-heading" className="text-heading-lg">{GUIDE_COPY.title}</h2>
               <p className="text-body-md text-muted-foreground">{GUIDE_COPY.description}</p>
               <nav className="pt-3" aria-label={GUIDE_COPY.navigation}>
                 <ol className="grid gap-1">

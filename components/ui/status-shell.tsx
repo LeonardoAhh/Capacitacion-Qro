@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
  * Design system contract:
  * - Flat hairline card on the neutral canvas.
  * - Compact icon tile tinted only by semantic tone.
- * - Mona Sans typography for eyebrow and heading.
+ * - Theme typography for eyebrow and heading.
  * - Tokens only: accent color, density spacing and reduced-motion settings
  *   apply automatically. No pill/full-rounded shapes.
  */
@@ -76,7 +76,7 @@ export function StatusShell({
               <span className={cn("grid size-12 shrink-0 place-items-center rounded-md border", TONE[tone].tile)}>
                 <Icon className="size-5" aria-hidden="true" />
               </span>
-              <p className="font-sans text-xs font-medium uppercase text-muted-foreground">
+              <p className="font-sans text-body-sm font-medium uppercase text-muted-foreground">
                 {eyebrow}
               </p>
             </motion.div>
@@ -85,13 +85,13 @@ export function StatusShell({
             <motion.h1
               id={labelledBy}
               {...fade(0.14)}
-              className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+              className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
             >
               {title}
             </motion.h1>
             <motion.p
               {...fade(0.2)}
-              className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base"
+              className="mt-3 text-body-md leading-relaxed text-muted-foreground sm:text-body-lg"
             >
               {description}
             </motion.p>
@@ -116,7 +116,7 @@ export function StatusShell({
 /** Small mono caption used under the card / in footer strips. */
 export function StatusCaption({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <p className={cn("font-sans text-xs font-medium uppercase text-muted-foreground", className)}>
+    <p className={cn("font-sans text-body-sm font-medium uppercase text-muted-foreground", className)}>
       {children}
     </p>
   )

@@ -32,34 +32,37 @@
    Genera las utilidades text-<token>. Los nombres se registran en
    lib/theme/typography.ts para que cn() los reconozca como tamaños. */
 @theme {
+    /* Escala tipográfica (de mayor a menor): display-2xl 56 · display-xl 48 · heading-xl 32 · heading-lg 24 ·
+       heading-md 20 · body-lg 16 · label-sm / body-md 14 · eyebrow / body-sm 12 (px con base de 16).
+       Tracking pensado para Ubuntu: negativo leve solo en titulares; texto y etiquetas en 0. */
     --text-display-2xl: 3.5rem;
     --text-display-2xl--line-height: 3.5rem;
-    --text-display-2xl--letter-spacing: -0.055em;
-    --text-display-2xl--font-weight: 600;
+    --text-display-2xl--letter-spacing: -0.025em;
+    --text-display-2xl--font-weight: 700;
 
     --text-display-xl: 3rem;
     --text-display-xl--line-height: 3rem;
-    --text-display-xl--letter-spacing: -0.05em;
-    --text-display-xl--font-weight: 600;
+    --text-display-xl--letter-spacing: -0.02em;
+    --text-display-xl--font-weight: 700;
 
-    --text-display-lg: 1.5rem;
-    --text-display-lg--line-height: 2rem;
-    --text-display-lg--letter-spacing: -0.03em;
-    --text-display-lg--font-weight: 600;
+    --text-heading-xl: 2rem;
+    --text-heading-xl--line-height: 2.5rem;
+    --text-heading-xl--letter-spacing: -0.015em;
+    --text-heading-xl--font-weight: 700;
 
-    --text-heading-lg: 2rem;
-    --text-heading-lg--line-height: 2.5rem;
-    --text-heading-lg--letter-spacing: -0.04em;
-    --text-heading-lg--font-weight: 600;
+    --text-heading-lg: 1.5rem;
+    --text-heading-lg--line-height: 2rem;
+    --text-heading-lg--letter-spacing: -0.01em;
+    --text-heading-lg--font-weight: 700;
 
     --text-heading-md: 1.25rem;
     --text-heading-md--line-height: 1.75rem;
-    --text-heading-md--letter-spacing: -0.02em;
-    --text-heading-md--font-weight: 600;
+    --text-heading-md--letter-spacing: 0;
+    --text-heading-md--font-weight: 700;
 
     --text-label-sm: 0.875rem;
     --text-label-sm--line-height: 1.25rem;
-    --text-label-sm--letter-spacing: -0.02em;
+    --text-label-sm--letter-spacing: 0;
     --text-label-sm--font-weight: 500;
 
     --text-eyebrow: 0.75rem;
@@ -85,8 +88,7 @@
         --font-print: "Inter Print", Arial, sans-serif;
         --font-base-size: 16px;
         --workspace-inset: 1rem;
-        --workspace-sidebar-width: 15rem;
-        --workspace-sidebar-collapsed-width: 4.5rem;
+        --workspace-sidebar-width: 14rem;
         /* design.md: header de 48px y workspace de 1408px. */
         --workspace-header-height: 3rem;
         --workspace-max-width: 88rem;
@@ -357,6 +359,14 @@ body {
     flex-direction: column;
 }
 
+/* Panel del contenido (main): en móvil es la página completa; en escritorio, un panel hundido. */
+.workspace-stage {
+    display: flex;
+    min-width: 0;
+    flex: 1 1 0%;
+    flex-direction: column;
+}
+
 /*
  * Móvil: el documento hace scroll y el header queda fijo arriba. El header
  * reserva la barra de estado con su propio fondo; así en iOS (barra
@@ -383,6 +393,29 @@ body {
         padding-top: max(var(--workspace-inset), env(safe-area-inset-top, 0px));
     }
 
+    /* Workspace autenticado: barra lateral y header pegados al lienzo (arriba e izquierda);
+       solo el panel del contenido guarda el margen exterior a la derecha y abajo.
+       Login, carga y selección de espacio conservan el marco con margen en los cuatro lados. */
+    .workspace-shell[data-layout="app"] {
+        padding: env(safe-area-inset-top, 0px) var(--workspace-inset) var(--workspace-inset) 0;
+    }
+
+    /* El mismo margen separa el panel de la barra lateral, o del borde cuando la barra está oculta. */
+    .workspace-shell[data-layout="app"] .workspace-frame {
+        padding-left: var(--workspace-inset);
+    }
+
+    /* Sin header en escritorio (evaluador): el panel también guarda el margen arriba y la marca
+       de la barra lateral baja para empezar a la misma altura que el panel. */
+    .workspace-shell[data-desktop-header="none"] .workspace-frame,
+    .workspace-shell[data-desktop-header="none"] .workspace-sidebar {
+        padding-top: max(var(--workspace-inset), env(safe-area-inset-top, 0px));
+    }
+
+    .workspace-shell[data-desktop-header="none"] .workspace-sidebar-brand {
+        height: auto;
+    }
+
     /* Escritorio: la barra de estado la reserva el contenedor; el header mide 48px (design.md). */
     .workspace-header {
         padding-top: 0;
@@ -402,7 +435,17 @@ body {
         overflow: hidden;
     }
 
-    .workspace-frame > main {
+    /* Escritorio: el contenido vive en un panel hundido (fondo del tema, hairline y radio 12px)
+       a la derecha de la barra lateral y debajo del header, que quedan sobre el lienzo. */
+    .workspace-stage {
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius-card);
+        background-color: hsl(var(--background));
+    }
+
+    .workspace-stage > .workspace-main {
         min-height: 0;
         overflow-y: auto;
     }
@@ -412,10 +455,6 @@ body {
         height: 100%;
         min-height: 0;
         flex: none;
-    }
-
-    .workspace-sidebar[data-collapsed="true"] {
-        width: var(--workspace-sidebar-collapsed-width);
     }
 }
 
@@ -1154,7 +1193,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .wn-slide__badge {
     font-size: 0.6875rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: hsl(var(--primary));
@@ -1336,7 +1375,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .wn-feature-card__label {
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 700;
     color: hsl(var(--foreground));
 }
 
@@ -1416,7 +1455,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 .wn-row__name {
     flex: 1;
-    font-weight: 600;
+    font-weight: 700;
     color: hsl(var(--foreground));
     font-size: 0.6875rem;
 }
@@ -1566,7 +1605,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .wn-btn-primary {
     font-size: 0.5625rem;
-    font-weight: 600;
+    font-weight: 700;
     padding: 0.225rem 0.625rem;
     border-radius: var(--radius-control);
     background: hsl(var(--primary));
@@ -1744,7 +1783,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 .wn-sql-result__label {
     font-size: 0.5625rem;
-    font-weight: 600;
+    font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: hsl(200 20% 55%);

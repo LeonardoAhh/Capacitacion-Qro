@@ -214,16 +214,16 @@ export default function IngresosSemanalesContent() {
               {/* Título y badge de totales */}
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h2 className="text-base font-semibold leading-tight tracking-tight">
+                  <h2 className="text-body-lg font-bold leading-tight tracking-tight">
                     Ingresos Semanales
                   </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-body-sm text-muted-foreground mt-0.5">
                     Por semana
                   </p>
                 </div>
                 {/* Badge resumen — visible sólo cuando hay datos */}
                 {weeks.length > 0 && (
-                  <Badge variant="secondary" className="shrink-0 gap-1 self-start text-[11px]">
+                  <Badge variant="secondary" className="shrink-0 gap-1 self-start text-body-sm">
                     <Users className="h-3 w-3" />
                     {filtered.length} · {weeks.length}sem
                   </Badge>
@@ -237,7 +237,7 @@ export default function IngresosSemanalesContent() {
                   placeholder="Buscar nombre, número, depto…"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className={`pl-9 h-9 text-sm ${search ? "pr-9" : ""}`}
+                  className={`pl-9 h-9 text-body-md ${search ? "pr-9" : ""}`}
                   aria-label="Buscar empleados"
                 />
                 {search && (
@@ -260,7 +260,7 @@ export default function IngresosSemanalesContent() {
             <div className="flex-1 flex flex-col justify-center gap-1.5">
               {weeks.length > 0 ? (
                 <>
-                  <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide hidden lg:block">
+                  <p className="text-body-sm font-medium text-muted-foreground uppercase tracking-wide hidden lg:block">
                     Semana
                   </p>
                   <div className="flex items-center gap-2">
@@ -278,16 +278,16 @@ export default function IngresosSemanalesContent() {
                     {/* Bloque central: ícono + rango + badge + posición */}
                     <div className="flex-1 flex items-center justify-center gap-2.5 rounded-md border border-border bg-muted/40 px-4 h-9 min-w-0">
                       <CalendarDays className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                      <span className="text-sm font-medium truncate">
+                      <span className="text-body-md font-medium truncate">
                         {activeWeek?.label ?? "—"}
                       </span>
                       {activeWeek && (
-                        <Badge variant="secondary" className="shrink-0 h-5 px-1.5 text-[10px]">
+                        <Badge variant="secondary" className="shrink-0 h-5 px-1.5 text-body-sm">
                           {activeWeek.employees.length}
                         </Badge>
                       )}
                       {weeks.length > 1 && (
-                        <span className="text-[11px] text-muted-foreground shrink-0 hidden sm:inline">
+                        <span className="text-body-sm text-muted-foreground shrink-0 hidden sm:inline">
                           {activeIdx + 1} / {weeks.length}
                         </span>
                       )}
@@ -314,7 +314,7 @@ export default function IngresosSemanalesContent() {
                 </div>
               ) : (
                 /* Estado vacío inline */
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2 text-body-md text-muted-foreground">
                   <Users className="h-4 w-4 shrink-0 opacity-40" />
                   <span>
                     {records.length === 0
@@ -326,7 +326,7 @@ export default function IngresosSemanalesContent() {
                       variant="ghost"
                       size="sm"
                       onClick={() => setSearch("")}
-                      className="h-7 text-xs px-2"
+                      className="h-7 text-body-sm px-2"
                     >
                       Limpiar
                     </Button>
@@ -398,11 +398,11 @@ export default function IngresosSemanalesContent() {
                           <div className="flex items-start justify-between gap-3 mb-2">
                             <div className="min-w-0 flex-1">
                               {r.numero && (
-                                <p className="text-[11px] font-sans text-muted-foreground leading-none mb-0.5">
+                                <p className="text-body-sm font-sans text-muted-foreground leading-none mb-0.5">
                                   #{r.numero}
                                 </p>
                               )}
-                              <p className="font-semibold text-sm leading-snug">
+                              <p className="font-bold text-body-md leading-snug">
                                 {r.nombre}
                               </p>
                             </div>
@@ -424,17 +424,17 @@ export default function IngresosSemanalesContent() {
 
                           <div className="flex flex-wrap gap-1.5">
                             {r.departamento && (
-                              <Badge variant="secondary" className="text-[11px]">
+                              <Badge variant="secondary" className="text-body-sm">
                                 {r.departamento}
                               </Badge>
                             )}
                             {r.area && (
-                              <Badge variant="outline" className="text-[11px]">
+                              <Badge variant="outline" className="text-body-sm">
                                 {r.area}
                               </Badge>
                             )}
                             {r.turno && (
-                              <Badge variant="outline" className="text-[11px]">
+                              <Badge variant="outline" className="text-body-sm">
                                 T{r.turno}
                               </Badge>
                             )}
@@ -469,34 +469,34 @@ export default function IngresosSemanalesContent() {
                           {sorted.map((r) => (
                             <TableRow key={r.id} className="hover:bg-muted/40">
                               <TableCell>
-                                <span className="font-sans text-xs text-muted-foreground">
+                                <span className="font-sans text-body-sm text-muted-foreground">
                                   {r.numero ?? "—"}
                                 </span>
                               </TableCell>
 
                               <TableCell>
-                                <span className="font-medium text-sm">{r.nombre}</span>
+                                <span className="font-medium text-body-md">{r.nombre}</span>
                               </TableCell>
 
                               <TableCell>
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-body-md text-muted-foreground">
                                   {r.departamento ?? "—"}
                                 </span>
                               </TableCell>
 
                               <TableCell className="hidden md:table-cell">
-                                <span className="text-sm text-muted-foreground">
+                                <span className="text-body-md text-muted-foreground">
                                   {r.area ?? "—"}
                                 </span>
                               </TableCell>
 
                               <TableCell className="hidden md:table-cell">
                                 {r.turno ? (
-                                  <Badge variant="secondary" className="text-xs">
+                                  <Badge variant="secondary" className="text-body-sm">
                                     T{r.turno}
                                   </Badge>
                                 ) : (
-                                  <span className="text-muted-foreground text-sm">—</span>
+                                  <span className="text-muted-foreground text-body-md">—</span>
                                 )}
                               </TableCell>
 
@@ -525,7 +525,7 @@ export default function IngresosSemanalesContent() {
                 </Card>
 
                 {/* Resumen de la semana */}
-                <p className="text-xs text-muted-foreground mt-3">
+                <p className="text-body-sm text-muted-foreground mt-3">
                   {week.employees.length}{" "}
                   {week.employees.length === 1 ? "empleado activo" : "empleados activos"}{" "}
                 </p>
@@ -537,7 +537,7 @@ export default function IngresosSemanalesContent() {
 
       {/* ── Pie: rango de la semana activa ───────────────────────────────── */}
       {!loading && activeWeek && (
-        <p className="text-xs text-muted-foreground mt-2">
+        <p className="text-body-sm text-muted-foreground mt-2">
           Semana del {formatShort(activeWeek.monday)} al{" "}
           {formatShort(activeWeek.sunday)} {activeWeek.monday.getFullYear()}
         </p>

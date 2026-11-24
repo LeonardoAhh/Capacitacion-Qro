@@ -184,7 +184,7 @@ export function EmployeeDayCountImportDialog({
         onClose={() => closeDialog(false)}
       />
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card p-4 sm:p-(--card-padding)">
-        <p className="text-sm text-muted-foreground">{note}</p>
+        <p className="text-body-md text-muted-foreground">{note}</p>
         <div className="flex flex-wrap items-center gap-2">
           <Button
             type="button"
@@ -221,7 +221,7 @@ export function EmployeeDayCountImportDialog({
           </Alert>
         )}
         {preview && (
-          <div className="space-y-2 text-sm text-foreground" role="status">
+          <div className="space-y-2 text-body-md text-foreground" role="status">
             <p>
               {preview.registrosEmpleadoMes} registros empleado-mes · {preview.totalCount} {preview.totalCount === 1 ? itemSingular : itemPlural} en {preview.meses.length} {preview.meses.length === 1 ? "mes" : "meses"}.
             </p>
@@ -238,7 +238,7 @@ export function EmployeeDayCountImportDialog({
           </div>
         )}
         {validating && (
-          <p role="status" className="text-sm text-muted-foreground">Validando números de empleado en Plantilla…</p>
+          <p role="status" className="text-body-md text-muted-foreground">Validando números de empleado en Plantilla…</p>
         )}
         {validationError && (
           <Alert variant="destructive" role="alert">

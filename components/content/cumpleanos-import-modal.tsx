@@ -298,8 +298,8 @@ export function CumpleanosImportModal({
           <div className="space-y-4">
             <Alert>
               <AlertDescription className="space-y-2">
-                <p className="text-sm font-semibold">Estructura del archivo</p>
-                <pre className="overflow-x-auto rounded-xl border border-border bg-muted p-4 font-sans text-sm leading-5">{`[
+                <p className="text-body-md font-bold">Estructura del archivo</p>
+                <pre className="overflow-x-auto rounded-xl border border-border bg-muted p-4 font-sans text-body-md leading-5">{`[
   {
     "numero": "1001",
     "fecha_nacimiento": "17/05/1990",
@@ -325,7 +325,7 @@ export function CumpleanosImportModal({
 
             <Button
               variant="outline"
-              className="min-h-(--control-height) w-full justify-start gap-3 border-dashed border-border px-3 py-0 text-sm"
+              className="min-h-(--control-height) w-full justify-start gap-3 border-dashed border-border px-3 py-0 text-body-md"
               onClick={() => fileRef.current?.click()}
               disabled={loading}
             >
@@ -368,7 +368,7 @@ export function CumpleanosImportModal({
             {/* Registros válidos */}
             {validCount > 0 && (
               <article>
-                <h2 className="mb-3 text-xl font-semibold leading-7 tracking-tight">
+                <h2 className="mb-3 text-heading-md font-bold leading-7 tracking-tight">
                   Colaboradores que se actualizarán
                 </h2>
                 <ul className="space-y-2">
@@ -380,16 +380,16 @@ export function CumpleanosImportModal({
                       {/* Fila principal: nombre + badge tabla */}
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <p className="font-semibold text-sm leading-snug break-words">
+                          <p className="font-bold text-body-md leading-snug break-words">
                             {r.nombre}
                           </p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">
+                          <p className="mt-0.5 text-body-sm text-muted-foreground">
                             #{r.numero}
                           </p>
                         </div>
                         <Badge
                           variant="outline"
-                          className="mt-0.5 h-6 shrink-0 px-2 text-xs"
+                          className="mt-0.5 h-6 shrink-0 px-2 text-body-sm"
                         >
                           {r.tabla === "employees" ? "Planta" : "Ingreso"}
                         </Badge>
@@ -397,11 +397,11 @@ export function CumpleanosImportModal({
 
                       {/* Detalles: fecha y email */}
                       <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5 text-body-md text-muted-foreground">
                           <CalendarDays className="size-4 shrink-0" aria-hidden="true" />
                           <span>{r.fecha_nacimiento}</span>
                         </div>
-                        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5 text-body-md text-muted-foreground">
                           <Mail className="size-4 shrink-0" aria-hidden="true" />
                           <span className="break-all">{r.email}</span>
                         </div>
@@ -415,11 +415,11 @@ export function CumpleanosImportModal({
             {/* No encontrados */}
             {nfCount > 0 && (
               <article>
-                <h3 className="mb-2 text-sm font-semibold text-warning-deep">
+                <h3 className="mb-2 text-body-md font-bold text-warning-deep">
                   Números no encontrados en la base de datos
                 </h3>
                 <div className="rounded-xl border border-warning/30 bg-warning/10 p-4">
-                  <ul className="space-y-1 text-sm text-foreground">
+                  <ul className="space-y-1 text-body-md text-foreground">
                     {notFound.map((nf) => (
                       <li key={nf.numero} className="font-sans">#{nf.numero}</li>
                     ))}
@@ -431,18 +431,18 @@ export function CumpleanosImportModal({
             {/* Inválidos */}
             {invalidCount > 0 && (
               <article>
-                <h3 className="mb-2 text-sm font-semibold text-destructive">
+                <h3 className="mb-2 text-body-md font-bold text-destructive">
                   Registros inválidos
                 </h3>
                 <div className="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-                  <ul className="space-y-3 text-sm">
+                  <ul className="space-y-3 text-body-md">
                     {invalidEntries.map((item) => (
                       <li key={item.index} className="space-y-1">
                         <p className="font-medium">
                           Fila {item.index + 1}
                           {item.numero && <span className="font-sans ml-1 text-muted-foreground">#{item.numero}</span>}
                         </p>
-                        <ul className="list-disc list-inside space-y-0.5 text-sm text-destructive">
+                        <ul className="list-disc list-inside space-y-0.5 text-body-md text-destructive">
                           {item.reasons.map((r, i) => <li key={i}>{r}</li>)}
                         </ul>
                       </li>
@@ -458,8 +458,8 @@ export function CumpleanosImportModal({
         {step === "done" && (
           <div className="grid place-items-center gap-3 py-10">
             <CheckCircle2 className="size-12 text-success" aria-hidden="true" />
-            <p className="text-xl font-semibold leading-7 tracking-tight">Importación completada</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-heading-md font-bold leading-7 tracking-tight">Importación completada</p>
+            <p className="text-body-md text-muted-foreground">
               Se actualizaron {updatedCount} colaborador(es) correctamente.
             </p>
           </div>

@@ -161,7 +161,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
       <Card><CardContent className="space-y-4 p-(--card-padding)">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
           <h3 className="text-label-sm text-muted-foreground">Calificación del periodo</h3>
-          <p className="text-heading-lg tabular-nums text-foreground" aria-live="polite" aria-atomic="true">{context.ponderacion.calificacionFinal}%</p>
+          <p className="text-heading-xl tabular-nums text-foreground" aria-live="polite" aria-atomic="true">{context.ponderacion.calificacionFinal}%</p>
         </div>
         <div className="space-y-2">
           <div className={FIELD_HEAD}>

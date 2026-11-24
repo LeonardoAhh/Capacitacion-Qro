@@ -67,7 +67,7 @@ export function WorkspaceSelection() {
               <div className={cn("w-full max-w-2xl transition-[opacity,transform] duration-300 ease-out",
                 leaving && "-translate-y-2 opacity-0")}>
                 <h1 id="workspace-intro-title" aria-label="Elige tu espacio de trabajo."
-                  className="text-display-lg text-foreground sm:text-display-2xl">
+                  className="text-heading-lg text-foreground sm:text-display-2xl">
                   <span aria-hidden="true">
                     <PluckedText text="Elige tu espacio" loop />
                     <PluckedText text="de trabajo." loop />

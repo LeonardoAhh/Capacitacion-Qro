@@ -38,9 +38,9 @@ export default function RouteError({
       >
         {code && (
           <div className="mt-5 rounded-xl border border-border bg-muted/50 px-4 py-3">
-            <p className="font-sans text-xs text-muted-foreground">
+            <p className="font-sans text-body-sm text-muted-foreground">
               Código de referencia:{" "}
-              <span className="font-semibold text-foreground">{code}</span>
+              <span className="font-bold text-foreground">{code}</span>
             </p>
           </div>
         )}

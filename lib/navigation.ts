@@ -55,6 +55,7 @@ export const POST_LOGIN_PATH = WORKSPACE_SELECTION_PATH
 export const LOGIN_PATH = "/login"
 export const ASSIGNMENTS_PATH = "/asignaciones"
 export const MOBILE_NAV_ID = "workspace-mobile-navigation"
+export const DESKTOP_NAV_ID = "workspace-desktop-navigation"
 
 export const NAV_SECTIONS: NavSection[] = [
   {

@@ -25,8 +25,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   const d = payload[0]?.payload
   const cumple = d.pct >= META
   return (
-    <div className="min-w-[180px] rounded-md border bg-popover p-3 text-sm shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-semibold text-foreground mb-1 truncate">{label}</p>
+    <div className="min-w-[180px] rounded-md border bg-popover p-3 text-body-md shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
+      <p className="font-bold text-foreground mb-1 truncate">{label}</p>
       <div className="flex items-center justify-between gap-4 text-muted-foreground">
         <span>Entregados</span><span className="font-bold text-success">{d.entregados}</span>
       </div>
@@ -37,7 +37,7 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
         <span>Cumplimiento</span>
         <span className={`font-bold ${cumple ? "text-success" : "text-destructive"}`}>{d.pct}%</span>
       </div>
-      <div className="mt-1 text-xs">
+      <div className="mt-1 text-body-sm">
         <span className={cumple ? "text-success" : "text-destructive"}>
           {cumple ? "✓ Cumple meta (≥70%)" : "✗ No cumple meta (<70%)"}
         </span>
@@ -123,7 +123,7 @@ export default function RgCumplimientoChart() {
             <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
               className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
               <ShieldCheck size={32} className="opacity-30" />
-              <p className="text-sm">Sin registros en este trimestre</p>
+              <p className="text-body-md">Sin registros en este trimestre</p>
             </motion.div>
           ) : (
             <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
@@ -135,12 +135,12 @@ export default function RgCumplimientoChart() {
                     margin={{ top: 0, right: 44, left: 0, bottom: 0 }} barSize={24}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
                     <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`}
-                      tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground"
+                      tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
                       tickLine={false} axisLine={false} ticks={[0, 25, 50, 70, 100]} />
                     <ReferenceLine x={META} stroke="hsl(var(--chart-4))" strokeDasharray="4 3" strokeWidth={1.5}
-                      label={{ value: "Meta", position: "top", fontSize: 9, fill: "hsl(var(--chart-4))" }} />
+                      label={{ value: "Meta", position: "top", fontSize: 12, fill: "hsl(var(--chart-4))" }} />
                     <YAxis type="category" dataKey="departamento" width={110}
-                      tick={{ fontSize: 11, fill: "currentColor" }} className="text-muted-foreground"
+                      tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
                       tickLine={false} axisLine={false} tickFormatter={abrevDept} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]}
@@ -148,12 +148,12 @@ export default function RgCumplimientoChart() {
                       animationBegin={skip ? undefined : 100} animationDuration={skip ? 0 : 600} animationEasing="ease-out">
                       {chartData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
                       <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`}
-                        style={{ fontSize: 11, fontWeight: 700 }} />
+                        style={{ fontSize: 12, fontWeight: 700 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <div className="flex flex-wrap gap-3 mt-3 text-xs text-muted-foreground justify-end">
+              <div className="flex flex-wrap gap-3 mt-3 text-body-sm text-muted-foreground justify-end">
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--chart-1))" }} /> Cumple (≥ 70%)</span>
                 <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--destructive))" }} /> No cumple (&lt; 70%)</span>
               </div>

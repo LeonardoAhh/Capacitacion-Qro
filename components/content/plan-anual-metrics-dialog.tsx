@@ -42,15 +42,15 @@ export function PlanAnualMetricsDialog({ curso, onClose }: PlanAnualMetricsDialo
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <div className="grid gap-1">
               <dt className="text-body-sm text-muted-foreground sm:min-h-8">Personal pendiente</dt>
-              <dd className="text-heading-lg tabular-nums text-foreground">{metrics.pendientes}</dd>
+              <dd className="text-heading-xl tabular-nums text-foreground">{metrics.pendientes}</dd>
             </div>
             <div className="grid gap-1">
               <dt className="text-body-sm text-muted-foreground sm:min-h-8">Personas que acudieron</dt>
-              <dd className="text-heading-lg tabular-nums text-foreground">{metrics.asistentes}</dd>
+              <dd className="text-heading-xl tabular-nums text-foreground">{metrics.asistentes}</dd>
             </div>
             <div className="col-span-2 grid gap-1 sm:col-span-1">
               <dt className="text-body-sm text-muted-foreground sm:min-h-8">Eficiencia de capacitación</dt>
-              <dd className="text-heading-lg tabular-nums text-foreground">
+              <dd className="text-heading-xl tabular-nums text-foreground">
                 {efficiency != null
                   ? `${new Intl.NumberFormat("es-MX", { maximumFractionDigits: 1 }).format(efficiency)}%`
                   : "—"}

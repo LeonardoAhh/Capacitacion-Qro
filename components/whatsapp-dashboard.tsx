@@ -76,13 +76,13 @@ export default function WhatsAppDashboard() {
       {/* Header stats */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="flex items-center gap-2 text-body-md text-muted-foreground">
             <MessageSquare size={16} />
             <span>
-              <span className="font-semibold text-foreground">{consultas.length}</span> empleados consultaron
+              <span className="font-bold text-foreground">{consultas.length}</span> empleados consultaron
             </span>
           </div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="secondary" className="text-body-sm">
             1 consulta por empleado
           </Badge>
         </div>
@@ -105,7 +105,7 @@ export default function WhatsAppDashboard() {
         <Input
           placeholder="Buscar por número o teléfono..."
           aria-label="Buscar consultas de WhatsApp"
-          className={`pl-8 h-9 text-sm ${search ? "pr-9" : ""}`}
+          className={`pl-8 h-9 text-body-md ${search ? "pr-9" : ""}`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -144,7 +144,7 @@ export default function WhatsAppDashboard() {
               ))
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center text-sm text-muted-foreground py-8">
+                <TableCell colSpan={4} className="text-center text-body-md text-muted-foreground py-8">
                   {search ? "Sin resultados" : "Nadie ha consultado aún"}
                 </TableCell>
               </TableRow>
@@ -152,10 +152,10 @@ export default function WhatsAppDashboard() {
               filtered.map((c) => (
                 <TableRow key={c.numero}>
                   <TableCell className="font-sans font-medium">#{c.numero}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-body-md text-muted-foreground">
                     {c.phone?.replace("whatsapp:", "") ?? "—"}
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">
+                  <TableCell className="text-body-md text-muted-foreground">
                     {new Date(c.queried_at).toLocaleString("es-MX", {
                       dateStyle: "medium",
                       timeStyle: "short",

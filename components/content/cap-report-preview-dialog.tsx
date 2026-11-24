@@ -47,8 +47,8 @@ export function CapReportPreviewDialog({ open, onClose, onDownload }: CapReportP
             <Download className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="space-y-1">
-            <p className="text-sm font-medium text-ink">Reporte completo de capacitación</p>
-            <p className="text-sm leading-relaxed text-muted-foreground">
+            <p className="text-body-md font-medium text-ink">Reporte completo de capacitación</p>
+            <p className="text-body-md leading-relaxed text-muted-foreground">
               Se generará una sola hoja con una fila por empleado y curso, conservando únicamente el intento más reciente.
             </p>
           </div>

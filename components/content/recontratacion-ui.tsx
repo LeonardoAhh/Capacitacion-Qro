@@ -73,7 +73,7 @@ export function StatusBadge({
 
   if (urgency === "indefinite") {
     return (
-      <span className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+      <span className="inline-flex items-center gap-2 text-body-md text-muted-foreground">
         <CalendarClock className="size-4 shrink-0" aria-hidden="true" />
         Indeterminado
       </span>
@@ -88,7 +88,7 @@ export function StatusBadge({
         : "Sin término"
 
   return (
-    <span className={cn("inline-flex min-w-0 items-center gap-2 text-sm", URGENCY_TEXT[urgency])}>
+    <span className={cn("inline-flex min-w-0 items-center gap-2 text-body-md", URGENCY_TEXT[urgency])}>
       <CalendarClock
         className={cn(
           "size-4 shrink-0",
@@ -101,7 +101,7 @@ export function StatusBadge({
       {diff != null && diff >= 0 && diff <= URGENCY_THRESHOLDS.warning && (
         <span
           className={cn(
-            "shrink-0 rounded-md px-2 py-1 text-xs font-medium",
+            "shrink-0 rounded-md px-2 py-1 text-body-sm font-medium",
             urgency === "critical" ? URGENCY_PILL_BG.critical : URGENCY_PILL_BG.warning,
           )}
         >

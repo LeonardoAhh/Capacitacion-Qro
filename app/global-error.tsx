@@ -42,7 +42,7 @@ export default function GlobalError({
           >
             {error.digest ? `Error ${error.digest}` : "Error crítico"}
           </p>
-          <h1 style={{ fontSize: 22, fontWeight: 600, margin: "12px 0 8px" }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: "12px 0 8px" }}>
             No pudimos cargar la aplicación
           </h1>
           <p style={{ fontSize: 14, color: "#4d4d4d", margin: 0 }}>

@@ -127,7 +127,7 @@ export default function LoginForm() {
         </div>
 
         {submitStatus === "error" && (
-          <p id="login-error" role="alert" className="flex items-start gap-2 text-sm text-destructive">
+          <p id="login-error" role="alert" className="flex items-start gap-2 text-body-md text-destructive">
             <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             {errorMessage}
           </p>

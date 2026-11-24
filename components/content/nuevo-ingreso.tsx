@@ -25,7 +25,7 @@ import { notify } from "@/lib/notify"
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 const dialogLoading = () => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center gap-2 bg-background/80 text-sm text-muted-foreground" role="status" aria-live="polite">
+  <div className="fixed inset-0 z-50 flex items-center justify-center gap-2 bg-background/80 text-body-md text-muted-foreground" role="status" aria-live="polite">
     <Loader2 className="size-4 animate-spin" aria-hidden="true" />
     Cargando herramienta…
   </div>

@@ -89,7 +89,7 @@ export default function ReglasExamenContent() {
     <div className="space-y-4">
 
       {error && (
-        <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+        <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-body-md">
           {error}
         </div>
       )}
@@ -108,15 +108,15 @@ export default function ReglasExamenContent() {
       {filteredDeps.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <Search size={40} className="mb-3 opacity-30" />
-          <p className="text-base font-medium">Sin coincidencias</p>
-          <p className="text-sm mt-1">Ningún departamento coincide con &quot;{filter}&quot;.</p>
+          <p className="text-body-lg font-medium">Sin coincidencias</p>
+          <p className="text-body-md mt-1">Ningún departamento coincide con &quot;{filter}&quot;.</p>
         </div>
       ) : (
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filteredDeps.map((dep) => (
           <Card key={dep}>
             <CardHeader className="pb-2 pt-4 px-4">
-              <CardTitle className="text-sm font-semibold">{dep}</CardTitle>
+              <CardTitle className="text-body-md font-bold">{dep}</CardTitle>
             </CardHeader>
             <CardContent className="px-4 pb-4 space-y-2">
               {TRANSICION_ORDEN.map((t) => {
@@ -138,7 +138,7 @@ export default function ReglasExamenContent() {
                         disabled={isReadOnly || !regla}
                         className="shrink-0"
                       />
-                      <span className="font-bold text-sm flex-1">{TRANSICION_LABEL[t]}</span>
+                      <span className="font-bold text-body-md flex-1">{TRANSICION_LABEL[t]}</span>
                       {dirty ? (
                         <Button
                           size="icon"
@@ -155,7 +155,7 @@ export default function ReglasExamenContent() {
                           )}
                         </Button>
                       ) : (
-                        <Badge variant="outline" className="text-[10px] h-5 shrink-0">
+                        <Badge variant="outline" className="text-body-sm h-5 shrink-0">
                           {regla ? "Guardado" : "Sin regla"}
                         </Badge>
                       )}
@@ -170,10 +170,10 @@ export default function ReglasExamenContent() {
                         value={getValue(dep, t)}
                         onChange={(e) => handleChange(dep, t, e.target.value)}
                         aria-label={`Preguntas para ${dep} ${TRANSICION_LABEL[t]}`}
-                        className="w-24 h-9 text-sm text-center"
+                        className="w-24 h-9 text-body-md text-center"
                         disabled={regla && !regla.activo}
                       />
-                      <span className="text-xs text-muted-foreground">preguntas aleatorias</span>
+                      <span className="text-body-sm text-muted-foreground">preguntas aleatorias</span>
                     </div>
                   </div>
                 )

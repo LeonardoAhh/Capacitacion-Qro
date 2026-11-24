@@ -1,13 +1,11 @@
-import localFont from "next/font/local"
+import { Ubuntu } from "next/font/google"
 
-// Mona Sans (GitHub): Regular, Medium y Bold. El peso 600 usa Bold.
-// Licencia: public/fonts/MonaSans-OFL.txt.
-const fontSans = localFont({
-  src: [
-    { path: "../public/fonts/MonaSans-Regular.woff2", weight: "400", style: "normal" },
-    { path: "../public/fonts/MonaSans-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../public/fonts/MonaSans-Bold.woff2", weight: "600 700", style: "normal" },
-  ],
+// Ubuntu (Ubuntu Font Licence): pesos 400 (texto), 500 (etiquetas) y 700 (encabezados).
+// next/font la descarga al compilar y la sirve desde la propia app: el navegador no consulta
+// Google en tiempo de ejecución.
+const fontSans = Ubuntu({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "700"],
   variable: "--font-sans",
   display: "swap",
 })

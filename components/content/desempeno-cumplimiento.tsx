@@ -99,7 +99,7 @@ function Summary({ loading, items }: { loading: boolean; items: { label: string;
       {items.map(({ label, value, detail }, index) => (
         <div key={label} className={cn("min-w-0 space-y-1 p-(--card-padding)", index % 2 === 1 && "border-l", index >= 2 && "border-t lg:border-t-0", index === 2 && "lg:border-l")}>
           <dt className="text-body-sm text-muted-foreground">{label}</dt>
-          <dd className="text-heading-lg tabular-nums text-foreground">{loading ? <Skeleton className="h-7 w-12" /> : value}</dd>
+          <dd className="text-heading-xl tabular-nums text-foreground">{loading ? <Skeleton className="h-7 w-12" /> : value}</dd>
           <dd className="truncate text-body-sm text-muted-foreground">{loading ? <Skeleton className="h-4 w-20" /> : detail}</dd>
         </div>
       ))}

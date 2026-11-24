@@ -108,7 +108,7 @@ const ExamenPrintFormat = forwardRef<HTMLDivElement, ExamenPrintFormatProps>(
               key={p.id}
               className="text-[13px] break-inside-avoid mb-[6px]"
             >
-              <p className="font-semibold leading-snug mb-0.5">
+              <p className="font-bold leading-snug mb-0.5">
                 <span className="mr-1">{i + 1}.</span>
                 {p.pregunta}
               </p>

@@ -64,11 +64,11 @@ export function ErrorState({
 
       <div className="space-y-2">
         {code ? (
-          <p className="font-sans text-xs font-medium uppercase text-muted-foreground">{code}</p>
+          <p className="font-sans text-body-sm font-medium uppercase text-muted-foreground">{code}</p>
         ) : null}
-        <h1 className="text-xl font-semibold text-foreground sm:text-2xl">{title}</h1>
+        <h1 className="text-heading-md font-bold text-foreground sm:text-heading-lg">{title}</h1>
         {description ? (
-          <p className="text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="text-body-md leading-relaxed text-muted-foreground">{description}</p>
         ) : null}
       </div>
 

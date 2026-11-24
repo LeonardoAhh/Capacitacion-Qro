@@ -108,7 +108,7 @@ export function AuthForm() {
             <Button
               variant="link"
               onClick={() => setIsSignUp(!isSignUp)}
-              className="text-sm"
+              className="text-body-md"
             >
               {isSignUp
                 ? "Already have an account? Sign in"

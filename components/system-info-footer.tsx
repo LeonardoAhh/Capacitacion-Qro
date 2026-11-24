@@ -56,7 +56,7 @@ export function SystemInfoFooter({ variant = "sidebar", className }: {
     </Tooltip>
   </TooltipProvider>
 
-  return <footer className={cn("shrink-0 border-t border-border text-xs text-muted-foreground", variant === "sidebar" && "px-4 py-2", className)}>
+  return <footer className={cn("shrink-0 border-t border-border text-body-sm text-muted-foreground", variant === "sidebar" && "px-4 py-2", className)}>
     {variant === "workspace" ? (
       <WorkspaceContainer className="safe-bottom-content flex flex-wrap items-center justify-between gap-x-6 gap-y-2 pt-3">
         {version}

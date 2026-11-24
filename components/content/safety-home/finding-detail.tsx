@@ -1,7 +1,7 @@
 "use client"
 
 import type { CSSProperties } from "react"
-import { Maximize2, X } from "lucide-react"
+import { Maximize2, Paperclip, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import type { FindingPreview } from "./finding-card"
@@ -16,10 +16,12 @@ interface FindingDetailProps {
   index: number
   onClose: () => void
   onExpand: (finding: FindingPreview) => void
+  /** Abre la evidencia de cumplimiento; el botón solo aparece cuando hay evidencia adjunta. */
+  onViewCompletion: (finding: FindingPreview) => void
 }
 
 function FindingDetail({
-  finding, index, onClose, onExpand,
+  finding, index, onClose, onExpand, onViewCompletion,
 }: FindingDetailProps) {
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -44,7 +46,15 @@ function FindingDetail({
         )}
 
         <div className="flex flex-col gap-3 p-(--card-padding)">
-          <FindingBadges finding={finding} />
+          <div className="flex flex-wrap items-center gap-2">
+            <FindingBadges finding={finding} />
+            {finding.completionEvidencePaths.length > 0 && (
+              <Button type="button" variant="outline" size="sm" className="ml-auto" onClick={() => onViewCompletion(finding)}
+                aria-label={`Ver evidencia de cumplimiento de ${finding.title}`}>
+                <Paperclip aria-hidden="true" />Ver evidencia
+              </Button>
+            )}
+          </div>
           <h2 className="break-words text-heading-md text-foreground">{finding.title}</h2>
           <p className="whitespace-pre-wrap break-words text-body-md text-muted-foreground">{finding.description}</p>
         </div>

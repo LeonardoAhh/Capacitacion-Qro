@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { LayoutGrid, List } from "lucide-react"
+import { LayoutGrid, List, Plus } from "lucide-react"
 import { ImageExpansion } from "@/components/content/safety-home/image-expansion"
 import { Button } from "@/components/ui/button"
 import { GreetingBar } from "@/components/greeting-bar"
@@ -34,7 +34,7 @@ import {
 const FINDINGS_PER_PAGE = 2
 
 type FindingsView = "tarjetas" | "lista"
-const VIEW_TRIGGER = "gap-1.5 [&_svg]:size-4 [&_svg]:shrink-0"
+const VIEW_TRIGGER = "gap-1.5 max-sm:flex-1 [&_svg]:size-4 [&_svg]:shrink-0"
 
 function FindingSkeletons({ isPreview = false }: { isPreview?: boolean }) {
   const still = isPreview ? "animate-none" : ""
@@ -110,10 +110,13 @@ export function SafetyHome() {
   return (
     <Tabs asChild value={view} onValueChange={(value) => setView(value as FindingsView)}>
     <section className="flex flex-col gap-6">
-      {/* Saludo a la izquierda; semana, vista, página y "Crear" en la misma línea, del lado opuesto. */}
-      <GreetingBar actions={<>
+      {/* Saludo a la izquierda; semana, vista, página y "Crear" en una línea del lado opuesto.
+          En celular, rejilla de 2 columnas: semana y "Crear" arriba; vista y página abajo, con la
+          semana y la vista del mismo ancho. El orden de escritorio lo da sm:order-last en "Crear". */}
+      <GreetingBar actions={
+        <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap">
           <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
-            <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium">
+            <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium max-sm:w-full max-sm:justify-between">
               <SelectValue placeholder="Sin semanas" />
             </SelectTrigger>
             <SelectContent matchTriggerWidth>
@@ -125,17 +128,23 @@ export function SafetyHome() {
             </SelectContent>
           </Select>
 
-          <TabsList aria-label="Vista de hallazgos">
+          {canEdit ? (
+            <Button type="button" className="sm:order-last" onClick={() => setIsCreateOpen(true)}>
+              <Plus aria-hidden="true" />Crear
+            </Button>
+          ) : <span className="sm:hidden" />}
+
+          <TabsList aria-label="Vista de hallazgos" className="max-sm:w-full">
             <TabsTrigger value="lista" className={VIEW_TRIGGER}>
-              <List aria-hidden="true" /><span className="sr-only sm:not-sr-only">Lista</span>
+              <List aria-hidden="true" />Lista
             </TabsTrigger>
             <TabsTrigger value="tarjetas" className={VIEW_TRIGGER}>
-              <LayoutGrid aria-hidden="true" /><span className="sr-only sm:not-sr-only">Tarjetas</span>
+              <LayoutGrid aria-hidden="true" />Tarjetas
             </TabsTrigger>
           </TabsList>
-          {view === "tarjetas" && <CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
-          {canEdit && <Button type="button" onClick={() => setIsCreateOpen(true)}>Crear</Button>}
-      </>} />
+          {view === "tarjetas" && <div className="justify-self-end"><CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} /></div>}
+        </div>
+      } />
 
       {error && <p role="alert" className="text-body-md text-destructive">{error}</p>}
 
@@ -171,7 +180,7 @@ export function SafetyHome() {
             <FindingList findings={filteredFindings} selectedId={selectedFinding?.id ?? null}
               narrow={!!selectedFinding && detailSide}
               onSelect={(finding) => setSelectedId(finding.id)}
-              canEdit={canEdit} onEdit={setEditing} onDelete={setDeleting} />
+              canEdit={canEdit} onEdit={setEditing} onDelete={setDeleting} onManageCompletion={setManagingCompletion} />
             {selectedFinding && (
               <FindingDetailPanel
                 key={selectedFinding.id}
@@ -180,6 +189,7 @@ export function SafetyHome() {
                 index={selectedIndex}
                 onClose={() => setSelectedId(null)}
                 onExpand={fromDetail(setExpandedImage)}
+                onViewCompletion={fromDetail(setExpandedCompletion)}
               />
             )}
           </div>

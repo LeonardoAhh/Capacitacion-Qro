@@ -28,7 +28,6 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     openMobileSidebar,
     isSidebarCollapsed,
     toggleSidebar,
-    collapseSidebar,
   } = useSidebar()
 
   const pathname = usePathname()
@@ -64,47 +63,49 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).
-    <div className="workspace-shell bg-background">
+    // Barra lateral y header sobre el lienzo (tarjeta); el contenido va en un panel hundido aparte.
+    <div className="workspace-shell bg-card" data-layout="app" data-desktop-header={isEvaluador ? "none" : undefined}>
       {/* Skip link accesible */}
       <a
         href="#main-content"
         className="sr-only transition-colors focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100]
                    focus:rounded-md focus:border focus:border-border focus:bg-card focus:px-4 focus:py-3
-                   focus:text-sm focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+                   focus:text-body-md focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-ring"
       >
         Saltar al contenido
       </a>
 
-      <div className="workspace-panel bg-card md:rounded-xl md:border md:border-border">
+      <div className="workspace-panel">
         <Sidebar
           showMobileSidebar={showMobileSidebar}
           setShowMobileSidebar={setShowMobileSidebar}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={toggleSidebar}
-          onCollapse={collapseSidebar}
+          // El evaluador no tiene header en escritorio (sin control para mostrarla): su barra siempre se ve.
+          isCollapsed={isSidebarCollapsed && !isEvaluador}
           workspace={workspace}
           onWorkspaceChange={handleWorkspaceChange}
           showStatus={isEvaluador}
         />
 
-        {/* Header y contenido sobre las líneas radiales; la barra lateral queda lisa.
-            En móvil el fondo es fijo al viewport para no crear un lienzo del alto de toda la página. */}
-        <div className="workspace-frame relative isolate">
-          <RadiantLines colors={palette} starCount={700} displacement={2.5} containerRef={desktop ? mainRef : undefined}
-            className="-z-10 bg-transparent max-md:fixed" />
+        <div className="workspace-frame">
           <Header
             titleHref={headerTitleHref}
             titleHrefLabel={headerTitleHrefLabel}
-            fullWidth={fullWidth}
             showMobileSidebar={showMobileSidebar}
             onOpenSidebar={openMobileSidebar}
+            sidebarCollapsed={isSidebarCollapsed}
+            onToggleSidebar={toggleSidebar}
             mobileOnly={isEvaluador}
           />
 
+          {/* Panel del contenido: en escritorio, hundido (fondo del tema, borde y radio) con las líneas radiales
+              detrás; en móvil ocupa toda la pantalla y el fondo queda fijo al viewport. */}
+          <div className="workspace-stage relative isolate">
+          <RadiantLines colors={palette} starCount={700} displacement={2.5} containerRef={desktop ? mainRef : undefined}
+            className="-z-10 bg-transparent max-md:fixed" />
           <main
             ref={mainRef}
             id="main-content"
-            className="min-w-0 flex-1 safe-right"
+            className="workspace-main min-w-0 flex-1 safe-right"
           >
             {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor.
                 Sumar ambos dejaba espacio extra y provocaba scroll aunque el contenido cupiera. */}
@@ -115,6 +116,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
               </div>
             </WorkspaceContainer>
           </main>
+          </div>
         </div>
       </div>
     </div>

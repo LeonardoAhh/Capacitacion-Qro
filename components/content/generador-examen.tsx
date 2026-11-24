@@ -104,8 +104,8 @@ export default function GeneradorExamenContent() {
         {/* Controles (se ocultan al imprimir) */}
         <div className="no-print pb-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div>
-            <p className="font-semibold">{examen.empleado.nombre}</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="font-bold">{examen.empleado.nombre}</p>
+            <p className="text-body-md text-muted-foreground">
               {examen.empleado.departamento} · Categoría {examen.transicion.etiqueta} ·{" "}
               {examen.preguntas.length} preguntas
             </p>
@@ -195,21 +195,21 @@ export default function GeneradorExamenContent() {
                     <User size={14} className="text-muted-foreground" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm leading-tight truncate">
+                    <p className="font-medium text-body-md leading-tight truncate">
                       {emp.nombre}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-body-sm text-muted-foreground truncate">
                       {emp.departamento ?? "—"} · {emp.puesto ?? "—"}
                     </p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {cat && (
-                      <Badge variant="secondary" className="text-xs">
+                      <Badge variant="secondary" className="text-body-sm">
                         Cat. {cat}
                       </Badge>
                     )}
                     {emp.numero && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-body-sm text-muted-foreground">
                         #{emp.numero}
                       </span>
                     )}
@@ -231,8 +231,8 @@ export default function GeneradorExamenContent() {
                 <User size={18} className="text-primary" />
               </div>
               <div className="flex-1">
-                <p className="font-semibold">{empleadoSeleccionado.nombre}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-bold">{empleadoSeleccionado.nombre}</p>
+                <p className="text-body-md text-muted-foreground">
                   {empleadoSeleccionado.departamento ?? "—"} ·{" "}
                   {empleadoSeleccionado.puesto ?? "—"}
                   {empleadoSeleccionado.numero && (
@@ -252,11 +252,11 @@ export default function GeneradorExamenContent() {
 
           {/* Paso 2: seleccionar transición */}
           <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+            <p className="text-body-md font-medium text-muted-foreground uppercase tracking-wide">
               Tipo de examen (categoría)
             </p>
             {transiciones.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-body-md text-muted-foreground">
                 No hay reglas de examen configuradas para este departamento.
               </p>
             ) : (
@@ -279,16 +279,16 @@ export default function GeneradorExamenContent() {
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-lg">
+                        <span className="font-bold text-heading-md">
                           {t.etiqueta}
                         </span>
                         {isAuto && (
-                          <Badge className="text-[10px] py-0 h-4">
+                          <Badge className="text-body-sm py-0 h-4">
                             Actual
                           </Badge>
                         )}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-body-md text-muted-foreground">
                         {t.numPreguntas} preguntas aleatorias
                       </p>
                     </button>
@@ -324,8 +324,8 @@ export default function GeneradorExamenContent() {
       {resultados.length === 0 && !buscando && !empleadoSeleccionado && !hasSearched && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
           <FileText size={48} className="mb-4 opacity-30" />
-          <p className="text-lg font-medium">Generador de Exámenes</p>
-          <p className="text-sm mt-1 text-center max-w-xs">
+          <p className="text-heading-md font-medium">Generador de Exámenes</p>
+          <p className="text-body-md mt-1 text-center max-w-xs">
             Busca un empleado por nombre o número para generar su examen de
             promoción con preguntas aleatorias de su departamento.
           </p>
@@ -334,15 +334,15 @@ export default function GeneradorExamenContent() {
       {resultados.length === 0 && !buscando && !empleadoSeleccionado && hasSearched && (
         <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
           <Search size={40} className="mb-3 opacity-30" />
-          <p className="text-base font-medium">Sin resultados</p>
-          <p className="text-sm mt-1 text-center max-w-xs">
+          <p className="text-body-lg font-medium">Sin resultados</p>
+          <p className="text-body-md mt-1 text-center max-w-xs">
             No encontramos empleados para &quot;{searchTerm}&quot;. Revisa el nombre o número e intenta de nuevo.
           </p>
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+        <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-body-md">
           {error}
         </div>
       )}

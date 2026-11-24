@@ -162,7 +162,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
 
       <div className="overflow-y-auto p-5 sm:p-(--card-padding) space-y-6 dense:space-y-4 bg-card">
         <div className="space-y-2">
-          <label className="text-sm font-medium text-ink">Curso</label>
+          <label className="text-body-md font-medium text-ink">Curso</label>
           <Popover
             open={coursePickerOpen}
             onOpenChange={nextOpen => {
@@ -176,7 +176,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
                 variant="outline"
                 role="combobox"
                 aria-expanded={coursePickerOpen}
-                className="h-(--control-height) w-full min-w-0 justify-between bg-transparent px-3 text-base font-normal shadow-none"
+                className="h-(--control-height) w-full min-w-0 justify-between bg-transparent px-3 text-body-lg font-normal shadow-none"
               >
                 <span className="min-w-0 truncate text-left">
                   {selectedCourseName || "Selecciona un curso..."}
@@ -201,7 +201,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
               </div>
               <div className="max-h-60 overflow-y-auto p-1">
                 {visibleCourses.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">No se encontraron cursos.</p>
+                  <p className="px-3 py-6 text-center text-body-md text-muted-foreground">No se encontraron cursos.</p>
                 ) : (
                   visibleCourses.map(course => (
                     <button
@@ -213,7 +213,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
                         setCoursePickerOpen(false)
                         setCourseSearch("")
                       }}
-                      className="flex w-full min-w-0 items-center gap-2 rounded-sm px-3 py-2 text-left text-sm outline-none hover:bg-accent focus-visible:bg-accent"
+                      className="flex w-full min-w-0 items-center gap-2 rounded-sm px-3 py-2 text-left text-body-md outline-none hover:bg-accent focus-visible:bg-accent"
                     >
                       <Check className={`h-4 w-4 shrink-0 ${selectedCourseId === course.id ? 'opacity-100' : 'opacity-0'}`} />
                       <span className="min-w-0 flex-1 truncate">{course.name}</span>
@@ -221,7 +221,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
                   ))
                 )}
                 {sortedCourses.length > visibleCourses.length && !courseSearch && (
-                  <p className="px-3 py-2 text-center text-xs text-muted-foreground">
+                  <p className="px-3 py-2 text-center text-body-sm text-muted-foreground">
                     Escribe para buscar en los {sortedCourses.length.toLocaleString()} cursos.
                   </p>
                 )}
@@ -235,11 +235,11 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
             <div className="flex min-w-0 items-center gap-3">
               <Users className="h-5 w-5 shrink-0 text-muted-foreground" />
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-ink">{selectedCourseName}</p>
-                <p className="text-xs text-muted-foreground">Registros únicos listos para exportar</p>
+                <p className="truncate text-body-md font-medium text-ink">{selectedCourseName}</p>
+                <p className="text-body-sm text-muted-foreground">Registros únicos listos para exportar</p>
               </div>
             </div>
-            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-sm font-medium text-ink">
+            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-body-md font-medium text-ink">
               {auditData.length.toLocaleString()}
             </span>
           </div>

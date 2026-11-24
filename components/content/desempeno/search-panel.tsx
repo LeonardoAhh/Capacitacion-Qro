@@ -60,7 +60,7 @@ export function SearchPanel({
               <X className="size-4" aria-hidden="true" />
             </button>}
 
-            {showMinLengthHint && <div role="status" className="absolute z-20 mt-1 w-full rounded-md border bg-popover px-3 py-2 text-xs text-muted-foreground shadow-[var(--floating-shadow)]">
+            {showMinLengthHint && <div role="status" className="absolute z-20 mt-1 w-full rounded-md border bg-popover px-3 py-2 text-body-sm text-muted-foreground shadow-[var(--floating-shadow)]">
               {DESEMPENO.search.help}
             </div>}
 
@@ -80,18 +80,18 @@ export function SearchPanel({
               </div>
             )}
             {expanded && !suggLoading && suggestionError && (
-              <div role="alert" className="absolute z-20 w-full rounded-md border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-[var(--floating-shadow)]">
+              <div role="alert" className="absolute z-20 w-full rounded-md border bg-popover px-3 py-2 text-body-md text-muted-foreground shadow-[var(--floating-shadow)]">
                 No se pudieron cargar las sugerencias. Inténtalo de nuevo.
               </div>
             )}
             {expanded && !suggLoading && !suggestionError && <div id={listId} role="listbox" aria-label={DESEMPENO.search.label} className="absolute z-20 mt-1 w-full overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-[var(--floating-shadow)]">
-              {suggestions.length === 0 ? <div className="px-3 py-2 text-sm text-muted-foreground">Sin coincidencias</div> : suggestions.map((s, idx) => <button key={s.numero} type="button" id={`${listId}-${idx}`} role="option" tabIndex={-1} aria-selected={idx === activeIdx} onMouseDown={e => e.preventDefault()} onClick={() => {
+              {suggestions.length === 0 ? <div className="px-3 py-2 text-body-md text-muted-foreground">Sin coincidencias</div> : suggestions.map((s, idx) => <button key={s.numero} type="button" id={`${listId}-${idx}`} role="option" tabIndex={-1} aria-selected={idx === activeIdx} onMouseDown={e => e.preventDefault()} onClick={() => {
                 setNumeroBuscado(s.numero);
                 doBuscar(s.numero);
               }} onMouseEnter={() => setActiveIdx(idx)} className={`flex min-h-(--control-height) w-full items-center gap-2 px-3 py-2 text-left font-sans ${idx === activeIdx ? "bg-accent" : "hover:bg-accent"}`}>
-                  <span className="shrink-0 text-xs font-normal leading-4 tabular-nums text-muted-foreground">{s.numero}</span>
-                  <span className="min-w-0 truncate text-sm font-medium leading-5 text-foreground">{s.nombre || "—"}</span>
-                  {s.puesto && <span className="ml-auto max-w-[40%] truncate text-xs font-normal leading-4 text-muted-foreground">{s.puesto}</span>}
+                  <span className="shrink-0 text-body-sm font-normal leading-4 tabular-nums text-muted-foreground">{s.numero}</span>
+                  <span className="min-w-0 truncate text-body-md font-medium leading-5 text-foreground">{s.nombre || "—"}</span>
+                  {s.puesto && <span className="ml-auto max-w-[40%] truncate text-body-sm font-normal leading-4 text-muted-foreground">{s.puesto}</span>}
                 </button>)}
             </div>}
           </div>
@@ -100,10 +100,10 @@ export function SearchPanel({
         <div className="flex min-w-0 items-center gap-2 md:shrink-0">
         {/* El periodo vigente se asigna al buscar; los históricos se abren desde Historial. */}
         <div className="flex min-h-(--control-height) min-w-0 flex-1 items-center gap-2 rounded-md border border-border bg-card px-3 md:max-w-xs md:flex-none" role="status" aria-live="polite">
-          <span className="shrink-0 text-sm text-muted-foreground">Periodo</span>
+          <span className="shrink-0 text-body-md text-muted-foreground">Periodo</span>
           {loading
             ? <><span className="sr-only">Consultando periodo de evaluación</span><Skeleton aria-hidden="true" className="h-4 w-32" /></>
-            : <span className="min-w-0 truncate text-sm font-medium text-foreground" title={periodoVisible ?? undefined}>
+            : <span className="min-w-0 truncate text-body-md font-medium text-foreground" title={periodoVisible ?? undefined}>
                 {periodoVisible ? `${esPeriodoSemestral(periodoVisible) ? DESEMPENO.modes.semestrales : DESEMPENO.modes.mensuales} · ${periodoVisible}` : "Se asigna automáticamente"}
               </span>}
         </div>

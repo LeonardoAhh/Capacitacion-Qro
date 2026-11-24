@@ -198,18 +198,18 @@ export default function EvaluatorAssignments() {
     notify.success("Asignación eliminada")
   }
 
-  if (roleLoading || userLoading) return <p className="text-sm text-muted-foreground">Verificando acceso…</p>
-  if (!canManageAssignments) return <p role="alert" className="text-sm text-muted-foreground">No tienes acceso a las asignaciones.</p>
+  if (roleLoading || userLoading) return <p className="text-body-md text-muted-foreground">Verificando acceso…</p>
+  if (!canManageAssignments) return <p role="alert" className="text-body-md text-muted-foreground">No tienes acceso a las asignaciones.</p>
 
   return <div className="space-y-6">
     <Card>
       <CardHeader className="space-y-1">
         <CardTitle className="text-heading-md">Cuenta evaluadora</CardTitle>
-        <p className="text-sm text-muted-foreground">Define las áreas y personas que puede evaluar esta cuenta compartida.</p>
+        <p className="text-body-md text-muted-foreground">Define las áreas y personas que puede evaluar esta cuenta compartida.</p>
       </CardHeader>
       <CardContent>
-        {loadingAccounts ? <p className="text-sm text-muted-foreground">Cargando cuentas…</p> : accounts.length === 0
-          ? <p className="text-sm text-muted-foreground">No hay cuentas con rol evaluador.</p>
+        {loadingAccounts ? <p className="text-body-md text-muted-foreground">Cargando cuentas…</p> : accounts.length === 0
+          ? <p className="text-body-md text-muted-foreground">No hay cuentas con rol evaluador.</p>
           : <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={saving || pendingNumber !== null || loadingAssignments}>
               <SelectTrigger aria-label="Cuenta evaluadora" className="w-full sm:max-w-md"><SelectValue /></SelectTrigger>
               <SelectContent>{accounts.map(account => <SelectItem key={account.user_id} value={account.user_id}>{account.display_name || account.email} · {account.email}</SelectItem>)}</SelectContent>
@@ -221,11 +221,11 @@ export default function EvaluatorAssignments() {
       <Card>
         <CardHeader className="space-y-1">
           <CardTitle className="text-heading-md">Áreas completas</CardTitle>
-          <p className="text-sm text-muted-foreground">Incluye a todas las personas del departamento. Desmarca todas para usar solo asignaciones individuales.</p>
+          <p className="text-body-md text-muted-foreground">Incluye a todas las personas del departamento. Desmarca todas para usar solo asignaciones individuales.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-2 sm:grid-cols-2">
-            {departmentOptions.map(department => <label key={department} className="flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-sm">
+            {departmentOptions.map(department => <label key={department} className="flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-body-md">
               <Checkbox checked={departments.includes(department)} onCheckedChange={checked => setDepartments(current => checked === true ? [...current, department] : current.filter(value => value !== department))} />
               <span>{department}</span>
             </label>)}
@@ -241,7 +241,7 @@ export default function EvaluatorAssignments() {
       <Card>
         <CardHeader className="space-y-1">
           <CardTitle className="text-heading-md">Personas asignadas</CardTitle>
-          <p className="text-sm text-muted-foreground">Se suman a las áreas. Quitar una asignación no excluye a alguien incluido por su departamento.</p>
+          <p className="text-body-md text-muted-foreground">Se suman a las áreas. Quitar una asignación no excluye a alguien incluido por su departamento.</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="relative">
@@ -249,23 +249,23 @@ export default function EvaluatorAssignments() {
             <Input value={query} onChange={event => setQuery(event.target.value)} placeholder="Buscar por número o nombre" aria-label="Buscar empleado para asignar" className="pl-9" />
           </div>
           {query.trim().length >= 2 && <div className="max-h-64 overflow-y-auto rounded-md border border-border">
-            {searching ? <p className="p-3 text-sm text-muted-foreground">Buscando…</p> : results.length === 0
-              ? <p className="p-3 text-sm text-muted-foreground">Sin coincidencias</p>
+            {searching ? <p className="p-3 text-body-md text-muted-foreground">Buscando…</p> : results.length === 0
+              ? <p className="p-3 text-body-md text-muted-foreground">Sin coincidencias</p>
               : results.map(employee => <div key={employee.numero} className="flex items-center justify-between gap-3 border-b border-border p-3 last:border-b-0">
-                  <div className="min-w-0 text-sm"><p className="truncate font-medium">{employee.nombre}</p><p className="truncate text-xs text-muted-foreground">#{employee.numero} · {employee.puesto || employee.departamento || "Sin puesto"}</p></div>
+                  <div className="min-w-0 text-body-md"><p className="truncate font-medium">{employee.nombre}</p><p className="truncate text-body-sm text-muted-foreground">#{employee.numero} · {employee.puesto || employee.departamento || "Sin puesto"}</p></div>
                   <Button type="button" size="sm" variant="outline" disabled={assignedSet.has(employee.numero) || pendingNumber !== null || loadingAssignments} onClick={() => addEmployee(employee)}>
                     <Plus aria-hidden="true" />{assignedSet.has(employee.numero) ? "Asignado" : "Asignar"}
                   </Button>
                 </div>)}
           </div>}
           <div className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">{assignedNumbers.length} personas asignadas individualmente</p>
-            {loadingAssignments ? <p className="text-sm text-muted-foreground">Cargando asignaciones…</p> : assignedNumbers.length === 0
-              ? <p className="rounded-md border border-dashed border-border p-4 text-sm text-muted-foreground">Aún no hay personas asignadas individualmente.</p>
+            <p className="text-body-sm font-medium text-muted-foreground">{assignedNumbers.length} personas asignadas individualmente</p>
+            {loadingAssignments ? <p className="text-body-md text-muted-foreground">Cargando asignaciones…</p> : assignedNumbers.length === 0
+              ? <p className="rounded-md border border-dashed border-border p-4 text-body-md text-muted-foreground">Aún no hay personas asignadas individualmente.</p>
               : assignedNumbers.map(number => {
                   const employee = assignedEmployees.find(item => item.numero === number)
                   return <div key={number} className="flex min-h-11 items-center justify-between gap-3 rounded-md border border-border px-3 py-1">
-                    <div className="min-w-0 text-sm"><p className="truncate font-medium">{employee?.nombre ?? `#${number}`}</p><p className="truncate text-xs text-muted-foreground">#{number}{employee?.puesto ? ` · ${employee.puesto}` : ""}</p></div>
+                    <div className="min-w-0 text-body-md"><p className="truncate font-medium">{employee?.nombre ?? `#${number}`}</p><p className="truncate text-body-sm text-muted-foreground">#{number}{employee?.puesto ? ` · ${employee.puesto}` : ""}</p></div>
                     <Button type="button" variant="ghost" size="icon" disabled={pendingNumber !== null} onClick={() => removeEmployee(number)} aria-label={`Quitar asignación de ${employee?.nombre ?? number}`}><Trash2 aria-hidden="true" /></Button>
                   </div>
                 })}

@@ -36,14 +36,14 @@ export function PaginationBar({ currentPage, totalPages, onPageChange }: Paginat
           }, [])
           .map((item, idx) =>
             item === 'ellipsis'
-              ? <span key={`e${idx}`} className="px-1 text-muted-foreground text-sm" aria-hidden="true">…</span>
+              ? <span key={`e${idx}`} className="px-1 text-muted-foreground text-body-md" aria-hidden="true">…</span>
               : (
                 <Button
                   key={item}
                   variant={item === safePage ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => onPageChange(item)}
-                  className="h-10 w-10 rounded-md border-border p-0 text-xs shadow-none sm:h-8 sm:w-8"
+                  className="h-10 w-10 rounded-md border-border p-0 text-body-sm shadow-none sm:h-8 sm:w-8"
                   aria-label={`Ir a la página ${item}`}
                   aria-current={item === safePage ? 'page' : undefined}
                 >

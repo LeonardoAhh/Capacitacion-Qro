@@ -377,7 +377,7 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
             {/* Valid */}
             {valid.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                <p className="text-body-sm font-bold text-muted-foreground uppercase tracking-wide">
                   Empleados a crear ({valid.length})
                 </p>
                 <div className="rounded-md border border-border/60 bg-surface-card shadow-none overflow-x-auto">
@@ -393,10 +393,10 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
                     <TableBody>
                       {valid.map((v, i) => (
                         <TableRow key={i}>
-                          <TableCell className="font-sans text-xs">{v.numero ?? "—"}</TableCell>
-                          <TableCell className="text-xs">{v.nombre}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{v.puesto ?? "—"}</TableCell>
-                          <TableCell className="text-xs text-muted-foreground">{v.departamento ?? "—"}</TableCell>
+                          <TableCell className="font-sans text-body-sm">{v.numero ?? "—"}</TableCell>
+                          <TableCell className="text-body-sm">{v.nombre}</TableCell>
+                          <TableCell className="text-body-sm text-muted-foreground">{v.puesto ?? "—"}</TableCell>
+                          <TableCell className="text-body-sm text-muted-foreground">{v.departamento ?? "—"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -408,7 +408,7 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
             {/* Duplicates */}
             {duplicates.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-[hsl(var(--warning))] uppercase tracking-wide">
+                <p className="text-body-sm font-bold text-[hsl(var(--warning))] uppercase tracking-wide">
                   Duplicados — se omitirán ({duplicates.length})
                 </p>
                 <div className="rounded-md border border-[hsl(var(--warning)/0.3)] bg-[hsl(var(--warning)/0.05)] shadow-none overflow-x-auto">
@@ -422,8 +422,8 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
                     <TableBody>
                       {duplicates.map((d, i) => (
                         <TableRow key={i}>
-                          <TableCell className="font-sans text-xs">{d.numero}</TableCell>
-                          <TableCell className="text-xs">{d.nombre}</TableCell>
+                          <TableCell className="font-sans text-body-sm">{d.numero}</TableCell>
+                          <TableCell className="text-body-sm">{d.nombre}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -435,7 +435,7 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
             {/* Invalid */}
             {invalid.length > 0 && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-destructive uppercase tracking-wide">
+                <p className="text-body-sm font-bold text-destructive uppercase tracking-wide">
                   Inválidos — se omitirán ({invalid.length})
                 </p>
                 <div className="rounded-md border border-destructive/30 bg-destructive/5 shadow-none overflow-x-auto">
@@ -450,9 +450,9 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
                     <TableBody>
                       {invalid.map((inv) => (
                         <TableRow key={inv.index}>
-                          <TableCell className="font-sans text-xs">{inv.index + 1}</TableCell>
-                          <TableCell className="text-xs">{inv.raw.nombre ?? "—"}</TableCell>
-                          <TableCell className="text-xs text-destructive">
+                          <TableCell className="font-sans text-body-sm">{inv.index + 1}</TableCell>
+                          <TableCell className="text-body-sm">{inv.raw.nombre ?? "—"}</TableCell>
+                          <TableCell className="text-body-sm text-destructive">
                             <ul className="list-disc list-inside space-y-0.5">
                               {inv.reasons.map((r, i) => (
                                 <li key={i}>{r}</li>
@@ -472,8 +472,8 @@ export function CapBulkCreateEmployees({ open, onClose, onCreated }: Props) {
         {step === "done" && (
           <div className="flex flex-col items-center justify-center gap-3 py-8">
             <CheckCircle2 className="h-12 w-12 text-[hsl(var(--success))]" />
-            <p className="text-lg font-semibold">¡Listo!</p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-heading-md font-bold">¡Listo!</p>
+            <p className="text-body-md text-muted-foreground">
               {totalCreated} empleado(s) creado(s) correctamente.
             </p>
           </div>

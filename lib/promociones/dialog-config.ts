@@ -36,12 +36,12 @@ export const EXAM_DIALOG_COPY = {
 
 /** Shared semantic type scale for promotion dialogs. Uses the global rem scale. */
 export const PROMOTION_DIALOG_TYPE = {
-  primaryValue: "text-base font-semibold leading-snug text-foreground",
-  accentValue: "text-base font-semibold leading-snug text-primary",
-  sectionTitle: "text-sm font-semibold leading-snug text-foreground",
-  label: "text-sm font-medium leading-snug text-muted-foreground",
-  value: "text-sm font-medium leading-snug text-foreground",
-  supporting: "text-sm leading-relaxed text-muted-foreground",
+  primaryValue: "text-body-lg font-bold leading-snug text-foreground",
+  accentValue: "text-body-lg font-bold leading-snug text-primary",
+  sectionTitle: "text-body-md font-bold leading-snug text-foreground",
+  label: "text-body-md font-medium leading-snug text-muted-foreground",
+  value: "text-body-md font-medium leading-snug text-foreground",
+  supporting: "text-body-md leading-relaxed text-muted-foreground",
 } as const
 
 export function todayAsLocalDate(): string {

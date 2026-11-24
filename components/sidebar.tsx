@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { PanelLeft, PanelLeftDashed, X } from "lucide-react"
+import { X } from "lucide-react"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
-import { MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
+import { DESKTOP_NAV_ID, MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
 import { WorkspaceBrand } from "@/components/workspace-switcher"
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { AccountMenu } from "@/components/account-menu"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
@@ -32,7 +31,6 @@ export interface SidebarApi {
   openMobileSidebar: () => void
   isSidebarCollapsed: boolean
   toggleSidebar: () => void
-  collapseSidebar: () => void
 }
 
 export function useSidebar(): SidebarApi & {
@@ -44,7 +42,6 @@ export function useSidebar(): SidebarApi & {
 
   const openMobileSidebar = useCallback(() => setShowMobileSidebar(true), [])
   const toggleSidebar = useCallback(() => setIsSidebarCollapsed((collapsed) => !collapsed), [])
-  const collapseSidebar = useCallback(() => setIsSidebarCollapsed(true), [])
 
   useEffect(() => {
     try {
@@ -82,7 +79,6 @@ export function useSidebar(): SidebarApi & {
     openMobileSidebar,
     isSidebarCollapsed,
     toggleSidebar,
-    collapseSidebar,
   }
 }
 
@@ -94,14 +90,14 @@ function SidebarBrand({
   workspace: WorkspaceId
 }) {
   return (
-    <div className="relative flex h-[var(--workspace-header-height)] shrink-0 items-center px-3">
+    <div className="relative mx-3 mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center border-b border-sidebar-border">
       <WorkspaceBrand workspace={workspace} mobile />
       {onClose && (
         <button
           type="button"
           onClick={onClose}
           aria-label="Cerrar menú"
-          className={cn(controlBase, "absolute right-3")}
+          className={cn(controlBase, "absolute right-0")}
         >
           <X className="size-4" aria-hidden="true" />
         </button>
@@ -110,11 +106,11 @@ function SidebarBrand({
   )
 }
 
-/** Fecha, hora y avisos sobre la cuenta (vista sin encabezado). Contraída, solo la campana. */
-function SidebarStatus({ isCollapsed = false }: { isCollapsed?: boolean }) {
+/** Fecha, hora y avisos sobre la cuenta (vista sin encabezado). */
+function SidebarStatus() {
   return (
-    <div className={cn("flex shrink-0 items-center gap-2 px-3 pb-1", isCollapsed && "justify-center px-2")}>
-      {!isCollapsed && <span className="min-w-0 flex-1"><WorkspaceClock /></span>}
+    <div className="flex shrink-0 items-center gap-2 px-3 pb-1">
+      <span className="min-w-0 flex-1"><WorkspaceClock /></span>
       <KanbanAvisos />
     </div>
   )
@@ -128,14 +124,12 @@ function NavTree({
   pathname,
   onNavigate,
   mobile = false,
-  isCollapsed = false,
   workspace,
 }: {
   pathname: string
-  /** Al elegir una ruta: cierra el menú móvil o contrae la barra de escritorio. */
+  /** Al elegir una ruta en el menú móvil: lo cierra. */
   onNavigate?: () => void
   mobile?: boolean
-  isCollapsed?: boolean
   workspace: WorkspaceId
 }) {
   const navSections = getWorkspaceNavSections(workspace)
@@ -158,22 +152,17 @@ function NavTree({
   ]
 
   return (
-    <TooltipProvider delayDuration={300}>
       <nav
-        id={!mobile ? "workspace-desktop-navigation" : undefined}
         aria-label="Secciones"
-        className={cn(
-          "min-h-0 flex-1 overflow-x-hidden overflow-y-auto pb-2 scrollbar-thin",
-          isCollapsed ? "px-2" : "px-3",
-        )}
+        className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pb-2 scrollbar-thin"
       >
         <ul>
           {navigationItems.map(({ leaf, active }) => {
             const link = (
               <Link
                 href={leaf.href}
-                // Con una captura sin guardar se confirma antes de salir; cerrar o contraer
-                // la barra solo ocurre si de verdad se navega.
+                // Con una captura sin guardar se confirma antes de salir; el menú móvil
+                // solo se cierra si de verdad se navega.
                 onNavigate={event => {
                   if (!hasUnsavedChanges()) return onNavigate?.()
                   event.preventDefault()
@@ -187,7 +176,6 @@ function NavTree({
                 className={cn(
                   navLinkBase,
                   SIDEBAR_ROW,
-                  isCollapsed && "justify-center md:px-0",
                   active ? rowActive : rowIdle,
                 )}
               >
@@ -200,24 +188,18 @@ function NavTree({
                 >
                   <leaf.icon className={SIDEBAR_ICON} aria-hidden="true" />
                 </span>
-                <span className={cn("truncate", isCollapsed && "sr-only")}>{leaf.label}</span>
+                <span className="truncate">{leaf.label}</span>
               </Link>
             )
 
             return (
               <li key={leaf.href}>
-                {isCollapsed && !mobile ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>{link}</TooltipTrigger>
-                    <TooltipContent side="right">{leaf.label}</TooltipContent>
-                  </Tooltip>
-                ) : link}
+                {link}
               </li>
             )
           })}
         </ul>
       </nav>
-    </TooltipProvider>
   )
 }
 
@@ -226,10 +208,8 @@ function NavTree({
 interface SidebarProps {
   showMobileSidebar: boolean
   setShowMobileSidebar: (v: boolean) => void
+  /** Escritorio: la barra se oculta por completo; se abre y cierra desde el header. */
   isCollapsed: boolean
-  onToggleCollapse: () => void
-  /** Tras navegar desde la barra de escritorio, se contrae para dejar espacio al contenido. */
-  onCollapse: () => void
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
   /** Hora y avisos en la barra, para la vista sin encabezado. */
@@ -240,8 +220,6 @@ export default function Sidebar({
   showMobileSidebar,
   setShowMobileSidebar,
   isCollapsed,
-  onToggleCollapse,
-  onCollapse,
   workspace,
   onWorkspaceChange,
   showStatus = false,
@@ -269,56 +247,30 @@ export default function Sidebar({
             <SidebarBrand onClose={closeMobile} workspace={workspace} />
             <NavTree pathname={pathname} onNavigate={closeMobile} mobile workspace={workspace} />
             {showStatus && <SidebarStatus />}
-            <div className="safe-bottom-content shrink-0 px-3 py-2">
+            <div className="safe-bottom-content mx-3 shrink-0 border-t border-sidebar-border pt-2">
               <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
             </div>
           </div>
         </DrawerContent>
       </Drawer>
 
-      {/* ── Desktop sidebar ── */}
+      {/* ── Desktop sidebar: visible o completamente oculta (control en el header) ── */}
       <aside
+        id={DESKTOP_NAV_ID}
         aria-label="Menú principal"
-        data-collapsed={isCollapsed}
-        className="workspace-sidebar hidden flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex"
+        className={cn("workspace-sidebar hidden flex-col bg-sidebar text-sidebar-foreground md:flex", isCollapsed && "md:hidden")}
       >
-        {/* Sin title nativo: los controles de solo ícono usan el Tooltip de la app. */}
-        <TooltipProvider delayDuration={300}>
-          {/* Encabezado sin contenedor; misma altura que el header. El texto se alinea con los iconos de navegación. */}
-          <div className={cn(
-            "mt-2 mb-1 flex h-[var(--workspace-header-height)] shrink-0 items-center",
-            isCollapsed ? "justify-center px-2" : "px-2",
-          )}>
-            <WorkspaceBrand workspace={workspace} collapsed={isCollapsed} />
-          </div>
-          <NavTree pathname={pathname} onNavigate={isCollapsed ? undefined : onCollapse} isCollapsed={isCollapsed} workspace={workspace} />
-          {showStatus && <SidebarStatus isCollapsed={isCollapsed} />}
-          <div className={cn(
-            "shrink-0 pb-2",
-            isCollapsed ? "px-2" : "flex items-center gap-1 px-2",
-          )}>
-            <AccountMenu isCollapsed={isCollapsed} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={onToggleCollapse}
-                  aria-label={isCollapsed ? "Expandir navegación" : "Contraer navegación"}
-                  aria-controls="workspace-desktop-navigation"
-                  aria-expanded={!isCollapsed}
-                  className={cn(controlBase, isCollapsed ? "mt-1 w-full md:h-8" : "md:size-8")}
-                >
-                  {isCollapsed
-                    ? <PanelLeft className="size-4" aria-hidden="true" />
-                    : <PanelLeftDashed className="size-4" aria-hidden="true" />}
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side={isCollapsed ? "right" : "top"}>
-                {isCollapsed ? "Expandir navegación" : "Contraer navegación"}
-              </TooltipContent>
-            </Tooltip>
-          </div>
-        </TooltipProvider>
+        {/* Encabezado sin contenedor, misma altura que el header y separado de la navegación con una línea
+            del ancho de la lista. El texto se alinea con los iconos de navegación. */}
+        <div className="workspace-sidebar-brand mx-3 mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center border-b border-sidebar-border">
+          <WorkspaceBrand workspace={workspace} />
+        </div>
+        <NavTree pathname={pathname} workspace={workspace} />
+        {showStatus && <SidebarStatus />}
+        {/* Cuenta separada de la navegación con la misma línea que la marca; termina a la altura del panel. */}
+        <div className="mx-3 shrink-0 border-t border-sidebar-border pt-2">
+          <AccountMenu workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
+        </div>
       </aside>
     </>
   )

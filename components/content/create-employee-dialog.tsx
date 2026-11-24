@@ -23,7 +23,7 @@ interface FormFieldProps {
 function FormField({ id, label, required = false, children }: FormFieldProps) {
   return (
     <div className="min-w-0 space-y-1.5">
-      <Label htmlFor={id} className="text-sm font-medium">
+      <Label htmlFor={id} className="text-body-md font-medium">
         {label}{required && <span className="text-destructive ml-0.5">*</span>}
       </Label>
       {children}
@@ -143,7 +143,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
 
           {/* Identificación */}
           <fieldset className="space-y-2">
-            <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Identificación</legend>
+            <legend className="text-body-sm font-bold uppercase tracking-wider text-muted-foreground">Identificación</legend>
             <div className="grid grid-cols-[80px_1fr] gap-3">
               <FormField id="numero" label="N.N">
                 <Input id="numero" value={form.numero}
@@ -160,7 +160,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
 
           {/* Organización */}
           <fieldset className="space-y-2">
-            <legend className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Organización</legend>
+            <legend className="text-body-sm font-bold uppercase tracking-wider text-muted-foreground">Organización</legend>
             <div className="grid grid-cols-2 gap-3">
               <FormField id="departamento" label="Departamento" required>
                 <Select value={form.departamento} onValueChange={setDepartamento}>
@@ -213,7 +213,7 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
                    />
               </FormField>
               <FormField id="jefe_area" label="Jefe de área">
-                <div className="flex h-(--control-height) min-w-0 items-center overflow-hidden rounded-md border bg-muted/50 px-3 text-sm text-muted-foreground" title={form.jefe_area || undefined}>
+                <div className="flex h-(--control-height) min-w-0 items-center overflow-hidden rounded-md border bg-muted/50 px-3 text-body-md text-muted-foreground" title={form.jefe_area || undefined}>
                   <span className={`min-w-0 truncate ${form.jefe_area ? '' : 'italic opacity-50'}`}>
                     {form.jefe_area || 'Se asigna por departamento'}
                   </span>

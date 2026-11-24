@@ -38,7 +38,7 @@ export function DepartmentPager({
     >
       <ChevronLeft className="size-4" aria-hidden="true" />
     </Button>}
-    <span aria-live="polite" aria-atomic="true" className="min-w-0 truncate text-sm font-semibold leading-5 text-foreground">
+    <span aria-live="polite" aria-atomic="true" className="min-w-0 truncate text-body-md font-bold leading-5 text-foreground">
       {displayLabel}
     </span>
     {total > 1 && <Button

@@ -64,7 +64,7 @@ function Summary({ items }: { items: { label: string; value: string; hint?: stri
               </TooltipUI>
             )}
           </dt>
-          <dd className="text-heading-lg tabular-nums text-foreground">{value}</dd>
+          <dd className="text-heading-xl tabular-nums text-foreground">{value}</dd>
         </div>
       ))}
     </dl>

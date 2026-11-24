@@ -66,7 +66,7 @@ export function PendingSummary({ context }: { context: EvaluationSearchContext }
           <span className="block truncate text-label-sm text-foreground">{label}</span>
           <span className="block truncate text-body-sm text-muted-foreground">{hint}</span>
         </span>
-        <span className={cn("text-heading-lg tabular-nums", value > 0 ? tone : "text-muted-foreground")}>{value}</span>
+        <span className={cn("text-heading-xl tabular-nums", value > 0 ? tone : "text-muted-foreground")}>{value}</span>
         <MorphIcon icon={highlightedStatus === status ? ArrowUpRight : ArrowRight} size={16} strokeWidth={2} spring="snappy" reducedMotion="user" className="shrink-0 text-muted-foreground" />
       </button>)}
     </div>

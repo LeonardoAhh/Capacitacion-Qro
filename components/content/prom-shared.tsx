@@ -43,7 +43,7 @@ export function CriterioRow({
 }) {
   return (
     <div className="flex items-center justify-between py-1.5">
-      <div className="flex items-center gap-1.5 text-sm leading-relaxed text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-body-md leading-relaxed text-muted-foreground">
         {cumple ? (
           <CircleCheck aria-hidden="true" className={`${PROMOTION_ICON.control} shrink-0 text-success`} />
         ) : (
@@ -51,11 +51,11 @@ export function CriterioRow({
         )}
         <span>{label}</span>
       </div>
-      <div className="text-right text-sm leading-relaxed">
-        <span className={`font-semibold ${cumple ? "text-success" : "text-destructive"}`}>
+      <div className="text-right text-body-md leading-relaxed">
+        <span className={`font-bold ${cumple ? "text-success" : "text-destructive"}`}>
           {valor}{unidad}
         </span>
-        <span className="ml-1 text-sm text-muted-foreground">/ mín {minimo}{unidad}</span>
+        <span className="ml-1 text-body-md text-muted-foreground">/ mín {minimo}{unidad}</span>
       </div>
     </div>
   )
@@ -83,9 +83,9 @@ export function SummaryCard({
           <Icon aria-hidden="true" className={PROMOTION_ICON.feature} />
         </div>
         <div>
-          <div className="text-2xl font-bold">{value}</div>
-          <div className="text-sm font-medium text-muted-foreground">{title}</div>
-          {subtitle && <div className="text-xs text-muted-foreground mt-0.5">{subtitle}</div>}
+          <div className="text-heading-lg font-bold">{value}</div>
+          <div className="text-body-md font-medium text-muted-foreground">{title}</div>
+          {subtitle && <div className="text-body-sm text-muted-foreground mt-0.5">{subtitle}</div>}
         </div>
       </CardContent>
     </Card>

@@ -8,7 +8,7 @@
 export const TYPOGRAPHY_TOKENS = [
   "display-2xl",
   "display-xl",
-  "display-lg",
+  "heading-xl",
   "heading-lg",
   "heading-md",
   "label-sm",

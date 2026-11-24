@@ -72,7 +72,7 @@ export default function RecontratacionPrintPage() {
       <header className="no-print sticky top-0 z-50 border-b border-border bg-card px-4 py-4">
         <div className="mx-auto flex max-w-5xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <h1 className="text-lg font-semibold leading-7 tracking-tight text-foreground">
+            <h1 className="text-lg font-bold leading-7 tracking-tight text-foreground">
               {viewStatus === "notfound" || viewStatus === "error" ? "Formato no disponible" : "Preparar impresión"}
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -116,7 +116,7 @@ export default function RecontratacionPrintPage() {
         <section aria-labelledby="print-options-title" className="no-print border-b border-border bg-card px-4 py-4">
           <div className="mx-auto max-w-5xl space-y-4">
             <div>
-              <h2 id="print-options-title" className="text-sm font-semibold text-foreground">
+              <h2 id="print-options-title" className="text-sm font-bold text-foreground">
                 Opciones del formato
               </h2>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -202,7 +202,7 @@ export default function RecontratacionPrintPage() {
         <div className="no-print flex items-center justify-center min-h-[60vh] p-4">
           <div className="max-w-md rounded-xl border border-border bg-card px-8 py-8 text-center">
             <FileX2 className="h-8 w-8 mx-auto mb-3 text-muted-foreground" aria-hidden="true" />
-            <p className="text-sm font-semibold text-foreground mb-1">
+            <p className="text-sm font-bold text-foreground mb-1">
               Registro no encontrado
             </p>
             <p className="text-xs text-muted-foreground m-0">
@@ -216,7 +216,7 @@ export default function RecontratacionPrintPage() {
         <div className="no-print flex min-h-[60vh] items-center justify-center p-4">
           <div role="alert" className="max-w-md rounded-xl border border-border bg-card px-8 py-8 text-center">
             <AlertCircle className="mx-auto mb-3 size-8 text-destructive" aria-hidden="true" />
-            <p className="text-sm font-semibold text-foreground">No se pudo cargar el formato</p>
+            <p className="text-sm font-bold text-foreground">No se pudo cargar el formato</p>
             <p className="mt-1 text-sm text-muted-foreground">{loadError}</p>
           </div>
         </div>

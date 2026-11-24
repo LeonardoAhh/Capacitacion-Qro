@@ -40,7 +40,7 @@ export default function PromocionesClient() {
                     </div>
                 </div>
             ) : error ? (
-                <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">
+                <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-body-md">
                     Error al cargar datos: {error}
                 </div>
             ) : (

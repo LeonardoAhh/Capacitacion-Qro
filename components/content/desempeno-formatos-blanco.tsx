@@ -63,7 +63,7 @@ export default function FormatosBlanco() {
     <div className="space-y-6 max-w-7xl mx-auto">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Seleccionar formato</CardTitle>
+          <CardTitle className="text-body-lg">Seleccionar formato</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-wrap items-center gap-3">
           {FORMATOS.map(({ tipo, label }) => (

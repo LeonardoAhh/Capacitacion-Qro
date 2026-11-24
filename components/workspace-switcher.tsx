@@ -25,11 +25,10 @@ function workspaceLabel(workspace: WorkspaceId) {
 interface WorkspaceBrandProps {
   workspace: WorkspaceId
   mobile?: boolean
-  collapsed?: boolean
 }
 
 /** Encabezado de la barra lateral: espacio de trabajo actual y empresa. Se cambia desde el menú de cuenta. */
-export function WorkspaceBrand({ workspace, mobile = false, collapsed = false }: WorkspaceBrandProps) {
+export function WorkspaceBrand({ workspace, mobile = false }: WorkspaceBrandProps) {
   // Sin espacio de trabajo (evaluador): su área es Evaluación de Desempeño.
   const { workspaces } = useRole()
   const sinEspacio = workspaces.length === 0
@@ -38,19 +37,15 @@ export function WorkspaceBrand({ workspace, mobile = false, collapsed = false }:
 
   return (
     <div
-      className={cn("flex min-h-11 min-w-0 flex-1 items-center gap-2 px-2", mobile && "mr-11", collapsed && "justify-center")}
+      className={cn("flex min-h-11 min-w-0 flex-1 items-center gap-2 px-2", mobile && "mr-11")}
     >
       {mobile
         ? <AppMark className="size-8 shrink-0" />
         : <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />}
-      {collapsed ? (
-        <span className="sr-only">{label} · {BRAND_NAME}</span>
-      ) : (
-        <span className="flex min-w-0 flex-col">
-          <span className="truncate text-label-sm text-foreground">{label}</span>
-          <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
-        </span>
-      )}
+      <span className="flex min-w-0 flex-col">
+        <span className="truncate text-label-sm text-foreground">{label}</span>
+        <span className="truncate text-body-sm text-muted-foreground">{BRAND_NAME}</span>
+      </span>
     </div>
   )
 }

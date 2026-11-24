@@ -2,9 +2,6 @@
 
 import { useState } from "react"
 import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
-import type { ReactNode } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,24 +26,12 @@ import { THEME_MODE_LABELS } from "@/lib/theme/constants"
 import { SIDEBAR_MENU_ITEM, SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
 
 type AccountMenuProps = {
-  isCollapsed?: boolean
   onNavigate?: () => void
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
 }
 
-/** Barra contraída: nombre y puesto en el Tooltip de la app (sin title nativo). */
-function AccountTooltip({ label, children }: { label: string | null; children: ReactNode }) {
-  if (!label) return children
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
-      <TooltipContent side="right">{label}</TooltipContent>
-    </Tooltip>
-  )
-}
-
-export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWorkspaceChange }: AccountMenuProps) {
+export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: AccountMenuProps) {
   const { user } = useUser()
   const { profile } = useProfile(user?.id)
   const { role, isEvaluador, loading: roleLoading } = useRole()
@@ -55,7 +40,6 @@ export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWork
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const displayName = profile?.displayName || user?.email?.split("@")[0] || "Usuario"
-  const initial = displayName.trim().charAt(0).toUpperCase()
   // El puesto describe mejor a la persona; sin puesto capturado se muestra el rol.
   // Se espera al perfil para no mostrar el rol y luego cambiarlo por el puesto.
   const roleLabel = profile && !roleLoading ? profile.puesto || ROLE_LABELS[role] : null
@@ -64,39 +48,25 @@ export function AccountMenu({ isCollapsed = false, onNavigate, workspace, onWork
   return (
     <>
       {user && <DropdownMenu>
-        <AccountTooltip label={isCollapsed ? accountLabel : null}>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              aria-label={accountLabel}
-              className={cn(
-                "flex min-h-11 min-w-0 items-center rounded-md text-foreground transition-colors hover:bg-muted data-[state=open]:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                isCollapsed ? "w-full justify-center px-0" : "w-full gap-2 px-2.5",
-              )}
-            >
-              {isCollapsed ? (
-                // Barra contraída: foto de perfil o, sin foto, la inicial del nombre.
-                <Avatar className="size-7 shrink-0" aria-hidden="true">
-                  <AvatarImage src={profile?.avatar || undefined} alt="" />
-                  <AvatarFallback className="bg-primary text-body-sm font-medium text-primary-foreground">{initial}</AvatarFallback>
-                </Avatar>
-              ) : (
-                <>
-                  {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
-                  <span className="flex min-w-0 flex-1 flex-col text-left">
-                    <span className="truncate text-label-sm text-foreground">{displayName}</span>
-                    <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
-                  </span>
-                  <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                </>
-              )}
-            </button>
-          </DropdownMenuTrigger>
-        </AccountTooltip>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            aria-label={accountLabel}
+            // Tarjeta elevada, con los mismos tokens que el elemento activo de la barra lateral.
+            className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-active px-2.5 text-foreground shadow-(--sidebar-active-shadow) transition-[border-color] duration-150 hover:border-input data-[state=open]:border-input motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          >
+            {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
+            <span className="flex min-w-0 flex-1 flex-col text-left">
+              <span className="truncate text-label-sm text-foreground">{displayName}</span>
+              <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
+            </span>
+            <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          </button>
+        </DropdownMenuTrigger>
 
         <DropdownMenuContent
-          align={isCollapsed ? "end" : "start"}
-          side={isCollapsed ? "right" : "top"}
+          align="start"
+          side="top"
           sideOffset={8}
           className="max-w-[calc(100vw-2rem)] w-[calc(var(--workspace-sidebar-width)-1rem)]"
         >

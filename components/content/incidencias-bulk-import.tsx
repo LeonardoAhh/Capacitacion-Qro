@@ -107,10 +107,10 @@ function EmployeePreviewRow({ group }: { group: PreviewGroup }) {
           isBaja ? 'bg-destructive/5' : 'hover:bg-muted/30'
         }`}
       >
-        <span className="font-sans text-xs text-muted-foreground w-12 shrink-0">
+        <span className="font-sans text-body-sm text-muted-foreground w-12 shrink-0">
           #{group.numero}
         </span>
-        <span className={`text-sm font-medium flex-1 truncate ${
+        <span className={`text-body-md font-medium flex-1 truncate ${
           isBaja ? 'line-through text-muted-foreground' : ''
         }`}>
           {isBaja
@@ -119,11 +119,11 @@ function EmployeePreviewRow({ group }: { group: PreviewGroup }) {
           }
         </span>
         {isBaja ? (
-          <Badge className="text-xs shrink-0 bg-destructive/10 text-destructive border-destructive/30">
+          <Badge className="text-body-sm shrink-0 bg-destructive/10 text-destructive border-destructive/30">
             Baja
           </Badge>
         ) : (
-          <Badge variant="secondary" className="text-xs shrink-0">
+          <Badge variant="secondary" className="text-body-sm shrink-0">
             {group.months.length} mes{group.months.length !== 1 ? 'es' : ''} · {group.totalRecords} reg
           </Badge>
         )}
@@ -147,7 +147,7 @@ function EmployeePreviewRow({ group }: { group: PreviewGroup }) {
             <div className="border-t border-border bg-muted/20 px-3 py-2 space-y-2">
               {group.months.map(({ mes, items }) => (
                 <div key={mes}>
-                  <p className="text-xs font-semibold text-foreground mb-1">
+                  <p className="text-body-sm font-bold text-foreground mb-1">
                     {formatMes(mes)}
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -156,7 +156,7 @@ function EmployeePreviewRow({ group }: { group: PreviewGroup }) {
                       return (
                         <span
                           key={i}
-                          className={`inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-md bg-card border border-border ${meta?.color ?? ''}`}
+                          className={`inline-flex items-center gap-1 text-body-sm px-2 py-0.5 rounded-md bg-card border border-border ${meta?.color ?? ''}`}
                         >
                           {meta?.shortLabel ?? item.categoria}
                           <span className="font-sans font-bold">{item.valor}</span>
@@ -337,7 +337,7 @@ export function IncidenciasBulkImport({
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
-                <ul className="text-xs space-y-0.5 mt-1">
+                <ul className="text-body-sm space-y-0.5 mt-1">
                   {parseResult.errors.map((e, i) => (
                     <li key={i}>• {e}</li>
                   ))}
@@ -358,7 +358,7 @@ export function IncidenciasBulkImport({
                 {/* Summary bar */}
                 <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border">
                   <Users className="h-4 w-4 text-primary shrink-0" />
-                  <div className="flex flex-wrap gap-2 text-xs">
+                  <div className="flex flex-wrap gap-2 text-body-sm">
                     <Badge variant="secondary">
                       {stats.employees} empleado{stats.employees !== 1 ? 's' : ''}
                     </Badge>
@@ -414,7 +414,7 @@ export function IncidenciasBulkImport({
           {importSuccess && (
             <Alert className="border-success/30 bg-success/10">
               <CheckCircle2 className="h-4 w-4 text-success" />
-              <AlertDescription className="text-success text-xs">
+              <AlertDescription className="text-success text-body-sm">
                 Incidencias importadas correctamente.
               </AlertDescription>
             </Alert>
@@ -422,10 +422,10 @@ export function IncidenciasBulkImport({
 
           {/* Format help */}
           <details className="group">
-            <summary className="text-xs text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
+            <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
               ¿Cómo formatear el JSON?
             </summary>
-            <div className="mt-2 p-3 rounded-xl bg-muted/50 border border-border text-xs font-sans whitespace-pre-wrap text-muted-foreground leading-relaxed">
+            <div className="mt-2 p-3 rounded-xl bg-muted/50 border border-border text-body-sm font-sans whitespace-pre-wrap text-muted-foreground leading-relaxed">
 {`[
   {
     "numero_empleado": "123",
@@ -448,7 +448,7 @@ export function IncidenciasBulkImport({
   }
 ]`}
             </div>
-            <div className="mt-2 text-xs text-muted-foreground space-y-1">
+            <div className="mt-2 text-body-sm text-muted-foreground space-y-1">
               <p><strong>Reglas:</strong></p>
               <ul className="list-disc pl-4 space-y-0.5">
                 <li><code>numero_empleado</code> y <code>mes</code> (YYYY-MM) obligatorios</li>

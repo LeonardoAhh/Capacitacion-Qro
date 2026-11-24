@@ -31,9 +31,10 @@ interface FindingListProps {
   canEdit: boolean
   onEdit: (finding: FindingPreview) => void
   onDelete: (finding: FindingPreview) => void
+  onManageCompletion: (finding: FindingPreview) => void
 }
 
-export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, onEdit, onDelete }: FindingListProps) {
+export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, onEdit, onDelete, onManageCompletion }: FindingListProps) {
   const col = columns(narrow)
   return (
     <div className="min-w-0 overflow-hidden rounded-xl border border-border bg-card">
@@ -77,7 +78,7 @@ export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, o
                 </TableCell>
                 {canEdit && (
                   <TableCell className="px-1 py-0 text-center" onClick={(event) => event.stopPropagation()}>
-                    <FindingActionsMenu finding={finding} onEdit={onEdit} onDelete={onDelete} />
+                    <FindingActionsMenu finding={finding} onEdit={onEdit} onDelete={onDelete} onManageCompletion={onManageCompletion} />
                   </TableCell>
                 )}
               </TableRow>

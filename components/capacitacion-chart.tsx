@@ -31,8 +31,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null
   const dataPoints = payload.filter((p) => !p.dataKey.includes("_trend"))
   return (
-    <div className="min-w-[150px] rounded-md border bg-popover p-3 text-sm shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-semibold text-foreground mb-2">{label}</p>
+    <div className="min-w-[150px] rounded-md border bg-popover p-3 text-body-md shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
+      <p className="font-bold text-foreground mb-2">{label}</p>
       {dataPoints.map((p) => (
         <div key={p.dataKey} className="flex items-center justify-between gap-4">
           <span className="flex items-center gap-1.5 text-muted-foreground">
@@ -150,7 +150,7 @@ export default function CapacitacionChart() {
               className="flex flex-col items-center justify-center h-72 text-muted-foreground gap-2"
             >
               <GraduationCap className="h-10 w-10 opacity-30" />
-              <p className="text-sm">No hay datos de historial importados aún.</p>
+              <p className="text-body-md">No hay datos de historial importados aún.</p>
             </motion.div>
           ) : (
             <motion.div
@@ -171,13 +171,13 @@ export default function CapacitacionChart() {
                     />
                     <XAxis
                       dataKey="month"
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 12 }}
                       className="text-muted-foreground"
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 11 }}
+                      tick={{ fontSize: 12 }}
                       className="text-muted-foreground"
                       axisLine={false}
                       tickLine={false}
@@ -241,7 +241,7 @@ export default function CapacitacionChart() {
               </div>
 
               {/* Nota al pie */}
-              <div className="flex items-start gap-1.5 mt-3 text-xs text-muted-foreground">
+              <div className="flex items-start gap-1.5 mt-3 text-body-sm text-muted-foreground">
                 <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                 <span>
                   Solo se cuentan cursos únicos por mes (un curso solo se cuenta una vez por mes aunque se haya impartido varias veces)

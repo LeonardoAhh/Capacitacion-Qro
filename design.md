@@ -1,8 +1,8 @@
 ## Overview
 
-The marketing surface follows the Mona Sans system's near-white canvas and near-black ink, with color reserved for the hero mesh gradient and illustration accents. The ViñoPlastic workspace supports the explicit light and dark palettes below; its theme changes colors only, preserving Mona Sans, geometry, spacing, and elevation.
+The marketing surface follows the Ubuntu system's near-white canvas and near-black ink, with color reserved for the hero mesh gradient and illustration accents. The ViñoPlastic workspace supports the explicit light and dark palettes below; its theme changes colors only, preserving Ubuntu, geometry, spacing, and elevation.
 
-Typography does the heavy lifting. **Mona Sans** is the only typeface throughout the interface, from tightly-tracked display headlines to labels and code. Buttons split into two shapes by context: the marketing CTAs are fully rounded black **pills** (`{rounded.pill}` — 100px, "Start Deploying" / "Get a Demo"), while nav and in-app controls use a tight 6px square (`{rounded.sm}`, "Sign Up" / "Log In"). The contrast between the rounded marketing pill and the square app button is itself a deliberate signal of which surface you're on.
+Typography does the heavy lifting. **Ubuntu** is the only typeface throughout the interface, from tightly-tracked display headlines to labels and code. Buttons split into two shapes by context: the marketing CTAs are fully rounded black **pills** (`{rounded.pill}` — 100px, "Start Deploying" / "Get a Demo"), while nav and in-app controls use a tight 6px square (`{rounded.sm}`, "Sign Up" / "Log In"). The contrast between the rounded marketing pill and the square app button is itself a deliberate signal of which surface you're on.
 
 Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on the near-white canvas, separated by a 1px hairline and, at most, a whisper-soft layered shadow. Workspace surfaces use the active theme's card and border tokens. Feature sections are built from precise grids of hairline cards, often holding thin node-graph or code-editor illustrations rendered in the same restrained palette.
 
@@ -10,7 +10,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 - Marketing uses a neutral ink ladder on a near-white canvas; workspace colors resolve from the selected light or dark palette.
 - The multi-stop mesh gradient (cyan → blue → violet → magenta → amber) stays confined to the hero; login and workspace selection share a local Ink Ridges illustration in the active theme's neutral palette.
 - Two button shapes by context: rounded black **pills** (`{rounded.pill}`) for marketing CTAs, tight 6px squares (`{rounded.sm}`) for nav/app controls.
-- Mona Sans for all text, including tightly-tracked display type (`{typography.display-xl}` at -2.4px), uppercase technical eyebrows, and code.
+- Ubuntu for all text, including lightly-tracked display type (`{typography.display-xl}` at -0.96px), uppercase technical eyebrows, and code.
 - Hairline-bordered cards in precise grids; depth via 1px border + whisper shadow, never heavy elevation.
 - The classic Vercel gradient trio (develop/preview/ship) survives as a named accent system: `{colors.gradient-develop-start}`→end, preview, ship.
 - Color-block page rhythm: white hero with mesh gradient → logo strip → hairline feature-card grid → code-editor band → template cards → black-text CTA band → grey footer.
@@ -19,7 +19,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 
 > Source pages analyzed: the home page, the AI Gateway page, the customers page, and the pricing page. The ink/canvas/hairline trio recurs on every page; the accent blue (`{colors.link}`) surfaces on pricing, and the mesh-gradient stops live in the hero.
 
-**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #0070f3 (Vercel Blue); dark mode uses grafito oscuro surfaces and a lighter `--primary` blue (#3d9bff) with dark text. Typography (local Mona Sans), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
+**ViñoPlastic application themes:** The app supports persistent light, dark, and system modes. System mode follows the device color-scheme preference, applies before hydration, and responds to device preference changes without replacing the selected mode. The light palette uses grafito claro surfaces and `--primary` #0070f3 (Vercel Blue); dark mode uses grafito oscuro surfaces and a lighter `--primary` blue (#3d9bff) with dark text. Typography (Ubuntu), geometry, spacing, and elevation remain the same in both palettes. The mode is selected in Settings or the account menu.
 
 | UI token | Light | Dark |
 |---|---|---|
@@ -37,7 +37,7 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 | Success | `#0070f3` | `#0070f3` |
 | Warning | `#f5a623` | `#f5a623` |
 
-Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. Charts use at most five distinct hues, `--chart-1` to `--chart-5` (teal, blue, amber, violet, rose; lighter in dark mode), never several grays: `--chart-1` marks approved/meets goal (teal, so blue stays for actions), `--chart-2` is the primary blue and `--chart-3` marks pending/partial (warning amber); failures use `--destructive`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Mona Sans, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
+Chart and sidebar semantic colors are defined as theme tokens in `app/globals.css`. Charts use at most five distinct hues, `--chart-1` to `--chart-5` (teal, blue, amber, violet, rose; lighter in dark mode), never several grays: `--chart-1` marks approved/meets goal (teal, so blue stays for actions), `--chart-2` is the primary blue and `--chart-3` marks pending/partial (warning amber); failures use `--destructive`. The sidebar surface and text follow the active theme's background and foreground; its hover, selected, and border tokens remain distinct. The app keeps Ubuntu, its current radii, spacing scale, and elevation treatments. Accent customization is not available.
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).
@@ -73,33 +73,33 @@ These, blended together, form the hero's multi-stop mesh.
 ## Typography
 
 ### Font Family
-The system uses locally bundled **Mona Sans** for UI, prose, labels, and code. The same local font asset is reused by application error surfaces. Printable formats and generated PDFs use locally bundled **Inter**.
+The system uses **Ubuntu** for UI, prose, labels, and code. The same font is reused by application error surfaces. Printable formats and generated PDFs use locally bundled **Inter**.
 
 ### Hierarchy
 
 | Token | Size | Weight | Line Height | Letter Spacing | Use |
 |---|---|---|---|---|---|
-| `{typography.display-2xl}` | 56px | 600 | 56px | -3.08px | Login introductory headline on larger screens |
-| `{typography.display-xl}` | 48px | 600 | 48px | -2.4px | Hero headline |
-| `{typography.display-lg}` | 24px | 600 | 32px | -0.72px | Login introductory headline on mobile |
-| `{typography.heading-lg}` | 32px | 600 | 40px | -1.28px | Major section headings |
-| `{typography.heading-md}` | 20px | 600 | 28px | -0.4px | Sub-section / card headings |
-| `{typography.label-sm}` | 14px | 500 | 20px | -0.28px | Strong labels, nav emphasis |
-| `{typography.eyebrow}` | 12px | 500 | 16px | 0 | Uppercase Mona Sans section labels |
+| `{typography.display-2xl}` | 56px | 700 | 56px | -1.4px | Login introductory headline on larger screens |
+| `{typography.display-xl}` | 48px | 700 | 48px | -0.96px | Hero headline |
+| `{typography.heading-xl}` | 32px | 700 | 40px | -0.48px | Major section headings |
+| `{typography.heading-lg}` | 24px | 700 | 32px | -0.24px | Login introductory headline on mobile, large titles |
+| `{typography.heading-md}` | 20px | 700 | 28px | 0 | Sub-section / card headings |
+| `{typography.label-sm}` | 14px | 500 | 20px | 0 | Strong labels, nav emphasis |
+| `{typography.eyebrow}` | 12px | 500 | 16px | 0 | Uppercase Ubuntu section labels |
 | `{typography.body-lg}` | 16px | 400 | 24px | 0 | Lead paragraphs, large body |
 | `{typography.body-md}` | 14px | 400 | 20px | 0 | Default body, nav links, table cells |
 | `{typography.body-sm}` | 12px | 400 | 16px | 0 | Captions, footnotes, metadata |
 | `{typography.button-lg}` | 16px | 500 | 20px | 0 | Marketing pill button labels |
 | `{typography.button-md}` | 14px | 500 | 20px | 0 | Nav / app button labels |
-| `{typography.code}` | 14px | 400 | 20px | 0 | Code blocks and inline code (Mona Sans) |
+| `{typography.code}` | 14px | 400 | 20px | 0 | Code blocks and inline code (Ubuntu) |
 
 ### Principles
-- Display type is defined by tight negative tracking — the larger the heading, the tighter (-2.4px at hero scale, -1.28px at section scale). Body type sits at neutral spacing.
-- Weight is binary: 600 for headings and 500 for buttons/labels; everything else is 400. There is no light or black weight, and no italic.
-- Mona Sans is used consistently for interface headings, body copy, labels, and code. Printable formats and PDFs use Inter.
+- Ubuntu is already compact: only headings of 24px and up get a light negative tracking (-0.01em to -0.025em, tighter as size grows); headings of 20px, labels and body sit at 0. The scale is ordered largest to smallest: display-2xl, display-xl, heading-xl, heading-lg, heading-md, body-lg, label-sm / body-md, eyebrow / body-sm. Components use these tokens only — never `text-xs/sm/base/lg/xl`, arbitrary `text-[Npx]` or inline sizes — and nothing renders below 12px.
+- Three weights: 700 for headings, 500 for buttons/labels, and 400 for everything else (Ubuntu ships no 600). There is no light or black weight, and no italic.
+- Ubuntu is used consistently for interface headings, body copy, labels, and code. Printable formats and PDFs use Inter.
 
 ### Font License
-Mona Sans is self-hosted under the SIL Open Font License (`public/fonts/MonaSans-OFL.txt`) from GitHub and loaded through `next/font/local` as three roman files: Regular (400), Medium (500), and Bold (used for CSS weights 600–700). Keep heading weight at 600 and preserve the negative display tracking.
+Ubuntu is licensed under the Ubuntu Font Licence and loaded through `next/font/google` (`lib/fonts.ts`) with weights 400, 500 and 700; Next.js downloads it at build time and serves it from the app, so browsers never request Google at runtime. Keep heading weight at 700 and keep the light negative tracking only on large headings.
 
 Inter is self-hosted for print under the SIL Open Font License (`public/fonts/Inter-OFL.txt`). Browser printing uses its variable WOFF2 file; generated PDFs embed the regular and bold TTF files.
 
@@ -116,8 +116,8 @@ Inter is self-hosted for print under the SIL Open Font License (`public/fonts/In
 - **Authenticated workspace** (`{layout.workspace-max}` — 1408px): shared maximum width for the application header and main content. It gives data grids and three-column layouts more room without returning to a full-bleed canvas.
 - **Evaluation pending summary** (`{layout.evaluation-summary-max}` — 960px): centered within the authenticated workspace; the search and evaluation form keep the workspace width.
 - **Workspace gutters** (`{layout.workspace-gutter}`): 16px on mobile, 24px from tablet, and 32px from laptop upward. Header and main content must use the same gutter values and centered grid.
-- **Workspace frame** (`{components.workspace-frame}`): the login and authenticated workspace share one elevated-canvas panel (`{colors.canvas-elevated}`) with a 1px hairline and 12px radius. The shared outer inset is 16px on tablet and 24px on laptop and desktop, on all four sides. It has no shadow. On mobile, the frame becomes full-bleed with no outer border or radius.
-- **Workspace sidebar**: desktop and mobile navigation share a flat link list; every route has a unique icon, without visible group headings or dividers. Rows have a 44px minimum hit area; the current route uses a white surface and visible border. Desktop sidebar collapses to a 72px icon rail; icon-only links retain accessible names and tooltips, and the preference persists across routes. The expanded desktop header shows “Capacitación Querétaro” and “ViñoPlastic” beside the collapse control, grouped in a shared white, bordered container with a 6px radius; the collapsed rail hides the text and centers the control in the same container. The mobile drawer retains its brand and always remains expanded. Use 6px radius for sidebar links and controls, never full/pill radius. On desktop, the sidebar stays viewport-bound while the workspace main region owns vertical scrolling, keeping the frame border visible.
+- **Workspace frame** (`{components.workspace-frame}`): login keeps one elevated-canvas panel (`{colors.canvas-elevated}`) with a 1px hairline and 12px radius. In the authenticated workspace the sidebar and header sit directly on the elevated canvas, with no border between them; the main content lives in an inset panel to their right and below the header, using the theme background (`{colors.canvas}`), a 1px hairline and 12px radius, and it owns vertical scrolling. The outer inset is 16px on tablet and 24px on laptop and desktop. No shadow. On mobile, the frame becomes full-bleed with no outer border or radius, and the header keeps its bottom hairline.
+- **Workspace sidebar**: desktop and mobile navigation share a flat link list; every route has a unique icon, without visible group headings or dividers. Rows have a 44px minimum hit area; the current route uses a white surface and visible border. On desktop the sidebar hides completely; the show/hide control is an icon button in the header, before the page title, and the preference persists across routes. Views without a desktop header (evaluator) always show the sidebar. The sidebar top shows the workspace name and “ViñoPlastic”. The mobile drawer retains its brand and always remains expanded. Use 6px radius for sidebar links and controls, never full/pill radius. On desktop, the sidebar stays viewport-bound while the workspace main region owns vertical scrolling, keeping the frame border visible.
 - **Workspace header**: 48px high and shares the content grid and gutter tokens; its desktop sticky inset is defined by the workspace tokens. The page title stays on the left; the account control stays on the right. Menu controls have a 44px minimum hit area and use the same neutral focus treatment as the sidebar.
 - **Floating notices**: toasts and update notices sit at the bottom right on desktop and top center on mobile. Their edge inset respects mobile safe areas, and their width stays within the shared notice token.
 - Feature sections use 2-up, 3-up, and 4-up hairline-card grids that collapse toward 1-up on narrow widths.
@@ -226,7 +226,7 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, ink text `{colors.ink}`, type `{typography.body-md}`, rounded `{rounded.lg}`, padding `{spacing.xl}`.
 
 **`code-block`** — code / terminal surface
-- Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, Mona Sans code `{typography.code}`, rounded `{rounded.md}`, padding `{spacing.md}`. Syntax rendered in the ink-and-accent palette.
+- Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, Ubuntu code `{typography.code}`, rounded `{rounded.md}`, padding `{spacing.md}`. Syntax rendered in the ink-and-accent palette.
 
 ### Bands
 
@@ -251,7 +251,7 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - In marketing, confine color to the hero mesh gradient and small illustration accents; in the workspace, use the active theme palette and reserve its primary for actions and selected states.
 - Use the two button shapes by context: black pill (`{components.button-primary}`) for marketing CTAs, 6px square (`{components.button-primary-sm}`) for nav/app.
 - Define cards and inputs with a 1px hairline (`{colors.hairline}`) before any shadow — flat is the default.
-- Use Mona Sans for all typography. Set display headings at weight 600 with tight negative tracking; keep section labels uppercase.
+- Use Ubuntu for all typography. Set display headings at weight 700 with light negative tracking; keep section labels uppercase.
 - Step the grey text ladder deliberately: `{colors.ink}` → `{colors.body}` → `{colors.mute}` → `{colors.faint}`.
 
 ### Don't
@@ -260,4 +260,4 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 - Don't pile on shadows — depth is a 1px hairline plus, at most, a finely-layered low-alpha shadow stack.
 - Don't set marketing body copy in pure black (`#000000`) — the brand's ink is #171717 and body steps to `{colors.body}`. Workspace text uses the active theme's foreground tokens.
 - Don't add a second decorative system to the shared chrome. Ink Ridges is the approved exception on login and workspace selection only; other surfaces keep the established ink-on-white treatment.
-- Don't loosen the display tracking — large Mona Sans headings carry tight negative letter-spacing by design.
+- Don't add negative tracking to text below 24px; with Ubuntu it hurts legibility.

@@ -2,7 +2,7 @@ AGENTS.md
 Guía operativa para agentes de código (Claude Code, Cursor, Copilot, etc.) que trabajen en el proyecto ViñoPlastic. Léela completa antes de generar o modificar código. El documento de referencia visual completo vive en design.md.
 
 1. Contexto del proyecto
-ViñoPlastic es una aplicación web construida sobre el sistema de diseño Mona Sans / Vercel-like documentado en design.md. Se compone de dos superficies:
+ViñoPlastic es una aplicación web construida sobre el sistema de diseño Ubuntu / Vercel-like documentado en design.md. Se compone de dos superficies:
 
 Marketing (home, pricing, customers, AI Gateway): hero con mesh gradient, grids de cards con hairline, bandas CTA.
 
@@ -20,11 +20,11 @@ Next.js (App Router) + React + TypeScript
 
 Tailwind CSS con tokens mapeados en tailwind.config.ts / globals.css vía CSS variables
 
-Mona Sans autohospedada (SIL Open Font License, GitHub) — cárgala desde archivos locales y conserva los originales
+Ubuntu (Ubuntu Font Licence) — se carga con next/font/google en lib/fonts.ts, que la descarga al compilar y la sirve desde la app
 
-Carga solo Regular (400), Medium (500) y Bold (700). El peso 600 de los encabezados usa el archivo Bold; no cargues Semibold.
+Pesos: texto normal 400, labels 500 y encabezados 700 (Ubuntu no tiene 600).
 
-Inter autohospedada (SIL Open Font License) se reserva para formatos imprimibles y PDF; la interfaz conserva Mona Sans.
+Inter autohospedada (SIL Open Font License) se reserva para formatos imprimibles y PDF; la interfaz conserva Ubuntu.
 
 Componentes UI tipo shadcn/ui permitidos, pero re-estilizados con los tokens de este archivo
 
@@ -123,26 +123,28 @@ css
 --gradient-ship-end:       #f9cb28;
 3.2 Tipografía
 Token	Size	Weight	Line Height	Letter Spacing	Uso
-display-xl	48px	600	48px	-2.4px	Hero H1
-heading-lg	32px	600	40px	-1.28px	Secciones mayores
-heading-md	20px	600	28px	-0.4px	Subsecciones / card headings
-label-sm	14px	500	20px	-0.28px	Labels fuertes, nav emphasis
-eyebrow	12px	500	16px	0	Eyebrows uppercase en Mona Sans
+display-2xl	56px	700	56px	-1.4px	Titular del login en pantallas grandes
+display-xl	48px	700	48px	-0.96px	Hero H1
+heading-xl	32px	700	40px	-0.48px	Secciones mayores
+heading-lg	24px	700	32px	-0.24px	Titular del login en móvil, títulos grandes
+heading-md	20px	700	28px	0	Subsecciones / card headings
+label-sm	14px	500	20px	0	Labels fuertes, nav emphasis
+eyebrow	12px	500	16px	0	Eyebrows uppercase en Ubuntu
 body-lg	16px	400	24px	0	Párrafos lead
 body-md	14px	400	20px	0	Body default, nav, tablas
 body-sm	12px	400	16px	0	Captions, metadata
 button-lg	16px	500	20px	0	Pills de marketing
 button-md	14px	500	20px	0	Botones nav/app
-code	14px	400	20px	0	Código en Mona Sans
+code	14px	400	20px	0	Código en Ubuntu
 Reglas tipográficas no negociables:
 
-Display siempre en 600 con tracking negativo (más negativo cuanto más grande).
+Display y headings en 700. Tracking negativo leve solo desde 24px (más negativo cuanto más grande); de 20px hacia abajo, 0. Usa solo los tokens de la escala: nada de text-xs/sm/base/lg/xl, text-[Npx] ni tamaños en línea, y nada por debajo de 12px.
 
 Body siempre 400, sin tracking.
 
 No existe peso 300 ni 800/900, ni itálicas. No los uses.
 
-Mona Sans es la familia tipográfica de la interfaz, incluido el código. Los formatos imprimibles y PDF usan Inter.
+Ubuntu es la familia tipográfica de la interfaz, incluido el código. Los formatos imprimibles y PDF usan Inter.
 
 3.3 Espaciado
 Base 4px. Escala: 4 · 8 · 12 · 16 · 24 · 32 · 40 · 64 · 96 · 128.
@@ -180,9 +182,9 @@ Resumen de evaluación pendiente: max-width: 960px, centrado dentro del workspac
 
 Gutters del workspace: 16px móvil → 24px tablet → 32px laptop+.
 
-Frame del workspace: panel canvas-elevated, 1px hairline, radius 12px, margen exterior de 16px en tablet y 24px en laptop/desktop, sin sombra. Login y workspace autenticado comparten este margen; en móvil el frame es full-bleed sin borde ni radio.
+Frame del workspace: en login, panel canvas-elevated con hairline de 1px y radio 12px. En el workspace autenticado, sidebar y header van directo sobre el lienzo (canvas-elevated), sin divisor entre ellos; el main es un panel hundido a su derecha y bajo el header, con el fondo del tema (canvas), hairline de 1px y radio 12px, y es el que hace scroll. Margen exterior de 16px en tablet y 24px en laptop/desktop, sin sombra. En móvil todo es full-bleed sin borde ni radio y el header conserva su línea inferior.
 
-Sidebar: 44px mínimo de hit area; ruta activa con fondo blanco y borde visible. Sin grupos visibles ni divisores. En desktop, viewport-bound con scroll en el main; permite colapsar a rail de 72px con iconos centrados, nombres accesibles y preferencia persistida entre rutas. El encabezado desktop muestra “Capacitación Querétaro” y “ViñoPlastic” junto al control de colapso, dentro de un contenedor compartido con fondo blanco, borde y radio de 6px; en la rail colapsada oculta el texto y centra el control. El drawer móvil conserva su marca y permanece expandido. Usa radio de 6px en links y controles; no uses rounded-full.
+Sidebar: 44px mínimo de hit area; ruta activa con fondo blanco y borde visible. Sin grupos visibles ni divisores. En desktop, viewport-bound con scroll en el main; se oculta por completo con un botón de ícono en el header, antes del título, y la preferencia persiste entre rutas; las vistas sin header en escritorio (evaluador) siempre la muestran. Arriba muestra el espacio de trabajo y “ViñoPlastic”. El drawer móvil conserva su marca y permanece expandido. Usa radio de 6px en links y controles; no uses rounded-full.
 
 Header: altura de 48px; comparte grid y gutters con el main; título a la izquierda, cuenta a la derecha. Controles con 44px mínimo.
 
@@ -219,7 +221,7 @@ FeatureCardElevated: igual + sombra nivel 2.
 
 PricingCard: canvas-elevated, hairline, radius: 16px, padding 32px.
 
-CodeBlock: canvas-elevated, hairline, radius: 12px, padding 16px, Mona Sans code.
+CodeBlock: canvas-elevated, hairline, radius: 12px, padding 16px, Ubuntu code.
 
 Bands
 HeroBand: fondo canvas + mesh gradient (CSS/SVG), texto ink, display-xl, padding 128px 24px.
@@ -245,9 +247,9 @@ Reutiliza los dos shapes de botón por contexto (pill marketing / 6px app).
 
 1px hairline antes que cualquier sombra. Flat por defecto.
 
-Display con tracking negativo. Mona Sans 600.
+Display con tracking negativo leve. Ubuntu 700.
 
-Eyebrows en Mona Sans uppercase para introducir secciones.
+Eyebrows en Ubuntu uppercase para introducir secciones.
 
 Respeta la ladder de grises al elegir color de texto.
 
@@ -264,13 +266,13 @@ En marketing, no uses #000000: la tinta es #171717 y el body es #4d4d4d. En el w
 
 No añadas un segundo sistema decorativo. Excepción aprobada: login y selección de workspace comparten Ink Ridges con los colores neutros del tema; no lo extiendas al chrome ni a otras rutas.
 
-No aflojes el tracking de los headings grandes.
+No agregues tracking negativo a textos menores de 24px.
 
-No declares ni cargues familias tipográficas distintas de Mona Sans en la interfaz; los formatos imprimibles y PDF usan Inter.
+No declares ni cargues familias tipográficas distintas de Ubuntu en la interfaz; los formatos imprimibles y PDF usan Inter.
 
 No introduzcas pesos tipográficos nuevos (light/black/italic).
 
-No cargues Mona Sans desde una API externa. Es local (SIL Open Font License); conserva los archivos originales.
+No cargues Ubuntu con <link> ni desde una API en tiempo de ejecución; usa solo lib/fonts.ts (next/font).
 
 No uses --primary para texto largo ni para fills decorativos. Solo acciones primarias y estados seleccionados.
 
@@ -326,8 +328,8 @@ Checklist rápida — el agente debe verificarla:
 □ ¿Los textos siguen la ladder ink → body → mute → faint?
 □ ¿Los botones usan el shape correcto según contexto (pill vs 6px)?
 □ ¿Las cards tienen hairline de 1px y, como mucho, sombra whisper/floating?
-□ ¿Los headings usan Mona Sans 600 con tracking negativo?
-□ ¿Los textos, etiquetas y código usan Mona Sans?
+□ ¿Los headings usan Ubuntu 700 y los tokens de la escala (sin tamaños escritos a mano)?
+□ ¿Los textos, etiquetas y código usan Ubuntu?
 □ ¿Marketing reserva el color para el hero y las ilustraciones, y el workspace usa solo la paleta activa?
 □ ¿Los controles interactivos tienen ≥44px de hit area?
 □ ¿El focus es visible y usa --primary del tema activo?
@@ -348,4 +350,4 @@ El cambio va a introducir una dependencia de UI (MUI, Chakra, Ant, etc.).
 
 El cambio contradice alguna regla de la sección 5.
 
-En caso de duda: menos es más. El sistema Mona Sans es un ejercicio de resta. El agente debe restar antes que añadir.
+En caso de duda: menos es más. El sistema Ubuntu es un ejercicio de resta. El agente debe restar antes que añadir.

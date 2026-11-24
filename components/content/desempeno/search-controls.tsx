@@ -28,7 +28,7 @@ export function ActionButton({
   badge,
   className
 }: ActionButtonProps) {
-  const content = <><span aria-hidden="true">{icon}</span><span>{label}</span>{!!badge && badge > 0 && <span className="rounded-md bg-destructive px-1.5 text-xs tabular-nums text-destructive-foreground">{badge}</span>}</>;
+  const content = <><span aria-hidden="true">{icon}</span><span>{label}</span>{!!badge && badge > 0 && <span className="rounded-md bg-destructive px-1.5 text-body-sm tabular-nums text-destructive-foreground">{badge}</span>}</>;
   return <Tooltip><TooltipTrigger asChild>
       {href && !disabled ? <Button asChild size="sm" variant={variant} className={cn("px-3", className)}><Link href={href} aria-label={tooltip}>{content}</Link></Button> : <span tabIndex={disabled ? 0 : undefined} aria-label={disabled ? tooltip : undefined}><Button type="button" size="sm" className={cn("px-3", className)} variant={variant} onClick={onClick} disabled={disabled} aria-label={tooltip}>{content}</Button></span>}
     </TooltipTrigger><TooltipContent>{tooltip}</TooltipContent></Tooltip>;
@@ -53,7 +53,7 @@ export function NoticeCard({
     <span className={cn("flex shrink-0 items-center justify-center", color)} aria-hidden="true">
       {icon}
     </span>
-    <div className="flex flex-col sm:flex-row sm:items-center min-w-0 gap-x-2 gap-y-1 text-sm">
+    <div className="flex flex-col sm:flex-row sm:items-center min-w-0 gap-x-2 gap-y-1 text-body-md">
       <span className={cn("font-medium", color)}>
         {title}{title ? ":" : ""}
       </span>

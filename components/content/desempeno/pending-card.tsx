@@ -56,11 +56,11 @@ export function PendingCardFields({
   status: ReactNode;
 }) {
   return <>
-    <span className="min-w-0 text-xs leading-4 tabular-nums text-muted-foreground">#{number ?? "—"}</span>
+    <span className="min-w-0 text-body-sm leading-4 tabular-nums text-muted-foreground">#{number ?? "—"}</span>
     {status}
     <span className="col-span-2 min-w-0">
-      <span className="block break-words text-sm font-medium leading-5 text-foreground">{name}</span>
-      {detail && <span className="block break-words text-xs leading-4 text-muted-foreground">{detail}</span>}
+      <span className="block break-words text-body-md font-medium leading-5 text-foreground">{name}</span>
+      {detail && <span className="block break-words text-body-sm leading-4 text-muted-foreground">{detail}</span>}
     </span>
   </>;
 }
@@ -75,7 +75,7 @@ export function PendingCardStatus({
   children: ReactNode;
 }) {
   return <span className={cn(
-    "inline-flex min-h-6 min-w-20 items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 text-xs font-medium leading-4",
+    "inline-flex min-h-6 min-w-20 items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 text-body-sm font-medium leading-4",
     statusTones[tone],
   )}>
     {icon}

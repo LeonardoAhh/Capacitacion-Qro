@@ -33,7 +33,7 @@ const DESCRIPCION = "Evaluaciones, tarjetas por vencer y avisos del Kanban"
 export function KanbanAvisos() {
   const router = useRouter()
   const { user } = useUser()
-  const { canAccess, loading } = useRole()
+  const { canAccess, isEvaluador, loading } = useRole()
   const lateral = useMediaQuery(DESKTOP_QUERY)
   const conSesion = Boolean(user) && !loading
   // Cada sección aparece solo si el rol puede abrir su pantalla (lib/constants/roles).
@@ -194,9 +194,11 @@ export function KanbanAvisos() {
       <>
         {campana(() => cambiarAbierto(true))}
         <Drawer direction="right" shouldScaleBackground={false} open={open} onOpenChange={cambiarAbierto}>
-          {/* Flota como el workspace: mismo margen, borde y esquinas (globals.css: --workspace-inset). */}
           <DrawerContent raw fullViewport showHandle={false} onOpenAutoFocus={enfocarPanel}
-            className="bottom-[var(--workspace-inset)] left-auto right-[var(--workspace-inset)] top-[max(var(--workspace-inset),env(safe-area-inset-top,0px))] mt-0 w-96 max-w-[calc(100vw-2*var(--workspace-inset))] overflow-hidden rounded-xl border">
+            // Mismo marco que el panel del contenido: debajo del header (sin header en escritorio, como el
+            // evaluador, arranca con el margen exterior), margen a la derecha y abajo, borde y radio de 12px.
+            className={cn("bottom-[var(--workspace-inset)] left-auto right-[var(--workspace-inset)] mt-0 w-96 max-w-[calc(100vw-2*var(--workspace-inset))] overflow-hidden rounded-xl border",
+              isEvaluador ? "top-[max(var(--workspace-inset),env(safe-area-inset-top,0px))]" : "top-[calc(env(safe-area-inset-top,0px)+var(--workspace-header-height))]")}>
             <div ref={panelRef} tabIndex={-1} className="flex h-full min-h-0 flex-col outline-none">
               {/* Misma altura que el encabezado de la app. */}
               <div className="flex h-[var(--workspace-header-height)] shrink-0 items-center gap-2 border-b border-border pl-3 pr-1">

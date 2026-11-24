@@ -115,7 +115,7 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
             </div>
           </div>
 
-          <p className="text-[11px] text-muted-foreground mt-1">
+          <p className="text-body-sm text-muted-foreground mt-1">
             Deja vacío para no contar este curso en el KPI de horas.
           </p>
 

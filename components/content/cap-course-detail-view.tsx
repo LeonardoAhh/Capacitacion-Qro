@@ -62,9 +62,9 @@ export function CapCourseDetailView({
             <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
               <div className="flex items-center gap-2">
                 <BookOpen className="h-5 w-5 text-primary shrink-0" />
-                <h2 className="text-xl font-semibold leading-7 tracking-tight">{course.name}</h2>
+                <h2 className="text-heading-md font-bold leading-7 tracking-tight">{course.name}</h2>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex flex-wrap items-center gap-2 text-body-md text-muted-foreground">
                 <Badge variant="outline">{courseType}</Badge>
                 {course.duration_hours != null ? (
                   <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
@@ -81,7 +81,7 @@ export function CapCourseDetailView({
           </div>
         </div>
         {!isReadOnly && (
-          <Button onClick={() => onEdit(course)} variant="ghost" className="h-(--control-height) shrink-0 py-0 text-sm font-medium">
+          <Button onClick={() => onEdit(course)} variant="ghost" className="h-(--control-height) shrink-0 py-0 text-body-md font-medium">
             <Pencil className="h-4 w-4 mr-2" />
             Editar curso
           </Button>
@@ -91,32 +91,32 @@ export function CapCourseDetailView({
       {/* Resumen */}
       <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-xl font-semibold">{empleadosConEstado.length}</div>
-          <div className="text-xs text-muted-foreground">Asignados totales</div>
+          <div className="text-heading-md font-bold">{empleadosConEstado.length}</div>
+          <div className="text-body-sm text-muted-foreground">Asignados totales</div>
         </div>
         <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-xl font-semibold text-success">
+          <div className="text-heading-md font-bold text-success">
             {empleadosConEstado.filter(e => e.estado === 'aprobado').length}
           </div>
-          <div className="text-xs text-muted-foreground">Aprobados</div>
+          <div className="text-body-sm text-muted-foreground">Aprobados</div>
         </div>
         <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-xl font-semibold text-destructive">
+          <div className="text-heading-md font-bold text-destructive">
             {empleadosConEstado.filter(e => e.estado === 'reprobado').length}
           </div>
-          <div className="text-xs text-muted-foreground">Reprobados</div>
+          <div className="text-body-sm text-muted-foreground">Reprobados</div>
         </div>
         <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-xl font-semibold text-warning-deep">
+          <div className="text-heading-md font-bold text-warning-deep">
             {empleadosConEstado.filter(e => e.estado === 'pendiente').length}
           </div>
-          <div className="text-xs text-muted-foreground">Pendientes</div>
+          <div className="text-body-sm text-muted-foreground">Pendientes</div>
         </div>
       </div>
 
       {/* Contenido / Tabla de Empleados */}
       <div>
-        <h3 className="mb-4 text-xl font-semibold leading-7 tracking-tight">Empleados asignados</h3>
+        <h3 className="mb-4 text-heading-md font-bold leading-7 tracking-tight">Empleados asignados</h3>
         {empleadosConEstado.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground border rounded-xl bg-muted/20">
             Ningún empleado tiene este curso asignado actualmente.
@@ -128,12 +128,12 @@ export function CapCourseDetailView({
               {empleadosConEstado.map((row) => (
                 <div key={row.id} className="rounded-xl border bg-card p-4 flex flex-col gap-2 shadow-sm">
                   <div className="flex justify-between items-start gap-2">
-                    <span className="font-semibold text-foreground leading-tight">{row.nombre}</span>
+                    <span className="font-bold text-foreground leading-tight">{row.nombre}</span>
                     <Badge variant={row.variant}>
                       {row.estado.charAt(0).toUpperCase() + row.estado.slice(1)}
                     </Badge>
                   </div>
-                  <div className="flex flex-col gap-1 text-sm text-muted-foreground mt-2">
+                  <div className="flex flex-col gap-1 text-body-md text-muted-foreground mt-2">
                     <div className="flex justify-between">
                       <span>Puesto:</span>
                       <span className="font-medium text-foreground">{row.puesto ?? '—'}</span>

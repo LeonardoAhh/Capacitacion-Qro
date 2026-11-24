@@ -71,7 +71,7 @@ export function PendingSummaryDetail({ status, groups, onOpenChange }: {
             </PendingCard>
           </li>;
         })}
-      </ul> : <p role="status" className="rounded-md border px-4 py-6 text-center text-sm text-muted-foreground">
+      </ul> : <p role="status" className="rounded-md border px-4 py-6 text-center text-body-md text-muted-foreground">
         No hay evaluaciones pendientes en este estado.
       </p>}
     </DialogContent>}

@@ -68,7 +68,7 @@ function CategoriaCover({
         <div className="rounded-md bg-white/15 p-3 ring-1 ring-white/10">
           <Icon className="text-white" size={iconSize} strokeWidth={1.5} />
         </div>
-        <span className="mt-2 font-sans text-[10px] font-medium uppercase text-white/80">
+        <span className="mt-2 font-sans text-body-sm font-medium uppercase text-white/80">
           {cat.label}
         </span>
       </div>
@@ -218,7 +218,7 @@ function CursoDialog({ open, saving, inicial, onClose, onSave }: CursoDialogProp
               className="bg-muted"
               autoFocus
             />
-            {errors.nombre && <p className="text-xs text-destructive">{errors.nombre}</p>}
+            {errors.nombre && <p className="text-body-sm text-destructive">{errors.nombre}</p>}
           </div>
 
           {/* Descripción */}
@@ -245,7 +245,7 @@ function CursoDialog({ open, saving, inicial, onClose, onSave }: CursoDialogProp
               onChange={(e) => set("url", e.target.value)}
               className="bg-muted"
             />
-            {errors.url && <p className="text-xs text-destructive">{errors.url}</p>}
+            {errors.url && <p className="text-body-sm text-destructive">{errors.url}</p>}
           </div>
 
           {/* Imagen URL */}
@@ -259,11 +259,11 @@ function CursoDialog({ open, saving, inicial, onClose, onSave }: CursoDialogProp
               onChange={(e) => set("imagen_url", e.target.value)}
               className="bg-muted"
             />
-            {errors.imagen_url && <p className="text-xs text-destructive">{errors.imagen_url}</p>}
+            {errors.imagen_url && <p className="text-body-sm text-destructive">{errors.imagen_url}</p>}
             {/* Image preview — custom URL or auto category cover */}
             {form.nombre.trim() && (
               <div className="space-y-1">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-body-sm text-muted-foreground">
                   {form.imagen_url.trim()
                     ? 'Imagen personalizada:'
                     : `Cover automático (${detectarCategoria(form.nombre).label}):`}
@@ -352,19 +352,19 @@ function CursoRow({ curso, canEdit, onEdit, onToggle, onDelete }: CursoRowProps)
           {/* Info */}
           <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-semibold text-sm truncate">{curso.nombre}</span>
-              <Badge variant={curso.activo ? "default" : "secondary"} className="text-xs shrink-0">
+              <span className="font-bold text-body-md truncate">{curso.nombre}</span>
+              <Badge variant={curso.activo ? "default" : "secondary"} className="text-body-sm shrink-0">
                 {curso.activo ? "Activo" : "Oculto"}
               </Badge>
             </div>
             {curso.descripcion && (
-              <p className="text-xs text-muted-foreground line-clamp-2">{curso.descripcion}</p>
+              <p className="text-body-sm text-muted-foreground line-clamp-2">{curso.descripcion}</p>
             )}
             <a
               href={curso.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-primary hover:underline inline-flex items-center gap-1 truncate max-w-full"
+              className="text-body-sm text-primary hover:underline inline-flex items-center gap-1 truncate max-w-full"
             >
               <ExternalLink size={11} />
               <span className="truncate">{curso.url}</span>
@@ -475,7 +475,7 @@ export default function CursosAdminContent() {
     <div className="space-y-5">
         {/* Header bar */}
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-lg font-semibold">Cursos</h2>
+          <h2 className="text-heading-md font-bold">Cursos</h2>
           <div className="flex items-center gap-2 shrink-0">
             {canEdit && (
               <Button size="icon" onClick={openCreate} aria-label="Nuevo curso" title="Nuevo curso">
@@ -506,7 +506,7 @@ export default function CursosAdminContent() {
         {!loading && !error && cursos.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border rounded-xl bg-muted/30">
             <QrCode size={40} className="text-muted-foreground/40" />
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-body-md">
               {canEdit ? "Sin cursos. Crea el primero." : "Sin cursos disponibles."}
             </p>
             {canEdit && (
@@ -535,7 +535,7 @@ export default function CursosAdminContent() {
 
         {/* Stats footer */}
         {!loading && cursos.length > 0 && (
-          <p className="text-xs text-muted-foreground text-right">
+          <p className="text-body-sm text-muted-foreground text-right">
             {cursos.filter((c) => c.activo).length} activos · {cursos.length} total
           </p>
         )}

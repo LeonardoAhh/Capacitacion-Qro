@@ -43,13 +43,13 @@ export const WeekStripCalendar = forwardRef<HTMLDivElement, WeekStripCalendarPro
 
     return <div ref={ref} data-slot="week-strip-calendar" className={cn("w-full rounded-md border border-input bg-card p-3 text-foreground", className)} {...props}>
       <div className="flex items-center justify-between gap-2">
-        <p className="text-sm font-semibold first-letter:uppercase">{monthYear.format(days[3])}</p>
+        <p className="text-body-md font-bold first-letter:uppercase">{monthYear.format(days[3])}</p>
         <div className="flex items-center gap-1">
           <button type="button" aria-label="Semana anterior" onClick={() => setWeekStart(previous => addDays(previous, -7))} className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ChevronLeft className="size-4" aria-hidden="true" /></button>
           <button type="button" aria-label="Semana siguiente" onClick={() => setWeekStart(previous => addDays(previous, 7))} className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ChevronRight className="size-4" aria-hidden="true" /></button>
         </div>
       </div>
-      <p aria-live="polite" className="mt-1 text-xs text-muted-foreground">{shortDate.format(days[0])} – {shortDate.format(days[6])}</p>
+      <p aria-live="polite" className="mt-1 text-body-sm text-muted-foreground">{shortDate.format(days[0])} – {shortDate.format(days[6])}</p>
       <div className="mt-2 grid grid-cols-7 gap-0.5" role="group" aria-label="Días de la semana">
         {days.map((date, index) => {
           const selected = value ? isSameDay(date, value) : false;
@@ -63,8 +63,8 @@ export const WeekStripCalendar = forwardRef<HTMLDivElement, WeekStripCalendarPro
             onClick={() => onSelect(startOfDay(date))}
             className="group flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <span aria-hidden="true" className={cn("text-xs font-medium text-muted-foreground", selected && "text-foreground")}>{WEEKDAYS[index]}</span>
-            <span aria-hidden="true" className={cn("flex size-9 items-center justify-center rounded-md text-sm font-medium tabular-nums transition-colors", selected ? "bg-primary font-semibold text-primary-foreground" : current ? "border border-border text-foreground group-hover:bg-muted" : "group-hover:bg-muted")}>{date.getDate()}</span>
+            <span aria-hidden="true" className={cn("text-body-sm font-medium text-muted-foreground", selected && "text-foreground")}>{WEEKDAYS[index]}</span>
+            <span aria-hidden="true" className={cn("flex size-9 items-center justify-center rounded-md text-body-md font-medium tabular-nums transition-colors", selected ? "bg-primary font-bold text-primary-foreground" : current ? "border border-border text-foreground group-hover:bg-muted" : "group-hover:bg-muted")}>{date.getDate()}</span>
           </button>;
         })}
       </div>

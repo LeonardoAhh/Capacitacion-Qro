@@ -82,7 +82,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
           {/* Departamento y Área */}
           <div className="grid grid-cols-2 gap-2">
             <div className="min-w-0 space-y-1">
-              <Label htmlFor="edit-departamento" className="text-xs font-medium">Departamento</Label>
+              <Label htmlFor="edit-departamento" className="text-body-sm font-medium">Departamento</Label>
               <Select value={departamento} onValueChange={setDepartamento}>
                 <SelectTrigger id="edit-departamento"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
@@ -92,7 +92,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               </Select>
             </div>
             <div className="min-w-0 space-y-1">
-              <Label htmlFor="edit-area" className="text-xs font-medium">Área</Label>
+              <Label htmlFor="edit-area" className="text-body-sm font-medium">Área</Label>
               <Select value={form.area ?? ''} onValueChange={v => set('area', v)} disabled={!departamento}>
                 <SelectTrigger id="edit-area"><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
@@ -106,7 +106,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
           {/* Puesto y Turno */}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Puesto</Label>
+              <Label className="text-body-sm font-medium">Puesto</Label>
               <Select value={form.puesto ?? ''} onValueChange={v => set('puesto', v)}>
                 <SelectTrigger><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card max-h-56">
@@ -116,7 +116,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Turno</Label>
+              <Label className="text-body-sm font-medium">Turno</Label>
               <Select value={form.turno ?? ''} onValueChange={v => set('turno', v)}>
                 <SelectTrigger><SelectValue placeholder="Selecciona..." /></SelectTrigger>
                 <SelectContent className="bg-card">
@@ -134,9 +134,9 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               { label: '3er mes', key: 'eval_3_calificacion' as const, fecha: record.eval_3_fecha },
             ]).map(({ label, key, fecha }) => (
               <div key={key} className="space-y-1">
-                <Label className="text-xs font-medium leading-tight">
+                <Label className="text-body-sm font-medium leading-tight">
                   Eval. {label}
-                  <span className="block text-muted-foreground font-normal text-[11px]">{formatDate(fecha)}</span>
+                  <span className="block text-muted-foreground font-normal text-body-sm">{formatDate(fecha)}</span>
                 </Label>
                 <Input
                   type="number" min={0} max={100} inputMode="numeric"
@@ -156,7 +156,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
           {/* Contrato + RG */}
           <div className="grid grid-cols-2 gap-2 items-end">
             <div className="space-y-1">
-              <Label className="text-xs font-medium">Tipo de contrato</Label>
+              <Label className="text-body-sm font-medium">Tipo de contrato</Label>
               <Select value={form.tipo_contrato ?? record.tipo_contrato} onValueChange={v => set('tipo_contrato', v as TipoContrato)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-card">
@@ -166,9 +166,9 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               </Select>
             </div>
             <div className="space-y-1">
-              <Label className="text-xs font-medium leading-tight">
+              <Label className="text-body-sm font-medium leading-tight">
                 RG-REC-048
-                <span className="block font-normal text-muted-foreground text-[11px]">Vence: {formatDate(record.fecha_vencimiento_rg)}</span>
+                <span className="block font-normal text-muted-foreground text-body-sm">Vence: {formatDate(record.fecha_vencimiento_rg)}</span>
               </Label>
               <Select value={form.rg_rec_048 ?? record.rg_rec_048} onValueChange={v => set('rg_rec_048', v as EstadoRG)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
@@ -199,7 +199,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
               if (ok) onDelete(record.id)
             }}
             disabled={saving}
-            className="flex min-h-(--control-height) w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-sm font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+            className="flex min-h-(--control-height) w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-body-md font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
           >
             <Trash2 className="h-4 w-4" />
             Eliminar empleado

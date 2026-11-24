@@ -105,7 +105,7 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
           ) : (
             <>
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-foreground">Cursos <span className="text-muted-foreground">({rows.length})</span></p>
+                <p className="text-body-md font-medium text-foreground">Cursos <span className="text-muted-foreground">({rows.length})</span></p>
                 <Button type="button" variant="outline" size="sm" onClick={addRow}>
                   <Plus aria-hidden="true" /> Agregar curso
                 </Button>
@@ -120,11 +120,11 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
                     <div key={row.id} className="rounded-md border border-border bg-card p-4">
                       <div className="flex items-start gap-2">
                         <div className="min-w-0 flex-1 space-y-2">
-                          <label htmlFor={courseId} className="text-sm font-medium text-foreground">Curso {rowNumber}</label>
+                          <label htmlFor={courseId} className="text-body-md font-medium text-foreground">Curso {rowNumber}</label>
                           <Select value={row.course_id} onValueChange={v => updateRow(row.id, 'course_id', v)}>
                             <SelectTrigger id={courseId} className="min-w-0" title={row.course_name || undefined}><SelectValue placeholder="Selecciona un curso" /></SelectTrigger>
                             <SelectContent matchTriggerWidth className="max-h-60">
-                              {courses.map(c => <SelectItem key={c.id} value={c.id} className="text-sm" title={c.name}>{c.name}</SelectItem>)}
+                              {courses.map(c => <SelectItem key={c.id} value={c.id} className="text-body-md" title={c.name}>{c.name}</SelectItem>)}
                             </SelectContent>
                           </Select>
                         </div>
@@ -136,11 +136,11 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
                       </div>
                       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
                         <div className="min-w-0 space-y-2">
-                          <label htmlFor={dateId} className="text-sm text-muted-foreground">Fecha de aplicación</label>
+                          <label htmlFor={dateId} className="text-body-md text-muted-foreground">Fecha de aplicación</label>
                           <Input id={dateId} type="date" value={row.fecha_aplicacion} onChange={e => updateRow(row.id, 'fecha_aplicacion', e.target.value)} className="min-w-0" />
                         </div>
                         <div className="min-w-0 space-y-2">
-                          <label htmlFor={gradeId} className="text-sm text-muted-foreground">Calificación</label>
+                          <label htmlFor={gradeId} className="text-body-md text-muted-foreground">Calificación</label>
                           <Input id={gradeId} type="number" min={0} max={10} value={row.calificacion} onChange={e => updateRow(row.id, 'calificacion', e.target.value)} />
                         </div>
                       </div>

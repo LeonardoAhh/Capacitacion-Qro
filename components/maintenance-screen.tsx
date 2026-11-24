@@ -46,8 +46,8 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
       </div>
       <div className="w-full max-w-4xl space-y-5">
         <header className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <p className="font-sans text-xs font-medium uppercase text-muted-foreground">Estado del sistema</p>
-          <span className="inline-flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-xs font-medium text-primary">
+          <p className="font-sans text-body-sm font-medium uppercase text-muted-foreground">Estado del sistema</p>
+          <span className="inline-flex items-center gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-1.5 text-body-sm font-medium text-primary">
             <Radio className="size-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
             Mantenimiento activo
           </span>
@@ -58,18 +58,18 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
               <div aria-hidden="true" className="mb-6 grid size-14 place-items-center rounded-md border border-primary/20 bg-primary/10 text-primary">
                 <Layers3 className="size-7" strokeWidth={1.5} />
               </div>
-              <p className="mb-3 font-sans text-xs font-medium uppercase text-muted-foreground">Sistema en mantenimiento</p>
+              <p className="mb-3 font-sans text-body-sm font-medium uppercase text-muted-foreground">Sistema en mantenimiento</p>
               <h1 id={`${id}-heading`} className="text-balance font-sans text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
                 Actualización en curso
               </h1>
-              <p id={`${id}-description`} className="mt-4 text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
+              <p id={`${id}-description`} className="mt-4 text-pretty text-body-md leading-relaxed text-muted-foreground sm:text-body-lg">
                 Durante este tiempo, el acceso a la plataforma estará temporalmente deshabilitado.
               </p>
             </div>
             <section aria-labelledby={`${id}-countdown`} className="flex min-w-0 flex-col justify-center gap-5 border-t border-border bg-muted/30 p-6 sm:p-8 md:border-l md:border-t-0 lg:p-10">
               <div className="flex items-center gap-2 text-muted-foreground">
                 <Clock3 className="size-4 shrink-0" strokeWidth={1.75} aria-hidden="true" />
-                <h2 id={`${id}-countdown`} className="text-sm font-medium text-foreground">
+                <h2 id={`${id}-countdown`} className="text-body-md font-medium text-foreground">
                   {hasDeadline ? "Tiempo estimado restante" : "Actualización en curso"}
                 </h2>
               </div>
@@ -81,7 +81,7 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
                       const value = total === null ? null : modulo === null ? total : total % modulo
                       return (
                         <div key={label} className="flex min-w-0 flex-col items-center gap-2 rounded-md border border-border bg-card px-2 py-4">
-                          <dt className="order-2 text-xs text-muted-foreground">{label}</dt>
+                          <dt className="order-2 text-body-sm text-muted-foreground">{label}</dt>
                           <dd className="font-sans text-3xl font-medium leading-none tracking-tight tabular-nums text-foreground">
                             {value === null ? "—" : String(value).padStart(2, "0")}
                           </dd>
@@ -91,9 +91,9 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
                   </dl>
                 </div>
               ) : (
-                <p className="font-sans text-2xl font-semibold tracking-tight">Volvemos en cuanto esté listo.</p>
+                <p className="font-sans text-heading-lg font-bold tracking-tight">Volvemos en cuanto esté listo.</p>
               )}
-              <div role="status" aria-live="polite" aria-atomic="true" className="text-sm leading-relaxed text-muted-foreground">
+              <div role="status" aria-live="polite" aria-atomic="true" className="text-body-md leading-relaxed text-muted-foreground">
                 {estimateElapsed
                   ? "La actualización necesita un poco más de tiempo. Gracias por tu paciencia."
                   : hasDeadline
@@ -101,7 +101,7 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
                     : "Todavía no hay una hora estimada de regreso. El acceso volverá aquí cuando el sistema esté disponible."}
               </div>
               {hasDeadline && now !== null && (
-                <p className="border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
+                <p className="border-t border-border pt-4 text-body-sm leading-relaxed text-muted-foreground">
                   Fin estimado: <time dateTime={new Date(deadline).toISOString()} className="font-medium text-foreground">
                     {new Intl.DateTimeFormat(undefined, { dateStyle: "medium", timeStyle: "short" }).format(deadline)}
                   </time>
@@ -113,12 +113,12 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
           <footer className="flex items-start gap-3 border-t border-border px-6 py-5 sm:px-8 lg:px-10">
             <RefreshCw className="mt-0.5 size-4 shrink-0 text-primary" strokeWidth={1.75} aria-hidden="true" />
             <div className="min-w-0 space-y-1">
-              <p className="text-sm font-medium">Volverás automáticamente</p>
-              <p className="text-sm leading-relaxed text-muted-foreground">El acceso se restablecerá cuando termine el mantenimiento.</p>
+              <p className="text-body-md font-medium">Volverás automáticamente</p>
+              <p className="text-body-md leading-relaxed text-muted-foreground">El acceso se restablecerá cuando termine el mantenimiento.</p>
             </div>
           </footer>
         </article>
-        <p className="px-2 text-center text-xs leading-relaxed text-muted-foreground">ViñoPlastic Planta Querétaro - Capacitación - Recursos Humanos.</p>
+        <p className="px-2 text-center text-body-sm leading-relaxed text-muted-foreground">ViñoPlastic Planta Querétaro - Capacitación - Recursos Humanos.</p>
       </div>
     </main>
   )

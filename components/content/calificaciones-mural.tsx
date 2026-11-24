@@ -101,7 +101,7 @@ function ScoreRing({ value }: { value: number | null }) {
           strokeLinecap="round"
         />
       </svg>
-      <span className={`absolute text-sm font-bold ${scoreColor(value)}`}>
+      <span className={`absolute text-body-md font-bold ${scoreColor(value)}`}>
         {value !== null ? value : "—"}
       </span>
     </div>
@@ -114,14 +114,14 @@ function CourseRow({ course }: { course: CalificacionCurso }) {
     <div className="flex items-center justify-between gap-2 py-1.5 border-b border-border/50 last:border-0">
       <div className="flex items-center gap-2 min-w-0">
         <BookOpen className="h-3 w-3 shrink-0 text-muted-foreground" />
-        <span className="text-xs text-foreground truncate" title={name}>
+        <span className="text-body-sm text-foreground truncate" title={name}>
           {name}
         </span>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <span className="text-xs text-muted-foreground">{formatFecha(course.fecha_aplicacion)}</span>
+        <span className="text-body-sm text-muted-foreground">{formatFecha(course.fecha_aplicacion)}</span>
         <span
-          className={`text-xs font-semibold px-1.5 py-0.5 rounded border ${scoreBgClass(course.calificacion)}`}
+          className={`text-body-sm font-bold px-1.5 py-0.5 rounded border ${scoreBgClass(course.calificacion)}`}
         >
           {course.calificacion !== null ? course.calificacion : "—"}
         </span>
@@ -141,18 +141,18 @@ function EmpleadoCard({ emp }: { emp: EmpleadoCalificaciones }) {
         <div className="flex items-start gap-3">
           <ScoreRing value={emp.promedio} />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-foreground text-sm leading-tight truncate" title={emp.nombre}>
+            <p className="font-bold text-foreground text-body-md leading-tight truncate" title={emp.nombre}>
               {emp.nombre}
             </p>
             {emp.numero && (
-              <p className="text-xs text-muted-foreground">#{emp.numero}</p>
+              <p className="text-body-sm text-muted-foreground">#{emp.numero}</p>
             )}
             {emp.puesto && (
-              <p className="text-xs text-muted-foreground truncate mt-0.5">{emp.puesto}</p>
+              <p className="text-body-sm text-muted-foreground truncate mt-0.5">{emp.puesto}</p>
             )}
             <Badge
               variant="outline"
-              className={`mt-1.5 text-[11px] px-1.5 py-0.5 border ${scoreBgClass(emp.promedio)}`}
+              className={`mt-1.5 text-body-sm px-1.5 py-0.5 border ${scoreBgClass(emp.promedio)}`}
             >
               {promedioLabel(emp.promedio)}
             </Badge>
@@ -161,19 +161,19 @@ function EmpleadoCard({ emp }: { emp: EmpleadoCalificaciones }) {
 
         {/* Stats row */}
         <div className="flex items-center gap-3 mt-3 pt-2 border-t border-border/50">
-          <span className="flex items-center gap-1 text-xs text-success">
+          <span className="flex items-center gap-1 text-body-sm text-success">
             <CheckCircle2 className="h-3 w-3" />
             {emp.totalAprobados}
           </span>
-          <span className="flex items-center gap-1 text-xs text-destructive">
+          <span className="flex items-center gap-1 text-body-sm text-destructive">
             <XCircle className="h-3 w-3" />
             {emp.totalReprobados}
           </span>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1 text-body-sm text-muted-foreground">
             <Clock className="h-3 w-3" />
             {emp.totalPendientes}
           </span>
-          <span className="ml-auto text-xs text-muted-foreground">
+          <span className="ml-auto text-body-sm text-muted-foreground">
             {emp.cursos.length} cursos
           </span>
         </div>
@@ -222,7 +222,7 @@ function EmpleadoCard({ emp }: { emp: EmpleadoCalificaciones }) {
 
       {emp.cursos.length === 0 && (
         <CardContent className="px-4 pb-4">
-          <p className="text-xs text-muted-foreground italic">Sin cursos registrados.</p>
+          <p className="text-body-sm text-muted-foreground italic">Sin cursos registrados.</p>
         </CardContent>
       )}
     </Card>
@@ -318,7 +318,7 @@ export default function CalificacionesMural() {
           {/* Filters row — 2-col grid on mobile, inline on sm+ */}
           <div className="flex items-center gap-2">
             <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="flex-1 sm:w-48 sm:flex-none bg-muted text-sm">
+              <SelectTrigger className="flex-1 sm:w-48 sm:flex-none bg-muted text-body-md">
                 <SelectValue placeholder="Departamento" />
               </SelectTrigger>
               <SelectContent>
@@ -331,7 +331,7 @@ export default function CalificacionesMural() {
               </SelectContent>
             </Select>
             <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-              <SelectTrigger className="flex-1 sm:w-44 sm:flex-none bg-muted text-sm">
+              <SelectTrigger className="flex-1 sm:w-44 sm:flex-none bg-muted text-body-md">
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
               <SelectContent>
@@ -354,7 +354,7 @@ export default function CalificacionesMural() {
             </Button>
           </div>
 
-          <p className="text-xs text-muted-foreground">
+          <p className="text-body-sm text-muted-foreground">
             Mostrando {filtered.length} de {data.length} empleados
           </p>
         </CardContent>
@@ -362,7 +362,7 @@ export default function CalificacionesMural() {
 
       {/* Error */}
       {error && (
-        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+        <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-body-md text-destructive">
           {error}
         </div>
       )}
@@ -380,7 +380,7 @@ export default function CalificacionesMural() {
       {!loading && filtered.length === 0 && (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-3">
           <BookOpen className="h-10 w-10 opacity-30" />
-          <p className="text-sm">
+          <p className="text-body-md">
             {data.length === 0 ? "Sin datos de empleados." : "Sin resultados para la búsqueda."}
           </p>
         </div>

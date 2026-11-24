@@ -115,7 +115,7 @@ export function PromReglaDialog({
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Puesto actual</Label>
+            <Label className="text-body-sm text-muted-foreground">Puesto actual</Label>
             <Input
               type="text"
               placeholder="Ej. OPERADOR D"
@@ -125,11 +125,11 @@ export function PromReglaDialog({
               className="bg-muted"
             />
             {puestoDuplicado && (
-              <p className="text-[11px] text-destructive">Ya existe una regla para ese puesto</p>
+              <p className="text-body-sm text-destructive">Ya existe una regla para ese puesto</p>
             )}
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Promoción a (opcional)</Label>
+            <Label className="text-body-sm text-muted-foreground">Promoción a (opcional)</Label>
             <Input
               type="text"
               placeholder="Ej. OPERADOR C"
@@ -142,7 +142,7 @@ export function PromReglaDialog({
 
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Temporalidad (meses)</Label>
+            <Label className="text-body-sm text-muted-foreground">Temporalidad (meses)</Label>
             <Input
               type="number"
               min={0}
@@ -153,7 +153,7 @@ export function PromReglaDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Cal. examen mín.</Label>
+            <Label className="text-body-sm text-muted-foreground">Cal. examen mín.</Label>
             <Input
               type="number"
               min={0}
@@ -165,7 +165,7 @@ export function PromReglaDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Cal. evaluación mín.</Label>
+            <Label className="text-body-sm text-muted-foreground">Cal. evaluación mín.</Label>
             <Input
               type="number"
               min={0}
@@ -177,7 +177,7 @@ export function PromReglaDialog({
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">% cursos mín.</Label>
+            <Label className="text-body-sm text-muted-foreground">% cursos mín.</Label>
             <Input
               type="number"
               min={0}
@@ -191,7 +191,7 @@ export function PromReglaDialog({
         </div>
 
         <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Descripción (opcional)</Label>
+          <Label className="text-body-sm text-muted-foreground">Descripción (opcional)</Label>
           <Input
             type="text"
             placeholder="Notas internas sobre la regla"
@@ -203,8 +203,8 @@ export function PromReglaDialog({
 
         <div className="flex items-center justify-between rounded-xl border border-border/60 bg-muted/40 px-3 py-2.5">
           <div className="space-y-0.5">
-            <Label className="text-sm font-medium">Regla activa</Label>
-            <p className="text-[11px] text-muted-foreground">
+            <Label className="text-body-md font-medium">Regla activa</Label>
+            <p className="text-body-sm text-muted-foreground">
               Las reglas inactivas no se evalúan al calcular aptitud.
             </p>
           </div>
@@ -212,7 +212,7 @@ export function PromReglaDialog({
         </div>
 
         {error && (
-          <div className="text-sm text-destructive bg-destructive/10 rounded-xl px-3 py-2">
+          <div className="text-body-md text-destructive bg-destructive/10 rounded-xl px-3 py-2">
             {error}
           </div>
         )}

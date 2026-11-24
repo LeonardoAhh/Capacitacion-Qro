@@ -38,14 +38,14 @@ export function PromReglasPreview({
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           Si ya existe una regla para el mismo puesto, será reemplazada.
         </p>
 
         <div className="overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted text-xs">
+              <TableRow className="bg-muted text-body-sm">
                 <TableHead>Puesto Actual</TableHead>
                 <TableHead>Promoción a</TableHead>
                 <TableHead className="text-center">Temporalidad</TableHead>
@@ -56,7 +56,7 @@ export function PromReglasPreview({
             </TableHeader>
             <TableBody>
               {reglasPreview.map((r) => (
-                <TableRow key={r["Puesto Actual"]} className="text-sm">
+                <TableRow key={r["Puesto Actual"]} className="text-body-md">
                   <TableCell className="font-medium">{r["Puesto Actual"]}</TableCell>
                   <TableCell className="text-muted-foreground">{r["Promoción a"]}</TableCell>
                   <TableCell className="text-center">{r["Temporalidad (meses)"]} meses</TableCell>
@@ -112,14 +112,14 @@ export function PromDatosPreview({
       />
 
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-body-sm text-muted-foreground">
           El enlace es por <strong>N.N</strong> (número de empleado). Si ya existe un registro se actualizará.
         </p>
 
         <div className="overflow-x-auto rounded-xl border">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted text-xs">
+              <TableRow className="bg-muted text-body-sm">
                 <TableHead>N.N</TableHead>
                 <TableHead>Fecha Inicio Puesto</TableHead>
                 <TableHead className="text-center">Desempeño %</TableHead>
@@ -130,12 +130,12 @@ export function PromDatosPreview({
             </TableHeader>
             <TableBody>
               {datosPreview.map((r) => (
-                <TableRow key={r["N.N"]} className="text-sm">
+                <TableRow key={r["N.N"]} className="text-body-md">
                   <TableCell className="font-sans font-medium">{r["N.N"]}</TableCell>
                   <TableCell>{r["Fecha Inicio Puesto"] || <span className="text-muted-foreground italic">—</span>}</TableCell>
                   <TableCell className="text-center">
                     <span className={r["Desempeño Actual (%)"] && parseFloat(r["Desempeño Actual (%)"]) > 0
-                      ? "font-semibold text-success"
+                      ? "font-bold text-success"
                       : "text-muted-foreground"}>
                       {r["Desempeño Actual (%)"] || "—"}
                     </span>
@@ -143,7 +143,7 @@ export function PromDatosPreview({
                   <TableCell>{r["Periodo de Evaluación"] || <span className="text-muted-foreground italic">—</span>}</TableCell>
                   <TableCell className="text-center">
                     {r["Última Calificación Examen (%)"]
-                      ? <span className="font-semibold">{r["Última Calificación Examen (%)"]}</span>
+                      ? <span className="font-bold">{r["Última Calificación Examen (%)"]}</span>
                       : <span className="text-muted-foreground">—</span>}
                   </TableCell>
                   <TableCell className="text-center">{r["Intentos de Examen"]}</TableCell>

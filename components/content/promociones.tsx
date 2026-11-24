@@ -239,7 +239,7 @@ export default function PromocionesContent({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+                <DropdownMenuLabel className="text-body-sm font-normal text-muted-foreground">
                   {todosOrdenados.length} registro{todosOrdenados.length !== 1 ? "s" : ""}
                   {hasFilters ? " (filtrados)" : ""}
                 </DropdownMenuLabel>
@@ -272,13 +272,13 @@ export default function PromocionesContent({
           <div className="bg-primary/10 p-4 rounded-md mb-4">
             <ChartNoAxesColumnIncreasing aria-hidden="true" className={`${PROMOTION_ICON.emptyState} text-primary`} />
           </div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">Sin datos de empleados</h3>
-          <p className="text-sm text-muted-foreground max-w-sm">
+          <h3 className="text-heading-md font-bold text-foreground mb-1">Sin datos de empleados</h3>
+          <p className="text-body-md text-muted-foreground max-w-sm">
             Carga los datos de empleados con sus evaluaciones de desempeño y el sistema calculará automáticamente la aptitud para promoción.
           </p>
         </div>
       ) : todosOrdenados.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground text-sm">Sin resultados para los filtros aplicados</div>
+        <div className="text-center py-10 text-muted-foreground text-body-md">Sin resultados para los filtros aplicados</div>
       ) : (
         <>
           <PromotionTable

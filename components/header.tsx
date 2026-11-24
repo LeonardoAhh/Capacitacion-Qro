@@ -2,10 +2,11 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ArrowLeft, Menu } from "lucide-react"
+import { ArrowLeft, Menu, PanelLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
+import { DESKTOP_NAV_ID, getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { WorkspaceClock } from "@/components/workspace-clock"
@@ -16,7 +17,9 @@ interface HeaderProps {
   titleHrefLabel?: string
   showMobileSidebar: boolean
   onOpenSidebar: () => void
-  fullWidth?: boolean
+  /** Escritorio: la barra lateral está oculta por completo. */
+  sidebarCollapsed: boolean
+  onToggleSidebar: () => void
   /** Solo en móvil (menú y título): en escritorio la hora y los avisos van en la barra lateral. */
   mobileOnly?: boolean
 }
@@ -26,19 +29,22 @@ export default function Header({
   titleHrefLabel,
   showMobileSidebar,
   onOpenSidebar,
-  fullWidth = false,
+  sidebarCollapsed,
+  onToggleSidebar,
   mobileOnly = false,
 }: HeaderProps) {
+  const sidebarLabel = sidebarCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"
   const pathname = usePathname()
   const router = useRouter()
   const pageLabel = getRouteLabel(pathname)
 
   return (
     // Altura y barra de estado: .workspace-header en globals.css.
-    // Deja ver el fondo de líneas del workspace: en escritorio es transparente (el scroll va en <main>);
-    // en móvil el documento hace scroll bajo el header, así que conserva un velo translúcido.
+    // En escritorio el header queda sobre el lienzo, sin fondo ni línea propia (el panel del contenido lo separa);
+    // en móvil el documento hace scroll bajo el header, así que conserva un velo translúcido y su línea inferior.
     <header className={cn("workspace-header sticky top-0 z-20 shrink-0 bg-card/80 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none", mobileOnly && "md:hidden")}>
-      <WorkspaceContainer fullWidth={fullWidth} className="flex h-full items-center gap-2 border-b border-border">
+      {/* Ocupa todo el ancho junto a la barra lateral: el ancho máximo solo aplica al contenido del panel. */}
+      <WorkspaceContainer fullWidth className="flex h-full items-center gap-2 border-b border-border md:border-b-0">
         <Button
           type="button"
           variant="ghost"
@@ -51,6 +57,26 @@ export default function Header({
         >
           <Menu className="size-5" aria-hidden="true" />
         </Button>
+        {/* Escritorio: muestra u oculta la barra lateral, antes del título. */}
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={onToggleSidebar}
+                aria-label={sidebarLabel}
+                aria-controls={DESKTOP_NAV_ID}
+                aria-expanded={!sidebarCollapsed}
+                className="-ml-2 hidden shrink-0 text-muted-foreground md:inline-flex"
+              >
+                <PanelLeft className="size-4" aria-hidden="true" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">{sidebarLabel}</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {/* Page title */}
         <div className="flex min-w-0 flex-1 items-center">
