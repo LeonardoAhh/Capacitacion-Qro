@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Stepper } from "@/components/ui/stepper"
 import { DncNeedAuthorizationStep, DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
-import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition } from "@/lib/dnc"
+import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition, type ProgramacionCurso } from "@/lib/dnc"
 
 interface DncNeedDialogProps {
   necesidad: DncNecesidad | null
@@ -14,16 +14,19 @@ interface DncNeedDialogProps {
   cursosError: string | null
   puestos: DncPosition[]
   departmentName: string
+  /** Mes y tipo con los que el curso ya está en otras DNC del año, para proponerlos. */
+  programacionDe: (courseId: string) => ProgramacionCurso | null
   onClose: () => void
   onSave: (datos: DatosNecesidad) => Promise<void>
 }
 
+const PROGRAMACION_INICIAL = { mes_sugerido: 1, tipo: "interno" } as const
 const PASOS = ["Necesidad y puestos", "Justificación y programación", "Autorización"] as const
 type Paso = 1 | 2 | 3
 // Campo que recibe el foco al entrar a cada paso.
 const PRIMER_CAMPO: Record<Paso, string> = { 1: "dnc-necesidad", 2: "dnc-funcion", 3: "dnc-autorizacion-autorizado" }
 
-export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, puestos, departmentName, onClose, onSave }: DncNeedDialogProps) {
+export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, puestos, departmentName, programacionDe, onClose, onSave }: DncNeedDialogProps) {
   const [step, setStep] = useState<Paso>(1)
   const [form, setForm] = useState<DatosNecesidad>({
     necesidad: necesidad?.necesidad ?? "",
@@ -32,11 +35,14 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
     funcion_actividad: necesidad?.funcion_actividad ?? "",
     motivo: necesidad?.motivo ?? "",
     beneficio: necesidad?.beneficio ?? "",
-    mes_sugerido: necesidad?.mes_sugerido ?? 1,
-    tipo: necesidad?.tipo ?? "interno",
+    mes_sugerido: necesidad?.mes_sugerido ?? PROGRAMACION_INICIAL.mes_sugerido,
+    tipo: necesidad?.tipo ?? PROGRAMACION_INICIAL.tipo,
     autorizacion: necesidad?.autorizacion ?? null,
     motivo_no_autorizado: necesidad?.motivo_no_autorizado ?? "",
   })
+  // Al editar se respeta lo guardado; en una alta, mes y tipo siguen al curso hasta que se cambian a mano.
+  const [programacionManual, setProgramacionManual] = useState(Boolean(necesidad))
+  const programacion = form.course_id ? programacionDe(form.course_id) : null
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -58,7 +64,15 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
   function update(field: keyof DatosNecesidad, value: string | number) {
     const isText = (CAMPOS_TEXTO_NECESIDAD as readonly string[]).includes(field)
     const next = isText && typeof value === "string" ? aMayusculasDnc(value) : value
-    setForm(current => ({ ...current, [field]: next }))
+    // Al elegir curso, mes y tipo toman los de otras DNC (o vuelven a los iniciales si no hay).
+    const sigueAlCurso = field === "course_id" && !programacionManual && typeof value === "string"
+    const previa = sigueAlCurso ? programacionDe(value) : null
+    if (field === "mes_sugerido" || field === "tipo") setProgramacionManual(true)
+    setForm(current => ({
+      ...current,
+      [field]: next,
+      ...(sigueAlCurso && { mes_sugerido: previa?.mes_sugerido ?? PROGRAMACION_INICIAL.mes_sugerido, tipo: previa?.tipo ?? PROGRAMACION_INICIAL.tipo }),
+    }))
     setError(null)
   }
 
@@ -112,7 +126,7 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
               setError(null)
             }} />
         ) : step === 2
-          ? <DncNeedDetailsStep form={form} onChange={update} />
+          ? <DncNeedDetailsStep form={form} onChange={update} programacion={programacion} />
           : <DncNeedAuthorizationStep form={form} onChange={update} />}
         {error && <p role="alert" className="-mt-2 text-body-sm text-destructive">{error}</p>}
       </div>

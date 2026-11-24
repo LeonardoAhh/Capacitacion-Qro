@@ -74,6 +74,11 @@ export function PlanAnualProgressDialog({ curso, canEdit, onClose, onSave }: Pla
     <ResponsiveShell open onClose={onClose} size="sm" title={nombreCursoPlan(curso)}
       description={`Seguimiento de ${MESES[curso.mes - 1]} ${curso.anio}`}>
       <ModalHeader title={nombreCursoPlan(curso)} subtitle={`${MESES[curso.mes - 1]} ${curso.anio}`} onClose={onClose} />
+      {/* Completo aquí lo que en la tabla se recorta a una línea. */}
+      <dl className="grid gap-4 border-b px-6 py-4 sm:grid-cols-2">
+        <Detail label="Área que solicita" value={curso.area_solicitante} />
+        <Detail label="Aplica para" value={curso.aplica_para} />
+      </dl>
       {canEdit ? (
         <div className="grid gap-4 overflow-y-auto p-6 sm:grid-cols-2">
           <div className="grid gap-1 sm:col-span-2">

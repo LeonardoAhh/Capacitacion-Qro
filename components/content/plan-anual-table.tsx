@@ -1,5 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import { TruncatedText } from "@/components/ui/truncated-text"
 import { nombreCursoPlan, type CursoPlan } from "@/lib/plan-anual"
 import { PlanAnualActionsMenu } from "@/components/content/plan-anual-actions-menu"
 
@@ -11,6 +12,8 @@ interface PlanAnualTableProps {
   onEdit: (curso: CursoPlan) => void
   onDelete: (curso: CursoPlan) => void
 }
+
+const CELDA_LISTA = "line-clamp-1 max-w-56"
 
 export function PlanAnualTable({ cursos, canEdit, onOpen, onMetrics, onEdit, onDelete }: PlanAnualTableProps) {
   return (
@@ -43,8 +46,13 @@ export function PlanAnualTable({ cursos, canEdit, onOpen, onMetrics, onEdit, onD
         {cursos.map(curso => (
           <TableRow key={curso.id}>
             <TableCell className="min-w-64 max-w-lg whitespace-normal font-medium">{nombreCursoPlan(curso)}</TableCell>
-            <TableCell>{curso.area_solicitante}</TableCell>
-            <TableCell>{curso.aplica_para}</TableCell>
+            {/* Una línea por celda; si no cabe, el texto abre el detalle del curso con todo el contenido. */}
+            <TableCell>
+              <TruncatedText className={CELDA_LISTA} onExpand={() => onOpen(curso)} expandLabel="Ver áreas que solicitan">{curso.area_solicitante}</TruncatedText>
+            </TableCell>
+            <TableCell>
+              <TruncatedText className={CELDA_LISTA} onExpand={() => onOpen(curso)} expandLabel="Ver a quién aplica">{curso.aplica_para}</TruncatedText>
+            </TableCell>
             <TableCell className="text-center">{curso.tipo === "interno" ? "Sí" : "—"}</TableCell>
             <TableCell className="text-center">{curso.tipo === "externo" ? "Sí" : "—"}</TableCell>
             <TableCell className="text-right">

@@ -44,6 +44,28 @@ export function nombreDepartamento(reporte: DncReporte): string {
   return (Array.isArray(reporte.department) ? reporte.department[0]?.name : reporte.department?.name) ?? "Departamento"
 }
 
+/** Mes y tipo con los que un curso está programado en las DNC de otros departamentos del año. */
+export interface ProgramacionCurso {
+  mes_sugerido: number
+  tipo: DncNecesidad["tipo"]
+  departamentos: string[]
+}
+
+/**
+ * Un curso tiene una sola programación por año: al agregarlo a otro departamento se
+ * propone la que ya tiene y, si se cambia, se actualiza en todas sus DNC al guardar.
+ */
+export function programacionPrevia(necesidades: DncNecesidad[], reportes: DncReporte[], courseId: string, reporteActual: string): ProgramacionCurso | null {
+  const previas = necesidades.filter(need => need.course_id === courseId && need.reporte_id !== reporteActual)
+  if (!previas.length) return null
+  const nombres = new Map(reportes.map(reporte => [reporte.id, nombreDepartamento(reporte)]))
+  return {
+    mes_sugerido: previas[0].mes_sugerido,
+    tipo: previas[0].tipo,
+    departamentos: [...new Set(previas.map(need => nombres.get(need.reporte_id) ?? "Departamento"))],
+  }
+}
+
 /** El DNC se captura, guarda y muestra en mayúsculas. */
 export function aMayusculasDnc(texto: string): string {
   return texto.toLocaleUpperCase("es-MX")
@@ -158,6 +180,14 @@ export async function guardarNecesidadDnc(reporteId: string, datos: DatosNecesid
     .select(NECESIDAD_COLUMNS).eq("id", id as string).single()
   if (readError) throw readError
   return toNecesidad(data as NecesidadRow)
+}
+
+/** Deja con el mismo mes y tipo las demás necesidades del curso en el año. */
+export async function sincronizarProgramacionDnc(ids: string[], programacion: Pick<DncNecesidad, "mes_sugerido" | "tipo">): Promise<void> {
+  if (!ids.length) return
+  const { error } = await supabase.from("dnc_necesidades")
+    .update({ ...programacion, updated_at: new Date().toISOString() }).in("id", ids)
+  if (error) throw error
 }
 
 export async function eliminarNecesidadDnc(id: string): Promise<void> {

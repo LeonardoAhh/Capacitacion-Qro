@@ -1,12 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Plus } from "lucide-react"
+import { CalendarPlus, FileInput, Plus, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRole } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 import { useCatalogoCursos } from "@/lib/hooks/useCatalogoCursos"
@@ -16,6 +17,28 @@ import { PlanAnualStartDialog } from "@/components/content/plan-anual-start-dial
 import { PlanAnualTable } from "@/components/content/plan-anual-table"
 import { PlanAnualProgressDialog } from "@/components/content/plan-anual-progress-dialog"
 import { PlanAnualMetricsDialog } from "@/components/content/plan-anual-metrics-dialog"
+import { PlanAnualDncDialog } from "@/components/content/plan-anual-dnc-dialog"
+import type { CursoImportado } from "@/lib/plan-anual-dnc"
+
+/** Acción de la barra: con poco espacio solo muestra el ícono y su nombre va en el tooltip. */
+function ToolbarAction({ icon: Icon, label, variant = "outline", onClick }: {
+  icon: LucideIcon
+  label: string
+  variant?: "default" | "outline"
+  onClick: () => void
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button type="button" variant={variant} onClick={onClick} aria-label={label} className="px-3">
+          <Icon aria-hidden="true" />
+          <span className="hidden @3xl:inline">{label}</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="bottom">{label}</TooltipContent>
+    </Tooltip>
+  )
+}
 
 export default function PlanAnualPage() {
   const { canEdit } = useRole()
@@ -28,6 +51,7 @@ export default function PlanAnualPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [startOpen, setStartOpen] = useState(false)
+  const [importOpen, setImportOpen] = useState(false)
   const [courseDialog, setCourseDialog] = useState<CursoPlan | "new" | null>(null)
   const [progressCourse, setProgressCourse] = useState<CursoSeguimiento | null>(null)
   const [metricsCourse, setMetricsCourse] = useState<CursoPlan | null>(null)
@@ -101,6 +125,31 @@ export default function PlanAnualPage() {
     notify.success("Curso guardado")
   }
 
+  /** Agrega los cursos revisados desde la DNC; inicia los meses que falten. */
+  async function handleImport(items: CursoImportado[]) {
+    const nuevosMeses = [...new Set(items.map(item => item.mes))].filter(month => !months.includes(month))
+    for (const month of nuevosMeses) await iniciarMes(year, month)
+    if (nuevosMeses.length) {
+      setMonths(current => [...current, ...nuevosMeses].sort((left, right) => left - right))
+      setPlanYears(current => current.includes(year) ? current : [...current, year])
+    }
+    const ordenPorMes = new Map<number, number>()
+    const guardados: CursoPlan[] = []
+    try {
+      for (const item of items) {
+        const orden = (ordenPorMes.get(item.mes) ?? Math.max(0, ...courses.filter(course => course.mes === item.mes).map(course => course.orden))) + 1
+        ordenPorMes.set(item.mes, orden)
+        guardados.push(await guardarCurso(year, item.mes, orden, item.datos))
+      }
+    } finally {
+      // Si alguno falla, los ya guardados se quedan visibles; el modal muestra el error.
+      if (guardados.length) setCourses(current => [...current, ...guardados])
+    }
+    setImportOpen(false)
+    setSelectedMonth(items[0].mes)
+    notify.success(guardados.length === 1 ? "1 curso agregado al plan" : `${guardados.length} cursos agregados al plan`)
+  }
+
   async function handleDelete(course: CursoPlan) {
     const confirmed = await notify.confirm({
       title: "Eliminar curso",
@@ -128,42 +177,43 @@ export default function PlanAnualPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        {ready && (
-          <div className="grid min-w-48 gap-1">
-            <Label htmlFor="plan-mes-vista">Mes</Label>
-            <Select value={String(selectedMonth)} onValueChange={value => setSelectedMonth(Number(value))}>
-              <SelectTrigger id="plan-mes-vista"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {monthOptions.map(month => (
-                  <SelectItem key={month} value={String(month)}>
-                    {MESES[month - 1]}{months.length ? "" : " · Sin iniciar"}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        <div className="flex flex-wrap items-end gap-2">
-          <div className="grid gap-1">
-            <Label htmlFor="plan-anio">Año</Label>
-            <Select value={String(year)} onValueChange={value => {
-              setYear(Number(value))
-              setSelectedMonth(1)
-            }}>
-              <SelectTrigger id="plan-anio" className="w-28"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          {canEdit && ready && availableMonths.length > 0 && (
-            <Button type="button" onClick={() => setStartOpen(true)}>Iniciar mes</Button>
+      {/* Una sola fila: filtros a la izquierda y acciones a la derecha. Las etiquetas de los
+          botones aparecen cuando el área de trabajo tiene espacio (consulta de contenedor). */}
+      <div className="@container">
+        <div className="flex items-center gap-2">
+          {ready && (
+            <>
+              <Label htmlFor="plan-mes-vista" className="sr-only">Mes</Label>
+              <Select value={String(selectedMonth)} onValueChange={value => setSelectedMonth(Number(value))}>
+                <SelectTrigger id="plan-mes-vista" className="w-36 shrink-0"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map(month => (
+                    <SelectItem key={month} value={String(month)}>
+                      {MESES[month - 1]}{months.length ? "" : " · Sin iniciar"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
           )}
-          {canEdit && ready && monthStarted && (
-            <Button type="button" variant="outline" onClick={() => openCourseDialog("new")}>
-              <Plus aria-hidden="true" />Agregar curso
-            </Button>
+          <Label htmlFor="plan-anio" className="sr-only">Año</Label>
+          <Select value={String(year)} onValueChange={value => {
+            setYear(Number(value))
+            setSelectedMonth(1)
+          }}>
+            <SelectTrigger id="plan-anio" className="w-24 shrink-0"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
+            </SelectContent>
+          </Select>
+          {canEdit && ready && (
+            <TooltipProvider delayDuration={300}>
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <ToolbarAction icon={FileInput} label="Traer desde la DNC" onClick={() => setImportOpen(true)} />
+                {monthStarted && <ToolbarAction icon={Plus} label="Agregar curso" onClick={() => openCourseDialog("new")} />}
+                {availableMonths.length > 0 && <ToolbarAction icon={CalendarPlus} label="Iniciar mes" variant="default" onClick={() => setStartOpen(true)} />}
+              </div>
+            </TooltipProvider>
           )}
         </div>
       </div>
@@ -187,6 +237,10 @@ export default function PlanAnualPage() {
           curso={courseDialog === "new" ? null : courseDialog} mes={MESES[selectedMonth - 1]}
           catalog={catalogo.cursos} catalogLoading={catalogo.loading} catalogError={catalogo.error}
           onClose={() => setCourseDialog(null)} onSave={handleSave} />
+      )}
+      {importOpen && (
+        <PlanAnualDncDialog anio={year} cursosPlan={courses}
+          onClose={() => setImportOpen(false)} onImport={handleImport} />
       )}
       {progressCourse && (
         <PlanAnualProgressDialog key={progressCourse.id} curso={progressCourse} canEdit={canEdit}

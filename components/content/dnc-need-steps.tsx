@@ -4,8 +4,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
 import { MESES } from "@/lib/plan-anual"
-import { nombreEquipoDnc, type AutorizacionDnc, type DatosNecesidad, type DncCourse, type DncPosition } from "@/lib/dnc"
+import { nombreEquipoDnc, type AutorizacionDnc, type DatosNecesidad, type DncCourse, type DncPosition, type ProgramacionCurso } from "@/lib/dnc"
 
 interface StepProps {
   form: DatosNecesidad
@@ -88,7 +89,29 @@ export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cur
   )
 }
 
-export function DncNeedDetailsStep({ form, onChange }: StepProps) {
+const TIPO_LABEL = { interno: "Interna", externo: "Externa" } as const
+
+/** De dónde salen el mes y el tipo propuestos y, si se cambian, en qué otras DNC se actualizarán. */
+function ProgramacionHint({ programacion, form, onChange }: StepProps & { programacion: ProgramacionCurso }) {
+  const origen = programacion.departamentos.join(", ")
+  const actual = `${MESES[programacion.mes_sugerido - 1]} · ${TIPO_LABEL[programacion.tipo]}`
+  if (form.mes_sugerido === programacion.mes_sugerido && form.tipo === programacion.tipo) {
+    return <p className="text-body-sm text-muted-foreground sm:col-span-2">Mismo mes y tipo que en la DNC de {origen}. Si los cambias, se actualizan también ahí.</p>
+  }
+  return (
+    <p className="flex flex-wrap items-center gap-x-1 text-body-sm text-warning-deep sm:col-span-2">
+      Al guardar, el mes y el tipo también se actualizarán en la DNC de {origen}.
+      <Button type="button" variant="link" size="xs" className="h-auto px-0" onClick={() => {
+        onChange("mes_sugerido", programacion.mes_sugerido)
+        onChange("tipo", programacion.tipo)
+      }}>
+        Mantener {actual}
+      </Button>
+    </p>
+  )
+}
+
+export function DncNeedDetailsStep({ form, onChange, programacion }: StepProps & { programacion: ProgramacionCurso | null }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className={FIELD}>
@@ -120,11 +143,12 @@ export function DncNeedDetailsStep({ form, onChange }: StepProps) {
         <Select value={form.tipo} onValueChange={value => onChange("tipo", value)}>
           <SelectTrigger id="dnc-tipo"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="interno">Interna</SelectItem>
-            <SelectItem value="externo">Externa</SelectItem>
+            <SelectItem value="interno">{TIPO_LABEL.interno}</SelectItem>
+            <SelectItem value="externo">{TIPO_LABEL.externo}</SelectItem>
           </SelectContent>
         </Select>
       </div>
+      {programacion && <ProgramacionHint programacion={programacion} form={form} onChange={onChange} />}
     </div>
   )
 }

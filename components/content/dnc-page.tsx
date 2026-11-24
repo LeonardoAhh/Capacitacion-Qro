@@ -16,7 +16,7 @@ import { notify } from "@/lib/notify"
 import { PLAN_YEAR_MAX, PLAN_YEAR_MIN } from "@/lib/plan-anual"
 import {
   cargarAnioDnc, cargarCatalogosDnc, crearReporteDnc, eliminarNecesidadDnc, guardarEncabezadoDnc, guardarNecesidadDnc,
-  nombreDepartamento, ordenarReportes, type CambiosEncabezadoDnc, type DatosNecesidad, type DncDepartment, type DncNecesidad, type DncPosition, type DncReporte,
+  nombreDepartamento, ordenarReportes, programacionPrevia, sincronizarProgramacionDnc, type CambiosEncabezadoDnc, type DatosNecesidad, type DncDepartment, type DncNecesidad, type DncPosition, type DncReporte,
 } from "@/lib/dnc"
 
 export default function DncPage() {
@@ -106,9 +106,17 @@ export default function DncPage() {
   async function handleSaveNeed(datos: DatosNecesidad) {
     if (!selectedReport) return
     const saved = await guardarNecesidadDnc(selectedReport.id, datos, needDialog && needDialog !== "new" ? needDialog : undefined)
-    setNeeds(current => current.some(need => need.id === saved.id)
-      ? current.map(need => need.id === saved.id ? saved : need)
-      : [...current, saved])
+    // Un curso tiene un solo mes y tipo en el año: las demás DNC con ese curso toman los guardados.
+    const programacion = { mes_sugerido: saved.mes_sugerido, tipo: saved.tipo }
+    const desfasadas = needs.filter(need => need.course_id && need.course_id === saved.course_id && need.id !== saved.id
+      && (need.mes_sugerido !== saved.mes_sugerido || need.tipo !== saved.tipo)).map(need => need.id)
+    await sincronizarProgramacionDnc(desfasadas, programacion)
+    setNeeds(current => {
+      const updated = current.map(need => desfasadas.includes(need.id) ? { ...need, ...programacion } : need)
+      return updated.some(need => need.id === saved.id)
+        ? updated.map(need => need.id === saved.id ? saved : need)
+        : [...updated, saved]
+    })
     setNeedDialog(null)
     notify.success("Necesidad guardada")
   }
@@ -191,6 +199,7 @@ export default function DncPage() {
           necesidad={needDialog === "new" ? null : needDialog}
           cursos={cursos.cursos} cursosLoading={cursos.loading} cursosError={cursos.error} puestos={reportPositions}
           departmentName={nombreDepartamento(selectedReport)}
+          programacionDe={courseId => programacionPrevia(needs, reports, courseId, selectedReport.id)}
           onClose={() => setNeedDialog(null)} onSave={handleSaveNeed} />
       )}
     </div>
