@@ -10,10 +10,33 @@ import {
   type DesempenoData,
 } from "@/lib/types/desempeno";
 import { EVALUADORES_PUESTO } from "@/lib/catalogo";
-import { notify } from "@/lib/notify";
 
-// Un solo toast por formulario: reintentos lo reemplazan en lugar de apilarse.
-const STEP_ERROR_TOAST_ID = "evaluation-step-error";
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
+/** Avance del paso: cuántas respuestas lleva y qué falta, en palabras. */
+export function stepProgress(data: DesempenoData, view: number): { done: number; total: number; missing: string } {
+  const count = <T,>(items: T[], answered: (item: T) => boolean) => ({ done: items.filter(answered).length, total: items.length });
+  switch (view) {
+    case 1:
+      return { done: data.evaluador_nombre ? 1 : 0, total: 1, missing: "Selecciona al evaluador para continuar." };
+    case 2: {
+      const progress = count(data.objetivos, tieneRespuestaPorcentaje);
+      return { ...progress, missing: `Te ${progress.total - progress.done === 1 ? "falta" : "faltan"} ${plural(progress.total - progress.done, "objetivo", "objetivos")} por responder.` };
+    }
+    case 3: {
+      const progress = count(data.cumplimiento_responsabilidades, tieneRespuestaPorcentaje);
+      return { ...progress, missing: `Te ${progress.total - progress.done === 1 ? "falta" : "faltan"} ${plural(progress.total - progress.done, "responsabilidad", "responsabilidades")} por responder.` };
+    }
+    case 4: {
+      const progress = count(data.competencias, item => item.evaluada === true);
+      return { ...progress, missing: `Te ${progress.total - progress.done === 1 ? "falta" : "faltan"} ${plural(progress.total - progress.done, "competencia", "competencias")} por calificar.` };
+    }
+    default: {
+      const required = calcularPonderacion(data).calificacionFinal < UMBRAL_CALIFICACION_APROBATORIA;
+      return { done: !required || data.compromisos.trim() ? 1 : 0, total: 1, missing: `Captura los compromisos: la calificación es menor a ${UMBRAL_CALIFICACION_APROBATORIA}%.` };
+    }
+  }
+}
 
 export interface EvaluationFormProps {
   data: DesempenoData;
@@ -30,19 +53,12 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
   const headingId = useId();
   const identity = `${data.numero_empleado}:${data.periodo}`;
 
-  const clearStepError = () => {
-    setStepError("");
-    notify.dismiss(STEP_ERROR_TOAST_ID);
-  };
+  const clearStepError = () => setStepError("");
 
   useEffect(() => {
     setActiveView(1);
     setStepError("");
-    notify.dismiss(STEP_ERROR_TOAST_ID);
   }, [identity]);
-
-  // Al cerrar la evaluación no debe quedar un error de un formulario que ya no existe.
-  useEffect(() => () => { notify.dismiss(STEP_ERROR_TOAST_ID); }, []);
 
   const focusStep = () => requestAnimationFrame(() => {
     const heading = document.getElementById(headingId);
@@ -65,17 +81,8 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
   const goNextView = () => {
     const validation = validarEvaluacion(data);
     if (!validation.pasos[activeView - 1]) {
-      const messages = [
-        "Selecciona al evaluador para continuar.",
-        "Responde todos los objetivos con un porcentaje o No aplica.",
-        "Responde todas las responsabilidades con un porcentaje o No aplica.",
-        "Califica todas las competencias; el cero también es válido.",
-        `Captura compromisos para una calificación menor a ${UMBRAL_CALIFICACION_APROBATORIA}%.`,
-      ];
-      const message = messages[activeView - 1] ?? "Completa este paso para continuar.";
-      // El estado marca los campos inválidos; el mensaje se comunica con un toast.
-      setStepError(message);
-      notify.error(message, { id: STEP_ERROR_TOAST_ID });
+      // El mensaje se muestra junto a los botones y marca los campos pendientes.
+      setStepError(stepProgress(data, activeView).missing);
       requestAnimationFrame(() => {
         const selector = activeView === 1
           ? '[aria-label="Evaluador"]'
@@ -94,6 +101,14 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
   const goPrevView = () => {
     clearStepError();
     setActiveView(value => Math.max(1, value - 1));
+    focusStep();
+  };
+
+  /** Regresa a un paso ya recorrido desde la barra de pasos; hacia adelante se avanza con Siguiente. */
+  const goToView = (view: number) => {
+    if (view >= activeView) return;
+    clearStepError();
+    setActiveView(view);
     focusStep();
   };
 
@@ -139,6 +154,8 @@ export function useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, 
     setActiveView,
     goNextView,
     goPrevView,
+    goToView,
+    progress: stepProgress(data, activeView),
     headingId,
     stepError,
     setStepError,

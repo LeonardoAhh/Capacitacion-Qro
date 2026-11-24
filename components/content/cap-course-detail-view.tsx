@@ -1,14 +1,33 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import { motion } from "framer-motion"
-import { ArrowLeft, BookOpen, Clock, Pencil } from "lucide-react"
+import { ArrowLeft, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
+import { Badge, type BadgeProps } from "@/components/ui/badge"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { SearchInput } from "@/components/ui/search-input"
+import { SummaryStrip } from "@/components/ui/summary-strip"
+import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getTipoCursoByName } from "@/lib/catalogo"
 import { empleadosAsignadosAlCurso } from "@/lib/capacitacion/course-metrics"
+import { formatDate } from "@/lib/hooks/useNuevoIngreso"
+import { cn } from "@/lib/utils"
 import type { Course, Position, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
+
+const PAGE_SIZE = 10
+const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+
+type Estado = ReturnType<typeof empleadosAsignadosAlCurso>[number]["estado"]
+
+/** Etiqueta, insignia y color del resumen de cada estado, en el orden del resumen. */
+const ESTADOS: { estado: Estado; label: string; plural: string; variant: NonNullable<BadgeProps["variant"]>; tone: string }[] = [
+  { estado: "aprobado", label: "Aprobado", plural: "Aprobados", variant: "success", tone: "text-success" },
+  { estado: "reprobado", label: "Reprobado", plural: "Reprobados", variant: "destructive", tone: "text-destructive" },
+  { estado: "pendiente", label: "Pendiente", plural: "Pendientes", variant: "warning", tone: "text-warning-deep" },
+]
+const ESTADO_META = Object.fromEntries(ESTADOS.map(meta => [meta.estado, meta])) as Record<Estado, (typeof ESTADOS)[number]>
 
 interface CapCourseDetailViewProps {
   course: Course
@@ -22,26 +41,34 @@ interface CapCourseDetailViewProps {
 }
 
 export function CapCourseDetailView({
-  course,
-  employees,
-  positions,
-  positionCourses,
-  empCourses,
-  onBack,
-  onEdit,
-  isReadOnly
+  course, employees, positions, positionCourses, empCourses, onBack, onEdit, isReadOnly,
 }: CapCourseDetailViewProps) {
-  
-  const empleadosConEstado = useMemo(() => {
-    return empleadosAsignadosAlCurso(course.id, employees, positions, positionCourses, empCourses)
-      .map(employee => ({
-        ...employee,
-        variant: employee.estado === "aprobado" ? "success" as const
-          : employee.estado === "reprobado" ? "destructive" as const : "secondary" as const,
-      }))
-  }, [course.id, employees, positions, positionCourses, empCourses])
+  const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+
+  const asignados = useMemo(
+    () => empleadosAsignadosAlCurso(course.id, employees, positions, positionCourses, empCourses),
+    [course.id, employees, positions, positionCourses, empCourses],
+  )
+
+  const term = search.toLowerCase()
+  const filtered = asignados.filter(row => row.nombre.toLowerCase().includes(term) || (row.puesto ?? "").toLowerCase().includes(term))
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+
+  const total = asignados.length
+  const percent = (count: number) => `${total ? Math.round((count / total) * 100) : 0}% del total`
+  const summary = [
+    { label: "Asignados", value: total, detail: "Según su puesto" },
+    ...ESTADOS.map(({ estado, plural, tone }) => {
+      const count = asignados.filter(row => row.estado === estado).length
+      return { label: plural, value: count, detail: percent(count), tone }
+    }),
+  ]
 
   const courseType = course.tipo || getTipoCursoByName(course.name)
+  const duration = course.duration_hours != null ? `${course.duration_hours} h` : "Sin duración"
 
   return (
     <motion.div
@@ -50,147 +77,79 @@ export function CapCourseDetailView({
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
       transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="flex flex-col h-full"
+      className="space-y-4"
     >
-      {/* Encabezado del Detalle */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b">
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Button variant="ghost" size="icon" onClick={onBack} className="size-(--control-height) shrink-0 py-0" title="Volver" aria-label="Volver a cursos">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <div className="flex flex-col justify-center">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-              <div className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary shrink-0" />
-                <h2 className="text-heading-md font-bold leading-7 tracking-tight">{course.name}</h2>
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-body-md text-muted-foreground">
-                <Badge variant="outline">{courseType}</Badge>
-                {course.duration_hours != null ? (
-                  <Badge variant="secondary" className="gap-1 bg-primary/10 text-primary border-primary/20">
-                    <Clock className="h-3 w-3" />
-                    {course.duration_hours} h
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-muted-foreground border-dashed">
-                    Sin duración
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Búsqueda de empleados, edición y página en la línea de las pestañas. */}
+      <TabsToolbar>
+        <SearchInput
+          label="Buscar empleado del curso"
+          placeholder="Buscar empleado…"
+          className={TOOLBAR_SEARCH}
+          value={search}
+          onValueChange={(value) => { setSearch(value); setPage(1) }}
+        />
         {!isReadOnly && (
-          <Button onClick={() => onEdit(course)} variant="ghost" className="h-(--control-height) shrink-0 py-0 text-body-md font-medium">
-            <Pencil className="h-4 w-4 mr-2" />
+          <Button variant="outline" size="sm" onClick={() => onEdit(course)}>
+            <Pencil aria-hidden="true" />
             Editar curso
           </Button>
         )}
-      </div>
+        <CompactPager label="Paginación de empleados del curso" page={safePage} totalPages={totalPages} onPageChange={setPage} />
+      </TabsToolbar>
 
-      {/* Resumen */}
-      <div className="mb-6 grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-heading-md font-bold">{empleadosConEstado.length}</div>
-          <div className="text-body-sm text-muted-foreground">Asignados totales</div>
+      <header className="flex items-start gap-2">
+        <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 text-muted-foreground" aria-label="Volver a cursos">
+          <ArrowLeft aria-hidden="true" />
+        </Button>
+        <div className="min-w-0">
+          <h2 className="text-heading-md font-bold text-foreground">{course.name}</h2>
+          <p className="text-body-sm text-muted-foreground">{courseType} · {duration}</p>
         </div>
-        <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-heading-md font-bold text-success">
-            {empleadosConEstado.filter(e => e.estado === 'aprobado').length}
-          </div>
-          <div className="text-body-sm text-muted-foreground">Aprobados</div>
-        </div>
-        <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-heading-md font-bold text-destructive">
-            {empleadosConEstado.filter(e => e.estado === 'reprobado').length}
-          </div>
-          <div className="text-body-sm text-muted-foreground">Reprobados</div>
-        </div>
-        <div className="p-4 rounded-xl border bg-card/50">
-          <div className="text-heading-md font-bold text-warning-deep">
-            {empleadosConEstado.filter(e => e.estado === 'pendiente').length}
-          </div>
-          <div className="text-body-sm text-muted-foreground">Pendientes</div>
-        </div>
-      </div>
+      </header>
 
-      {/* Contenido / Tabla de Empleados */}
-      <div>
-        <h3 className="mb-4 text-heading-md font-bold leading-7 tracking-tight">Empleados asignados</h3>
-        {empleadosConEstado.length === 0 ? (
-          <div className="text-center py-12 text-muted-foreground border rounded-xl bg-muted/20">
-            Ningún empleado tiene este curso asignado actualmente.
-          </div>
-        ) : (
-          <>
-            {/* Vista Mobile */}
-            <div className="flex flex-col gap-3 sm:hidden">
-              {empleadosConEstado.map((row) => (
-                <div key={row.id} className="rounded-xl border bg-card p-4 flex flex-col gap-2 shadow-sm">
-                  <div className="flex justify-between items-start gap-2">
-                    <span className="font-bold text-foreground leading-tight">{row.nombre}</span>
-                    <Badge variant={row.variant}>
-                      {row.estado.charAt(0).toUpperCase() + row.estado.slice(1)}
-                    </Badge>
-                  </div>
-                  <div className="flex flex-col gap-1 text-body-md text-muted-foreground mt-2">
-                    <div className="flex justify-between">
-                      <span>Puesto:</span>
-                      <span className="font-medium text-foreground">{row.puesto ?? '—'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Fecha:</span>
-                      <span className="font-medium text-foreground">{row.fecha ? row.fecha.split('-').reverse().join('/') : '—'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Calificación:</span>
-                      <span className="font-medium text-foreground">{row.calificacion != null ? row.calificacion : '—'}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Vista Desktop */}
-            <div className="overflow-hidden border rounded-xl hidden sm:block bg-card">
-              <Table>
-                <TableHeader className="bg-muted/50">
-                  <TableRow>
-                    <TableHead>Empleado</TableHead>
-                    <TableHead>Puesto</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead>Calificación</TableHead>
-                    <TableHead>Estado</TableHead>
+      <SummaryStrip items={summary} />
+
+      {filtered.length === 0 ? (
+        <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+          {total === 0 ? "Ningún empleado tiene este curso asignado." : "No se encontraron empleados con esa búsqueda."}
+        </p>
+      ) : (
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table className="table-fixed">
+            <caption className="sr-only">Empleados asignados a {course.name}</caption>
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden md:table-cell")}>Puesto</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-28 sm:table-cell")}>Fecha</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-28 text-right sm:table-cell")}>Calificación</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "w-28")}>Estado</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {paginated.map(row => {
+                const meta = ESTADO_META[row.estado]
+                const calificacion = row.calificacion ?? "—"
+                return (
+                  <TableRow key={row.id}>
+                    <TableCell>
+                      <span className="block truncate text-label-sm text-foreground">{row.nombre}</span>
+                      <span className="block truncate text-body-sm text-muted-foreground md:hidden">
+                        {row.puesto ?? "—"}
+                        <span className="sm:hidden"> · {formatDate(row.fecha)} · {calificacion}</span>
+                      </span>
+                    </TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{row.puesto ?? "—"}</TableCell>
+                    <TableCell className="hidden text-body-sm tabular-nums text-muted-foreground sm:table-cell">{formatDate(row.fecha)}</TableCell>
+                    <TableCell className="hidden text-right text-body-sm tabular-nums text-foreground sm:table-cell">{calificacion}</TableCell>
+                    <TableCell><Badge variant={meta.variant} size="sm">{meta.label}</Badge></TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {empleadosConEstado.map((row) => (
-                    <TableRow key={row.id}>
-                      <TableCell className="font-medium">{row.nombre}</TableCell>
-                      <TableCell>{row.puesto ?? '—'}</TableCell>
-                      <TableCell>
-                        {row.fecha ? row.fecha.split('-').reverse().join('/') : '—'}
-                      </TableCell>
-                      <TableCell>
-                        {row.calificacion != null ? (
-                          <Badge variant={row.calificacion >= 7 ? 'success' : 'destructive'}>
-                            {row.calificacion}
-                          </Badge>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={row.variant}>
-                          {row.estado.charAt(0).toUpperCase() + row.estado.slice(1)}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </>
-        )}
-      </div>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      )}
     </motion.div>
   )
 }

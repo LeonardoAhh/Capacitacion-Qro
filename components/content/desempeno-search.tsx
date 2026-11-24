@@ -18,6 +18,10 @@ import { DesempenoForm } from "./desempeno-form-operativo";
 import { DesempenoSaveSuccess } from "./desempeno-save-success";
 import { DesempenoGuia } from "./desempeno-guia";
 import { PracticeNotice } from "./desempeno/practice-notice";
+import { EvaluationPlaceholder } from "./desempeno/evaluation-placeholder";
+import { EvaluationQueue } from "./desempeno/evaluation-queue";
+import { useEvaluationQueue, type QueueItem } from "./desempeno/use-evaluation-queue";
+import { DraftNotice } from "./desempeno/draft-notice";
 import { ActionButton, GuiaButton } from "./desempeno/search-controls";
 import { useRole } from "@/lib/hooks/useRole";
 import { useUser } from "@/lib/hooks/useUser";
@@ -84,6 +88,13 @@ function DesempenoSearchContent() {
     bloqueado,
     faltaEvaluador
   } = context;
+  // Evaluador: su fila de pendientes al inicio y la siguiente persona al terminar.
+  const queue = useEvaluationQueue(context, isEvaluador);
+  const startEvaluation = (item: QueueItem) => {
+    context.setNumeroBuscado(item.numero);
+    void context.doBuscar(item.numero);
+  };
+  const emptyState = !data && !loading && !existingEvaluation;
   // Los errores de búsqueda se comunican con toast (sin banner en la página).
   useEffect(() => {
     if (!error) {
@@ -133,10 +144,16 @@ function DesempenoSearchContent() {
       {!data && <PracticeNotice onPractice={() => setGuiaOpen(true)} />}
       {!data && <SearchPanel context={context} actions={<>{start}{actions}</>} />}
 
-      {/* Banner de Pendientes en estado vacío */}
-      <PendingSummary context={context} />
+      {/* Estado vacío: el evaluador ve a quién le toca; supervisión, el resumen de pendientes. */}
+      {!isEvaluador && <PendingSummary context={context} />}
+      {isEvaluador && emptyState && <EvaluationQueue items={queue.items} loading={queue.loading} overdue={queue.overdue} onStart={startEvaluation} />}
 
       {loading && <EvaluationLoadingSkeleton />}
+
+      {/* Sin pendientes: silueta de la evaluación en lugar del espacio vacío. */}
+      {isEvaluador && emptyState && !queue.loading && queue.items.length === 0 && <EvaluationPlaceholder />}
+
+      {data && !loading && !saveSuccess && context.pendingDraft && <DraftNotice draft={context.pendingDraft} onRestore={context.restoreDraft} onDiscard={context.discardDraft} />}
 
 
       {existingEvaluation && !loading && <ExistingEvaluationNotice evaluation={existingEvaluation} />}
@@ -152,7 +169,10 @@ function DesempenoSearchContent() {
 
       <DesempenoSaveSuccess visible={saveSuccess} nombre={data?.nombre} calificacion={ponderacion?.calificacionFinal} onPrint={() => window.print()} onNew={() => {
         context.closeEvaluation();
-      }} onEdit={context.canEdit ? resetSaveSuccess : undefined} />
+      }} onEdit={context.canEdit ? resetSaveSuccess : undefined} next={isEvaluador && queue.next ? {
+        nombre: queue.next.nombre,
+        onStart: () => startEvaluation(queue.next as QueueItem),
+      } : null} />
 
   </EvaluationWorkspace>
     <DesempenoGuia open={guiaOpen} onClose={() => setGuiaOpen(false)} />

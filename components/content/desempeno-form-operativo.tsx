@@ -14,6 +14,7 @@ import { ObjectivesCard } from "./desempeno/objectives-card";
 import { PercentageCriterionCard } from "./desempeno/percentage-criterion-card";
 import { CompetencyRatingCard } from "./desempeno/competency-rating-card";
 import { ReviewDateField } from "./desempeno/review-date-field";
+import { EvaluationNavBar, EvaluationStepper } from "./desempeno/evaluation-progress";
 import { ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -38,35 +39,44 @@ interface Props {
   onExit?: () => void;
 }
 
+/** Responsabilidades que el sistema calcula para personal no jefe (RH y SGI). */
+const RESPONSABILIDADES_AUTOMATICAS: readonly number[] = [
+  CumplimientoOperativoIndex.Compromisos,
+  CumplimientoOperativoIndex.Reglamento,
+  CumplimientoOperativoIndex.Asistencia,
+  CumplimientoOperativoIndex.Puntualidad,
+  CumplimientoOperativoIndex.Permisos,
+];
+const esAutomatica = (data: DesempenoData, index: number) => data.tipo !== "jefe" && RESPONSABILIDADES_AUTOMATICAS.includes(index);
+
 // Fila de etiqueta compartida: alinea columnas aunque una lleve pista o acción.
 const FIELD_HEAD = "flex min-h-7 flex-wrap items-center justify-between gap-x-4 gap-y-1";
 
-function PercentageControl({ id, label, value, noAplica, automatic, helpId, showError, onChange }: {
+function PercentageControl({ id, label, value, noAplica, helpId, showError, onChange }: {
   id: string;
   label: string;
   value: string;
   noAplica?: boolean;
-  automatic?: boolean;
   helpId: string;
   showError: boolean;
   onChange: (value: string, noAplica?: boolean) => void;
 }) {
-  const pending = !automatic && noAplica !== true && !esPorcentajeValido(value);
+  const pending = noAplica !== true && !esPorcentajeValido(value);
   return <div className="flex flex-wrap items-center gap-x-3 gap-y-2 @md:justify-end">
     <Label htmlFor={id} className="text-muted-foreground">{label}</Label>
-    {automatic && <span className="text-body-sm text-muted-foreground">Dato automático</span>}
     <Input id={id} name={id} type="number" inputMode="numeric" min={0} max={100}
       value={noAplica ? "" : value === "NA" ? "" : value}
       onChange={(event) => {
         const digits = event.target.value.replace(/\D/g, "").slice(0, 3);
         onChange(digits && Number(digits) > 100 ? "100" : digits, false);
       }}
-      disabled={noAplica || automatic} readOnly={automatic} aria-describedby={helpId}
-      aria-invalid={showError && pending} className={cn("w-20 shrink-0 font-medium tabular-nums", showError && pending && "border-destructive")} />
-    {!automatic && <label className="inline-flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-label-sm hover:bg-muted">
-      <input type="checkbox" checked={noAplica === true} onChange={(event) => onChange("", event.target.checked)} className="size-4 accent-primary" />
+      disabled={noAplica} aria-describedby={helpId}
+      aria-invalid={showError && pending} className={cn("w-24 shrink-0 text-body-lg font-medium tabular-nums", showError && pending && "border-destructive")} />
+    {/* Botón del mismo alto que el campo: más fácil de atinar que una casilla. */}
+    <Button type="button" variant={noAplica ? "default" : "outline"} aria-pressed={noAplica === true}
+      onClick={() => onChange("", !noAplica)} className="shrink-0">
       No aplica
-    </label>}
+    </Button>
   </div>;
 }
 
@@ -80,7 +90,6 @@ function StepHeading({ context, title, description }: { context: EvaluationFormC
 export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guardarTooltip, saving, lateCapture, onExit }: Props) {
   const formId = useId();
   const percentageHelpId = `${formId}-percentage-help`;
-  const automaticHelpId = `${formId}-automatic-help`;
   const context = useEvaluationForm({ data, onUpdate, onGuardar, guardarDisabled, guardarTooltip });
   const { activeView, goNextView, goPrevView, canEdit, stepError } = context;
   const validation = validarEvaluacion(data);
@@ -99,7 +108,7 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
 
   return <form className="space-y-6 dense:space-y-4 print:hidden" onSubmit={submit} noValidate>
     <p id={percentageHelpId} className="sr-only">Ingresa un porcentaje entero de 0 a 100 o marca No aplica.</p>
-    <p id={automaticHelpId} className="sr-only">Calculado por el sistema para el periodo seleccionado.</p>
+    <EvaluationStepper activeView={activeView} onSelect={context.goToView} />
 
     {activeView === 1 && <div className="space-y-4"><StepHeading context={context} title="Datos de la evaluación" description="Verifica a la persona, el periodo y selecciona al evaluador responsable." /><EmployeeCard context={context} /></div>}
 
@@ -118,25 +127,28 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
 
     {activeView === 3 && <div className="space-y-4">
       <StepHeading context={context} title={`Responsabilidades (${EVALUATION_WEIGHTS.cumplimiento * 100}%)`} description="Completa cada responsabilidad con un porcentaje o marca No aplica cuando corresponda." />
-      <div className="grid gap-3 lg:auto-rows-fr lg:grid-cols-2">{data.cumplimiento_responsabilidades.map((item, index) => {
-        const automatic = data.tipo !== "jefe"
-          && (
-            index === CumplimientoOperativoIndex.Compromisos
-            || index === CumplimientoOperativoIndex.Reglamento
-            || index === CumplimientoOperativoIndex.Asistencia
-            || index === CumplimientoOperativoIndex.Puntualidad
-            || index === CumplimientoOperativoIndex.Permisos
-          );
-        return <PercentageCriterionCard
+      <div className="grid gap-3 lg:auto-rows-fr lg:grid-cols-2">{data.cumplimiento_responsabilidades.map((item, index) => esAutomatica(data, index) ? null : <PercentageCriterionCard
           key={`${item.descripcion}-${index}`}
           title={`Responsabilidad ${index + 1}`}
           description={item.descripcion}
           metadataLabel="Evalúa"
           metadata={item.evalua}
         >
-          <PercentageControl id={`${formId}-responsabilidad-${index}`} label="Cumplimiento (%)" value={item.porcentaje} noAplica={item.no_aplica} automatic={automatic} helpId={automatic ? automaticHelpId : percentageHelpId} showError={Boolean(stepError)} onChange={(value, na) => context.updateResponsabilidad(index, value, na)} />
-        </PercentageCriterionCard>;
-      })}</div>
+          <PercentageControl id={`${formId}-responsabilidad-${index}`} label="Cumplimiento (%)" value={item.porcentaje} noAplica={item.no_aplica} helpId={percentageHelpId} showError={Boolean(stepError)} onChange={(value, na) => context.updateResponsabilidad(index, value, na)} />
+        </PercentageCriterionCard>)}</div>
+      {/* Lo que calcula el sistema va aparte y solo para consulta: no se captura. */}
+      {data.cumplimiento_responsabilidades.some((_, index) => esAutomatica(data, index)) && <Card>
+        <CardContent className="space-y-3 p-(--card-padding)">
+          <div className="space-y-0.5">
+            <h3 className="text-label-sm text-foreground">Calculadas por el sistema</h3>
+            <p className="text-body-sm text-muted-foreground">Se toman de los registros de RH y SGI del periodo; no necesitas capturarlas.</p>
+          </div>
+          <ul className="divide-y">{data.cumplimiento_responsabilidades.map((item, index) => esAutomatica(data, index) && <li key={`${item.descripcion}-${index}`} className="flex items-baseline justify-between gap-4 py-2">
+              <span className="min-w-0 text-body-md text-foreground">{item.descripcion}</span>
+              <span className="shrink-0 text-label-sm tabular-nums text-foreground">{item.no_aplica || item.porcentaje === "NA" ? "No aplica" : item.porcentaje ? `${item.porcentaje}%` : "—"}</span>
+            </li>)}</ul>
+        </CardContent>
+      </Card>}
     </div>}
 
     {activeView === 4 && <div className="space-y-4">
@@ -194,10 +206,10 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
       {guardarTooltip && <p role="status" className="text-body-sm text-muted-foreground">{guardarTooltip}</p>}
     </div>}
 
-    <div role="group" aria-label="Navegación de la evaluación" className="flex items-center justify-between gap-3">
-      <Button type="button" variant="outline" size="sm" onClick={activeView === 1 && onExit ? onExit : goPrevView} disabled={(activeView === 1 && !onExit) || saving} className="pl-2 pr-3"><ChevronLeft aria-hidden="true" />Atrás</Button>
-      {activeView < EVALUATION_STEPS.length ? <Button type="submit" size="sm" className="pl-3 pr-2">Siguiente<ChevronRight aria-hidden="true" /></Button>
-        : <Button type="submit" size="sm" className="pl-2 pr-3" disabled={!validation.valida || guardarDisabled || saving} aria-busy={saving || undefined}>{saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Save aria-hidden="true" />}{saving ? "Guardando…" : "Guardar evaluación"}</Button>}
-    </div>
+    <EvaluationNavBar done={context.progress.done} total={context.progress.total} error={stepError}
+      back={<Button type="button" variant="outline" onClick={activeView === 1 && onExit ? onExit : goPrevView} disabled={(activeView === 1 && !onExit) || saving} className="shrink-0 pl-2 pr-3"><ChevronLeft aria-hidden="true" />Atrás</Button>}
+      next={activeView < EVALUATION_STEPS.length
+        ? <Button type="submit" className="shrink-0 pl-3 pr-2">Siguiente<ChevronRight aria-hidden="true" /></Button>
+        : <Button type="submit" className="shrink-0 pl-2 pr-3" disabled={!validation.valida || guardarDisabled || saving} aria-busy={saving || undefined}>{saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Save aria-hidden="true" />}{saving ? "Guardando…" : <><span className="sm:hidden">Guardar</span><span className="hidden sm:inline">Guardar evaluación</span></>}</Button>} />
   </form>;
 }

@@ -60,25 +60,25 @@
     --text-heading-md--letter-spacing: 0;
     --text-heading-md--font-weight: 700;
 
-    --text-label-sm: 0.875rem;
-    --text-label-sm--line-height: 1.25rem;
+    --text-label-sm: 0.9375rem;
+    --text-label-sm--line-height: 1.375rem;
     --text-label-sm--letter-spacing: 0;
     --text-label-sm--font-weight: 500;
 
-    --text-eyebrow: 0.75rem;
-    --text-eyebrow--line-height: 1rem;
+    --text-eyebrow: 0.8125rem;
+    --text-eyebrow--line-height: 1.125rem;
     --text-eyebrow--font-weight: 500;
 
-    --text-body-lg: 1rem;
-    --text-body-lg--line-height: 1.5rem;
+    --text-body-lg: 1.0625rem;
+    --text-body-lg--line-height: 1.625rem;
     --text-body-lg--font-weight: 400;
 
-    --text-body-md: 0.875rem;
-    --text-body-md--line-height: 1.25rem;
+    --text-body-md: 0.9375rem;
+    --text-body-md--line-height: 1.375rem;
     --text-body-md--font-weight: 400;
 
-    --text-body-sm: 0.75rem;
-    --text-body-sm--line-height: 1rem;
+    --text-body-sm: 0.8125rem;
+    --text-body-sm--line-height: 1.125rem;
     --text-body-sm--font-weight: 400;
 }
 
@@ -89,9 +89,9 @@
         --font-base-size: 16px;
         --workspace-inset: 1rem;
         --workspace-sidebar-width: 14rem;
-        /* design.md: header de 48px y workspace de 1408px. */
+        /* design.md: header de 48px y workspace de 1536px. */
         --workspace-header-height: 3rem;
-        --workspace-max-width: 88rem;
+        --workspace-max-width: 96rem;
         --notice-width: 24rem;
         --notice-edge: 1rem;
         --notice-radius: 0.75rem;
@@ -1192,7 +1192,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .wn-slide__badge {
-    font-size: 0.6875rem;
+    font-size: var(--text-eyebrow);
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -1215,7 +1215,7 @@ input[type="color"]::-webkit-color-swatch {
 }
 
 .wn-slide__desc {
-    font-size: 0.8125rem;
+    font-size: var(--text-body-sm);
     line-height: 1.7;
     color: hsl(var(--muted-foreground));
 }
@@ -1235,7 +1235,7 @@ input[type="color"]::-webkit-color-swatch {
     gap: 0.375rem;
     padding: 0.5rem 1.125rem;
     border-radius: var(--radius-card);
-    font-size: 0.8125rem;
+    font-size: var(--text-body-sm);
     font-weight: 500;
     cursor: pointer;
     border: 1px solid transparent;
@@ -1286,7 +1286,7 @@ input[type="color"]::-webkit-color-swatch {
 
 .wn-skip {
     margin-top: 0.875rem;
-    font-size: 0.75rem;
+    font-size: var(--text-body-sm);
     color: hsl(var(--muted-foreground) / 0.7);
     background: none;
     border: none;
@@ -1374,12 +1374,14 @@ input[type="color"]::-webkit-color-swatch {
 
 
 .wn-feature-card__label {
-    font-size: 0.8125rem;
+    font-size: var(--text-body-sm);
     font-weight: 700;
     color: hsl(var(--foreground));
 }
 
 /* ─── Browser mockup frame ─── */
+/* Miniaturas del asistente de novedades (.wn-mockup y sus piezas): ilustraciones a escala
+   reducida de pantallas reales, decorativas; no siguen la escala tipográfica. */
 .wn-mockup {
     width: 100%;
     border-radius: var(--radius-card);
@@ -1811,6 +1813,18 @@ input[type="color"]::-webkit-color-swatch {
 .wn-sql-table__row {
     background: hsl(220 14% 14%);
     color: hsl(200 20% 75%);
+}
+
+/* Guía del evaluador: barra del paso activo en la vista de la portada (duración desde el componente). */
+@keyframes guide-progress {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+}
+
+.guide-progress {
+    animation-name: guide-progress;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
 }
 
 @keyframes login-marker-draw {

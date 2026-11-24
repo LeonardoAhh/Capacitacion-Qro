@@ -130,17 +130,17 @@ export default function RgCumplimientoChart() {
               {/* Bar chart — directo, sin wrapper pesado */}
               <div className="w-full overflow-x-auto" role="img"
                 aria-label={`Cumplimiento RG-REC-048: ${pctGeneral}% sobre ${chartData.length} departamentos`}>
-                <ResponsiveContainer width="100%" height={chartData.length * 48 + 40} minHeight={160}>
+                <ResponsiveContainer className="text-body-sm" width="100%" height={chartData.length * 48 + 40} minHeight={160}>
                   <BarChart data={chartData} layout="vertical"
                     margin={{ top: 0, right: 44, left: 0, bottom: 0 }} barSize={24}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
                     <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`}
-                      tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
+                      tick={{ fill: "currentColor" }} className="text-muted-foreground"
                       tickLine={false} axisLine={false} ticks={[0, 25, 50, 70, 100]} />
                     <ReferenceLine x={META} stroke="hsl(var(--chart-4))" strokeDasharray="4 3" strokeWidth={1.5}
-                      label={{ value: "Meta", position: "top", fontSize: 12, fill: "hsl(var(--chart-4))" }} />
+                      label={{ value: "Meta", position: "top", fill: "hsl(var(--chart-4))" }} />
                     <YAxis type="category" dataKey="departamento" width={110}
-                      tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
+                      tick={{ fill: "currentColor" }} className="text-muted-foreground"
                       tickLine={false} axisLine={false} tickFormatter={abrevDept} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]}
@@ -148,7 +148,7 @@ export default function RgCumplimientoChart() {
                       animationBegin={skip ? undefined : 100} animationDuration={skip ? 0 : 600} animationEasing="ease-out">
                       {chartData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
                       <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`}
-                        style={{ fontSize: 12, fontWeight: 700 }} />
+                        style={{ fontWeight: 700 }} />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>

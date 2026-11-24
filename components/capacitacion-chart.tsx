@@ -162,7 +162,7 @@ export default function CapacitacionChart() {
             >
               {/* Alto por clase para que la densidad compacta lo reduzca. */}
               <div role="img" aria-label="Capacitaciones completadas por mes y año" className="h-75 dense:h-56">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer className="text-body-sm" width="100%" height="100%">
                   <LineChart data={chartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
                     <CartesianGrid
                       strokeDasharray="3 3"
@@ -171,13 +171,11 @@ export default function CapacitacionChart() {
                     />
                     <XAxis
                       dataKey="month"
-                      tick={{ fontSize: 12 }}
                       className="text-muted-foreground"
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis
-                      tick={{ fontSize: 12 }}
                       className="text-muted-foreground"
                       axisLine={false}
                       tickLine={false}
@@ -185,14 +183,14 @@ export default function CapacitacionChart() {
                     />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend
-                      wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                      wrapperStyle={{ paddingTop: 8 }}
                       content={() => {
                         const items = [
                           ...YEARS.map(y => ({ value: y as string, color: COLORS[y] })),
                           { value: "Tendencia", color: "hsl(var(--muted-foreground))" },
                         ]
                         return (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", fontSize: 12, paddingTop: 8 }}>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", paddingTop: 8 }}>
                             {items.map(item => (
                               <span key={item.value} style={{ color: item.color, display: "flex", alignItems: "center", gap: 4 }}>
                                 <svg width="12" height="2" style={{ display: "inline" }}><line x1="0" y1="1" x2="12" y2="1" stroke={item.color} strokeWidth="2" /></svg>

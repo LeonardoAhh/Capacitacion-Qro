@@ -128,17 +128,17 @@ display-xl	48px	700	48px	-0.96px	Hero H1
 heading-xl	32px	700	40px	-0.48px	Secciones mayores
 heading-lg	24px	700	32px	-0.24px	Titular del login en móvil, títulos grandes
 heading-md	20px	700	28px	0	Subsecciones / card headings
-label-sm	14px	500	20px	0	Labels fuertes, nav emphasis
-eyebrow	12px	500	16px	0	Eyebrows uppercase en Ubuntu
-body-lg	16px	400	24px	0	Párrafos lead
-body-md	14px	400	20px	0	Body default, nav, tablas
-body-sm	12px	400	16px	0	Captions, metadata
-button-lg	16px	500	20px	0	Pills de marketing
-button-md	14px	500	20px	0	Botones nav/app
-code	14px	400	20px	0	Código en Ubuntu
+label-sm	15px	500	22px	0	Labels fuertes, nav emphasis
+eyebrow	13px	500	18px	0	Eyebrows uppercase en Ubuntu
+body-lg	17px	400	26px	0	Párrafos lead
+body-md	15px	400	22px	0	Body default, nav, tablas
+body-sm	13px	400	18px	0	Captions, metadata
+button-lg	17px	500	22px	0	Pills de marketing
+button-md	15px	500	22px	0	Botones nav/app
+code	15px	400	22px	0	Código en Ubuntu
 Reglas tipográficas no negociables:
 
-Display y headings en 700. Tracking negativo leve solo desde 24px (más negativo cuanto más grande); de 20px hacia abajo, 0. Usa solo los tokens de la escala: nada de text-xs/sm/base/lg/xl, text-[Npx] ni tamaños en línea, y nada por debajo de 12px.
+Display y headings en 700. Tracking negativo leve solo desde 24px (más negativo cuanto más grande); de 20px hacia abajo, 0. Usa solo los tokens de la escala: nada de text-xs/sm/base/lg/xl, text-[Npx] ni tamaños en línea, y nada por debajo de 13px. Body y labels van 1px arriba de 12/14/16 porque Ubuntu tiene una altura x pequeña.
 
 Body siempre 400, sin tracking.
 
@@ -176,7 +176,7 @@ Flat es el default. Una sombra pesada es un bug de diseño.
 3.6 Layout
 Contenedor centrado ~1200px con gutters.
 
-Workspace autenticado: max-width: 1408px.
+Workspace autenticado: max-width: 1536px.
 
 Resumen de evaluación pendiente: max-width: 960px, centrado dentro del workspace.
 

@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { CheckCircle2, Printer, UserRoundPlus } from "lucide-react"
+import { CheckCircle2, ChevronRight, Printer, UserRoundPlus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno"
@@ -13,9 +13,11 @@ interface DesempenoSaveSuccessProps {
   onPrint: () => void
   onNew: () => void
   onEdit?: () => void
+  /** Siguiente persona por evaluar: la abre directo, sin volver a buscar. */
+  next?: { nombre: string; onStart: () => void } | null
 }
 
-export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, onNew, onEdit }: DesempenoSaveSuccessProps) {
+export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, onNew, onEdit, next }: DesempenoSaveSuccessProps) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -41,5 +43,10 @@ export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, o
         <Button type="button" onClick={onPrint}><Printer aria-hidden="true" />Imprimir</Button>
       </div>
     </CardContent>
+    {/* Primero imprimir; después, la siguiente persona de su lista en un clic. */}
+    {next && <CardContent className="flex flex-wrap items-center justify-between gap-3 border-t p-(--card-padding)">
+      <p className="min-w-0 text-body-md text-muted-foreground">Sigue: <span className="font-medium text-foreground">{next.nombre}</span></p>
+      <Button type="button" variant="outline" onClick={next.onStart}>Evaluar a la siguiente<ChevronRight aria-hidden="true" /></Button>
+    </CardContent>}
   </Card>
 }

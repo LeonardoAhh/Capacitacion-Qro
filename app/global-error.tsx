@@ -33,7 +33,7 @@ export default function GlobalError({
         <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
           <p
             style={{
-              fontSize: 12,
+              fontSize: 13,
               letterSpacing: "0.08em",
               textTransform: "uppercase",
               color: "#666666",
@@ -45,7 +45,7 @@ export default function GlobalError({
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: "12px 0 8px" }}>
             No pudimos cargar la aplicación
           </h1>
-          <p style={{ fontSize: 14, color: "#4d4d4d", margin: 0 }}>
+          <p style={{ fontSize: 15, color: "#4d4d4d", margin: 0 }}>
             Intenta recargar la página. Si el problema continúa, cierra sesión y vuelve a entrar.
           </p>
           <button
@@ -58,7 +58,7 @@ export default function GlobalError({
               border: "none",
               background: "#006aff",
               color: "#fff",
-              fontSize: 14,
+              fontSize: 15,
               fontWeight: 500,
               cursor: "pointer",
             }}

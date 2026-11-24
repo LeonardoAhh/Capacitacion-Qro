@@ -121,14 +121,14 @@ export default function DashboardYearlyCompliance() {
             <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
               {/* Stacked bar chart — directo */}
               <div role="img" aria-label={`Cumplimiento por año de ingreso: ${pctGlobal}% global`}>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer className="text-body-sm" width="100%" height={220}>
                   <BarChart data={yearStats} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/15" horizontal={false} />
-                    <XAxis type="number" tick={{ fontSize: 12 }} className="text-muted-foreground" axisLine={false} tickLine={false} />
-                    <YAxis type="category" dataKey="year" tick={{ fontSize: 12, fontWeight: 700 }}
+                    <XAxis type="number" className="text-muted-foreground" axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="year" tick={{ fontWeight: 700 }}
                       className="text-muted-foreground" axisLine={false} tickLine={false} width={55} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))", opacity: 0.5 }} />
-                    <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }}
+                    <Legend wrapperStyle={{ paddingTop: 8 }}
                       formatter={(v: string) => (
                         <span className="text-muted-foreground capitalize">
                           {v === "aprobados" ? "Aprobados" : v === "reprobados" ? "Reprobados" : "Pendientes"}

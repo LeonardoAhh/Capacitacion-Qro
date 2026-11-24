@@ -25,9 +25,11 @@ export function EmployeeCard({
   } = context;
   return <Card className="@container">
       <CardHeader className="space-y-3 p-(--card-padding)">
-        <p className="text-body-sm text-muted-foreground">
-          <span className="font-medium text-foreground">Instrucciones para el evaluador:</span> {DESEMPENO.instructions}
-      </p>
+        {/* Plegadas: se consultan la primera vez y luego no estorban. */}
+        <details className="group text-body-sm text-muted-foreground">
+          <summary className="w-fit cursor-pointer rounded-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Instrucciones para el evaluador</summary>
+          <p className="mt-1">{DESEMPENO.instructions}</p>
+        </details>
 
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">

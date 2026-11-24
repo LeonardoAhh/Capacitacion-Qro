@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress"
 import { SearchInput } from "@/components/ui/search-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { SummaryStrip } from "@/components/ui/summary-strip"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRole } from "@/lib/hooks"
@@ -89,21 +90,6 @@ function EmployeeAction({ employee, saving, onManual, onPhysical }: {
         onCheckedChange={(checked) => physical ? onPhysical(employee.numero, checked) : setPendingManual(checked)}
         aria-label={physical ? `Formato físico recibido de ${employee.nombre}` : `${employee.estatus === "manual" ? "Quitar" : "Registrar"} entrega manual de ${employee.nombre}`} />
     </span>
-  )
-}
-
-/** Resumen del periodo en una sola franja. */
-function Summary({ loading, items }: { loading: boolean; items: { label: string; value: number; detail: string }[] }) {
-  return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card lg:grid-cols-4">
-      {items.map(({ label, value, detail }, index) => (
-        <div key={label} className={cn("min-w-0 space-y-1 p-(--card-padding)", index % 2 === 1 && "border-l", index >= 2 && "border-t lg:border-t-0", index === 2 && "lg:border-l")}>
-          <dt className="text-body-sm text-muted-foreground">{label}</dt>
-          <dd className="text-heading-xl tabular-nums text-foreground">{loading ? <Skeleton className="h-7 w-12" /> : value}</dd>
-          <dd className="truncate text-body-sm text-muted-foreground">{loading ? <Skeleton className="h-4 w-20" /> : detail}</dd>
-        </div>
-      ))}
-    </dl>
   )
 }
 
@@ -204,7 +190,7 @@ export default function DesempenoCumplimientoContent() {
             </p>
           </div>
 
-          <Summary loading={loading} items={[
+          <SummaryStrip loading={loading} items={[
             { label: "Personas", value: resumen.total, detail: "En este periodo" },
             { label: "Entregadas", value: resumen.entregadas, detail: `${resumen.porcentajeEntregadas}% del total` },
             { label: "Pendientes", value: resumen.total - resumen.entregadas, detail: "Sin evaluación o entrega" },

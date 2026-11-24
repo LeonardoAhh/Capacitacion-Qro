@@ -47,13 +47,13 @@ function MockupSidebar() {
       </div>
       <div style={{ flex: 1, padding: "2rem 1rem", position: "relative" }}>
         <div style={{ position: "absolute", top: "4rem", left: "-0.5rem", width: "160px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "var(--radius-card)", padding: "0.5rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)" }}>
-          <p style={{ fontSize: "12px", fontWeight: "bold", textTransform: "uppercase", padding: "0.25rem 0.5rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>Capacitación</p>
-          <div style={{ fontSize: "12px", padding: "0.5rem", background: "hsl(var(--accent)/0.5)", borderRadius: "var(--radius-control)", marginBottom: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <p style={{ fontSize: "var(--text-body-sm)", fontWeight: "bold", textTransform: "uppercase", padding: "0.25rem 0.5rem", color: "hsl(var(--muted-foreground))", marginBottom: "0.25rem" }}>Capacitación</p>
+          <div style={{ fontSize: "var(--text-body-sm)", padding: "0.5rem", background: "hsl(var(--accent)/0.5)", borderRadius: "var(--radius-control)", marginBottom: "0.25rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <span>Presentaciones</span>
             <span style={{ width: "4px", height: "4px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary))" }} />
           </div>
-          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Categorías</div>
-          <div style={{ fontSize: "12px", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Exámenes</div>
+          <div style={{ fontSize: "var(--text-body-sm)", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Categorías</div>
+          <div style={{ fontSize: "var(--text-body-sm)", padding: "0.5rem", borderRadius: "var(--radius-control)" }}>Exámenes</div>
         </div>
       </div>
     </div>
@@ -65,17 +65,17 @@ function MockupHeader() {
     <div className="wn-mockup" style={{ background: "hsl(var(--background))", display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", justifyContent: "flex-end", padding: "1rem", borderBottom: "1px solid hsl(var(--border))" }}>
         <div style={{ position: "relative" }}>
-          <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "12px" }}>U</div>
+          <div style={{ width: "32px", height: "32px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "var(--text-body-sm)" }}>U</div>
           <div style={{ position: "absolute", top: "40px", right: "0", width: "180px", background: "hsl(var(--background)/0.8)", backdropFilter: "blur(12px)", border: "1px solid hsl(var(--border)/0.5)", borderRadius: "var(--radius-card)", padding: "0.25rem", boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem" }}>
-              <div style={{ width: "24px", height: "24px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "12px" }}>U</div>
+              <div style={{ width: "24px", height: "24px", borderRadius: "var(--radius-avatar)", background: "hsl(var(--primary)/0.2)", display: "flex", alignItems: "center", justifyContent: "center", color: "hsl(var(--primary))", fontWeight: "bold", fontSize: "var(--text-body-sm)" }}>U</div>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontSize: "12px", fontWeight: "bold" }}>Usuario</span>
-                <span style={{ fontSize: "12px", color: "hsl(var(--muted-foreground))" }}>user@viño.com</span>
+                <span style={{ fontSize: "var(--text-body-sm)", fontWeight: "bold" }}>Usuario</span>
+                <span style={{ fontSize: "var(--text-body-sm)", color: "hsl(var(--muted-foreground))" }}>user@viño.com</span>
               </div>
             </div>
             <div style={{ height: "1px", background: "hsl(var(--border))", margin: "0.25rem 0" }} />
-            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem", color: "hsl(var(--destructive))", fontSize: "12px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.5rem", color: "hsl(var(--destructive))", fontSize: "var(--text-body-sm)" }}>
               <LogOut size={14} />
               <span>Cerrar sesión</span>
             </div>
@@ -97,7 +97,7 @@ function MockupMotivation() {
           <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0, color: "hsl(var(--foreground))" }}>
             Gracias por el esfuerzo que no siempre se ve.
           </h3>
-          <p style={{ fontSize: "0.8125rem", color: "hsl(var(--muted-foreground))", lineHeight: 1.6, marginTop: "0.5rem", maxWidth: "340px", marginInline: "auto" }}>
+          <p style={{ fontSize: "var(--text-body-sm)", color: "hsl(var(--muted-foreground))", lineHeight: 1.6, marginTop: "0.5rem", maxWidth: "340px", marginInline: "auto" }}>
             Sabemos que hay días complejos y decisiones difíciles detrás de escena. Queremos que sepas que valoramos profundamente tu entrega.
           </p>
         </div>

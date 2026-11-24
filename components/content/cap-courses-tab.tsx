@@ -54,26 +54,29 @@ export function CapCoursesTab({
 
   return (
     <div className="space-y-4">
-      {/* Búsqueda y acciones en la línea de las pestañas; "Nuevo curso" es la acción principal. */}
-      <TabsToolbar>
-        <SearchInput
-          label="Buscar curso"
-          placeholder="Buscar curso…"
-          className={TOOLBAR_SEARCH}
-          value={courseSearch}
-          onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
-        />
-        <Button variant="outline" size="sm" onClick={() => setAuditOpen(true)} aria-label="Auditoría global">
-          Auditoría
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} aria-label="Descargar reporte Excel">
-          Reporte
-        </Button>
-        {!isReadOnly && (
-          <Button size="sm" onClick={onNewCourse}>Nuevo curso</Button>
-        )}
-        {!selectedCourse && <CompactPager label="Paginación de cursos" page={safePage} totalPages={totalPages} onPageChange={setCoursePage} />}
-      </TabsToolbar>
+      {/* Búsqueda y acciones en la línea de las pestañas; "Nuevo curso" es la acción principal.
+          Con un curso abierto, la barra es la del detalle. */}
+      {!selectedCourse && (
+        <TabsToolbar>
+          <SearchInput
+            label="Buscar curso"
+            placeholder="Buscar curso…"
+            className={TOOLBAR_SEARCH}
+            value={courseSearch}
+            onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
+          />
+          <Button variant="outline" size="sm" onClick={() => setAuditOpen(true)} aria-label="Auditoría global">
+            Auditoría
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => setPreviewOpen(true)} aria-label="Descargar reporte Excel">
+            Reporte
+          </Button>
+          {!isReadOnly && (
+            <Button size="sm" onClick={onNewCourse}>Nuevo curso</Button>
+          )}
+          <CompactPager label="Paginación de cursos" page={safePage} totalPages={totalPages} onPageChange={setCoursePage} />
+        </TabsToolbar>
+      )}
 
       {loadingCourses ? (
         <div className="space-y-2" role="status" aria-label="Cargando cursos">

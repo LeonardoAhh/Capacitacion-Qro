@@ -151,15 +151,15 @@ export default function DashboardCumplimiento() {
               {filteredDeptData.length > 0 && (
                   <div className="w-full overflow-x-auto" role="img"
                     aria-label={`Cumplimiento por departamento: ${filteredDeptData.length} departamentos`}>
-                    <ResponsiveContainer width="100%" height={filteredDeptData.length * 48 + 40} minHeight={160}>
+                    <ResponsiveContainer className="text-body-sm" width="100%" height={filteredDeptData.length * 48 + 40} minHeight={160}>
                       <BarChart data={filteredDeptData} layout="vertical"
                         margin={{ top: 0, right: 44, left: 0, bottom: 0 }} barSize={24}>
                         <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
                         <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`}
-                          tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
+                          tick={{ fill: "currentColor" }} className="text-muted-foreground"
                           tickLine={false} axisLine={false} ticks={[0, 25, 50, 80, 100]} />
                         <YAxis type="category" dataKey="departamento" width={120}
-                          tick={{ fontSize: 12, fill: "currentColor" }} className="text-muted-foreground"
+                          tick={{ fill: "currentColor" }} className="text-muted-foreground"
                           tickLine={false} axisLine={false} tickFormatter={abrevDept} />
                         <ReferenceLine x={META} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
                         <Tooltip content={<BarTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
@@ -168,7 +168,7 @@ export default function DashboardCumplimiento() {
                           animationBegin={skip ? undefined : 100} animationDuration={skip ? 0 : 700} animationEasing="ease-out">
                           {filteredDeptData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
                           <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`}
-                            style={{ fontSize: 12, fontWeight: 700 }} />
+                            style={{ fontWeight: 700 }} />
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>

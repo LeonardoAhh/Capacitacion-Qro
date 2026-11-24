@@ -4,12 +4,26 @@ import { SEARCH_OPTIONS } from "@/lib/desempeno/presentation";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useDesempeno } from "@/lib/hooks/useDesempeno";
-import { normalizarPeriodoDesempeno } from "@/lib/catalogo";
-import { UMBRAL_CALIFICACION_APROBATORIA, calcularPonderacion } from "@/lib/types/desempeno";
-import { useRole } from "@/lib/hooks";
+import { EVALUADORES_PUESTO, normalizarPeriodoDesempeno } from "@/lib/catalogo";
+import { getGruposEvaluadores } from "@/lib/desempeno/evaluadores";
+import { clearDraft, readDraft, readLastEvaluator, writeDraft, writeLastEvaluator, type EvaluationDraft } from "@/lib/desempeno/captura-local";
+import { UMBRAL_CALIFICACION_APROBATORIA, calcularPonderacion, type DesempenoData } from "@/lib/types/desempeno";
+import { useRole, useUser } from "@/lib/hooks";
 import { usePendingEvals } from "@/lib/hooks/usePendingEvals";
 import { confirm } from "@/components/ui/confirm-dialog";
 import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes";
+/** Espera antes de guardar el borrador local, para no escribir en cada tecla. */
+const DRAFT_SAVE_DELAY_MS = 600;
+
+/** Último evaluador usado por la cuenta, si también es válido para esta persona. */
+function rememberedEvaluator(userId: string | undefined, data: DesempenoData): string | null {
+  if (!userId || data.evaluador_nombre) return null;
+  const nombre = readLastEvaluator(userId);
+  if (!nombre) return null;
+  const grupos = getGruposEvaluadores({ puesto: data.puesto, evaluado: data.nombre });
+  return grupos.some(({ evaluadores }) => evaluadores.includes(nombre)) ? nombre : null;
+}
+
 export function useEvaluationSearch() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -34,6 +48,10 @@ export function useEvaluationSearch() {
     isEvaluador,
     canEdit,
   } = useRole();
+  const { user } = useUser();
+  const userId = user?.id;
+  // Borrador local de esta persona y periodo, ofrecido al cargarla.
+  const [pendingDraft, setPendingDraft] = useState<EvaluationDraft | null>(null);
   const {
     loading: pendingLoading,
     deptGroups,
@@ -156,11 +174,45 @@ export function useEvaluationSearch() {
     }
     if (loading) return;
     if (baselineKeyRef.current !== identityKey) {
+      // El evaluador de la última evaluación guardada se propone antes de fijar la línea base,
+      // así no cuenta como cambio sin guardar.
+      const evaluador = rememberedEvaluator(userId, data);
+      if (evaluador) {
+        setData({ ...data, evaluador_nombre: evaluador, evaluador_puesto: EVALUADORES_PUESTO[evaluador] ?? "" });
+        return;
+      }
       baselineKeyRef.current = identityKey;
       baselineSnapshotRef.current = JSON.stringify(data);
+      const draft = userId ? readDraft(userId, identityKey) : null;
+      setPendingDraft(draft && JSON.stringify(draft.data) !== baselineSnapshotRef.current ? draft : null);
     }
-  }, [data, identityKey, loading]);
+  }, [data, identityKey, loading, setData, userId]);
   const hasUnsavedChanges = Boolean(!loading && !saveSuccess && data && baselineSnapshotRef.current && JSON.stringify(data) !== baselineSnapshotRef.current && !guardado);
+
+  // Guarda la captura en este navegador mientras se edita: si se interrumpe, se retoma.
+  useEffect(() => {
+    if (!hasUnsavedChanges || !data || !identityKey || !userId) return;
+    const timer = window.setTimeout(() => writeDraft(userId, identityKey, data), DRAFT_SAVE_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [data, hasUnsavedChanges, identityKey, userId]);
+
+  const restoreDraft = useCallback(() => {
+    if (pendingDraft) setData(pendingDraft.data);
+    setPendingDraft(null);
+  }, [pendingDraft, setData]);
+
+  const discardDraft = useCallback(() => {
+    if (userId && identityKey) clearDraft(userId, identityKey);
+    setPendingDraft(null);
+  }, [identityKey, userId]);
+
+  /** Tras confirmar que se descarta la captura, también se borra su borrador. */
+  const confirmAndForget = useCallback(async (ask: () => Promise<boolean>) => {
+    const hadChanges = hasUnsavedChanges;
+    const confirmed = await ask();
+    if (confirmed && hadChanges && userId && identityKey) clearDraft(userId, identityKey);
+    return confirmed;
+  }, [hasUnsavedChanges, identityKey, userId]);
 
   const confirmDiscard = useCallback(async () => {
     if (!hasUnsavedChanges) return true;
@@ -200,7 +252,8 @@ export function useEvaluationSearch() {
   }, [confirmDiscard, hasUnsavedChanges, router]);
 
   const closeEvaluation = useCallback(async () => {
-    if (!(await confirmDiscard())) return;
+    if (!(await confirmAndForget(confirmDiscard))) return;
+    setPendingDraft(null);
     clearEvaluation();
     setModoEdicion(false);
     setNumeroBuscado("");
@@ -210,12 +263,13 @@ export function useEvaluationSearch() {
     newParams.delete("q");
     newParams.delete("evalId");
     router.replace(newParams.size ? `/desempeno?${newParams.toString()}` : "/desempeno", { scroll: false });
-  }, [confirmDiscard, router, searchParams, clearEvaluation]);
+  }, [confirmAndForget, confirmDiscard, router, searchParams, clearEvaluation]);
 
   const guardedSearch = useCallback(async (valor: string) => {
-    if (!(await confirmDiscard())) return;
+    if (!(await confirmAndForget(confirmDiscard))) return;
+    setPendingDraft(null);
     await doBuscar(valor);
-  }, [confirmDiscard, doBuscar]);
+  }, [confirmAndForget, confirmDiscard, doBuscar]);
 
   // Realizar búsqueda inicial si existe el parámetro 'q'
   useEffect(() => {
@@ -266,12 +320,16 @@ export function useEvaluationSearch() {
     setGuardado(savedSnapshotRef.current === JSON.stringify(data));
   }, [data]);
 
-  // Tras guardar con éxito, fija el snapshot como "limpio".
+  // Tras guardar con éxito, fija el snapshot como "limpio", borra el borrador local y
+  // recuerda al evaluador para proponerlo en la siguiente evaluación.
   useEffect(() => {
     if (saveSuccess && data) {
       savedSnapshotRef.current = JSON.stringify(data);
       baselineSnapshotRef.current = JSON.stringify(data);
       setGuardado(true);
+      setPendingDraft(null);
+      if (userId && identityKey) clearDraft(userId, identityKey);
+      if (userId && data.evaluador_nombre) writeLastEvaluator(userId, data.evaluador_nombre);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [saveSuccess]);
@@ -326,6 +384,9 @@ export function useEvaluationSearch() {
     guardado,
     setGuardado,
     hasUnsavedChanges,
+    pendingDraft,
+    restoreDraft,
+    discardDraft,
     confirmDiscard,
     closeEvaluation,
     doBuscar: guardedSearch,

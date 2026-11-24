@@ -14,6 +14,7 @@ interface CompetencyRatingCardProps {
 
 export function CompetencyRatingCard({ item, name, showError, onChange }: CompetencyRatingCardProps) {
   const pending = item.evaluada !== true;
+  const selected = pending ? undefined : ESCALA_COMPETENCIAS.find(({ valor }) => valor === item.calificacion);
 
   return <Card className={cn("@container", showError && pending && "border-destructive/50")}>
     <fieldset
@@ -26,6 +27,8 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
         <h3 className="text-label-sm text-foreground">{item.nombre}</h3>
         <p className="text-body-md text-foreground">{item.descripcion}</p>
       </div>
+      {/* Debajo de los números, el significado de la respuesta elegida: no hay que memorizar la escala. */}
+      <div className="space-y-1">
       <div className="grid grid-cols-5 gap-1 rounded-md border border-border bg-muted p-1">
         {ESCALA_COMPETENCIAS.map(({ valor, etiqueta }) => <label
           key={valor}
@@ -47,6 +50,10 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
           />
           {valor}
         </label>)}
+      </div>
+      <p aria-hidden="true" className={cn("text-center text-body-sm", selected ? "font-medium text-foreground" : "text-muted-foreground")}>
+        {selected ? `${selected.valor} · ${selected.etiqueta}` : "Sin calificar"}
+      </p>
       </div>
     </fieldset>
   </Card>;

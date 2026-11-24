@@ -84,17 +84,17 @@ The system uses **Ubuntu** for UI, prose, labels, and code. The same font is reu
 | `{typography.heading-xl}` | 32px | 700 | 40px | -0.48px | Major section headings |
 | `{typography.heading-lg}` | 24px | 700 | 32px | -0.24px | Login introductory headline on mobile, large titles |
 | `{typography.heading-md}` | 20px | 700 | 28px | 0 | Sub-section / card headings |
-| `{typography.label-sm}` | 14px | 500 | 20px | 0 | Strong labels, nav emphasis |
-| `{typography.eyebrow}` | 12px | 500 | 16px | 0 | Uppercase Ubuntu section labels |
-| `{typography.body-lg}` | 16px | 400 | 24px | 0 | Lead paragraphs, large body |
-| `{typography.body-md}` | 14px | 400 | 20px | 0 | Default body, nav links, table cells |
-| `{typography.body-sm}` | 12px | 400 | 16px | 0 | Captions, footnotes, metadata |
-| `{typography.button-lg}` | 16px | 500 | 20px | 0 | Marketing pill button labels |
-| `{typography.button-md}` | 14px | 500 | 20px | 0 | Nav / app button labels |
-| `{typography.code}` | 14px | 400 | 20px | 0 | Code blocks and inline code (Ubuntu) |
+| `{typography.label-sm}` | 15px | 500 | 22px | 0 | Strong labels, nav emphasis |
+| `{typography.eyebrow}` | 13px | 500 | 18px | 0 | Uppercase Ubuntu section labels |
+| `{typography.body-lg}` | 17px | 400 | 26px | 0 | Lead paragraphs, large body |
+| `{typography.body-md}` | 15px | 400 | 22px | 0 | Default body, nav links, table cells |
+| `{typography.body-sm}` | 13px | 400 | 18px | 0 | Captions, footnotes, metadata |
+| `{typography.button-lg}` | 17px | 500 | 22px | 0 | Marketing pill button labels |
+| `{typography.button-md}` | 15px | 500 | 22px | 0 | Nav / app button labels |
+| `{typography.code}` | 15px | 400 | 22px | 0 | Code blocks and inline code (Ubuntu) |
 
 ### Principles
-- Ubuntu is already compact: only headings of 24px and up get a light negative tracking (-0.01em to -0.025em, tighter as size grows); headings of 20px, labels and body sit at 0. The scale is ordered largest to smallest: display-2xl, display-xl, heading-xl, heading-lg, heading-md, body-lg, label-sm / body-md, eyebrow / body-sm. Components use these tokens only — never `text-xs/sm/base/lg/xl`, arbitrary `text-[Npx]` or inline sizes — and nothing renders below 12px.
+- Ubuntu is already compact: only headings of 24px and up get a light negative tracking (-0.01em to -0.025em, tighter as size grows); headings of 20px, labels and body sit at 0. The scale is ordered largest to smallest: display-2xl, display-xl, heading-xl, heading-lg, heading-md, body-lg, label-sm / body-md, eyebrow / body-sm. Components use these tokens only — never `text-xs/sm/base/lg/xl`, arbitrary `text-[Npx]` or inline sizes — and nothing renders below 13px. Body and label sizes sit 1px above the usual 12/14/16 steps because Ubuntu has a small x-height.
 - Three weights: 700 for headings, 500 for buttons/labels, and 400 for everything else (Ubuntu ships no 600). There is no light or black weight, and no italic.
 - Ubuntu is used consistently for interface headings, body copy, labels, and code. Printable formats and PDFs use Inter.
 
@@ -113,7 +113,7 @@ Inter is self-hosted for print under the SIL Open Font License (`public/fonts/In
 
 ### Grid & Container
 - Centered max-width container (~1200px) with comfortable gutters; the hero and CTA bands center their content.
-- **Authenticated workspace** (`{layout.workspace-max}` — 1408px): shared maximum width for the application header and main content. It gives data grids and three-column layouts more room without returning to a full-bleed canvas.
+- **Authenticated workspace** (`{layout.workspace-max}` — 1536px): shared maximum width for the application header and main content. It gives data grids and three-column layouts more room without returning to a full-bleed canvas.
 - **Evaluation pending summary** (`{layout.evaluation-summary-max}` — 960px): centered within the authenticated workspace; the search and evaluation form keep the workspace width.
 - **Workspace gutters** (`{layout.workspace-gutter}`): 16px on mobile, 24px from tablet, and 32px from laptop upward. Header and main content must use the same gutter values and centered grid.
 - **Workspace frame** (`{components.workspace-frame}`): login keeps one elevated-canvas panel (`{colors.canvas-elevated}`) with a 1px hairline and 12px radius. In the authenticated workspace the sidebar and header sit directly on the elevated canvas, with no border between them; the main content lives in an inset panel to their right and below the header, using the theme background (`{colors.canvas}`), a 1px hairline and 12px radius, and it owns vertical scrolling. The outer inset is 16px on tablet and 24px on laptop and desktop. No shadow. On mobile, the frame becomes full-bleed with no outer border or radius, and the header keeps its bottom hairline.
