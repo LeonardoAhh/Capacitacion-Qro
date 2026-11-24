@@ -10,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { useRole } from "@/lib/hooks"
 import { useCumplimientoDesempeno, type EmpleadoCumplimiento } from "@/lib/hooks/useCumplimientoDesempeno"
 import { getPeriodoActual, type PeriodoModo } from "@/lib/catalogo"
@@ -146,7 +145,6 @@ export default function DesempenoCumplimientoContent() {
 
   return (
     <div className="min-w-0 space-y-6 dense:space-y-4">
-      {isReadOnly && <ReadOnlyBanner />}
 
       <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-0 md:max-h-[calc(100dvh-var(--workspace-header-height)-2*var(--workspace-inset))]">

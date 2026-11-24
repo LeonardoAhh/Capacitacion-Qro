@@ -14,7 +14,6 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useRole } from "@/lib/hooks"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { PreguntaExamenDialog } from "@/components/content/pregunta-examen-dialog"
 import type { PreguntaExamen, PreguntaInsert } from "@/lib/hooks/useExamenes"
 import { CATALOGO_ORGANIZACIONAL } from "@/lib/catalogo"
@@ -107,7 +106,6 @@ export default function ExamenesContent({
 
   return (
     <div className="space-y-4">
-      <ReadOnlyBanner />
       {/* Búsqueda, filtro, "Nueva pregunta" y página en la línea de las pestañas. */}
       <TabsToolbar>
         <SearchInput

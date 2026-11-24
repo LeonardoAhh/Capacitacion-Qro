@@ -26,7 +26,6 @@ import {
   TooltipProvider,
 } from "@/components/ui/tooltip"
 import { useRole } from "@/lib/hooks"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { SearchInput } from "@/components/ui/search-input"
 import { TOOLBAR_FILTER } from "@/components/ui/tabs-toolbar"
@@ -150,7 +149,6 @@ export default function PromocionesContent({
   return (
     <TooltipProvider delayDuration={300}>
     <div className="space-y-4">
-      <ReadOnlyBanner />
 
       {/* Hidden file inputs */}
       <input ref={imp.fileInputRef} type="file" accept=".json,application/json" className="hidden" onChange={imp.handleFileChange} />

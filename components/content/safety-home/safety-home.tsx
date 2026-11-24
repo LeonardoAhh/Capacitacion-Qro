@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { LayoutGrid, List } from "lucide-react"
 import { ImageExpansion } from "@/components/content/safety-home/image-expansion"
 import { Button } from "@/components/ui/button"
+import { GreetingBar } from "@/components/greeting-bar"
 import { FindingCard, type FindingPreview } from "@/components/content/safety-home/finding-card"
 import { CreateFindingDialog } from "@/components/content/safety-home/create-finding-dialog"
 import { CompletionEvidenceDialog } from "@/components/content/safety-home/completion-evidence-dialog"
@@ -109,12 +110,11 @@ export function SafetyHome() {
   return (
     <Tabs asChild value={view} onValueChange={(value) => setView(value as FindingsView)}>
     <section className="flex flex-col gap-6">
-      {/* gap y no space-y: el panel inactivo de las pestañas sigue en el DOM (oculto) y space-y le sumaría margen al visible. */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-3">
+      {/* Saludo a la izquierda; semana, vista, página y "Crear" en la misma línea, del lado opuesto. */}
+      <GreetingBar actions={<>
           <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
             <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium">
-              <SelectValue />
+              <SelectValue placeholder="Sin semanas" />
             </SelectTrigger>
             <SelectContent matchTriggerWidth>
               {populatedWeeks.map((key) => (
@@ -133,13 +133,9 @@ export function SafetyHome() {
               <LayoutGrid aria-hidden="true" /><span className="sr-only sm:not-sr-only">Tarjetas</span>
             </TabsTrigger>
           </TabsList>
-        </div>
-
-        <div className="flex items-center gap-3">
           {view === "tarjetas" && <CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
           {canEdit && <Button type="button" onClick={() => setIsCreateOpen(true)}>Crear</Button>}
-        </div>
-      </div>
+      </>} />
 
       {error && <p role="alert" className="text-body-md text-destructive">{error}</p>}
 

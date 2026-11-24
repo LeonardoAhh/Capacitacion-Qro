@@ -35,7 +35,9 @@ export default function Header({
 
   return (
     // Altura y barra de estado: .workspace-header en globals.css.
-    <header className={cn("workspace-header sticky top-0 z-20 shrink-0 bg-card", mobileOnly && "md:hidden")}>
+    // Deja ver el fondo de líneas del workspace: en escritorio es transparente (el scroll va en <main>);
+    // en móvil el documento hace scroll bajo el header, así que conserva un velo translúcido.
+    <header className={cn("workspace-header sticky top-0 z-20 shrink-0 bg-card/80 backdrop-blur-sm md:bg-transparent md:backdrop-blur-none", mobileOnly && "md:hidden")}>
       <WorkspaceContainer fullWidth={fullWidth} className="flex h-full items-center gap-2 border-b border-border">
         <Button
           type="button"

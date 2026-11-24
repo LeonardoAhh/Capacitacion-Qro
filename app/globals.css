@@ -161,6 +161,9 @@
         --sidebar-accent-foreground: var(--foreground);
         --sidebar-border: 216.92 13.68% 81.37%;
         --sidebar-ring: var(--primary);
+        /* Elemento seleccionado "elevado": en claro, tarjeta con sombra suave. */
+        --sidebar-active: var(--card);
+        --sidebar-active-shadow: 0 1px 2px hsl(220 14% 8% / 0.08), 0 1px 1px hsl(220 14% 8% / 0.04);
 
         --success: 212.35 100% 47.65%;
         --success-foreground: 0 0% 98%;
@@ -272,6 +275,9 @@
         --sidebar-accent-foreground: var(--foreground);
         --sidebar-border: 217.5 12.9% 24.31%;
         --sidebar-ring: var(--primary);
+        /* En oscuro la sombra no se ve: superficie un tono más clara y un brillo fino arriba. */
+        --sidebar-active: var(--secondary);
+        --sidebar-active-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.06), 0 1px 2px hsl(0 0% 0% / 0.4);
 
         --warning-deep: 38 90% 66%;
         --chart-1-deep: 172 60% 62%;
@@ -377,10 +383,10 @@ body {
         padding-top: max(var(--workspace-inset), env(safe-area-inset-top, 0px));
     }
 
-    /* Escritorio: la barra de estado la reserva el contenedor; el header vuelve a su altura. */
+    /* Escritorio: la barra de estado la reserva el contenedor; el header mide 48px (design.md). */
     .workspace-header {
         padding-top: 0;
-        height: calc(var(--workspace-header-height) + 1rem);
+        height: var(--workspace-header-height);
     }
 
     .workspace-panel {

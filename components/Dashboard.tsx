@@ -1,13 +1,15 @@
 "use client"
 
-import { useEffect, type ReactNode } from "react"
+import { useEffect, useRef, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Sidebar, { useSidebar } from "@/components/sidebar"
 import Header from "@/components/header"
 import { useRole } from "@/lib/hooks"
 import { homeFor } from "@/lib/constants/roles"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
-import { DotPattern } from "@/components/ui/dot-pattern"
+import { RadiantLines } from "@/components/ui/radiant-lines"
+import { useChartPalette } from "@/components/use-chart-palette"
+import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { HOME_PATH, SAFETY_HOME_PATH, type WorkspaceId } from "@/lib/navigation"
@@ -31,6 +33,10 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   const pathname = usePathname()
   const router = useRouter()
+  const palette = useChartPalette()
+  // En escritorio el scroll ocurre en <main>; en móvil, en la ventana (las líneas lo siguen por defecto).
+  const mainRef = useRef<HTMLElement>(null)
+  const desktop = useMediaQuery(DESKTOP_QUERY)
   const { role, workspaces, canAccess, isEvaluador, loading: roleLoading } = useRole()
   const [storedWorkspace, setWorkspace] = useActiveWorkspace()
   // Un espacio guardado que el rol ya no tiene se cambia por el primero permitido.
@@ -81,9 +87,11 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           showStatus={isEvaluador}
         />
 
-        {/* Header y contenido sobre el patrón de puntos; la barra lateral queda lisa. */}
+        {/* Header y contenido sobre las líneas radiales; la barra lateral queda lisa.
+            En móvil el fondo es fijo al viewport para no crear un lienzo del alto de toda la página. */}
         <div className="workspace-frame relative isolate">
-          <DotPattern className="-z-10 [mask-image:radial-gradient(ellipse_at_center,white,transparent_80%)]" />
+          <RadiantLines colors={palette} starCount={700} displacement={2.5} containerRef={desktop ? mainRef : undefined}
+            className="-z-10 bg-transparent max-md:fixed" />
           <Header
             titleHref={headerTitleHref}
             titleHrefLabel={headerTitleHrefLabel}
@@ -94,6 +102,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           />
 
           <main
+            ref={mainRef}
             id="main-content"
             className="min-w-0 flex-1 safe-right"
           >

@@ -20,10 +20,11 @@ import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
-// Sobre la superficie compartida: hover neutro y selección con el tinte del tema.
-const rowIdle = "text-muted-foreground hover:bg-muted hover:text-foreground"
-const rowActiveSolid = "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
+// Hover: gris tenue y plano. Seleccionado: "elevado", una tarjeta con borde fino y sombra suave
+// sobre la barra, con el ícono en el color primario; así no se confunde con el hover.
+const rowIdle = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
+const rowActive = "border-sidebar-border bg-sidebar-active font-medium text-foreground shadow-(--sidebar-active-shadow)"
+const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
 const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
 
 export interface SidebarApi {
@@ -187,7 +188,7 @@ function NavTree({
                   navLinkBase,
                   SIDEBAR_ROW,
                   isCollapsed && "justify-center md:px-0",
-                  active ? rowActiveSolid : rowIdle,
+                  active ? rowActive : rowIdle,
                 )}
               >
                 <span

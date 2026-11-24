@@ -11,7 +11,6 @@ import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
 import { useReglasCRUD, TRANSICION_LABEL, TRANSICION_ORDEN } from "@/lib/hooks/useGeneradorExamen"
 import { useRole } from "@/lib/hooks"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import type { TransicionKey } from "@/lib/hooks/useGeneradorExamen"
 import { CATALOGO_ORGANIZACIONAL } from "@/lib/catalogo"
 
@@ -88,7 +87,6 @@ export default function ReglasExamenContent() {
 
   return (
     <div className="space-y-4">
-      <ReadOnlyBanner />
 
       {error && (
         <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-sm">

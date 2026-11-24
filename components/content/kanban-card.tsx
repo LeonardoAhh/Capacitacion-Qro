@@ -25,13 +25,14 @@ export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
         event.dataTransfer.effectAllowed = "move"
       }}
       aria-label={tarjeta.titulo}
-      className="group relative grid cursor-grab gap-1.5 rounded-md border border-border bg-card p-3 active:cursor-grabbing"
+      className="group relative grid cursor-grab gap-1 rounded-md border border-border bg-card p-3 active:cursor-grabbing"
     >
-      <div className="flex items-start gap-2">
-        <div className="min-w-0 flex-1 pt-0.5"><KanbanTipoLabel tipo={tarjeta.tipo} /></div>
+      {/* El menú ⋮ flota en la esquina: la fila del tipo mide lo que su texto y la tarjeta no crece por el botón. */}
+      <div className="flex items-center gap-2 pr-6">
+        <div className="min-w-0 flex-1"><KanbanTipoLabel tipo={tarjeta.tipo} /></div>
         <KanbanApoyo tarjeta={tarjeta} />
-        <KanbanTarjetaMenu tarjeta={tarjeta} className="-mr-1 -mt-1" />
       </div>
+      <KanbanTarjetaMenu tarjeta={tarjeta} className="absolute right-1.5 top-1.5" />
 
       <button type="button" onClick={() => ver(tarjeta)}
         className={cn(
@@ -48,7 +49,7 @@ export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
         <p className="line-clamp-2 break-words text-body-sm text-muted-foreground">{tarjeta.descripcion}</p>
       )}
 
-      <div className="flex min-h-6 items-center gap-2">
+      <div className="mt-0.5 flex min-h-6 items-center gap-2">
         <KanbanFechas tarjeta={tarjeta} />
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <KanbanResumen resumen={resumenes.get(tarjeta.id)} />

@@ -58,7 +58,7 @@ export function CapHistorialTab({
   onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkImportRetardos, onBulkCreateEmployees,
   onEditEmployee, onAddCourses, onDeleteEmployee,
 }: CapHistorialTabProps) {
-  const { canAccess } = useRole()
+  const { canAccess, employeesOnly } = useRole()
   const [empSearch, setEmpSearch]         = useState("")
   const [empFilterDept, setEmpFilterDept] = useState(FILTER_ALL)
   const [empFilterTurno, setEmpFilterTurno] = useState(FILTER_ALL)
@@ -100,12 +100,13 @@ export function CapHistorialTab({
         </Alert>
       )}
 
-      {/* Búsqueda, filtros, acciones y página en la línea de las pestañas. */}
+      {/* Búsqueda, filtros, acciones y página en la línea de las pestañas. Sin pestañas (rol que solo
+          consulta empleados), la búsqueda va a la izquierda y lo demás se queda a la derecha. */}
       <TabsToolbar>
         <SearchInput
           label="Buscar empleado"
           placeholder="Buscar empleado…"
-          className={TOOLBAR_SEARCH}
+          className={cn(TOOLBAR_SEARCH, employeesOnly && "sm:mr-auto")}
           value={empSearch}
           onValueChange={setEmpSearch}
         />

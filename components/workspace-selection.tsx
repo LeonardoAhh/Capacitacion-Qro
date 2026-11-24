@@ -98,7 +98,7 @@ export function WorkspaceSelection() {
                             {isSelected && <Check className="size-3" />}
                           </span>
                         </span>
-                        {!permitido && <span aria-hidden="true" className="-mt-2 text-center text-body-sm text-muted-foreground">Sin acceso para tu rol</span>}
+                        {!permitido && <span aria-hidden="true" className="-mt-2 text-center text-body-sm text-muted-foreground">¡Te falta magia para entrar aquí.!</span>}
                       </motion.button>
                     )
                   })}

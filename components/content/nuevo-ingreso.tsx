@@ -19,7 +19,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import { useNuevoIngreso, formatDate, daysFromToday, useRole } from "@/lib/hooks"
 import type { NuevoIngreso, NuevoIngresoUpdate } from "@/lib/hooks"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
 
@@ -198,7 +197,6 @@ export default function NuevoIngresoContent() {
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
-      <ReadOnlyBanner />
 
       {/* Alertas */}
       {createSuccess && (

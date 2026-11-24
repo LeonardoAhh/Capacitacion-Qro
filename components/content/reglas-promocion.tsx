@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { confirm } from "@/components/ui/confirm-dialog"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { useRole } from "@/lib/hooks"
 import { useReglasPromocionCRUD, type ReglaPromocionRow } from "@/lib/hooks/useReglasPromocionCRUD"
 import { cn } from "@/lib/utils"
@@ -115,7 +114,6 @@ export default function ReglasPromocionContent() {
 
   return (
     <div className="grid gap-4">
-      <ReadOnlyBanner />
 
       <div className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1 sm:max-w-sm">

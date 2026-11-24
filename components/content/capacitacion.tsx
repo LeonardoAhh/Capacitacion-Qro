@@ -7,7 +7,6 @@ import { TabsBar, TabsToolbarProvider } from "@/components/ui/tabs-toolbar"
 import { motion } from "framer-motion"
 import { useCapacitacion, useRole } from "@/lib/hooks"
 import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
-import { ReadOnlyBanner } from "@/components/read-only-banner"
 import { notify } from "@/lib/notify"
 
 // Existing dialogs
@@ -353,7 +352,6 @@ export default function CapacitacionContent() {
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      <ReadOnlyBanner />
       <TabsToolbarProvider value={toolbarSlot}>
         <Tabs defaultValue="historial" onValueChange={handleTabChange}>
           {/* Pestañas a la izquierda; búsqueda, filtros y acciones de cada pestaña a la derecha.

@@ -81,6 +81,7 @@ const config: Config = {
           "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
           accent:     "hsl(var(--sidebar-accent) / <alpha-value>)",
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
+          active:     "hsl(var(--sidebar-active) / <alpha-value>)",
           border:     "hsl(var(--sidebar-border))",
           ring:       "hsl(var(--sidebar-ring))",
         },
