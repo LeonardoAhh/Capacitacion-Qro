@@ -49,7 +49,8 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   title: "Revisa el periodo asignado",
   description: "El sistema asigna automáticamente el periodo a evaluar, tomando en cuenta la fecha de ingreso.",
   instructions: [
-    "Si el periodo ya tiene una evaluación guardada, verás «Evaluación ya guardada» con su calificación; busca a otra persona para evaluar."
+    "Si el periodo ya tiene una evaluación guardada, verás «Evaluación ya guardada» con su calificación; busca a otra persona para evaluar.",
+    "Las semestrales solo se capturan del 1 al 15 de junio y del 1 al 15 de diciembre, durante la recepción de físicos."
   ],
   note: "Las evaluaciones solo se registran en el periodo vigente. Si aparece «Regularización requerida», el periodo venció: acude a Recursos Humanos."
 },

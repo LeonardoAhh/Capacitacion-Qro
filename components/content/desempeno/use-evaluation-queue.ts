@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { getPeriodosSemestralesRecientes } from "@/lib/catalogo";
 import { pendingEvalStatus } from "@/lib/desempeno/pending-status";
+import { semestreEnEntrega } from "@/lib/desempeno/ventana-entrega";
 import { useSemestralPendientes } from "@/lib/hooks/useSemestralPendientes";
 import type { EvaluationSearchContext } from "./use-evaluation-search";
 
@@ -17,12 +17,14 @@ export interface QueueItem {
 /**
  * Personas que el evaluador puede evaluar hoy, en orden de atención: primero
  * nuevo ingreso dentro de su ventana (la más antigua primero) y después las
- * semestrales del periodo en curso. Las atrasadas no entran: requieren
+ * semestrales mientras dura la recepción de físicos. Las atrasadas no entran: requieren
  * regularización con Recursos Humanos y solo se cuentan.
  */
 export function useEvaluationQueue(context: EvaluationSearchContext, enabled: boolean) {
-  const periodoSemestral = getPeriodosSemestralesRecientes()[0];
-  const semestrales = useSemestralPendientes(periodoSemestral, null, enabled);
+  // Las semestrales solo entran durante la recepción de físicos, que es cuando se pueden capturar.
+  const enRecepcion = semestreEnEntrega();
+  const periodoSemestral = enRecepcion ?? "";
+  const semestrales = useSemestralPendientes(periodoSemestral, null, enabled && enRecepcion !== null);
   const { deptGroups, pendingLoading, totalVencidas, saveSuccess, data } = context;
   // Las listas se cargan una vez; quien se evalúa en esta sesión sale de la fila sin recargar.
   const [completed, setCompleted] = useState<string[]>([]);
@@ -53,5 +55,5 @@ export function useEvaluationQueue(context: EvaluationSearchContext, enabled: bo
   // Siguiente persona al terminar: la primera de la fila que no sea la que se está evaluando.
   const next = items.find(item => item.numero !== data?.numero_empleado) ?? null;
 
-  return { items, next, loading: pendingLoading || semestrales.loading, overdue: totalVencidas };
+  return { items, next, loading: pendingLoading || (enRecepcion !== null && semestrales.loading), overdue: totalVencidas };
 }

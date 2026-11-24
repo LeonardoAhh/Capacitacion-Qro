@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { usePendingEvals } from "@/lib/hooks/usePendingEvals";
 import { useSemestralPendientes } from "@/lib/hooks/useSemestralPendientes";
 import { getPeriodosSemestralesRecientes } from "@/lib/catalogo";
+import { semestreAEvaluar } from "@/lib/desempeno/ventana-entrega";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import DesempenoSemestralPendientes from "./desempeno-semestral-pendientes";
 type Vista = "mensual" | "semestral";
@@ -24,9 +25,9 @@ export default function DesempenoPendientes() {
   const [vista, setVista] = useState<Vista>("mensual");
   const reducedMotion = useEvaluationReducedMotion();
   // RLS limita los departamentos del evaluador.
-  // Semestre en curso por defecto; los anteriores se consultan desde el selector.
+  // Por defecto, el semestre que corresponde evaluar (en la recepción, el que acaba de cerrar).
   const periodosSemestrales = getPeriodosSemestralesRecientes();
-  const [periodoSemestral, setPeriodoSemestral] = useState(periodosSemestrales[0]);
+  const [periodoSemestral, setPeriodoSemestral] = useState(semestreAEvaluar());
   const semestrales = useSemestralPendientes(periodoSemestral, null, vista === "semestral");
   // The first available department is the default page for each view.
   const [activeTab, setActiveTab] = useState<string | null>(null);

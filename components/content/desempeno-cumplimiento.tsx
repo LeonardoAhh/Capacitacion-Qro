@@ -13,7 +13,8 @@ import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useRole } from "@/lib/hooks"
 import { useCumplimientoDesempeno, type EmpleadoCumplimiento } from "@/lib/hooks/useCumplimientoDesempeno"
-import { getPeriodoActual, type PeriodoModo } from "@/lib/catalogo"
+import { type PeriodoModo } from "@/lib/catalogo"
+import { periodoAEvaluar } from "@/lib/desempeno/periodo-empleado"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import { getVentanaEntrega } from "@/lib/desempeno/ventana-entrega"
 import { cn } from "@/lib/utils"
@@ -101,7 +102,7 @@ function EmployeeAction({ employee, saving, onManual, onPhysical }: {
 export default function DesempenoCumplimientoContent() {
   const { isReadOnly } = useRole()
   const [mode, setMode] = useState<PeriodoModo>("semestrales")
-  const periodo = getPeriodoActual(mode)
+  const periodo = periodoAEvaluar(mode)
   const { loading, saving, error, deptGroups, resumen, marcarEntrega, marcarFisico } = useCumplimientoDesempeno(periodo)
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")

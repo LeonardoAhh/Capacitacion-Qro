@@ -19,6 +19,7 @@ import {
 } from "@/lib/types/desempeno"
 import { getTipoDesempenoByPuesto, normalizarPeriodoDesempeno, type PeriodoModo } from "@/lib/catalogo"
 import { periodoVigenteParaEmpleado, type OrigenEmpleado } from "@/lib/desempeno/periodo-empleado"
+import { getVentanaEntrega } from "@/lib/desempeno/ventana-entrega"
 import { periodoMensualDeFecha } from "@/lib/desempeno/evaluaciones-guardadas"
 import {
   aplicarActasDelPeriodo,
@@ -61,6 +62,8 @@ interface EvaluationUiError {
   title: string
   description: string
 }
+
+const fechaRecepcion = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", year: "numeric" })
 
 function formatFechaProgramada(fecha: string | null | undefined): string {
   const coincidencia = fecha?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -279,7 +282,7 @@ export function useDesempeno() {
       if (evalsError) throw evalsError
       const evals = (evalsRaw ?? []) as EvalPeriodRow[]
       // La modalidad y el periodo se asignan al buscar; no se elige un año anterior.
-      const { modo, periodo: periodoResuelto, semestreActual: semestreActivo, requiereSemestral: requiereSemestralEmp } =
+      const { modo, periodo: periodoResuelto, semestreActual: semestreActivo, requiereSemestral: requiereSemestralEmp, capturaAbierta } =
         periodoVigenteParaEmpleado(origenEmpleado, empleadoData.fechaIngreso)
       const estadoHito = origenEmpleado === "nuevo_ingreso" && ni
         ? resolverHitoNuevoIngreso(ni as SeguimientoNuevoIngreso)
@@ -310,6 +313,17 @@ export function useDesempeno() {
         setRequiereSemestral(requiereSemestralEmp)
         setSemestreObjetivo(semestreActivo)
         return { origen: origenEmpleado, modo, periodo: periodoResuelto, requiereSemestral: requiereSemestralEmp, semestreObjetivo: semestreActivo }
+      }
+
+      // Candado semestral: solo durante la recepción de físicos; después, Regularización.
+      if (!capturaAbierta) {
+        const ventana = getVentanaEntrega(periodoResuelto)
+        throw new EvaluationMessageError(
+          "Evaluación semestral fuera de fechas",
+          ventana
+            ? `La evaluación ${periodoResuelto} se captura del ${fechaRecepcion.format(ventana.inicio)} al ${fechaRecepcion.format(ventana.fin)}, durante la recepción de físicos.`
+            : "Las evaluaciones semestrales solo se capturan durante la recepción de físicos.",
+        )
       }
 
       if (estadoHito?.estado === "vencido") {

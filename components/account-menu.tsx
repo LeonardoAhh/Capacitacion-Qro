@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ChevronDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
+import { ChevronsUpDown, LogOut, Monitor, Moon, Settings, Sun } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -53,14 +53,14 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
             type="button"
             aria-label={accountLabel}
             // Tarjeta elevada, con los mismos tokens que el elemento activo de la barra lateral.
-            className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md border border-sidebar-border bg-sidebar-active px-2.5 text-foreground shadow-(--sidebar-active-shadow) transition-[border-color] duration-150 hover:border-input data-[state=open]:border-input motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             {/* Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto. */}
             <span className="flex min-w-0 flex-1 flex-col text-left">
               <span className="truncate text-label-sm text-foreground">{displayName}</span>
               <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>
             </span>
-            <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <ChevronsUpDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
           </button>
         </DropdownMenuTrigger>
 
