@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Stepper } from "@/components/ui/stepper"
+import { AutoHeight } from "@/components/ui/auto-height"
 import { DncNeedAuthorizationStep, DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
 import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition, type ProgramacionCurso } from "@/lib/dnc"
 
@@ -118,6 +119,8 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
         onClose={onClose} />
       <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
         <Stepper steps={PASOS} current={step} />
+        {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
+        <AutoHeight>
         {step === 1 ? (
           <DncNeedIdentityStep form={form} onChange={update} cursos={cursos} cursosLoading={cursosLoading}
             cursosError={cursosError} puestos={puestos} departmentName={departmentName}
@@ -128,6 +131,7 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
         ) : step === 2
           ? <DncNeedDetailsStep form={form} onChange={update} programacion={programacion} />
           : <DncNeedAuthorizationStep form={form} onChange={update} />}
+        </AutoHeight>
         {error && <p role="alert" className="-mt-2 text-body-sm text-destructive">{error}</p>}
       </div>
       <ModalFooter onCancel={step === 1 ? onClose : () => goTo(step === 3 ? 2 : 1)}

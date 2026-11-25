@@ -44,7 +44,9 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
   const col = columnas(Boolean(seleccionado) && side)
 
   return (
-    <section aria-labelledby="accidentes-detalle-title" className="grid content-start gap-4">
+    // minmax(0,1fr): la columna no crece con el ancho mínimo de la tabla (en móvil empujaba
+    // título, Crear y el modal de detalle fuera de la pantalla).
+    <section aria-labelledby="accidentes-detalle-title" className="grid grid-cols-[minmax(0,1fr)] content-start gap-4">
       <header className="flex items-center gap-2">
         <Button type="button" variant="ghost" size="icon" className="shrink-0 text-muted-foreground" aria-label="Volver al calendario" onClick={onBack}>
           <ArrowLeft aria-hidden="true" />
@@ -66,9 +68,10 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
             <caption className="sr-only">Accidentes del {titulo}; elige uno para ver su detalle</caption>
             <TableHeader className="bg-muted/50">
               <TableRow className="hover:bg-transparent">
-                {/* Proporcional al ancho: el nombre completo cabe y «¿Qué ocurrió?» toma el resto. */}
-                <TableHead scope="col" className={cn(HEAD, "w-1/2 xl:w-1/3")}>Colaborador</TableHead>
-                <TableHead scope="col" className={HEAD}>¿Qué ocurrió?</TableHead>
+                {/* Móvil: solo el colaborador (el relato está en su detalle). Desde sm, proporcional:
+                    el nombre completo cabe y «¿Qué ocurrió?» toma el resto. */}
+                <TableHead scope="col" className={cn(HEAD, "sm:w-1/2 xl:w-1/3")}>Colaborador</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden sm:table-cell")}>¿Qué ocurrió?</TableHead>
                 <TableHead scope="col" className={cn(HEAD, col.riesgo)}>Riesgo</TableHead>
                 <TableHead scope="col" className={cn(HEAD, col.reporte)}>Reporte</TableHead>
                 <TableHead scope="col" className={cn(HEAD, col.atencion)}>Atención</TableHead>
@@ -90,7 +93,7 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
                         <span className="block truncate text-body-sm tabular-nums text-muted-foreground">#{accidente.numeroEmpleado}</span>
                       </button>
                     </TableCell>
-                    <TableCell className="truncate text-body-sm text-foreground">{accidente.descripcion}</TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-foreground sm:table-cell">{accidente.descripcion}</TableCell>
                     <TableCell className={cn(col.riesgo, "text-body-sm")}>
                       {accidente.riesgoTrabajo
                         ? <span className="inline-flex items-center gap-1.5 text-foreground"><span aria-hidden="true" className={cn("size-2 rounded-full", TONO_RIESGO.dot)} />Sí</span>

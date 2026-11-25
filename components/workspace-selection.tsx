@@ -86,18 +86,18 @@ export function WorkspaceSelection() {
                         whileHover={reducedMotion || !permitido ? undefined : { y: -4 }}
                         whileTap={reducedMotion || !permitido ? undefined : { scale: 0.98, y: 0 }}
                         transition={{ type: "spring", stiffness: 400, damping: 26 }}
-                        className="group grid gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed">
+                        className="group relative grid gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed">
                         {/* Solo el mockup: la selección se marca con su sombra y el círculo de abajo. */}
                         <WorkspacePreview icon={Icon} workspace={option.id} className={cn("transition-shadow",
                           isSelected ? "shadow-lg" : "group-hover:shadow-md",
                           !permitido && "opacity-50")} />
-                        <span className="flex flex-wrap items-center justify-center gap-2 text-center">
-                          <span className={cn("text-label-sm text-foreground", !permitido && "text-muted-foreground")}>{option.label}</span>
-                          <span aria-hidden="true" className={cn("grid size-5 place-items-center rounded-full border transition-colors",
-                            isSelected ? cn("border-transparent text-card", WORKSPACE_ACCENT[option.id].solid) : "border-border bg-muted")}>
-                            {isSelected && <Check className="size-3" />}
-                          </span>
+                        {/* Indicador sobre la esquina de la vista y el nombre solo debajo: así el nombre
+                            cabe en una línea aun en celular ("Seguridad e Higiene"). */}
+                        <span aria-hidden="true" className={cn("absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border-2 border-card transition-colors",
+                          isSelected ? cn("text-card", WORKSPACE_ACCENT[option.id].solid) : "bg-muted")}>
+                          {isSelected && <Check className="size-3.5" />}
                         </span>
+                        <span className={cn("whitespace-nowrap text-center text-label-sm text-foreground", !permitido && "text-muted-foreground")}>{option.label}</span>
                         {!permitido && <span aria-hidden="true" className="-mt-2 text-center text-body-sm text-muted-foreground">¡Te falta magia para entrar aquí.!</span>}
                       </motion.button>
                     )

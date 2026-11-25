@@ -29,7 +29,7 @@ export function IndicadoresAccidentes({ rachaActual, resumen, mes, pendientes }:
   ]
 
   return (
-    <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-1">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)]">
       <section aria-labelledby="racha-title" className="grid content-start gap-1 rounded-xl border bg-card p-(--card-padding)">
         <h3 id="racha-title" className="flex items-center gap-2 text-label-sm text-foreground">
           <span aria-hidden="true" className={cn("grid size-7 place-items-center rounded-md", TONO_RACHA.fondo, TONO_RACHA.texto)}><Flame className="size-4" /></span>

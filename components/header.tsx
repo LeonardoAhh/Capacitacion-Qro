@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { ArrowLeft, Menu, PanelLeft } from "lucide-react"
+import { ArrowLeft, Menu } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DESKTOP_NAV_ID, getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
@@ -11,6 +11,7 @@ import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
+import { SidebarToggleIcon } from "@/components/ui/sidebar-toggle-icon"
 
 interface HeaderProps {
   titleHref?: string
@@ -71,7 +72,7 @@ export default function Header({
                 aria-expanded={!sidebarCollapsed}
                 className="-ml-2 hidden shrink-0 text-muted-foreground md:inline-flex"
               >
-                <PanelLeft className="size-4" aria-hidden="true" />
+                <SidebarToggleIcon collapsed={sidebarCollapsed} />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">{sidebarLabel}</TooltipContent>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useRef, useState, type ReactNode } from "react"
 import { Pencil, Plus, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -17,6 +17,8 @@ interface DncReportProps {
   necesidades: DncNecesidad[]
   puestos: DncPosition[]
   canEdit: boolean
+  /** Año, departamento y Crear DNC: comparten la fila de acciones del encabezado. */
+  filtros: ReactNode
   onSaveHeader: (cambios: CambiosEncabezadoDnc) => Promise<void>
   onAdd: () => void
   onEdit: (necesidad: DncNecesidad) => void
@@ -41,7 +43,7 @@ const MENSAJE_REQUERIDO: Record<CampoEncabezado, string> = {
   fecha_elaboracion: "Indica la fecha de elaboración.",
 }
 
-export function DncReport({ reporte, necesidades, puestos, canEdit, onSaveHeader, onAdd, onEdit, onDelete }: DncReportProps) {
+export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onSaveHeader, onAdd, onEdit, onDelete }: DncReportProps) {
   const [nombre, setNombre] = useState(reporte.responsable_nombre ?? "")
   const [fecha, setFecha] = useState(reporte.fecha_elaboracion ?? "")
   // Jefes del departamento; un responsable guardado que ya no esté en el catálogo se conserva como opción.
@@ -150,13 +152,16 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, onSaveHeader
                 </div>
               )}
               {canEdit && (
-                <Button ref={editButtonRef} type="button" variant="ghost" size="sm" className="pl-2 pr-3" onClick={startEditing}>
-                  <Pencil aria-hidden="true" />Editar
+                <Button ref={editButtonRef} type="button" variant="ghost" size="icon" className="text-muted-foreground"
+                  aria-label="Editar responsable y fecha" onClick={startEditing}>
+                  <Pencil aria-hidden="true" />
                 </Button>
               )}
             </dl>
           )}
-          <div className="ml-auto flex flex-wrap items-center gap-2">
+          {/* Una sola fila: encabezado a la izquierda; filtros y acciones a la derecha. */}
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            {filtros}
             <Button type="button" variant="outline" onClick={() => window.print()} disabled={necesidades.length === 0}>
               <Printer aria-hidden="true" />Imprimir
             </Button>

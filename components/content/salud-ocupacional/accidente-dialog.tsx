@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
+import { AutoHeight } from "@/components/ui/auto-height"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { DESCRIPCION_ACCIDENTE_MAX, type Accidente, type DatosAccidente } from "@/lib/salud-ocupacional"
@@ -80,6 +81,8 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
       <form className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5" onSubmit={event => { event.preventDefault(); void continuar() }}>
         <Stepper steps={PASOS} current={step} />
 
+        {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
+        <AutoHeight className="grid gap-5">
         {step === 1 && <>
           <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
             <div className={FIELD}>
@@ -101,6 +104,7 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
 
         {step === 2 && <AccidenteClasificacion form={form} cambiar={cambiar} />}
         {step === 3 && <AccidenteAtencion form={form} cambiar={cambiar} />}
+        </AutoHeight>
 
         {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
       </form>

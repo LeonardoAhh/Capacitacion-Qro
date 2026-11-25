@@ -214,6 +214,9 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 **`text-input`** — default form field
 - Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, type `{typography.body-md}`, rounded `{rounded.sm}`, padding `{spacing.xs} {spacing.sm}`.
 
+**`choice-toggle`** — single-choice buttons inside forms (Yes/No, severity levels)
+- One button per option in an equal-width row, separated by `{spacing.xs}`. Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, rounded `{rounded.sm}`, control height, type `{typography.body-md}` at regular weight. Selected: border and text in the theme `--primary`, still no fill, weight 500. Hover: the grey `--accent` fill of outline buttons on both options; the selected one keeps its primary border and text. Exposes `aria-pressed` and stays inside a labelled group. Do not use radio circles or a grey track for these choices.
+
 ### Cards & Containers
 
 **`feature-card`** — flat hairline content card

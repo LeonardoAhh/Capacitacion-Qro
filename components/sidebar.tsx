@@ -24,6 +24,10 @@ const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 const rowIdle = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 const rowActive = "border-sidebar-border bg-sidebar-active font-medium text-foreground shadow-(--sidebar-active-shadow)"
 const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
+// Celular (menú a pantalla completa): mosaicos en dos columnas para que todo quepa sin scroll;
+// el nombre usa hasta dos renglones en lugar de recortarse.
+const tileBase = "min-h-14 gap-3 rounded-lg px-3 py-2 text-body-md leading-tight"
+const tileIdle = "border-sidebar-border text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
 
 export interface SidebarApi {
@@ -156,7 +160,7 @@ function NavTree({
         aria-label="Secciones"
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-3 pb-2 scrollbar-thin"
       >
-        <ul>
+        <ul className={mobile ? "grid grid-cols-2 gap-2" : undefined}>
           {navigationItems.map(({ leaf, active }) => {
             const link = (
               <Link
@@ -175,8 +179,8 @@ function NavTree({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   navLinkBase,
-                  SIDEBAR_ROW,
-                  active ? rowActive : rowIdle,
+                  mobile ? tileBase : SIDEBAR_ROW,
+                  active ? rowActive : mobile ? tileIdle : rowIdle,
                 )}
               >
                 <span
@@ -188,7 +192,7 @@ function NavTree({
                 >
                   <leaf.icon className={SIDEBAR_ICON} aria-hidden="true" />
                 </span>
-                <span className="truncate">{leaf.label}</span>
+                <span className={mobile ? "line-clamp-2 min-w-0 break-words" : "truncate"}>{leaf.label}</span>
               </Link>
             )
 
@@ -236,7 +240,8 @@ export default function Sidebar({
           raw
           fullViewport
           showHandle={false}
-          className="inset-y-0 left-0 right-auto mt-0 w-[var(--workspace-sidebar-width)] max-w-[calc(100vw-2rem)] rounded-none border-y-0 border-l-0"
+          // Pantalla completa: los nombres caben enteros y no queda la página cortada detrás.
+          className="inset-0 mt-0 w-full rounded-none border-0"
         >
           <div className="safe-top flex h-full min-h-0 flex-col bg-sidebar text-sidebar-foreground">
             <DrawerTitle className="sr-only">Menú principal</DrawerTitle>
@@ -255,11 +260,17 @@ export default function Sidebar({
       </Drawer>
 
       {/* ── Desktop sidebar: visible o completamente oculta (control en el header) ── */}
+      {/* Al ocultarse se desliza (el ancho llega a 0, globals.css) en lugar de desaparecer de golpe;
+          oculta queda fuera del orden de tabulación y de los lectores de pantalla (inert). */}
       <aside
         id={DESKTOP_NAV_ID}
         aria-label="Menú principal"
-        className={cn("workspace-sidebar hidden flex-col bg-sidebar text-sidebar-foreground md:flex", isCollapsed && "md:hidden")}
+        data-collapsed={isCollapsed}
+        inert={isCollapsed}
+        className="workspace-sidebar hidden flex-col bg-sidebar text-sidebar-foreground md:flex"
       >
+        {/* Ancho fijo por dentro: mientras se anima, el contenido se recorta sin reacomodarse. */}
+        <div className="workspace-sidebar-inner">
         {/* Encabezado sin contenedor, misma altura que el header y separado de la navegación con una línea
             del ancho de la lista. El texto se alinea con los iconos de navegación. */}
         <div className="workspace-sidebar-brand mx-3 mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center border-b border-sidebar-border">
@@ -270,6 +281,7 @@ export default function Sidebar({
         {/* Cuenta separada de la navegación con la misma línea que la marca; termina a la altura del panel. */}
         <div className="mx-3 shrink-0 border-t border-sidebar-border pt-2">
           <AccountMenu workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
+        </div>
         </div>
       </aside>
     </>

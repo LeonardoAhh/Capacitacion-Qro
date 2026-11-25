@@ -13,6 +13,7 @@ import { ViewportFix } from "@/components/viewport-fix"
 import { UserProvider } from "@/lib/hooks/useUser"
 import { RoleProvider } from "@/lib/hooks/useRole"
 import { SignOutProvider } from "@/components/signout-overlay"
+import { WorkspaceSwitchProvider } from "@/components/workspace-switch-overlay"
 import {
   buildThemeBootstrapScript,
   APP_THEME_COLORS,
@@ -81,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ViewportFix />
         <ThemeProvider>
           <SignOutProvider>
+            <WorkspaceSwitchProvider>
             <UserProvider>
               <RoleProvider>
                 <MaintenanceGuard>{children}</MaintenanceGuard>
@@ -92,6 +94,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <ConnectionStatus />
               </RoleProvider>
             </UserProvider>
+            </WorkspaceSwitchProvider>
           </SignOutProvider>
         </ThemeProvider>
       </body>

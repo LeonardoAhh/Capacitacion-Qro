@@ -125,8 +125,9 @@ export function SaludOcupacionalPage() {
   return (
     // Móvil: todo apilado. Tablet: calendario arriba y los indicadores de dos en dos debajo.
     // PC: una sola pantalla con el panel a la derecha, más ancho conforme crece la pantalla.
-    <div className="grid gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_24rem] 2xl:grid-cols-[minmax(0,1fr)_28rem]">
-      <div className="grid lg:flex lg:min-h-0 lg:flex-col">
+    // minmax(0,1fr) en cada cuadrícula: ningún contenido ensancha la columna más que la pantalla.
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_20rem] xl:grid-cols-[minmax(0,1fr)_24rem] 2xl:grid-cols-[minmax(0,1fr)_28rem]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] lg:flex lg:min-h-0 lg:flex-col">
         <MonthCalendar month={month} onMonthChange={setMonth} selected={selected} onSelect={setSelected} onActivate={abrirDia}
           events={marcadores} markersOnly countLabel={["accidente", "accidentes"]} label="Calendario de accidentes"
           dayClassName={date => listo && enRacha(date, rachaActual.desde, hoy) ? TONO_RACHA.fondo : undefined}
@@ -138,7 +139,7 @@ export function SaludOcupacionalPage() {
           )} />
       </div>
 
-      <aside aria-label="Indicadores de accidentes" className="grid content-start gap-3 lg:overflow-y-auto">
+      <aside aria-label="Indicadores de accidentes" className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3 lg:overflow-y-auto">
         {/* Crear ocupa la fila del mes y la navegación (mismo alto de control). */}
         {canManageSafety && (
           <Button type="button" className="w-full md:hidden lg:inline-flex" disabled={!listo} aria-label="Registrar accidente" onClick={crear}>
@@ -148,7 +149,7 @@ export function SaludOcupacionalPage() {
         {loadError
           ? <p role="alert" className="text-body-md text-destructive">No se pudieron cargar los accidentes.</p>
           : loading
-            ? <div aria-busy="true" aria-label="Cargando indicadores" className="grid gap-3 md:grid-cols-2 lg:grid-cols-1">
+            ? <div aria-busy="true" aria-label="Cargando indicadores" className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 lg:grid-cols-[minmax(0,1fr)]">
                 <Skeleton className="h-28 rounded-xl" />
                 <Skeleton className="h-28 rounded-xl" />
               </div>

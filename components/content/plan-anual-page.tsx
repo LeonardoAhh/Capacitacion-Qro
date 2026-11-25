@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { CalendarPlus, FileInput, Pin, Plus, Printer, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -11,42 +12,52 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useRole } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 import { useCatalogoCursos } from "@/lib/hooks/useCatalogoCursos"
-import { cargarAniosPlan, cargarCursosFijos, cargarPlan, completarCursosFijos, eliminarCurso, guardarCurso, guardarCursosFijos, guardarSeguimiento, iniciarMes, MESES, nombreCursoPlan, ordenarCursosMes, PLAN_YEAR_MAX, PLAN_YEAR_MIN, type CursoFijo, type CursoPlan, type CursoSeguimiento, type DatosCurso, type DatosSeguimiento } from "@/lib/plan-anual"
+import { cargarAniosPlan, cargarCursosFijos, cargarPlan, completarCursosFijos, eliminarCurso, guardarCurso, guardarSeguimiento, iniciarMes, MESES, nombreCursoPlan, ordenarCursosMes, type CursoFijo, type CursoPlan, type CursoSeguimiento, type DatosCurso, type DatosSeguimiento } from "@/lib/plan-anual"
+import { PLAN_YEAR_MAX, PLAN_YEAR_MIN, rutaCursosFijos, rutaImportarDnc } from "@/lib/plan-anual-rutas"
 import { PlanAnualCourseDialog } from "@/components/content/plan-anual-course-dialog"
 import { PlanAnualStartDialog } from "@/components/content/plan-anual-start-dialog"
 import { PlanAnualTable } from "@/components/content/plan-anual-table"
 import { PlanAnualProgressDialog } from "@/components/content/plan-anual-progress-dialog"
 import { PlanAnualMetricsDialog } from "@/components/content/plan-anual-metrics-dialog"
-import { PlanAnualDncDialog } from "@/components/content/plan-anual-dnc-dialog"
 import { PlanAnualPrint } from "@/components/content/plan-anual-print"
-import { PlanAnualFixedDialog } from "@/components/content/plan-anual-fixed-dialog"
-import type { CursoImportado } from "@/lib/plan-anual-dnc"
 
 /** Acción de la barra: con poco espacio solo muestra el ícono y su nombre va en el tooltip. */
-function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onClick }: {
+function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onClick, href }: {
   icon: LucideIcon
   label: string
   variant?: "default" | "outline"
   disabled?: boolean
-  onClick: () => void
+  /** Acción en la misma página (abre un modal)… */
+  onClick?: () => void
+  /** …o enlace a su propia página. */
+  href?: string
 }) {
+  const contenido = <>
+    <Icon aria-hidden="true" />
+    <span className="hidden @3xl:inline">{label}</span>
+  </>
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button type="button" variant={variant} onClick={onClick} disabled={disabled} aria-label={label} className="px-3">
-          <Icon aria-hidden="true" />
-          <span className="hidden @3xl:inline">{label}</span>
-        </Button>
+        {href ? (
+          <Button asChild variant={variant} aria-label={label} className="px-3"><Link href={href}>{contenido}</Link></Button>
+        ) : (
+          <Button type="button" variant={variant} onClick={onClick} disabled={disabled} aria-label={label} className="px-3">{contenido}</Button>
+        )}
       </TooltipTrigger>
       <TooltipContent side="bottom">{label}</TooltipContent>
     </Tooltip>
   )
 }
 
-export default function PlanAnualPage() {
+export default function PlanAnualPage({ initialYear, initialMonth }: {
+  /** Año y mes de la URL (`?anio=&mes=`); sin ellos, el año actual y su primer mes. */
+  initialYear: number | null
+  initialMonth: number | null
+}) {
   const { canEdit } = useRole()
-  const [year, setYear] = useState(new Date().getFullYear())
-  const [selectedMonth, setSelectedMonth] = useState(1)
+  const [year, setYear] = useState(initialYear ?? new Date().getFullYear())
+  const [selectedMonth, setSelectedMonth] = useState(initialMonth ?? 1)
   const [months, setMonths] = useState<number[]>([])
   const [planYears, setPlanYears] = useState<number[]>([])
   const [courses, setCourses] = useState<CursoPlan[]>([])
@@ -54,8 +65,6 @@ export default function PlanAnualPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [startOpen, setStartOpen] = useState(false)
-  const [importOpen, setImportOpen] = useState(false)
-  const [fixedOpen, setFixedOpen] = useState(false)
   const [fijos, setFijos] = useState<CursoFijo[]>([])
   const [courseDialog, setCourseDialog] = useState<CursoPlan | "new" | null>(null)
   const [progressCourse, setProgressCourse] = useState<CursoSeguimiento | null>(null)
@@ -143,45 +152,6 @@ export default function PlanAnualPage() {
     notify.success("Curso guardado")
   }
 
-  /** Agrega los cursos revisados desde la DNC; inicia los meses que falten. */
-  async function handleImport(items: CursoImportado[]) {
-    const nuevosMeses = [...new Set(items.map(item => item.mes))].filter(month => !months.includes(month))
-    for (const month of nuevosMeses) await iniciarMes(year, month)
-    if (nuevosMeses.length) {
-      setMonths(current => [...current, ...nuevosMeses].sort((left, right) => left - right))
-      setPlanYears(current => current.includes(year) ? current : [...current, year])
-    }
-    const ordenPorMes = new Map<number, number>()
-    const guardados: CursoPlan[] = []
-    try {
-      // Primero los fijos de los meses nuevos; luego los de la DNC que aún no estén en su mes.
-      guardados.push(...await completarCursosFijos(year, nuevosMeses, courses, fijos))
-      const actuales = [...courses, ...guardados]
-      for (const item of items) {
-        if (actuales.some(course => course.mes === item.mes && course.course_id === item.datos.course_id)) continue
-        const orden = (ordenPorMes.get(item.mes) ?? Math.max(0, ...actuales.filter(course => course.mes === item.mes).map(course => course.orden))) + 1
-        ordenPorMes.set(item.mes, orden)
-        guardados.push(await guardarCurso(year, item.mes, orden, item.datos))
-      }
-    } finally {
-      // Si alguno falla, los ya guardados se quedan visibles; el modal muestra el error.
-      if (guardados.length) setCourses(current => [...current, ...guardados])
-    }
-    setImportOpen(false)
-    setSelectedMonth(items[0].mes)
-    notify.success(guardados.length === 1 ? "1 curso agregado al plan" : `${guardados.length} cursos agregados al plan`)
-  }
-
-  /** Guarda la lista de fijos y agrega los que falten en los meses ya iniciados del año. */
-  async function handleSaveFixed(lista: Omit<CursoFijo, "orden">[]) {
-    const guardados = await guardarCursosFijos(lista)
-    setFijos(guardados)
-    const agregados = await completarCursosFijos(year, months, courses, guardados)
-    if (agregados.length) setCourses(current => [...current, ...agregados])
-    setFixedOpen(false)
-    notify.success(agregados.length ? `Cursos fijos guardados · ${agregados.length} agregados al plan` : "Cursos fijos guardados")
-  }
-
   async function handleDelete(course: CursoPlan) {
     const confirmed = await notify.confirm({
       title: "Eliminar curso",
@@ -243,8 +213,8 @@ export default function PlanAnualPage() {
               <div className="ml-auto flex shrink-0 items-center gap-2">
                 {/* Imprime el año completo; lo puede hacer quien consulta el plan. */}
                 <ToolbarAction icon={Printer} label="Imprimir" disabled={courses.length === 0} onClick={() => window.print()} />
-                {canEdit && <ToolbarAction icon={Pin} label="Cursos fijos" onClick={() => { catalogo.cargar(); setFixedOpen(true) }} />}
-                {canEdit && <ToolbarAction icon={FileInput} label="Traer desde la DNC" onClick={() => setImportOpen(true)} />}
+                {canEdit && <ToolbarAction icon={Pin} label="Cursos fijos" href={rutaCursosFijos(year)} />}
+                {canEdit && <ToolbarAction icon={FileInput} label="Importar DNC" href={rutaImportarDnc(year)} />}
                 {canEdit && monthStarted && <ToolbarAction icon={Plus} label="Agregar curso" onClick={() => openCourseDialog("new")} />}
                 {canEdit && availableMonths.length > 0 && <ToolbarAction icon={CalendarPlus} label="Iniciar mes" variant="default" onClick={() => setStartOpen(true)} />}
               </div>
@@ -274,14 +244,6 @@ export default function PlanAnualPage() {
           curso={courseDialog === "new" ? null : courseDialog} mes={MESES[selectedMonth - 1]}
           catalog={catalogo.cursos} catalogLoading={catalogo.loading} catalogError={catalogo.error}
           onClose={() => setCourseDialog(null)} onSave={handleSave} />
-      )}
-      {fixedOpen && (
-        <PlanAnualFixedDialog fijos={fijos} anio={year} catalog={catalogo.cursos} catalogLoading={catalogo.loading}
-          catalogError={catalogo.error} onClose={() => setFixedOpen(false)} onSave={handleSaveFixed} />
-      )}
-      {importOpen && (
-        <PlanAnualDncDialog anio={year} cursosPlan={courses}
-          onClose={() => setImportOpen(false)} onImport={handleImport} />
       )}
       {progressCourse && (
         <PlanAnualProgressDialog key={progressCourse.id} curso={progressCourse} canEdit={canEdit}

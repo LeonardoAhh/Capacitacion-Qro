@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
+import { ResponsiveShell } from "@/components/ui/responsive-shell"
 
 /** Igual al breakpoint `lg`: desde aquí el detalle va a un lado de la lista. */
 export const DETAIL_SIDE_QUERY = "(min-width: 64rem)"
@@ -13,7 +13,8 @@ export const LIST_WITH_DETAIL_GRID = "grid items-start gap-4 lg:grid-cols-[minma
 
 /**
  * Detalle del elemento elegido en una lista. Desde `lg` es una columna fija junto a la
- * lista (con su propio scroll); en pantallas chicas, una hoja inferior. Cerrar flota
+ * lista (con su propio scroll); en móvil, una hoja inferior, y en tablet, un modal
+ * centrado. Ambos toman el alto del contenido (con tope y scroll). Cerrar flota
  * arriba a la derecha para que el contenido encabece el panel.
  */
 export function SideDetailPanel({ side, title, description, onClose, children }: {
@@ -25,11 +26,11 @@ export function SideDetailPanel({ side, title, description, onClose, children }:
   children: ReactNode
 }) {
   const body = (
-    <div className="relative flex min-h-0 flex-1 flex-col">
+    <div className="relative flex min-h-0 flex-col">
       <Button type="button" variant="ghost" size="icon" aria-label="Cerrar detalle" onClick={onClose} className="absolute right-2 top-2 z-10">
         <X aria-hidden="true" />
       </Button>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{children}</div>
+      <div className="min-h-0 overflow-y-auto overscroll-contain">{children}</div>
     </div>
   )
 
@@ -43,12 +44,8 @@ export function SideDetailPanel({ side, title, description, onClose, children }:
   }
 
   return (
-    <Drawer open shouldScaleBackground={false} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DrawerContent raw>
-        <DrawerTitle className="sr-only">{title}</DrawerTitle>
-        <DrawerDescription className="sr-only">{description}</DrawerDescription>
-        {body}
-      </DrawerContent>
-    </Drawer>
+    <ResponsiveShell open onClose={onClose} size="sm" title={title} description={description}>
+      {body}
+    </ResponsiveShell>
   )
 }

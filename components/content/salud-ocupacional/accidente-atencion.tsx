@@ -1,7 +1,8 @@
 import { Checkbox } from "@/components/ui/checkbox"
 import { ATENCIONES, SEGUIMIENTO, type AtencionAccidente } from "@/lib/salud-ocupacional"
 import { cn } from "@/lib/utils"
-import { CampoDias, FIELD, PreguntaOpciones } from "./accidente-campos"
+import { ChoiceToggle } from "@/components/ui/choice-toggle"
+import { CampoDias, FIELD } from "./accidente-campos"
 import type { FormularioAccidente } from "./accidente-form"
 
 type Cambiar = <K extends keyof FormularioAccidente>(key: K, value: FormularioAccidente[K]) => void
@@ -16,7 +17,7 @@ function DetalleAtencion({ atencion, form, cambiar }: { atencion: AtencionAccide
       <CampoDias id="accidente-dias-reposo" label="Días de reposo" hint="vacío si no hubo" value={form.diasReposo}
         onChange={value => cambiar("diasReposo", value)} />
       {form.diasReposo && (
-        <PreguntaOpciones id="accidente-goce" label="Goce de sueldo" value={form.goce} options={GOCE} onChange={value => cambiar("goce", value)} />
+        <ChoiceToggle id="accidente-goce" label="Goce de sueldo" value={form.goce} options={GOCE} onChange={value => cambiar("goce", value)} />
       )}
     </>
   }

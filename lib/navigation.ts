@@ -158,6 +158,8 @@ const ROUTE_PREFIX_LABELS = [
   { prefix: "/plantilla/incumplimientos/", label: "Incumplimientos" },
   { prefix: "/plantilla/retardos/", label: "Retardos" },
   { prefix: "/recontratacion/", label: "Revisión de contrato" },
+  { prefix: "/plan-anual/cursos-fijos/", label: "Cursos fijos" },
+  { prefix: "/plan-anual/importar-dnc/", label: "Importar DNC" },
   // Después de los overrides exactos: /promociones/reglas conserva su propia etiqueta.
   { prefix: "/promociones/", label: "Detalle de promoción" },
 ]

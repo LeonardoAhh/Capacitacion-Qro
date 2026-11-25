@@ -6,8 +6,7 @@ export const MESES = [
   "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre",
 ] as const
 
-export const PLAN_YEAR_MIN = 2000
-export const PLAN_YEAR_MAX = 2100
+export { PLAN_YEAR_MAX, PLAN_YEAR_MIN } from "@/lib/plan-anual-rutas"
 
 export type TipoCurso = "interno" | "externo"
 
@@ -160,6 +159,17 @@ export async function completarCursosFijos(anio: number, meses: number[], cursos
     }
   }
   return agregados
+}
+
+/**
+ * Guarda la lista de fijos y agrega los que falten en los meses ya iniciados del año.
+ * Devuelve cuántos cursos se agregaron al plan.
+ */
+export async function guardarFijosEnPlan(anio: number, fijos: Omit<CursoFijo, "orden">[]): Promise<number> {
+  const guardados = await guardarCursosFijos(fijos)
+  const plan = await cargarPlan(anio)
+  const agregados = await completarCursosFijos(anio, plan.meses, plan.cursos, guardados)
+  return agregados.length
 }
 
 /** Firmas del plan anual impreso: puesto que elabora y puesto que autoriza. */

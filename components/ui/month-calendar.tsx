@@ -103,7 +103,7 @@ export function MonthCalendar({ month, onMonthChange, selected, onSelect, onActi
   }
 
   return (
-    <section aria-labelledby="month-calendar-title" className={cn("grid gap-3", !markersOnly && "md:flex md:min-h-0 md:flex-1 md:flex-col")}>
+    <section aria-labelledby="month-calendar-title" className={cn("grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3", !markersOnly && "md:flex md:min-h-0 md:flex-1 md:flex-col")}>
       <div className="flex items-center gap-2">
         <h2 id="month-calendar-title" className="mr-auto text-heading-md text-foreground" aria-live="polite">
           {capitalizar(TITULO_MES.format(deISO(mesVisible)))}

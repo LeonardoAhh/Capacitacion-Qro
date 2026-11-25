@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Stepper } from "@/components/ui/stepper"
+import { AutoHeight } from "@/components/ui/auto-height"
 import { cn } from "@/lib/utils"
 import {
   formatFechaHora, KANBAN_COLUMNAS, limpiarAlEscribir, normalizarTarjeta, normalizarTexto, KANBAN_PRIORIDADES, KANBAN_REPETICIONES, KANBAN_TIPOS, MAX_COLABORADORES, MAX_DESCRIPCION, MAX_TITULO, validarContenido, validarTarjeta,
@@ -183,6 +184,8 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
           else void handleSave()
         }}>
         <Stepper steps={PASOS} current={step} />
+        {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
+        <AutoHeight className="grid gap-4">
         {step === 1 ? (
           <>
             {!tarjeta && !base && plantillas.length > 0 && (
@@ -298,6 +301,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
             )}
           </>
         )}
+        </AutoHeight>
 
         {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
         {tarjeta && (

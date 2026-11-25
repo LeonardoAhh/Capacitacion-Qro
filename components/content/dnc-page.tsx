@@ -139,45 +139,48 @@ export default function DncPage() {
     }
   }
 
+  // Filtros (el valor elegido ya describe el filtro; la etiqueta queda para lectores de pantalla)
+  // y Crear DNC. Con un reporte abierto van en la misma fila que su encabezado y acciones.
+  const filtros = <>
+    <div>
+      <Label htmlFor="dnc-anio" className="sr-only">Año</Label>
+      <Select value={String(year)} onValueChange={value => {
+        setError(null)
+        setYear(Number(value))
+      }}>
+        <SelectTrigger id="dnc-anio" className="w-28"><SelectValue /></SelectTrigger>
+        <SelectContent>
+          {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
+        </SelectContent>
+      </Select>
+    </div>
+    {ready && reports.length > 0 && (
+      <div className="min-w-48">
+        <Label htmlFor="dnc-departamento" className="sr-only">Departamento</Label>
+        <Select value={selectedReportId} onValueChange={setSelectedReportId}>
+          <SelectTrigger id="dnc-departamento" className="w-auto min-w-48"><SelectValue /></SelectTrigger>
+          <SelectContent matchTriggerWidth>
+            {reports.map(reporte => (
+              <SelectItem key={reporte.id} value={reporte.id}>{nombreDepartamento(reporte)}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    )}
+    {canEdit && ready && availableDepartments.length > 0 && (
+      <Button type="button" variant="outline" onClick={() => setCreateOpen(true)}>Crear DNC</Button>
+    )}
+  </>
+
   return (
     <div className="space-y-4">
-      {/* Barra de filtros: el valor seleccionado ya describe el filtro, la etiqueta queda para lectores de pantalla. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <div>
-          <Label htmlFor="dnc-anio" className="sr-only">Año</Label>
-          <Select value={String(year)} onValueChange={value => {
-            setError(null)
-            setYear(Number(value))
-          }}>
-            <SelectTrigger id="dnc-anio" className="w-28"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        {ready && reports.length > 0 && (
-          <div className="min-w-48">
-            <Label htmlFor="dnc-departamento" className="sr-only">Departamento</Label>
-            <Select value={selectedReportId} onValueChange={setSelectedReportId}>
-              <SelectTrigger id="dnc-departamento" className="w-auto min-w-48"><SelectValue /></SelectTrigger>
-              <SelectContent matchTriggerWidth>
-                {reports.map(reporte => (
-                  <SelectItem key={reporte.id} value={reporte.id}>{nombreDepartamento(reporte)}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-        {canEdit && ready && availableDepartments.length > 0 && (
-          <Button type="button" variant="outline" className="ml-auto" onClick={() => setCreateOpen(true)}>Crear DNC</Button>
-        )}
-      </div>
+      {!(ready && selectedReport) && <div className="flex flex-wrap items-center gap-2">{filtros}</div>}
 
       {loadError && <p role="alert" className="text-body-md text-destructive">{loadError}</p>}
       {!ready && !loadError && <Skeleton className="h-32 w-full rounded-xl" aria-label="Cargando DNC" />}
       {ready && selectedReport && (
         <DncReport key={selectedReport.id} reporte={selectedReport} necesidades={reportNeeds}
-          puestos={reportPositions} canEdit={canEdit}
+          puestos={reportPositions} canEdit={canEdit} filtros={filtros}
           onSaveHeader={handleSaveHeader} onAdd={() => openNeedDialog("new")}
           onEdit={openNeedDialog} onDelete={handleDeleteNeed} />
       )}
