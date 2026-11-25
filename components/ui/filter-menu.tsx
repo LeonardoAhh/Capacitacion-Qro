@@ -21,9 +21,13 @@ export interface FilterFacet {
 /**
  * Un solo botón "Filtros" con un submenú por faceta (menú en cascada): al pasar o
  * tocar una faceta se despliegan sus opciones al lado. Reemplaza una fila de
- * selects; el botón muestra cuántos filtros están activos.
+ * selects; el botón muestra cuántos filtros están activos. Siempre lleva ícono y
+ * texto: nunca queda solo con ícono.
  */
-export function FilterMenu({ facets, onClear }: { facets: FilterFacet[]; onClear: () => void }) {
+export function FilterMenu({ facets, onClear }: {
+  facets: FilterFacet[]
+  onClear: () => void
+}) {
   const active = facets.filter(facet => facet.value !== FILTER_ALL)
   return (
     <DropdownMenu>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Printer } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { RecontratacionPrintData } from "@/components/content/recontratacion-print"
+import { RecontratacionPrintDialog } from "@/components/content/recontratacion-print-dialog"
 import { evaluarRecomendacion, EVAL_THRESHOLDS } from "@/components/content/recontratacion-logic"
 import { Dato, RECO_META } from "@/components/content/recontratacion-ui"
 import { formatDate } from "@/lib/hooks"
@@ -59,6 +60,9 @@ function DetalleSkeleton() {
 export function RecontratacionDetallePage({ numero }: { numero: string }) {
   const { fetchByNumero, error } = useRecontratacion()
   const [estado, setEstado] = useState<Estado>({ status: "loading" })
+  const [imprimiendo, setImprimiendo] = useState(false)
+  // Estable: el modal lo usa como oyente de "afterprint".
+  const cerrarImpresion = useCallback(() => setImprimiendo(false), [])
 
   useEffect(() => {
     let active = true
@@ -91,10 +95,8 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
         </div>
         <div className="flex items-center gap-3">
           <RecomendacionBadge data={data} />
-          <Button asChild size="sm">
-            <Link href={`/recontratacion/imprimir?numero=${encodeURIComponent(data.numero)}`} target="_blank">
-              <Printer aria-hidden="true" />Imprimir formato
-            </Link>
+          <Button type="button" size="sm" onClick={() => setImprimiendo(true)}>
+            <Printer aria-hidden="true" />Imprimir formato
           </Button>
         </div>
       </header>
@@ -178,6 +180,7 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
         </div>
       </section>
 
+      {imprimiendo && <RecontratacionPrintDialog numero={data.numero} nombre={data.nombre} data={data} onClose={cerrarImpresion} />}
     </div>
   )
 }

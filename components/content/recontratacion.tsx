@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHeader } from "@/components/ui/table"
 import { EmpleadoHeader, EmpleadoRow, SkeletonRow } from "@/components/content/recontratacion-employee-row"
 import { CompactPager } from "@/components/ui/compact-pager"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { RecontratacionFilters } from "@/components/content/recontratacion-filters"
+import { RecontratacionPrintDialog } from "@/components/content/recontratacion-print-dialog"
 import { PAGE_SIZE, sortByTermino } from "@/components/content/recontratacion-logic"
 import { useNuevoIngreso, type NuevoIngreso } from "@/lib/hooks"
 
@@ -18,6 +20,8 @@ export default function RecontratacionContent() {
   const [search, setSearch] = useState("")
   const [filterDept, setFilterDept] = useState("all")
   const [page, setPage] = useState(1)
+  // Registro cuyo formato se va a imprimir: primero se eligen las opciones en un modal.
+  const [imprimiendo, setImprimiendo] = useState<{ numero: string; nombre: string } | null>(null)
 
   const load = useCallback(async () => {
     setRecords(await fetchAll())
@@ -64,9 +68,11 @@ export default function RecontratacionContent() {
     if (page > pageCount) setPage(pageCount)
   }, [page, pageCount])
 
+  // Estable: el modal lo usa como oyente de "afterprint".
+  const cerrarImpresion = useCallback(() => setImprimiendo(null), [])
   const imprimir = useCallback((numero: string) => {
-    window.open(`/recontratacion/imprimir?numero=${encodeURIComponent(numero)}`, "_blank")
-  }, [])
+    setImprimiendo({ numero, nombre: records.find(record => record.numero === numero)?.nombre ?? "" })
+  }, [records])
 
   const hasFilters = search.trim() !== "" || filterDept !== "all"
   const clearFilters = () => {
@@ -83,28 +89,16 @@ export default function RecontratacionContent() {
         </Alert>
       )}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <RecontratacionFilters
-          search={search}
-          onSearchChange={setSearch}
-          departments={departments}
-          filterDepartment={filterDept}
-          onDepartmentChange={setFilterDept}
-          hasFilters={hasFilters}
-          onClear={clearFilters}
-        />
-        {/* Conteo y paginación mínimos, en la misma línea que la búsqueda y el filtro. */}
-        {!loading && (
-          <div className="ml-auto flex items-center gap-3">
-            <p className="text-body-sm tabular-nums text-muted-foreground" aria-live="polite">
-              {filtered.length === records.length
-                ? `${records.length} empleados`
-                : `${filtered.length} de ${records.length}`}
-            </p>
-            <CompactPager label="Paginación de empleados" page={page} totalPages={pageCount} onPageChange={setPage} />
-          </div>
-        )}
-      </div>
+      {/* La búsqueda va en el header; aquí, filtro a la izquierda y paginación a la derecha. */}
+      <HeaderSearch label="Buscar empleado" placeholder="Nombre, número, puesto…" value={search} onValueChange={setSearch} />
+      <RecontratacionFilters
+        departments={departments}
+        filterDepartment={filterDept}
+        onDepartmentChange={setFilterDept}
+        hasFilters={hasFilters}
+        onClear={clearFilters}
+        pager={!loading && <CompactPager label="Paginación de empleados" page={page} totalPages={pageCount} onPageChange={setPage} />}
+      />
 
       {!loading && filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card py-12 text-muted-foreground md:py-16" role="status">
@@ -132,6 +126,7 @@ export default function RecontratacionContent() {
           </Table>
         </div>
       )}
+      {imprimiendo && <RecontratacionPrintDialog {...imprimiendo} onClose={cerrarImpresion} />}
     </div>
   )
 }

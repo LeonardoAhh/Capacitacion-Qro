@@ -1,8 +1,8 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import Image from "next/image"
-import { useEffect, useRef } from "react"
 import { AspectRatio } from "@/components/ui/aspect-ratio"
 import { AnimatePresence, motion } from "framer-motion"
 import { useAppReducedMotion } from "@/components/app-transition"
@@ -71,11 +71,14 @@ export function ImageExpansion({ src, alt, ratio, evidences, label = "Imágenes 
     }
   }, [onClose, evidenceList])
 
-  return (
+  // Se monta en <body>: dentro del panel del contenido (con su propio contexto de apilamiento)
+  // quedaba debajo del header aunque fuera fixed.
+  return createPortal(
     <motion.div
-      className="fixed inset-0 z-50 grid place-items-center bg-background/70 p-4 backdrop-blur-md sm:p-8"
+      className="fixed inset-0 z-[100] grid place-items-center bg-background/70 p-4 backdrop-blur-md sm:p-8"
       aria-label={label}
-      role="region"
+      role="dialog"
+      aria-modal="true"
       initial={reducedMotion ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: reducedMotion ? 0 : 0.16 }}
@@ -147,6 +150,7 @@ export function ImageExpansion({ src, alt, ratio, evidences, label = "Imágenes 
           </div>
         )}
       </div>
-    </motion.div>
+    </motion.div>,
+    document.body,
   )
 }

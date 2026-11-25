@@ -61,8 +61,6 @@ const STATUS_LABEL: Record<AptitudStatus, string> = {
 export interface ExportMeta {
     filtros?: {
         busqueda?: string
-        departamento?: string
-        puesto?: string
         estado?: string
     }
 }
@@ -159,8 +157,6 @@ function filtrosTexto(meta?: ExportMeta): string {
     const f = meta?.filtros
     if (!f) return "Todos los registros"
     const partes: string[] = []
-    if (f.departamento && f.departamento !== "todos") partes.push(`Depto: ${f.departamento}`)
-    if (f.puesto && f.puesto !== "todos") partes.push(`Puesto: ${f.puesto}`)
     if (f.estado && f.estado !== "todos") partes.push(`Estado: ${STATUS_LABEL[f.estado as AptitudStatus] ?? f.estado}`)
     if (f.busqueda) partes.push(`Búsqueda: "${f.busqueda}"`)
     return partes.length ? partes.join("  ·  ") : "Todos los registros"

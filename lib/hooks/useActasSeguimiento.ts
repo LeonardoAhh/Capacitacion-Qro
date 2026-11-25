@@ -3,7 +3,6 @@
 import { useCallback, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import type { EmployeeDayCountImport } from "@/lib/imports/employee-day-count-json"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -58,27 +57,6 @@ export function useActasSeguimiento() {
       return []
     } finally {
       setLoading(false)
-    }
-  }, [])
-
-  const replaceMonths = useCallback(async (payload: EmployeeDayCountImport) => {
-    setSaving(true)
-    setError(null)
-    try {
-      const { error: dbError } = await supabase.rpc(
-        "reemplazar_meses_actas_administrativas",
-        {
-          p_periodos: payload.meses.map(({ mes, registros }) => ({ mes, registros })),
-        },
-      )
-      if (dbError) throw dbError
-      return { success: true }
-    } catch (caught) {
-      const message = describeSupabaseError(caught, "Error al reemplazar las actas del mes")
-      setError(message)
-      return { success: false, error: message }
-    } finally {
-      setSaving(false)
     }
   }, [])
 
@@ -150,7 +128,7 @@ export function useActasSeguimiento() {
     [],
   )
 
-  return { loading, saving, error, fetchByEmpleado, replaceMonths, create, update, remove }
+  return { loading, saving, error, fetchByEmpleado, create, update, remove }
 }
 
 /** Fetch all open administrative actas across all employees. */

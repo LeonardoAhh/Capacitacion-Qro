@@ -217,6 +217,12 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 **`choice-toggle`** — single-choice buttons inside forms (Yes/No, severity levels)
 - One button per option in an equal-width row, separated by `{spacing.xs}`. Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, rounded `{rounded.sm}`, control height, type `{typography.body-md}` at regular weight. Selected: border and text in the theme `--primary`, still no fill, weight 500. Hover: the grey `--accent` fill of outline buttons on both options; the selected one keeps its primary border and text. Exposes `aria-pressed` and stays inside a labelled group. Do not use radio circles or a grey track for these choices.
 
+**`toolbar-filters`** — filters in page toolbars
+- One filter: a plain select, never the grouped menu. Two or more filters that do not fit on one line: the single `Filtros` button (icon + text) that groups them as sub-menus.
+- Selects carry text only, no leading icon. Their "no filter" option is the filter's plural noun (`Departamentos`, `Estados`, `Periodos`), never "Todos los …". Option labels are short words with no parenthetical details; the select is wide enough for its longest option so nothing truncates.
+- Filter controls never collapse to icon-only. The clear action is a ghost button with an `X` icon and the text `Limpiar`, shown only while a filter is active.
+- Search does not live in the toolbar: it goes in the header magnifier (`HeaderSearch`).
+
 ### Cards & Containers
 
 **`feature-card`** — flat hairline content card

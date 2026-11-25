@@ -21,19 +21,6 @@ import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog
 import { CapPositionsTab } from "@/components/content/cap-positions-tab"
 import { CapCoursesTab } from "@/components/content/cap-courses-tab"
 import { CapHistorialTab } from "@/components/content/cap-historial-tab"
-import { CapBulkImportDialog } from "@/components/redesign/cap-bulk-import-dialog"
-import { CapBulkCreateEmployees } from "@/components/redesign/cap-bulk-create-employees"
-import { EmployeeDayCountImportDialog } from "@/components/content/employee-day-count-import-dialog"
-import { useActasSeguimiento } from "@/lib/hooks/useActasSeguimiento"
-import { useReglamentoIncumplimientos } from "@/lib/hooks/useReglamentoIncumplimientos"
-import { useRegistrosPorDia } from "@/lib/hooks/useRegistrosPorDia"
-import { RETARDOS_CONFIG } from "@/lib/plantilla/registros-por-dia"
-import { parseRetardosJson } from "@/lib/imports/retardos-json"
-import { validarEmpleadosExistentes } from "@/lib/imports/validar-empleados"
-
-// Hooks
-import { useBulkImport } from "@/lib/hooks/useBulkImport"
-import { useJsonImport } from "@/lib/hooks/useJsonImport"
 
 // Pestañas a su ancho natural desde sm; en celular se reparten la línea.
 const TAB_TRIGGER = "flex-1 gap-2 sm:flex-none"
@@ -41,17 +28,12 @@ const TAB_TRIGGER = "flex-1 gap-2 sm:flex-none"
 export default function CapacitacionContent() {
   const { canEdit, isReadOnly, employeesOnly } = useRole()
   const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null)
-  const { replaceMonths: replaceActasMonths } = useActasSeguimiento()
-  const { replaceMonths: replaceIncumplimientosMonths } = useReglamentoIncumplimientos()
-  const { replaceMonths: replaceRetardosMonths } = useRegistrosPorDia(RETARDOS_CONFIG)
   const {
-    importing, importError,
-    parseJSON, importData,
     fetchDepartments, fetchPositions, fetchCourses,
     fetchAllPositionCourses, fetchAllEmployeeCourses,
     fetchEmployees,
     clearHistorial, deleteEmployee, createEmployeeManual, updateEmployee,
-    addCoursesToEmployee, bulkImportCourseRecords,
+    addCoursesToEmployee,
     createPosition, createCourse, updateCourse,
   } = useCapacitacion()
 
@@ -91,20 +73,13 @@ export default function CapacitacionContent() {
   const [editEmpSaving, setEditEmpSaving] = useState(false)
 
   const [newEmpOpen, setNewEmpOpen] = useState(false)
-  const [bulkCreateEmpOpen, setBulkCreateEmpOpen] = useState(false)
   const [newEmpSaving, setNewEmpSaving] = useState(false)
   const [newEmpSuccess, setNewEmpSuccess] = useState(false)
-  const [reglamentoImportOpen, setReglamentoImportOpen] = useState(false)
-  const [actasImportOpen, setActasImportOpen] = useState(false)
-  const [retardosImportOpen, setRetardosImportOpen] = useState(false)
 
   const [addCoursesDlgOpen, setAddCoursesDlgOpen] = useState(false)
   const [addCoursesDlgEmp, setAddCoursesDlgEmp] = useState<Employee | null>(null)
   const [addCoursesSaving, setAddCoursesSaving] = useState(false)
   const [addCoursesSuccess, setAddCoursesSuccess] = useState(false)
-
-  // ── Feature hooks ─────────────────────────────────────────────────────────
-  const jsonImport = useJsonImport({ parseJSON, importData })
 
   // ── Data loaders ──────────────────────────────────────────────────────────
   const loadCoursesData = useCallback(async () => {
@@ -164,12 +139,6 @@ export default function CapacitacionContent() {
     coursesTabDataVersion.current += 1
   }, [])
 
-  const importCourseRecords = useCallback(async (records: Parameters<typeof bulkImportCourseRecords>[0]) => {
-    const result = await bulkImportCourseRecords(records)
-    if (result.success) invalidateCoursesTabData()
-    return result
-  }, [bulkImportCourseRecords, invalidateCoursesTabData])
-
   const loadCoursesTabData = useCallback(() => {
     if (coursesTabDataLoaded.current) return Promise.resolve()
     if (coursesTabLoadPromise.current) return coursesTabLoadPromise.current
@@ -219,8 +188,6 @@ export default function CapacitacionContent() {
     loadPositionData()
     loadEmployees()
   }, [loadEmployees, loadPositionData])
-
-  const bulkImport = useBulkImport({ employees, courses, bulkImportCourseRecords: importCourseRecords, onLoadCourses: loadCoursesData })
 
   // ── Tab change ────────────────────────────────────────────────────────────
   const handleTabChange = useCallback(async (v: string) => {
@@ -344,11 +311,6 @@ export default function CapacitacionContent() {
     }
   }, [deleteEmployee, invalidateCoursesTabData])
 
-  const handleBulkEmployeesCreated = useCallback(() => {
-    invalidateCoursesTabData()
-    loadEmployees(true)
-  }, [invalidateCoursesTabData, loadEmployees])
-
   // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
@@ -413,11 +375,6 @@ export default function CapacitacionContent() {
                 newEmpSuccess={newEmpSuccess}
                 addCoursesSuccess={addCoursesSuccess}
                 onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
-                onBulkImport={bulkImport.openDialog}
-                onBulkImportIncumplimientos={() => setReglamentoImportOpen(true)}
-                onBulkImportActas={() => setActasImportOpen(true)}
-                onBulkImportRetardos={() => setRetardosImportOpen(true)}
-                onBulkCreateEmployees={() => setBulkCreateEmpOpen(true)}
                 onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
                 onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
                 onDeleteEmployee={handleDeleteEmployee}
@@ -429,73 +386,6 @@ export default function CapacitacionContent() {
       </TabsToolbarProvider>
 
       {/* ── Dialogs ─────────────────────────────────────────────────────── */}
-      <CapBulkCreateEmployees
-        open={bulkCreateEmpOpen}
-        onClose={() => setBulkCreateEmpOpen(false)}
-        onCreated={() => { setBulkCreateEmpOpen(false); handleBulkEmployeesCreated() }}
-      />
-
-      {canEdit && (
-        <EmployeeDayCountImportDialog
-          open={reglamentoImportOpen}
-          onOpenChange={setReglamentoImportOpen}
-          title="Cargar incumplimientos"
-          description="Importa registros del reglamento interno desde un archivo JSON."
-          itemSingular="incumplimiento"
-          itemPlural="incumplimientos"
-          onReplaceMonths={replaceIncumplimientosMonths}
-          validate={validarEmpleadosExistentes}
-        />
-      )}
-      {canEdit && (
-        <EmployeeDayCountImportDialog
-          open={actasImportOpen}
-          onOpenChange={setActasImportOpen}
-          title="Cargar actas administrativas"
-          description="Importa las cantidades de actas administrativas por empleado y día desde un archivo JSON."
-          itemSingular="acta administrativa"
-          itemPlural="actas administrativas"
-          onReplaceMonths={replaceActasMonths}
-          validate={validarEmpleadosExistentes}
-        />
-      )}
-      {canEdit && (
-        <EmployeeDayCountImportDialog
-          open={retardosImportOpen}
-          onOpenChange={setRetardosImportOpen}
-          title="Cargar retardos"
-          description="Importa el reporte de retardos por empleado y fecha desde un archivo JSON."
-          itemSingular="retardo"
-          itemPlural="retardos"
-          onReplaceMonths={replaceRetardosMonths}
-          parse={parseRetardosJson}
-          validate={validarEmpleadosExistentes}
-          note="Cada fila es un retardo; se agrupan por empleado y día sumando los minutos. Se reemplazan únicamente los meses incluidos en el archivo, completos para todos los empleados."
-          placeholder={`[\n  {\n    "NOMINA": "330",\n    "NOMBRE": "SANCHEZ HERNANDEZ MARICELA",\n    "FECHA": "15/10/2026",\n    "TIEMPO DE RETARDO": "8",\n    "RETARDO": "SI"\n  }\n]`}
-        />
-      )}
-
-      <CapBulkImportDialog
-        open={bulkImport.open}
-        text={bulkImport.text}
-        parseError={bulkImport.parseError}
-        rows={bulkImport.rows}
-        saving={bulkImport.saving}
-        error={bulkImport.error}
-        success={bulkImport.success}
-        fileRef={bulkImport.fileRef}
-        courses={courses}
-        isReadOnly={isReadOnly}
-        onOpenChange={bulkImport.closeDialog}
-        onTextChange={bulkImport.setText}
-        onParse={bulkImport.handleParse}
-        onFile={bulkImport.handleFile}
-        onUpdateRow={bulkImport.updateRow}
-        onSelectCourse={bulkImport.selectCourse}
-        onImport={bulkImport.handleImport}
-        onBack={bulkImport.backToEdit}
-      />
-
       <CapAddCoursesDialog
         employee={addCoursesDlgEmp}
         open={addCoursesDlgOpen}

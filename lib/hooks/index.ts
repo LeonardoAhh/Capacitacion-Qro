@@ -21,7 +21,6 @@ export type {
   Position,
   Course,
   PositionCourse,
-  ImportPreview,
   Employee,
   EmployeeCourse,
   CourseAlias,

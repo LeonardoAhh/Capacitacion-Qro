@@ -20,8 +20,11 @@ const SlotContext = createContext<HTMLElement | null>(null)
 
 export const TabsToolbarProvider = SlotContext.Provider
 
-/** Medidas de la barra: la búsqueda y cada filtro ocupan lo mismo en todas las páginas. */
-export const TOOLBAR_SEARCH = "w-full sm:w-56"
+/**
+ * Medidas de la barra: la búsqueda se encoge hasta 8rem antes de bajar de línea (y crece hasta
+ * 14rem); cada filtro ocupa lo mismo en todas las páginas.
+ */
+export const TOOLBAR_SEARCH = "w-full sm:w-auto sm:min-w-32 sm:max-w-56 sm:flex-1"
 export const TOOLBAR_FILTER = "w-[calc(50%-0.25rem)] sm:w-40"
 
 export function TabsBar({ slotRef, children, className }: {
@@ -30,10 +33,13 @@ export function TabsBar({ slotRef, children, className }: {
   className?: string
 }) {
   return (
-    <div className={cn("mb-4 flex flex-wrap items-center gap-x-4 gap-y-3", className)}>
+    // @container: las acciones de cada pestaña pueden mostrar u ocultar su texto según el ancho
+    // de esta barra (p. ej. tablet con la barra lateral abierta).
+    <div className={cn("@container mb-4 flex flex-wrap items-center gap-x-4 gap-y-3", className)}>
       {children}
-      {/* Baja a su propia línea cuando no caben 18rem junto a las pestañas. */}
-      <div ref={slotRef} className="flex min-w-0 flex-1 basis-72 flex-wrap items-center justify-end gap-2" />
+      {/* Junto a las pestañas si cabe su ancho mínimo (búsqueda encogida y acciones); si no, baja
+          completa a su propia línea. Desde 36rem de barra sus piezas no se parten en dos filas. */}
+      <div ref={slotRef} className="flex min-w-0 grow basis-[min-content] flex-wrap items-center justify-end gap-2 @xl:flex-nowrap" />
     </div>
   )
 }

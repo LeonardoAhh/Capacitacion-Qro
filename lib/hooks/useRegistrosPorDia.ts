@@ -3,10 +3,9 @@
 import { useCallback, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import type { EmployeeDayCountImport } from "@/lib/imports/employee-day-count-json"
 import type { RegistroPorDia, RegistroPorDiaConfig, ValoresDia } from "@/lib/plantilla/registros-por-dia"
 
-/** Lectura, captura individual e importación mensual de registros por día. */
+/** Lectura y captura individual de registros por día. */
 export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -60,18 +59,5 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
     }
   }, [config])
 
-  const replaceMonths = useCallback(async (payload: EmployeeDayCountImport) => {
-    if (!config.rpcReemplazarMeses) return { success: false, error: `La importación de ${config.plural} no está disponible.` }
-    try {
-      const { error: dbError } = await supabase.rpc(config.rpcReemplazarMeses, {
-        p_periodos: payload.meses.map(({ mes, registros }) => ({ mes, registros })),
-      })
-      if (dbError) throw dbError
-      return { success: true }
-    } catch (caught) {
-      return { success: false, error: describeSupabaseError(caught, `Error al importar ${config.plural}`) }
-    }
-  }, [config])
-
-  return { loading, saving, error, fetchByEmpleado, reloadByEmpleado, saveForEmpleadoDia, replaceMonths }
+  return { loading, saving, error, fetchByEmpleado, reloadByEmpleado, saveForEmpleadoDia }
 }

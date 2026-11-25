@@ -3,15 +3,6 @@
 import { useCallback, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import {
-  parseEmployeeDayCountJson,
-  type EmployeeDayCountImport,
-  type EmployeeDayCountRow,
-} from "@/lib/imports/employee-day-count-json"
-
-export const parseReglamentoImport = parseEmployeeDayCountJson
-export type ReglamentoImport = EmployeeDayCountImport
-export type ReglamentoImportRow = EmployeeDayCountRow
 
 export interface ReglamentoIncumplimiento {
   numero_empleado: string
@@ -50,25 +41,6 @@ export function useReglamentoIncumplimientos() {
     return fetchByEmpleado(numeroEmpleado)
   }, [fetchByEmpleado])
 
-  const replaceMonths = useCallback(async (payload: ReglamentoImport) => {
-    setSaving(true)
-    try {
-      const { error: dbError } = await supabase.rpc(
-        "reemplazar_meses_incumplimientos_reglamento",
-        {
-          p_periodos: payload.meses.map(({ mes, registros }) => ({ mes, registros })),
-        },
-      )
-      if (dbError) throw dbError
-      return { success: true }
-    } catch (caught) {
-      const message = describeSupabaseError(caught, "Error al reemplazar el mes")
-      return { success: false, error: message }
-    } finally {
-      setSaving(false)
-    }
-  }, [])
-
   const saveForEmpleadoDia = useCallback(async (
     numeroEmpleado: string,
     fecha: string,
@@ -104,7 +76,6 @@ export function useReglamentoIncumplimientos() {
     error,
     fetchByEmpleado,
     reloadByEmpleado,
-    replaceMonths,
     saveForEmpleadoDia,
   }
 }

@@ -8,6 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import { AutoHeight } from "@/components/ui/auto-height"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -161,6 +162,8 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
           </DialogHeader>
           {saveError && <p role="alert" className="text-body-sm text-destructive">{saveError}</p>}
 
+          {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
+          <AutoHeight>
           {step === 1 ? (
           <div className="space-y-4">
             <div className="space-y-2">
@@ -267,6 +270,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
             {imageError && <p role="alert" className="text-body-sm text-destructive">{imageError}</p>}
           </div>
           )}
+          </AutoHeight>
         </form>
       </DialogContent>
     </Dialog>

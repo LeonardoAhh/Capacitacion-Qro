@@ -9,7 +9,6 @@ import { DESKTOP_NAV_ID, getRouteLabel, MOBILE_NAV_ID } from "@/lib/navigation"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
-import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
 import { SidebarToggleIcon } from "@/components/ui/sidebar-toggle-icon"
 
@@ -23,6 +22,8 @@ interface HeaderProps {
   onToggleSidebar: () => void
   /** Solo en móvil (menú y título): en escritorio la hora y los avisos van en la barra lateral. */
   mobileOnly?: boolean
+  /** Lugar donde la página pone su búsqueda (HeaderSearch), antes de los avisos. */
+  searchSlotRef?: (element: HTMLDivElement | null) => void
 }
 
 export default function Header({
@@ -33,6 +34,7 @@ export default function Header({
   sidebarCollapsed,
   onToggleSidebar,
   mobileOnly = false,
+  searchSlotRef,
 }: HeaderProps) {
   const sidebarLabel = sidebarCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"
   const pathname = usePathname()
@@ -98,8 +100,9 @@ export default function Header({
           )}
         </div>
 
+        <div ref={searchSlotRef} className="flex min-w-0 shrink items-center" />
+
         {!mobileOnly && <>
-          <WorkspaceClock />
           <KanbanAvisos />
         </>}
       </WorkspaceContainer>

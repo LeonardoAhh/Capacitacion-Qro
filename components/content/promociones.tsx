@@ -7,7 +7,6 @@ import {
   Download,
   FileSpreadsheet,
   FileText,
-  FilterX,
   SlidersHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,12 +22,14 @@ import {
 import { notify } from "@/lib/notify"
 import { exportPromocionesPDF, exportPromocionesExcel } from "@/lib/promociones/export"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
   TooltipProvider,
 } from "@/components/ui/tooltip"
 import { useRole } from "@/lib/hooks"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_FILTER } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
 import type { ConfirmarPromocionInput, EmpleadoPromocion, ExamenPromocionInput } from "@/lib/promociones/types"
 import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 
@@ -48,6 +49,15 @@ export type { AptitudStatus, CursoRequerido, ReglaPromocion, EvaluacionDesempeñ
 
 const PAGE_SIZE = 9
 
+const ESTADOS_FILTRO = [
+  { value: "apto", label: "Apto" },
+  { value: "no_apto", label: "No Apto" },
+  { value: "pendiente", label: "Espera" },
+  { value: "pendiente_examen", label: "Examen" },
+  { value: "en_revision", label: "Revisión" },
+  { value: "bloqueado_examen", label: "Penalizado" },
+]
+
 export default function PromocionesContent({
   empleados,
   onDatosActualizados,
@@ -63,23 +73,12 @@ export default function PromocionesContent({
 }) {
   const { isReadOnly } = useRole()
   const [busqueda, setBusqueda] = useState("")
-  const [filtroDept, setFiltroDept] = useState("todos")
   const [filtroStatus, setFiltroStatus] = useState("todos")
-  const [filtroPuesto, setFiltroPuesto] = useState("todos")
   const [pagina, setPagina] = useState(1)
   const [empleadoPromover, setEmpleadoPromover] = useState<EmpleadoPromocion | null>(null)
   const [empleadoExamen, setEmpleadoExamen] = useState<EmpleadoPromocion | null>(null)
   const [empleadoDesempeño, setEmpleadoDesempeño] = useState<EmpleadoPromocion | null>(null)
   const imp = usePromocionesImport(onDatosActualizados)
-
-  const departamentos = useMemo(
-    () => [...new Set(empleados.map((e) => e.departamento))].sort(),
-    [empleados]
-  )
-  const puestos = useMemo(
-    () => [...new Set(empleados.map((e) => e.puesto))].sort(),
-    [empleados]
-  )
 
   const empleadosFiltrados = useMemo(() => {
     const base = empleados
@@ -90,19 +89,17 @@ export default function PromocionesContent({
           emp.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
           emp.puesto.toLowerCase().includes(busqueda.toLowerCase()) ||
           (emp.numero ?? "").includes(busqueda)
-        const matchDept = filtroDept === "todos" || emp.departamento === filtroDept
         const matchStatus = filtroStatus === "todos" || aptitud === filtroStatus
-        const matchPuesto = filtroPuesto === "todos" || emp.puesto === filtroPuesto
-        return matchBusqueda && matchDept && matchStatus && matchPuesto
+        return matchBusqueda && matchStatus
       })
       .sort((a, b) => parseInt(a.numero ?? "0", 10) - parseInt(b.numero ?? "0", 10))
 
     const habilitados   = base.filter((e) => isHabilitado(e.puesto) || e.regla != null)
     const inhabilitados = base.filter((e) => !isHabilitado(e.puesto) && e.regla == null)
     return { conCategoria: habilitados, sinCategoria: inhabilitados }
-  }, [empleados, busqueda, filtroDept, filtroStatus, filtroPuesto])
+  }, [empleados, busqueda, filtroStatus])
 
-  React.useEffect(() => { setPagina(1) }, [busqueda, filtroDept, filtroStatus, filtroPuesto])
+  React.useEffect(() => { setPagina(1) }, [busqueda, filtroStatus])
 
   const todosOrdenados = [...empleadosFiltrados.conCategoria, ...empleadosFiltrados.sinCategoria]
   const totalPaginas = Math.ceil(todosOrdenados.length / PAGE_SIZE)
@@ -110,12 +107,12 @@ export default function PromocionesContent({
   const paginadosConCategoria = paginados.filter((e) => isHabilitado(e.puesto) || e.regla != null)
   const paginadosSinCategoria = paginados.filter((e) => !isHabilitado(e.puesto) && e.regla == null)
 
-  const hasFilters = busqueda || filtroDept !== "todos" || filtroStatus !== "todos" || filtroPuesto !== "todos"
+  const hasFilters = busqueda || filtroStatus !== "todos"
 
   const [exporting, setExporting] = useState(false)
   const exportMeta = useMemo(
-    () => ({ filtros: { busqueda, departamento: filtroDept, puesto: filtroPuesto, estado: filtroStatus } }),
-    [busqueda, filtroDept, filtroPuesto, filtroStatus]
+    () => ({ filtros: { busqueda, estado: filtroStatus } }),
+    [busqueda, filtroStatus]
   )
 
   const handleExportPDF = useCallback(async () => {
@@ -174,58 +171,22 @@ export default function PromocionesContent({
         />
       )}
 
-      {/* Barra única: búsqueda y filtros a la izquierda; descargar, reglas y página a la derecha.
-          Se acomoda en varias líneas si no cabe (sin scroll horizontal). */}
+      {/* La búsqueda va en el header (lupa). Barra: estado a la izquierda; descargar, reglas y
+          página a la derecha. Descargar y Reglas muestran su texto desde 36rem de ancho. */}
+      <HeaderSearch value={busqueda} onValueChange={setBusqueda} label="Buscar empleado, puesto o número"
+        placeholder="Buscar empleado, puesto, número…" />
+      <div className="@container">
       <div className="flex flex-wrap items-center gap-2">
-        <SearchInput value={busqueda} onValueChange={setBusqueda} label="Buscar empleado, puesto o número"
-          placeholder="Buscar empleado, puesto, número…" className="w-full sm:w-64" />
-            <Select value={filtroDept} onValueChange={setFiltroDept}>
-              <SelectTrigger aria-label="Filtrar por departamento" className={TOOLBAR_FILTER}>
-                <SelectValue placeholder="Departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Departamentos</SelectItem>
-                {departamentos.map((d) => (
-                  <SelectItem key={d} value={d}>{d}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filtroPuesto} onValueChange={setFiltroPuesto}>
-              <SelectTrigger aria-label="Filtrar por puesto" className={TOOLBAR_FILTER}>
-                <SelectValue placeholder="Puesto" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Puestos</SelectItem>
-                {puestos.map((p) => (
-                  <SelectItem key={p} value={p}>{p}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-              <SelectTrigger aria-label="Filtrar por estado" className={TOOLBAR_FILTER}>
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Estados</SelectItem>
-                <SelectItem value="apto">Apto</SelectItem>
-                <SelectItem value="no_apto">No Apto</SelectItem>
-                <SelectItem value="pendiente">Espera</SelectItem>
-                <SelectItem value="pendiente_examen">Examen</SelectItem>
-                <SelectItem value="en_revision">Revisión</SelectItem>
-                <SelectItem value="bloqueado_examen">Penalizado</SelectItem>
-              </SelectContent>
-            </Select>
-            {hasFilters && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => { setBusqueda(""); setFiltroDept("todos"); setFiltroStatus("todos"); setFiltroPuesto("todos") }}
-                aria-label="Limpiar filtros"
-              >
-                <FilterX aria-hidden="true" />
-              </Button>
-            )}
-        <div className="ml-auto flex items-center gap-2">
+        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+          <SelectTrigger className="w-36 shrink-0" aria-label="Filtrar por estado">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Estados</SelectItem>
+            {ESTADOS_FILTRO.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -233,9 +194,10 @@ export default function PromocionesContent({
                   size="sm"
                   disabled={exporting || todosOrdenados.length === 0}
                   data-testid="promociones-export-trigger"
+                  aria-label={exporting ? "Generando…" : "Descargar"}
                 >
                   <Download aria-hidden="true" />
-                  <span>{exporting ? "Generando…" : "Descargar"}</span>
+                  <span className="hidden @xl:inline">{exporting ? "Generando…" : "Descargar"}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">
@@ -254,16 +216,22 @@ export default function PromocionesContent({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/promociones/reglas">
-                <SlidersHorizontal aria-hidden="true" />
-                <span>Reglas</span>
-              </Link>
-            </Button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/promociones/reglas" aria-label="Reglas">
+                    <SlidersHorizontal aria-hidden="true" />
+                    <span className="hidden @xl:inline">Reglas</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Reglas</TooltipContent>
+            </Tooltip>
             {empleados.length > 0 && todosOrdenados.length > 0 && (
               <CompactPager label="Paginación de empleados" page={pagina} totalPages={totalPaginas} onPageChange={setPagina} />
             )}
         </div>
+      </div>
       </div>
 
       {/* Contenido principal */}

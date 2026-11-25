@@ -28,16 +28,15 @@ function CursoRow({ nombre, fecha, calificacion, estado }: {
 }) {
   const { icon: Icon, color, label } = ESTADO[estado]
   return (
-    <li className="flex min-h-14 items-center gap-3 px-4 py-2.5">
+    // Una sola línea (densidad compacta): nombre, fecha y calificación; el nombre largo salta de renglón.
+    <li className="flex min-h-11 items-center gap-3 px-4 py-2">
       <Icon className={cn("size-4 shrink-0", color)} aria-hidden="true" />
-      <div className="grid min-w-0 flex-1 gap-0.5">
-        <p className="break-words text-label-sm text-foreground">
-          <span className="sr-only">{label}: </span>{nombre}
-        </p>
-        {fecha && <p className="text-body-sm tabular-nums text-muted-foreground">{formatDate(fecha)}</p>}
-      </div>
+      <p className="min-w-0 flex-1 break-words text-label-sm text-foreground">
+        <span className="sr-only">{label}: </span>{nombre}
+      </p>
+      {fecha && <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">{formatDate(fecha)}</span>}
       {calificacion != null && (
-        <Badge variant={estado === "aprobado" ? "success" : "destructive"} size="sm" className="shrink-0 tabular-nums"
+        <Badge variant={estado === "aprobado" ? "success" : "destructive"} size="sm" className="min-w-8 shrink-0 justify-center tabular-nums"
           aria-label={`Calificación ${calificacion}`}>
           {calificacion}
         </Badge>
@@ -54,7 +53,7 @@ export function CursosRequeridos({ progress }: { progress: EmployeeProgress }) {
   if (!progress.positionFound) {
     return (
       <p role="status" className="rounded-xl border border-warning/30 bg-warning/10 px-4 py-3 text-body-md text-foreground">
-        El puesto no está en el catálogo. Importa primero el JSON de puestos.
+        El puesto no está en el catálogo. Agrégalo en la pestaña Puestos de Plantilla.
       </p>
     )
   }

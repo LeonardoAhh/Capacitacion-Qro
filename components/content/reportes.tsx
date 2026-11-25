@@ -15,10 +15,9 @@ import { PRINT_FONT_FAMILY, registerPrintFont } from "@/lib/print-font"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { SearchInput } from "@/components/ui/search-input"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
 import { cn } from "@/lib/utils"
 
 // 9 filas de dos líneas caben con la barra superior en una pantalla de escritorio sin scroll.
@@ -204,21 +203,21 @@ export default function ReportesContent() {
 
   return (
     <div className="space-y-4">
-      {/* Barra única: búsqueda y selección a la izquierda; descarga y página a la derecha. */}
-      <div className="flex flex-wrap items-center gap-2">
-        <SearchInput value={search} onValueChange={value => { setSearch(value); setPage(1) }}
-          label="Buscar por nombre, número o puesto" placeholder="Buscar por nombre, número o puesto…" className={TOOLBAR_SEARCH} />
-        {filtered.length > 0 && (
-          <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground">
-            <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Seleccionar todos los colaboradores" />
-            <span aria-live="polite">{selected.size > 0 ? `${selected.size} seleccionados` : "Seleccionar todos"}</span>
-          </label>
-        )}
-        <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" onClick={handleDownload} disabled={selected.size === 0 || generating}>
-            {generating ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <FileText aria-hidden="true" />}
-            {generating ? "Generando PDF…" : "Descargar PDF"}
-          </Button>
+      {/* La búsqueda va en el header. Barra: descarga a la izquierda; selección y página a la derecha. */}
+      <HeaderSearch value={search} onValueChange={value => { setSearch(value); setPage(1) }}
+        label="Buscar por nombre, número o puesto" placeholder="Buscar por nombre, número o puesto…" />
+      <div className="flex items-center gap-2">
+        <Button size="sm" onClick={handleDownload} disabled={selected.size === 0 || generating}>
+          {generating ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <FileText aria-hidden="true" />}
+          {generating ? "Generando PDF…" : "Descargar PDF"}
+        </Button>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {filtered.length > 0 && (
+            <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-2 text-body-md text-foreground">
+              <Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} aria-label="Seleccionar todos los colaboradores" />
+              <span aria-live="polite">{selected.size > 0 ? `${selected.size} seleccionados` : "Seleccionar todos"}</span>
+            </label>
+          )}
           <CompactPager label="Paginación de colaboradores" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
         </div>
       </div>

@@ -5,8 +5,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { History, Trash2 } from "lucide-react"
 import { folioExamen, formatFechaExamen, useHistorialExamenes } from "@/lib/hooks/useHistorialExamenes"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -46,12 +46,11 @@ export default function HistorialExamenesContent() {
 
   return (
     <div className="space-y-4">
-      {/* Búsqueda y página en la línea de las pestañas */}
+      {/* Búsqueda en el header; la página, en la línea de las pestañas. */}
       <TabsToolbar>
-        <SearchInput
+        <HeaderSearch
           label="Buscar exámenes"
           placeholder="Buscar por folio o nombre…"
-          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={value => { setPage(1); buscar(value) }}

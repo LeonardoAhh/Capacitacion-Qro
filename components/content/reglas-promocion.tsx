@@ -1,12 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { EllipsisVertical, PencilLine, Plus, Search, Trash2 } from "lucide-react"
+import { EllipsisVertical, PencilLine, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -115,15 +115,11 @@ export default function ReglasPromocionContent() {
   return (
     <div className="grid gap-4">
 
+      {/* La búsqueda va en el header (lupa); la barra solo lleva crear, a la izquierda. */}
+      <HeaderSearch label="Buscar regla por puesto" placeholder="Buscar puesto" value={filter} onValueChange={setFilter} />
       <div className="flex items-center gap-2">
-        <div className="relative min-w-0 flex-1 sm:max-w-sm">
-          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
-          <Input type="search" placeholder="Buscar puesto" aria-label="Buscar regla por puesto" className="pl-9"
-            value={filter} onChange={event => setFilter(event.target.value)} />
-        </div>
-        <Button type="button" className="ml-auto shrink-0 max-sm:w-11 max-sm:px-0" disabled={isReadOnly}
-          onClick={() => setDialog({ regla: null })}>
-          <Plus aria-hidden="true" /><span className="max-sm:sr-only">Nueva regla</span>
+        <Button type="button" size="sm" disabled={isReadOnly} onClick={() => setDialog({ regla: null })}>
+          <Plus aria-hidden="true" />Nueva regla
         </Button>
       </div>
 

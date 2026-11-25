@@ -1,9 +1,9 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertTriangle, CheckCircle2, FilterX, RefreshCw, UserX } from "lucide-react"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_FILTER, TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
+import { AlertTriangle, CheckCircle2, RefreshCw, UserX, X } from "lucide-react"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TOOLBAR_FILTER } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -166,10 +166,10 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
 // ─────────────────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS: { value: string; label: string; dot?: string }[] = [
-  { value: "all",       label: "Todos" },
-  { value: "reprobado", label: `Reprobados (<${UMBRAL_CALIFICACION_APROBATORIA})`, dot: "bg-destructive" },
+  { value: "all",       label: "Estados" },
+  { value: "reprobado", label: "Reprobados", dot: "bg-destructive" },
   { value: "vencido",   label: "Vencidos",                          dot: "bg-destructive" },
-  { value: "proximo",   label: "Próximos (14 d)",                   dot: "bg-warning" },
+  { value: "proximo",   label: "Próximos", dot: "bg-warning" },
   { value: "pendiente", label: "Pendientes",                        dot: "bg-muted-foreground" },
   { value: "sin_fecha", label: "Sin fecha",                         dot: "bg-border" },
 ]
@@ -315,33 +315,33 @@ export default function DesempenoSeguimiento() {
         </Alert>
       )}
 
-      {/* Filters */}
+      {/* La búsqueda va en el header (lupa). Barra: filtros a la izquierda y página a la derecha. */}
       {!loading && rows.length > 0 && (
+        <>
+        <HeaderSearch
+          label="Buscar empleado por nombre, número o puesto"
+          placeholder="Buscar por nombre, número o puesto…"
+          value={search}
+          onValueChange={value => { setSearch(value); setPage(1) }}
+          data-testid="seguimiento-search-input"
+        />
         <div
           className="flex flex-wrap items-center gap-2"
-          role="search"
+          role="group"
           aria-label="Filtrar seguimiento de compromisos"
         >
-          <SearchInput
-            label="Buscar empleado por nombre, número o puesto"
-            placeholder="Buscar por nombre, número o puesto…"
-            className={TOOLBAR_SEARCH}
-            value={search}
-            onValueChange={value => { setSearch(value); setPage(1) }}
-            data-testid="seguimiento-search-input"
-          />
 
           {/* Periodo filter */}
           <Select value={filterPeriodo} onValueChange={value => { setFilterPeriodo(value); setPage(1) }}>
             <SelectTrigger
-              className={TOOLBAR_FILTER}
+              className={cn(TOOLBAR_FILTER, "shrink-0")}
               aria-label="Filtrar por período"
               data-testid="filter-periodo-select"
             >
               <SelectValue placeholder="Período" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los períodos</SelectItem>
+              <SelectItem value="all">Periodos</SelectItem>
               {ALL_PERIODOS.map(p => (
                 <SelectItem key={p} value={p}>{p}</SelectItem>
               ))}
@@ -351,7 +351,7 @@ export default function DesempenoSeguimiento() {
           {/* Status filter */}
           <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setPage(1) }}>
             <SelectTrigger
-              className={TOOLBAR_FILTER}
+              className={cn(TOOLBAR_FILTER, "shrink-0")}
               aria-label="Filtrar por estado de revisión"
               data-testid="filter-status-select"
             >
@@ -375,15 +375,17 @@ export default function DesempenoSeguimiento() {
           </Select>
 
           {hasActiveFilters && (
-            <Button variant="ghost" size="icon" onClick={clearFilters} aria-label="Limpiar filtros" data-testid="clear-filters-toolbar-button">
-              <FilterX aria-hidden="true" />
+            <Button variant="ghost" size="sm" onClick={clearFilters} aria-label="Limpiar filtros" data-testid="clear-filters-toolbar-button">
+              <X aria-hidden="true" />
+              Limpiar
             </Button>
           )}
 
-          <div className="ml-auto">
+          <div className="ml-auto shrink-0">
             <CompactPager label="Paginación de compromisos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
           </div>
         </div>
+        </>
       )}
 
       {/* Loading */}

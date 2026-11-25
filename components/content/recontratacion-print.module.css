@@ -188,8 +188,13 @@
     text-align: left;
 }
 
+/* El mes va en una línea ("SEPTIEMBRE 2026"); comentarios cede el espacio. */
+.colMes {
+    white-space: nowrap;
+}
+
 .colComentarios {
-    width: 32%;
+    width: 28%;
 }
 
 /* ── Fila plan de formación ── */

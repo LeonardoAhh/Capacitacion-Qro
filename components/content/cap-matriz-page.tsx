@@ -19,21 +19,14 @@ type Estado =
 
 const SECTION_TITLE = "flex items-baseline gap-2 text-eyebrow uppercase text-muted-foreground"
 
-/** Avance del puesto: aprobados contra requeridos, con barra accesible. */
+/** Avance del puesto en una línea: aprobados contra requeridos y su porcentaje. */
 function Avance({ progress }: { progress: EmployeeProgress }) {
   const porcentaje = Math.round((progress.aprobados / progress.totalRequired) * 100)
   return (
-    <div className="grid w-full gap-2 sm:w-64" role="group" aria-label="Avance de cursos requeridos">
-      <div className="flex items-baseline justify-between gap-2 text-body-sm">
-        <span className="text-muted-foreground">{progress.aprobados} de {progress.totalRequired} aprobados</span>
-        <span className="tabular-nums text-label-sm text-foreground">{porcentaje}%</span>
-      </div>
-      <div className="flex h-2 overflow-hidden rounded-md bg-muted" role="progressbar" aria-label="Cursos aprobados"
-        aria-valuemin={0} aria-valuemax={progress.totalRequired} aria-valuenow={progress.aprobados}
-        aria-valuetext={`${progress.aprobados} de ${progress.totalRequired} cursos aprobados`}>
-        <span className="bg-success" style={{ width: `${porcentaje}%` }} />
-      </div>
-    </div>
+    <p className="flex items-baseline gap-2 whitespace-nowrap text-body-sm text-muted-foreground">
+      {progress.aprobados} de {progress.totalRequired} aprobados
+      <span className="tabular-nums text-label-sm text-foreground">{porcentaje}%</span>
+    </p>
   )
 }
 
@@ -43,7 +36,6 @@ function MatrizSkeleton() {
       <div className="grid gap-2">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-6 w-72 max-w-full" />
-        <Skeleton className="h-4 w-48" />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         {[0, 1].map(item => <Skeleton key={item} aria-hidden="true" className="h-64 rounded-xl" />)}
@@ -104,7 +96,6 @@ export function CapMatrizPage({ empleadoId }: { empleadoId: string }) {
         <div className="grid min-w-0 gap-1">
           {employee.numero && <p className="text-body-sm tabular-nums text-muted-foreground">Núm. {employee.numero}</p>}
           <h2 className="break-words text-heading-md text-foreground">{employee.nombre}</h2>
-          {employee.puesto && <p className="text-body-md text-muted-foreground">{employee.puesto}</p>}
         </div>
         {progress.positionFound && progress.totalRequired > 0 && <Avance progress={progress} />}
       </header>

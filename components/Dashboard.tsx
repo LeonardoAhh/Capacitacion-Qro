@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, type ReactNode } from "react"
+import { useEffect, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Sidebar, { useSidebar } from "@/components/sidebar"
 import Header from "@/components/header"
@@ -14,6 +14,7 @@ import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { HOME_PATH, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { useWorkspaceSwitch } from "@/components/workspace-switch-overlay"
+import { HeaderSearchSlot } from "@/components/ui/header-search"
 import { cn } from "@/lib/utils"
 
 interface DashboardProps {
@@ -39,6 +40,8 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
   const palette = useChartPalette()
   // En escritorio el scroll ocurre en <main>; en móvil, en la ventana (las líneas lo siguen por defecto).
   const mainRef = useRef<HTMLElement>(null)
+  // Lugar del header para la búsqueda de la página (HeaderSearch).
+  const [searchSlot, setSearchSlot] = useState<HTMLDivElement | null>(null)
   const desktop = useMediaQuery(DESKTOP_QUERY)
   const { role, workspaces, canAccess, isEvaluador, loading: roleLoading } = useRole()
   const [storedWorkspace, setWorkspace] = useActiveWorkspace()
@@ -102,6 +105,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             sidebarCollapsed={isSidebarCollapsed}
             onToggleSidebar={toggleSidebar}
             mobileOnly={isEvaluador}
+            searchSlotRef={setSearchSlot}
           />
 
           {/* Panel del contenido: en escritorio, hundido (fondo del tema, borde y radio) con las líneas radiales
@@ -119,7 +123,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             <WorkspaceContainer fullWidth={fullWidth} className={cn("pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]", fillHeight && "lg:flex lg:h-full lg:flex-col")}>
               {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
               <div className={cn("surface-enter min-w-0 space-y-6", fillHeight && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}>
-                {content}
+                <HeaderSearchSlot.Provider value={searchSlot}>{content}</HeaderSearchSlot.Provider>
               </div>
             </WorkspaceContainer>
           </main>

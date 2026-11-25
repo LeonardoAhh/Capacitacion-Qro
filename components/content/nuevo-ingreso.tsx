@@ -10,8 +10,7 @@ import {
 import { EvalCell, ContratoTerminoCell } from "@/components/content/shared/eval-badges"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { FilterMenu } from "@/components/ui/filter-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -43,6 +42,9 @@ const IncidenciasBulkImport = dynamic(
   () => import("@/components/content/incidencias-bulk-import").then((module) => module.IncidenciasBulkImport),
   { ssr: false, loading: dialogLoading },
 )
+// Botón cuadrado con solo el ícono cuando la barra mide menos de 42rem.
+const SOLO_ICONO = "@max-2xl:w-(--control-height) @max-2xl:px-0"
+
 export default function NuevoIngresoContent() {
   const { isReadOnly } = useRole()
   const { loading, saving, error, fetchAll, updateRecord, deleteRecord, createRecord } = useNuevoIngreso()
@@ -214,15 +216,20 @@ export default function NuevoIngresoContent() {
         </Alert>
       )}
 
-      {/* Búsqueda, filtros y acciones en una sola fila; en pantallas chicas se acomodan en varias. */}
-      <div className="flex flex-wrap items-center gap-2" role="search" aria-label="Filtros de empleados">
-        <SearchInput
-          label="Buscar empleado"
-          placeholder="Buscar empleado…"
-          className={TOOLBAR_SEARCH}
-          value={search}
-          onValueChange={setSearch}
-        />
+      {/* La búsqueda va en el header. Barra: "Nuevo empleado" a la izquierda; filtros, pendientes,
+          incidencias y página a la derecha. Con menos de 42rem de ancho los botones quedan solo con ícono. */}
+      <HeaderSearch label="Buscar empleado" placeholder="Buscar empleado…" value={search} onValueChange={setSearch} />
+      <div className="@container">
+      <div className="flex items-center gap-2">
+        {!isReadOnly && (
+          <Button size="sm" className={SOLO_ICONO} onClick={() => {
+            markDialogLoaded("create")
+            setNuevoOpen(true)
+          }} aria-label="Nuevo empleado">
+            <UserPlus className="@2xl:hidden" aria-hidden="true" />
+            <span className="hidden @2xl:inline">Nuevo empleado</span>
+          </Button>
+        )}
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <FilterMenu
             onClear={() => { setFilterDept('all'); setFilterContrato('all'); setFilterTurno('all'); setFilterRG('all') }}
@@ -238,28 +245,22 @@ export default function NuevoIngresoContent() {
             ]}
           />
           {!isReadOnly && <>
-            <Button asChild variant="outline" size="sm" className="max-sm:w-(--control-height) max-sm:px-0">
+            <Button asChild variant="outline" size="sm" className={SOLO_ICONO}>
               <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes">
-                <MessageSquareShare className="sm:hidden" aria-hidden="true" />
-                <span className="hidden sm:inline">Pendientes</span>
+                <MessageSquareShare className="@2xl:hidden" aria-hidden="true" />
+                <span className="hidden @2xl:inline">Pendientes</span>
               </Link>
             </Button>
-            <Button variant="outline" size="sm" className="max-sm:w-(--control-height) max-sm:px-0" onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar incidencias">
+            <Button variant="outline" size="sm" className={SOLO_ICONO} onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar incidencias">
               {capEmployeeNamesLoading
                 ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                : <FileUp className="sm:hidden" aria-hidden="true" />}
-              <span className="hidden sm:inline">{capEmployeeNamesLoading ? "Cargando…" : "Incidencias"}</span>
-            </Button>
-            <Button size="sm" className="max-sm:w-(--control-height) max-sm:px-0" onClick={() => {
-              markDialogLoaded("create")
-              setNuevoOpen(true)
-            }} aria-label="Nuevo empleado">
-              <UserPlus className="sm:hidden" aria-hidden="true" />
-              <span className="hidden sm:inline">Nuevo empleado</span>
+                : <FileUp className="@2xl:hidden" aria-hidden="true" />}
+              <span className="hidden @2xl:inline">{capEmployeeNamesLoading ? "Cargando…" : "Incidencias"}</span>
             </Button>
           </>}
           <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
+      </div>
       </div>
 
       {/* Tabla: una para todas las pantallas; las columnas secundarias se ocultan al reducir el ancho. */}

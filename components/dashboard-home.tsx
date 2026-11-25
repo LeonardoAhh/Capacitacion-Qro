@@ -58,9 +58,11 @@ function DashboardContent() {
                                 return (
                                     <li key={id}>
                                         <button type="button" aria-current={current || undefined} onClick={() => setActiva(id)}
-                                            className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-body-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
-                                                current ? "bg-muted text-label-sm text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
-                                            <Icon className="size-4 shrink-0" aria-hidden="true" />
+                                            // Mismo trato que la barra lateral: la activa es una tarjeta elevada (blanca, borde
+                                            // y sombra suave) con el ícono en primario; el hover, blanco y plano.
+                                            className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                                                current ? "border-sidebar-border bg-sidebar-active text-label-sm text-foreground shadow-(--sidebar-active-shadow)" : "text-muted-foreground hover:bg-card hover:text-foreground")}>
+                                            <Icon className={cn("size-4 shrink-0", current && "text-primary")} aria-hidden="true" />
                                             <span className="min-w-0 truncate">{label}</span>
                                         </button>
                                     </li>

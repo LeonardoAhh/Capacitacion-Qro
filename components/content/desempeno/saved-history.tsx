@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { SearchInput } from "@/components/ui/search-input";
+import { HeaderSearch } from "@/components/ui/header-search";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -14,8 +14,8 @@ import { empleadoDetalle, type SavedEvaluationsContext } from "./use-saved-evalu
 const HEAD = "whitespace-nowrap text-eyebrow uppercase";
 
 /**
- * Evaluadas: barra lateral interna con la búsqueda y los departamentos (en móvil,
- * búsqueda y selector arriba) y, a la derecha, los empleados del departamento elegido.
+ * Evaluadas: barra lateral interna con los departamentos (en móvil, un selector
+ * arriba) y, a la derecha, los empleados del departamento elegido.
  */
 export function SavedHistory({ context }: { context: SavedEvaluationsContext }) {
   const { histSearch, setHistSearch, setSelectedNumero, setDepartamento, historialLoading, loading, gruposPorDepto, grupoActivo } = context;
@@ -23,7 +23,8 @@ export function SavedHistory({ context }: { context: SavedEvaluationsContext }) 
 
   return <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[14rem_minmax(0,1fr)]">
     <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-0 md:max-h-[calc(100dvh-var(--workspace-header-height)-2*var(--workspace-inset))]">
-      <SearchInput value={histSearch} onValueChange={setHistSearch} label="Buscar evaluaciones por nombre, número o periodo"
+      {/* La búsqueda va en el header (lupa). */}
+      <HeaderSearch value={histSearch} onValueChange={setHistSearch} label="Buscar evaluaciones por nombre, número o periodo"
         placeholder="Nombre, número o periodo…" />
       {activo && <Select value={activo} onValueChange={setDepartamento}>
         <SelectTrigger aria-label="Departamento" className="w-full md:hidden"><SelectValue /></SelectTrigger>

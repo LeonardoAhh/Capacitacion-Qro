@@ -4,10 +4,11 @@ import { useState, useCallback } from "react"
 import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
+import { FILTER_ALL } from "@/components/ui/filter-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -106,27 +107,30 @@ export default function ExamenesContent({
 
   return (
     <div className="space-y-4">
-      {/* Búsqueda, filtro, "Nueva pregunta" y página en la línea de las pestañas. */}
+      {/* Búsqueda en el header; departamento, "Nueva pregunta" y página en la línea de las pestañas. Con poco
+          ancho (menos de 48rem en la barra), Nueva pregunta queda solo con ícono. Un solo filtro: selector
+          directo, sin el menú que agrupa varios. */}
       <TabsToolbar>
-        <SearchInput
+        <HeaderSearch
           label="Buscar preguntas"
           placeholder="Buscar por pregunta u opción…"
-          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={term => consultar(term, depFiltro)}
           loading={loading}
         />
-        <FilterMenu
-          facets={[{
-            id: "departamento", label: "Departamento", value: departamento, onChange: changeDepartamento,
-            options: DEPARTAMENTOS.map(d => ({ value: d, label: d })),
-          }]}
-          onClear={() => changeDepartamento(FILTER_ALL)}
-        />
+        <Select value={departamento} onValueChange={changeDepartamento}>
+          <SelectTrigger className="w-52 shrink-0" aria-label="Filtrar por departamento">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTER_ALL}>Departamentos</SelectItem>
+            {DEPARTAMENTOS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+          </SelectContent>
+        </Select>
         <Button size="sm" onClick={() => setEditor({ id: null, initial: null })} disabled={isReadOnly} aria-label="Nueva pregunta">
           <Plus aria-hidden="true" />
-          <span className="hidden sm:inline">Nueva pregunta</span>
+          <span className="hidden @3xl:inline">Nueva pregunta</span>
         </Button>
         {consultando && <CompactPager label="Paginación de preguntas" page={currentPage} totalPages={totalPages} onPageChange={setPage} />}
       </TabsToolbar>

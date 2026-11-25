@@ -1,16 +1,16 @@
 "use client"
 
 import { useMemo, useState, type ReactNode } from "react"
-import { AlertCircle, Cake, FileJson, Loader2, RefreshCw, Search, Send } from "lucide-react"
+import { AlertCircle, Cake, Loader2, Plus, RefreshCw, Search, Send } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { SearchInput } from "@/components/ui/search-input"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { CumpleanosImportModal } from "@/components/content/cumpleanos-import-modal"
+import { CumpleanosRegistroDialog } from "@/components/content/cumpleanos-registro-dialog"
 import {
   BIRTHDAY_LOOKAHEAD_DAYS,
   BIRTHDAY_PERIODS,
@@ -183,7 +183,7 @@ export default function CumpleanosContent() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [sendingId, setSendingId] = useState<string | null>(null)
   const [sendingBulk, setSendingBulk] = useState(false)
-  const [importOpen, setImportOpen] = useState(false)
+  const [registroOpen, setRegistroOpen] = useState(false)
   const [page, setPage] = useState(1)
   const [searchQuery, setSearchQuery] = useState("")
 
@@ -374,37 +374,40 @@ export default function CumpleanosContent() {
 
   return (
     <div className="space-y-4">
-      {/* Barra única: búsqueda y selección a la izquierda; acciones y página a la derecha. */}
+      {/* La búsqueda va en el header (lupa). Barra: crear a la izquierda; envío, selección y
+          página a la derecha. "Nuevo cumpleaños" queda solo con ícono en anchos chicos. */}
+      <HeaderSearch value={searchQuery} onValueChange={handleSearchChange} label="Buscar por nombre, número o correo"
+        placeholder="Buscar colaborador" />
+      <div className="@container">
       <div className="flex flex-wrap items-center gap-2">
-        <SearchInput value={searchQuery} onValueChange={handleSearchChange} label="Buscar por nombre, número o correo"
-          placeholder="Buscar colaborador" className="w-full sm:w-64" />
-        {canEdit && selectable.length > 0 && (
-          <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground">
-            <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Seleccionar todos los colaboradores disponibles" />
-            <span aria-live="polite">{selectedCount > 0 ? `${selectedCount} seleccionados` : "Seleccionar todos"}</span>
-          </label>
+        {canEdit && (
+          <Button size="sm" onClick={() => setRegistroOpen(true)} aria-label="Nuevo cumpleaños">
+            <Plus aria-hidden="true" />
+            <span className="hidden @xl:inline">Nuevo cumpleaños</span>
+          </Button>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           {selectedCount > 0 && (
             <Button size="sm" disabled={sendingBulk} onClick={() => void handleSendSelected()}>
               {sendingBulk ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Send aria-hidden="true" />}
               Enviar {selectedCount} {selectedCount === 1 ? "correo" : "correos"}
             </Button>
           )}
-          {canEdit && (
-            <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-              <FileJson aria-hidden="true" />
-              Empleados
-            </Button>
+          {canEdit && selectable.length > 0 && (
+            <label className="flex min-h-(--control-height) shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap rounded-md px-2 text-body-md text-foreground">
+              <Checkbox checked={allSelected} onCheckedChange={toggleAll} aria-label="Seleccionar todos los colaboradores disponibles" />
+              <span aria-live="polite">{selectedCount > 0 ? `${selectedCount} seleccionados` : "Seleccionar todos"}</span>
+            </label>
           )}
           <CompactPager label="Paginación de cumpleaños" page={safePage} totalPages={totalPages} onPageChange={handlePageChange} />
         </div>
+      </div>
       </div>
 
       {upcomingEntries.length === 0 && !searchQuery.trim() ? (
         <EmptyState icon={Cake} title="Sin cumpleaños próximos"
           text={`No hay registros dentro de los próximos ${BIRTHDAY_LOOKAHEAD_DAYS} días.`}
-          action={canEdit && <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>Importar información</Button>} />
+          action={canEdit && <Button variant="outline" size="sm" onClick={() => setRegistroOpen(true)}>Nuevo cumpleaños</Button>} />
       ) : filteredEntries.length === 0 ? (
         <EmptyState icon={Search} title="Sin resultados"
           text={`No encontramos colaboradores que coincidan con “${searchQuery.trim()}”.`}
@@ -428,13 +431,10 @@ export default function CumpleanosContent() {
       )}
 
       {canEdit && (
-        <CumpleanosImportModal
-          open={importOpen}
-          onClose={() => setImportOpen(false)}
-          onImported={() => {
-            setPage(1)
-            void recargar()
-          }}
+        <CumpleanosRegistroDialog
+          open={registroOpen}
+          onOpenChange={setRegistroOpen}
+          onSaved={() => void recargar()}
         />
       )}
     </div>

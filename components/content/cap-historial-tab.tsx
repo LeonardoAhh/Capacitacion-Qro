@@ -2,15 +2,15 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  AlarmClock, BadgeCheck, BookPlus, CalendarClock, ChevronDown, EllipsisVertical, FilePenLine, FileText, LayoutGrid, Layers, ShieldAlert, Trash2, UserPlus, UserRoundPen, Users, type LucideIcon,
+  AlarmClock, BadgeCheck, BookPlus, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, type LucideIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
@@ -42,11 +42,6 @@ interface CapHistorialTabProps {
   newEmpSuccess: boolean
   addCoursesSuccess: boolean
   onNewEmployee: () => void
-  onBulkImport: () => void
-  onBulkImportIncumplimientos: () => void
-  onBulkImportActas: () => void
-  onBulkImportRetardos?: () => void
-  onBulkCreateEmployees: () => void
   onEditEmployee: (emp: Employee) => void
   onAddCourses: (emp: Employee) => void
   onDeleteEmployee: (emp: Employee) => void
@@ -55,10 +50,10 @@ interface CapHistorialTabProps {
 export function CapHistorialTab({
   employees, loadingEmployees, canEdit,
   newEmpSuccess, addCoursesSuccess,
-  onNewEmployee, onBulkImport, onBulkImportIncumplimientos, onBulkImportActas, onBulkImportRetardos, onBulkCreateEmployees,
+  onNewEmployee,
   onEditEmployee, onAddCourses, onDeleteEmployee,
 }: CapHistorialTabProps) {
-  const { canAccess, employeesOnly } = useRole()
+  const { canAccess } = useRole()
   const [empSearch, setEmpSearch]         = useState("")
   const [empFilterDept, setEmpFilterDept] = useState(FILTER_ALL)
   const [empFilterTurno, setEmpFilterTurno] = useState(FILTER_ALL)
@@ -81,14 +76,6 @@ export function CapHistorialTab({
 
   useEffect(() => { setEmpPage(1) }, [empSearch, empFilterDept, empFilterTurno])
 
-  const importOptions: { label: string; icon: LucideIcon; onSelect: () => void }[] = [
-    { label: "Cursos", icon: Layers, onSelect: onBulkImport },
-    { label: "Empleados", icon: Users, onSelect: onBulkCreateEmployees },
-    { label: "Incumplimientos", icon: ShieldAlert, onSelect: onBulkImportIncumplimientos },
-    { label: "Actas", icon: FileText, onSelect: onBulkImportActas },
-    ...(onBulkImportRetardos ? [{ label: "Retardos", icon: AlarmClock, onSelect: onBulkImportRetardos }] : []),
-  ]
-
   return (
     <div className="space-y-4">
       {(newEmpSuccess || addCoursesSuccess) && (
@@ -103,10 +90,9 @@ export function CapHistorialTab({
       {/* Búsqueda, filtros, acciones y página en la línea de las pestañas. Sin pestañas (rol que solo
           consulta empleados), la búsqueda va a la izquierda y lo demás se queda a la derecha. */}
       <TabsToolbar>
-        <SearchInput
+        <HeaderSearch
           label="Buscar empleado"
           placeholder="Buscar empleado…"
-          className={cn(TOOLBAR_SEARCH, employeesOnly && "sm:mr-auto")}
           value={empSearch}
           onValueChange={setEmpSearch}
         />
@@ -119,31 +105,12 @@ export function CapHistorialTab({
           ]}
           onClear={() => { setEmpFilterDept(FILTER_ALL); setEmpFilterTurno(FILTER_ALL) }}
         />
-        {/* Importar y crear empleados: solo quien edita Capacitación. */}
+        {/* Crear empleados: solo quien edita Capacitación. */}
         {canEdit && (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  Importar
-                  <ChevronDown aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Cargar información</DropdownMenuLabel>
-                {importOptions.map(({ label, icon: Icon, onSelect }) => (
-                  <DropdownMenuItem key={label} onSelect={onSelect}>
-                    <Icon aria-hidden="true" />
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-            <Button size="sm" onClick={onNewEmployee} aria-label="Nuevo empleado">
-              <UserPlus aria-hidden="true" />
-              <span className="hidden lg:inline">Nuevo empleado</span>
-            </Button>
-          </>
+          <Button size="sm" onClick={onNewEmployee} aria-label="Nuevo empleado">
+            <UserPlus aria-hidden="true" />
+            <span className="hidden @4xl:inline">Nuevo empleado</span>
+          </Button>
         )}
         <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setEmpPage} />
       </TabsToolbar>

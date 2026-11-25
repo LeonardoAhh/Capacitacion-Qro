@@ -13,8 +13,8 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Badge } from "@/components/ui/badge"
 import {
   useGeneradorExamen,
@@ -163,10 +163,9 @@ export default function GeneradorExamenContent() {
     <div className="space-y-6">
       {/* Paso 1: buscar empleado (en la línea de las pestañas) */}
       <TabsToolbar>
-        <SearchInput
+        <HeaderSearch
           label="Buscar empleado"
           placeholder="Nombre o número de empleado…"
-          className={TOOLBAR_SEARCH}
           value={searchTerm}
           onValueChange={setSearchTerm}
           onSearch={handleSearch}

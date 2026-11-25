@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation"
 import { Plus } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
@@ -53,10 +53,9 @@ export function CapPositionsTab({
     <div className="space-y-4">
       {/* Búsqueda, filtro, "Nuevo puesto" y página en la línea de las pestañas. */}
       <TabsToolbar>
-        <SearchInput
+        <HeaderSearch
           label="Buscar puesto"
           placeholder="Buscar puesto…"
-          className={TOOLBAR_SEARCH}
           value={posSearch}
           onValueChange={setPosSearch}
         />

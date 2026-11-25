@@ -1,6 +1,6 @@
-import { Filter, X } from "lucide-react"
+import type { ReactNode } from "react"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SearchInput } from "@/components/ui/search-input"
 import {
   Select,
   SelectContent,
@@ -9,36 +9,29 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+/**
+ * Barra de Recontratación: filtro de departamento a la izquierda y paginación a la derecha,
+ * en una línea en todos los tamaños. La búsqueda vive en el header (HeaderSearch).
+ */
 export function RecontratacionFilters({
-  search,
-  onSearchChange,
   departments,
   filterDepartment,
   onDepartmentChange,
   hasFilters,
   onClear,
+  pager,
 }: {
-  search: string
-  onSearchChange: (value: string) => void
   departments: string[]
   filterDepartment: string
   onDepartmentChange: (value: string) => void
   hasFilters: boolean
   onClear: () => void
+  pager?: ReactNode
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-3" role="search" aria-label="Filtros de empleados">
-      <SearchInput
-        label="Buscar empleado"
-        placeholder="Nombre, número, puesto…"
-        className="w-full sm:w-72"
-        value={search}
-        onValueChange={onSearchChange}
-      />
-
+    <div className="flex min-w-0 items-center gap-2">
       <Select value={filterDepartment} onValueChange={onDepartmentChange}>
-        <SelectTrigger className="w-full gap-2 sm:w-52" aria-label="Filtrar por departamento">
-          <Filter className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+        <SelectTrigger className="min-w-0 flex-1 sm:w-52 sm:flex-none" aria-label="Filtrar por departamento">
           <SelectValue placeholder="Departamento" />
         </SelectTrigger>
         <SelectContent>
@@ -55,6 +48,7 @@ export function RecontratacionFilters({
           Limpiar
         </Button>
       )}
+      <div className="ml-auto shrink-0">{pager}</div>
     </div>
   )
 }

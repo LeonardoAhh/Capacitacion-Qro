@@ -13,8 +13,6 @@ export interface RegistroPorDiaConfig {
   plural: string
   /** Registra minutos por día (RPC con p_minutos / p_minutos_anterior). */
   conMinutos?: boolean
-  /** RPC de importación mensual (p_periodos), si el tipo la tiene. */
-  rpcReemplazarMeses?: string
 }
 
 export const INCUMPLIMIENTOS_CONFIG: RegistroPorDiaConfig = {
@@ -30,7 +28,6 @@ export const RETARDOS_CONFIG: RegistroPorDiaConfig = {
   singular: "retardo",
   plural: "retardos",
   conMinutos: true,
-  rpcReemplazarMeses: "reemplazar_meses_retardos",
 }
 
 export interface RegistroPorDia {

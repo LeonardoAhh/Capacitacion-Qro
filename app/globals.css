@@ -982,6 +982,31 @@ input[type="color"]::-webkit-color-swatch {
     }
 }
 
+/* Búsqueda del header: se abre desde la lupa hacia la izquierda. */
+@keyframes header-search-open {
+    from {
+        width: 2.75rem;
+        opacity: 0;
+    }
+}
+
+.header-search {
+    width: 11rem;
+    animation: header-search-open var(--motion-layout-duration) var(--motion-ease-out);
+}
+
+@media (min-width: 40rem) {
+    .header-search {
+        width: 16rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .header-search {
+        animation: none;
+    }
+}
+
 /* Alto que sigue a su contenido con transición (pasos de un asistente en un modal). */
 .auto-height {
     transition: height var(--motion-layout-duration) var(--motion-ease-out);

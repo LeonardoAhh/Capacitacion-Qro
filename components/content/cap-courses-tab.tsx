@@ -2,8 +2,8 @@
 import { useState, useMemo } from "react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
-import { SearchInput } from "@/components/ui/search-input"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { HeaderSearch } from "@/components/ui/header-search"
+import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
@@ -58,10 +58,9 @@ export function CapCoursesTab({
           Con un curso abierto, la barra es la del detalle. */}
       {!selectedCourse && (
         <TabsToolbar>
-          <SearchInput
+          <HeaderSearch
             label="Buscar curso"
             placeholder="Buscar curso…"
-            className={TOOLBAR_SEARCH}
             value={courseSearch}
             onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
           />

@@ -37,19 +37,6 @@ export interface PositionCourse {
   course: { name: string; tipo: string | null }
 }
 
-export interface RawJsonRecord {
-  position: string
-  department: string
-  [key: string]: string
-}
-
-export interface ImportPreview {
-  departments: string[]
-  positions: { name: string; department: string; courses: string[] }[]
-  courses: string[]
-  totalRecords: number
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Interfaces – historial
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,94 +299,6 @@ export function useCapacitacion() {
   const [importError, setImportError] = useState<string | null>(null)
   const [matchingHistorial, setMatchingHistorial] = useState(false)
   const [matchError, setMatchError] = useState<string | null>(null)
-
-  // ── Parseo del catálogo (puestos / cursos requeridos) ─────────────────────
-
-  const parseJSON = (raw: RawJsonRecord[]): ImportPreview => {
-    const departmentsSet = new Set<string>()
-    const coursesSet = new Set<string>()
-    const positions: ImportPreview['positions'] = []
-
-    for (const record of raw) {
-      const posName = record.position?.trim()
-      const deptName = record.department?.trim()
-      if (!posName || !deptName) continue
-      departmentsSet.add(deptName)
-      const courses: string[] = []
-      for (let i = 1; i <= 34; i++) {
-        const val = record[`requiredCourses_${i}`]?.trim()
-        if (val) { coursesSet.add(val); courses.push(val) }
-      }
-      positions.push({ name: posName, department: deptName, courses })
-    }
-
-    return {
-      departments: Array.from(departmentsSet).sort(),
-      positions,
-      courses: Array.from(coursesSet).sort(),
-      totalRecords: raw.length,
-    }
-  }
-
-  // ── Importación del catálogo ──────────────────────────────────────────────
-
-  const importData = async (preview: ImportPreview): Promise<{ success: boolean; error?: string }> => {
-    setImporting(true)
-    setImportError(null)
-    try {
-      const { data: deptData, error: deptError } = await supabase
-        .from('departments')
-        .upsert(preview.departments.map(name => ({ name })), { onConflict: 'name' })
-        .select('id, name')
-      if (deptError) throw deptError
-      const deptMap = new Map<string, string>()
-      deptData?.forEach(d => deptMap.set(d.name, d.id))
-
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .upsert(preview.courses.map(name => ({ name })), { onConflict: 'name' })
-        .select('id, name')
-      if (courseError) throw courseError
-      const courseMap = new Map<string, string>()
-      courseData?.forEach(c => courseMap.set(c.name, c.id))
-
-      const positionsToInsert = preview.positions
-        .map(p => ({ name: p.name, department_id: deptMap.get(p.department)! }))
-        .filter(p => p.department_id)
-      const { data: posData, error: posError } = await supabase
-        .from('positions')
-        .upsert(positionsToInsert, { onConflict: 'name,department_id' })
-        .select('id, name, department_id')
-      if (posError) throw posError
-      const posMap = new Map<string, string>()
-      posData?.forEach(p => posMap.set(`${p.name}|||${p.department_id}`, p.id))
-
-      const positionCourses: { position_id: string; course_id: string; order_index: number }[] = []
-      for (const pos of preview.positions) {
-        const deptId = deptMap.get(pos.department)
-        if (!deptId) continue
-        const posId = posMap.get(`${pos.name}|||${deptId}`)
-        if (!posId) continue
-        pos.courses.forEach((courseName, idx) => {
-          const courseId = courseMap.get(courseName)
-          if (courseId) positionCourses.push({ position_id: posId, course_id: courseId, order_index: idx + 1 })
-        })
-      }
-      if (positionCourses.length > 0) {
-        const { error: pcError } = await supabase
-          .from('position_courses')
-          .upsert(positionCourses, { onConflict: 'position_id,course_id', ignoreDuplicates: true })
-        if (pcError) throw pcError
-      }
-      return { success: true }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al importar datos'
-      setImportError(msg)
-      return { success: false, error: msg }
-    } finally {
-      setImporting(false)
-    }
-  }
 
   // ── Fetch helpers ─────────────────────────────────────────────────────────
 
@@ -781,46 +680,6 @@ export function useCapacitacion() {
     }
   }
 
-  // ── Agregar cursos a un empleado existente ───────────────────────────────
-
-  const bulkImportCourseRecords = async (
-    records: { employee_id: string; course_id: string; raw_course_name: string; fecha_aplicacion: string | null; calificacion: number | null }[]
-  ): Promise<{ success: boolean; inserted: number; error?: string }> => {
-    setImporting(true)
-    setImportError(null)
-    try {
-      if (records.length === 0) return { success: true, inserted: 0 }
-      
-      // Eliminar duplicados para evitar error de Postgres: ON CONFLICT DO UPDATE command cannot affect row a second time
-      const map = new Map<string, typeof records[0]>()
-      for (const r of records) {
-        map.set(`${r.employee_id}|${r.raw_course_name}`, r)
-      }
-      const uniqueRecords = Array.from(map.values())
-
-      const { error } = await supabase
-        .from('employee_courses')
-        .upsert(
-          uniqueRecords.map(r => ({
-            employee_id: r.employee_id,
-            course_id: r.course_id,
-            raw_course_name: r.raw_course_name,
-            fecha_aplicacion: r.fecha_aplicacion,
-            calificacion: r.calificacion,
-          })),
-          { onConflict: 'employee_id,raw_course_name', ignoreDuplicates: false }
-        )
-      if (error) throw new Error(error.message)
-      return { success: true, inserted: records.length }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al importar'
-      setImportError(msg)
-      return { success: false, inserted: 0, error: msg }
-    } finally {
-      setImporting(false)
-    }
-  }
-
   const migrateGrades = async (updates: { id: string; calificacion: number | null }[]) => {
     try {
       const { error } = await supabase
@@ -1042,8 +901,6 @@ export function useCapacitacion() {
     matchingHistorial,
     matchError,
     // Catálogo
-    parseJSON,
-    importData,
     fetchDepartments,
     fetchPositions,
     fetchCourses,
@@ -1062,7 +919,6 @@ export function useCapacitacion() {
     createEmployeeManual,
     updateEmployee,
     addCoursesToEmployee,
-    bulkImportCourseRecords,
     createPosition,
     createCourse,
     updateCourse,

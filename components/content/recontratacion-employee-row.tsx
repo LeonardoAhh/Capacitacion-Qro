@@ -15,7 +15,8 @@ import { cn } from "@/lib/utils"
 const COL = {
   departamento: "hidden w-48 lg:table-cell",
   termino: "hidden w-56 sm:table-cell",
-  acciones: "w-32 text-right",
+  // Revisar e Imprimir con texto desde sm; en móvil, Imprimir queda solo con su ícono.
+  acciones: "w-32 text-right sm:w-56",
 } as const
 
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
@@ -67,12 +68,13 @@ export function EmpleadoRow({
           )}
           <Button
             variant="ghost"
-            size="icon"
+            size="sm"
             onClick={() => record.numero && onImprimir(record.numero)}
             disabled={!record.numero}
             aria-label={record.numero ? `Imprimir formato de ${record.nombre}` : "Imprimir: sin número asignado"}
           >
             <Printer aria-hidden="true" />
+            <span className="hidden sm:inline">Imprimir</span>
           </Button>
         </div>
       </TableCell>

@@ -5,7 +5,7 @@ import { CheckCircle2, Clock3, FileText } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { SearchInput } from "@/components/ui/search-input"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { SummaryStrip } from "@/components/ui/summary-strip"
@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils"
 type StatusFilter = "all" | "pendiente" | "entregada" | "no_aplica"
 
 const STATUS_FILTERS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "Todos" },
+  { value: "all", label: "Estados" },
   { value: "entregada", label: "Entregadas" },
   { value: "pendiente", label: "Pendientes" },
   { value: "no_aplica", label: "No aplica" },
@@ -143,7 +143,8 @@ export default function DesempenoCumplimientoContent() {
               </Button>
             ))}
           </div>
-          <SearchInput value={search} onValueChange={setSearch} label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" />
+          {/* La búsqueda va en el header (lupa). */}
+          <HeaderSearch value={search} onValueChange={setSearch} label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" />
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
             <SelectTrigger className="w-full" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
             <SelectContent>
