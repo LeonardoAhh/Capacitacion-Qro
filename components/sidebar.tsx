@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils"
 import { DESKTOP_NAV_ID, MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
 import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { AccountMenu } from "@/components/account-menu"
+import { IdeaCapture } from "@/components/idea-capture"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
 import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW } from "@/components/sidebar-density"
@@ -23,12 +24,12 @@ const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 // sobre la barra, con el ícono en el color primario; así no se confunde con el hover.
 const rowIdle = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 const rowActive = "border-sidebar-border bg-sidebar-active font-medium text-foreground shadow-(--sidebar-active-shadow)"
-const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
+const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sidebar-ring"
 // Celular (menú a pantalla completa): mosaicos en dos columnas para que todo quepa sin scroll;
 // el nombre usa hasta dos renglones en lugar de recortarse.
 const tileBase = "min-h-14 gap-3 rounded-lg px-3 py-2 text-body-md leading-tight"
 const tileIdle = "border-sidebar-border text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sidebar-ring"
+const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sidebar-ring"
 
 export interface SidebarApi {
   showMobileSidebar: boolean
@@ -252,6 +253,10 @@ export default function Sidebar({
             <SidebarBrand onClose={closeMobile} workspace={workspace} />
             <NavTree pathname={pathname} onNavigate={closeMobile} mobile workspace={workspace} />
             {showStatus && <SidebarStatus />}
+            <div className="shrink-0 px-3 pb-2">
+              <IdeaCapture workspace={workspace} side="top" onNavigate={closeMobile}
+                triggerClassName={cn(navLinkBase, SIDEBAR_ROW, rowIdle)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
+            </div>
             <div className="safe-bottom-content mx-3 shrink-0 border-t border-sidebar-border pt-2">
               <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
             </div>
@@ -278,6 +283,11 @@ export default function Sidebar({
         </div>
         <NavTree pathname={pathname} workspace={workspace} />
         {showStatus && <SidebarStatus />}
+        {/* Ideas de mejora: al pie de la navegación, justo antes de la cuenta. */}
+        <div className="shrink-0 px-3 pb-2">
+          <IdeaCapture workspace={workspace} side="right"
+            triggerClassName={cn(navLinkBase, SIDEBAR_ROW, rowIdle)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
+        </div>
         {/* Cuenta separada de la navegación con la misma línea que la marca; termina a la altura del panel. */}
         <div className="mx-3 shrink-0 border-t border-sidebar-border pt-2">
           <AccountMenu workspace={workspace} onWorkspaceChange={onWorkspaceChange} />

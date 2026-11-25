@@ -5,7 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
@@ -130,6 +130,7 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
+  [IDEAS_PATH]: "Ideas de mejora",
   "/promociones": "Categorías",
   "/promociones/reglas": "Reglas de promoción",
   "/asignaciones": "Asignaciones de evaluación",

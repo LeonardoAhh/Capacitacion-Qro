@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useState, useEffect, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useUser } from './useUser'
-import { canAccessRoute, ROLE_POLICIES, toAppRole, type AppRole, type RolePolicy } from '@/lib/constants/roles'
+import { canAccessRoute, FALLBACK_ROLE, ROLE_POLICIES, toAppRole, type AppRole, type RolePolicy } from '@/lib/constants/roles'
 import type { WorkspaceId } from '@/lib/navigation'
 
 export type { AppRole } from '@/lib/constants/roles'
@@ -19,14 +19,15 @@ export type RoleContextType = {
   canManageSafety: boolean
   supervisesEvaluations: boolean
   employeesOnly: boolean
+  canReviewIdeas: boolean
   workspaces: readonly WorkspaceId[]
   /** ¿El rol puede abrir esta ruta? (lib/constants/roles) */
   canAccess: (path: string) => boolean
   loading: boolean
 }
 
-// Sin sesión o mientras carga: permisos de solo lectura, como antes.
-const DEFAULT_ROLE: AppRole = 'admin'
+// Sin sesión, mientras carga o si no se pudo leer: el rol más acotado.
+const DEFAULT_ROLE: AppRole = FALLBACK_ROLE
 
 function permissions(role: AppRole, signedIn: boolean) {
   const policy: RolePolicy = ROLE_POLICIES[role]
@@ -39,6 +40,7 @@ function permissions(role: AppRole, signedIn: boolean) {
     canManageSafety: signedIn && policy.canManageSafety,
     supervisesEvaluations: signedIn && policy.supervisesEvaluations,
     employeesOnly: policy.employeesOnly,
+    canReviewIdeas: signedIn && policy.canReviewIdeas,
     workspaces: policy.workspaces,
   }
 }

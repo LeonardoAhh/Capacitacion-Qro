@@ -33,7 +33,8 @@ import { AccountSheet } from "@/components/account-sheet"
 const ITEM = cn(SIDEBAR_MENU_ROW, "gap-2 px-2 text-body-sm focus:bg-transparent focus:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary")
 const SEPARADOR = "mx-2 my-0"
 const OPCION = cn(SIDEBAR_MENU_ROW, "text-body-sm")
-const TRIGGER = "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+// Anillo de foco por dentro: la barra lateral recorta lo que sale de ella (overflow por la animación).
+const TRIGGER = "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
 
 type AccountMenuProps = {
   onNavigate?: () => void
@@ -137,7 +138,7 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
               >
                 <DropdownMenuRadioItem value="light" className={OPCION}>Claro</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="dark" className={OPCION}>Oscuro</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system" className={OPCION}>Automático</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuSub>

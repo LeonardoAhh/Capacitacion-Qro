@@ -1,5 +1,5 @@
 import type { WorkspaceId } from "@/lib/navigation"
-import { OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 
 /**
@@ -35,45 +35,49 @@ export interface RolePolicy {
   supervisesEvaluations: boolean
   /** En /plantilla solo ve la pestaña de empleados. */
   employeesOnly: boolean
+  /** Abre la lista de ideas de mejora y cambia su estado. Enviar ideas lo puede hacer cualquiera. */
+  canReviewIdeas: boolean
 }
 
 const TRAINING = ["training"] as const
 const SAFETY = ["safety"] as const
 
 export const ROLE_POLICIES: Record<AppRole, RolePolicy> = {
+  // Todo, más la revisión de ideas de mejora.
   dev: {
     label: "Desarrollador", workspaces: ["training", "safety"],
     canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
-    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false,
+    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: true,
   },
   // Igual que dev en Capacitación; las herramientas de desarrollador siguen
   // ligadas a la cuenta privada (lib/auth/private-developer).
   analista: {
     label: "Analista", workspaces: TRAINING,
     canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
-    canManageSafety: false, supervisesEvaluations: true, employeesOnly: false,
+    canManageSafety: false, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false,
   },
+  // Los mismos poderes que dev (ambos espacios y edición completa), sin la revisión de ideas.
   admin: {
-    label: "Administrador", workspaces: TRAINING,
-    canEdit: false, readOnly: true, canEvaluate: false, canCapturePlantilla: false,
-    canManageSafety: false, supervisesEvaluations: true, employeesOnly: false,
+    label: "Administrador", workspaces: ["training", "safety"],
+    canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
+    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false,
   },
   auxiliar: {
     label: "Auxiliar", workspaces: TRAINING, home: "/plantilla",
     routes: ["/plantilla", "/plantilla/incidencias/*", "/plantilla/actas/*", "/plantilla/incumplimientos/*", "/plantilla/retardos/*"],
     canEdit: false, readOnly: true, canEvaluate: false, canCapturePlantilla: true,
-    canManageSafety: false, supervisesEvaluations: false, employeesOnly: true,
+    canManageSafety: false, supervisesEvaluations: false, employeesOnly: true, canReviewIdeas: false,
   },
   ehs: {
     label: "EHS", workspaces: SAFETY,
     canEdit: false, readOnly: false, canEvaluate: false, canCapturePlantilla: false,
-    canManageSafety: true, supervisesEvaluations: false, employeesOnly: false,
+    canManageSafety: true, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false,
   },
   evaluador: {
     label: "Evaluador", workspaces: [], home: "/desempeno",
     routes: [DESEMPENO.routes.home, `${DESEMPENO.routes.pending}/*`, "/cursos/*"],
     canEdit: false, readOnly: true, canEvaluate: true, canCapturePlantilla: false,
-    canManageSafety: false, supervisesEvaluations: false, employeesOnly: false,
+    canManageSafety: false, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false,
   },
 }
 
@@ -81,9 +85,14 @@ export const ROLE_LABELS: Record<AppRole, string> = Object.fromEntries(
   APP_ROLES.map(role => [role, ROLE_POLICIES[role].label]),
 ) as Record<AppRole, string>
 
-/** Rol desconocido o vacío: se trata como admin (solo lectura), igual que antes. */
+/**
+ * Rol desconocido o vacío: el más acotado (evaluador). Antes caía en admin, que era de
+ * solo lectura; ahora admin tiene todos los permisos.
+ */
+export const FALLBACK_ROLE: AppRole = "evaluador"
+
 export function toAppRole(value: unknown): AppRole {
-  return APP_ROLES.includes(value as AppRole) ? value as AppRole : "admin"
+  return APP_ROLES.includes(value as AppRole) ? value as AppRole : FALLBACK_ROLE
 }
 
 /** Rutas del espacio de Seguridad e Higiene; el resto pertenece a Capacitación. */
@@ -101,6 +110,7 @@ export function workspaceForRoute(path: string): WorkspaceId {
 
 export function canAccessRoute(role: AppRole, path: string): boolean {
   const policy = ROLE_POLICIES[role]
+  if (matchesRoute(path, `${IDEAS_PATH}/*`)) return policy.canReviewIdeas
   if (policy.routes) return policy.routes.some(rule => matchesRoute(path, rule))
   return policy.workspaces.includes(workspaceForRoute(path))
 }
