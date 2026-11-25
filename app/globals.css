@@ -117,26 +117,26 @@
         --floating-shadow: 0 2px 2px hsl(0 0% 0% / 0.04), 0 8px 16px -4px hsl(0 0% 0% / 0.06);
         --overlay-scrim: hsl(0 0% 0% / 0.4);
 
-        --background: 220 15.79% 96.27%;
-        --foreground: 217.5 16.67% 9.41%;
+        --background: 0 0% 94.5%;
+        --foreground: 0 0% 11%;
 
-        --card: 0 0% 100%;
-        --card-foreground: 217.5 16.67% 9.41%;
+        --card: 0 0% 98.2%;
+        --card-foreground: 0 0% 11%;
 
-        --popover: 0 0% 100%;
-        --popover-foreground: 217.5 16.67% 9.41%;
+        --popover: 0 0% 98.2%;
+        --popover-foreground: 0 0% 11%;
 
-        --primary: 212 100% 48%;
+        --primary: 212 100% 45%;
         --primary-foreground: 0 0% 100%;
         --brand-accent: var(--primary);
         --brand-accent-text: var(--primary);
         --brand-accent-foreground: 0 0% 100%;
 
-        --secondary: 217.5 17.39% 90.98%;
-        --secondary-foreground: 216.67 20.45% 17.25%;
+        --secondary: 0 0% 88.5%;
+        --secondary-foreground: 0 0% 16%;
 
-        --muted: 216 15.15% 93.53%;
-        --muted-foreground: 218.18 15.94% 27.06%;
+        --muted: 0 0% 91.5%;
+        --muted-foreground: 0 0% 35%;
 
         --accent: var(--secondary);
         --accent-foreground: var(--foreground);
@@ -144,15 +144,15 @@
         --destructive: 0 66.28% 33.73%;
         --destructive-foreground: 0 0% 100%;
 
-        --border: 216.92 13.68% 81.37%;
-        --input: 216.92 10.83% 52.94%;
+        --border: 0 0% 80%;
+        --input: 0 0% 50%;
         --ring: var(--primary);
 
         /* Paleta de gráficas: 5 tonos distinguibles como máximo, sin repetir grises.
            1 = verde azulado de aprobado / cumple, 2 = azul de la marca (primary)
            y 3 = ámbar de aviso (pendiente / parcial). */
         --chart-1: 173 58% 39%;
-        --chart-2: 212 100% 48%;
+        --chart-2: 212 100% 45%;
         --chart-3: 37 91% 55%;
         --chart-4: 262 52% 55%;
         --chart-5: 340 65% 52%;
@@ -164,16 +164,16 @@
         --sidebar-primary-foreground: var(--primary-foreground);
         --sidebar-accent: var(--secondary);
         --sidebar-accent-foreground: var(--foreground);
-        --sidebar-border: 216.92 13.68% 81.37%;
+        --sidebar-border: 0 0% 80%;
         --sidebar-ring: var(--primary);
         /* Elemento seleccionado "elevado": en claro, tarjeta con sombra suave. */
         --sidebar-active: var(--card);
-        --sidebar-active-shadow: 0 1px 2px hsl(220 14% 8% / 0.08), 0 1px 1px hsl(220 14% 8% / 0.04);
+        --sidebar-active-shadow: 0 1px 2px hsl(0 0% 0% / 0.07), 0 1px 1px hsl(0 0% 0% / 0.04);
 
-        --success: 212.35 100% 47.65%;
+        --success: 212 100% 45%;
         --success-foreground: 0 0% 98%;
         --warning: 37.43 91.78% 54.9%;
-        --warning-foreground: 217.5 16.67% 9.41%;
+        --warning-foreground: 0 0% 11%;
         /* Texto de advertencia sobre superficies tenues (bg-warning/10): ámbar profundo, sin chillar. */
         --warning-deep: 30 85% 30%;
         /* Texto de aprobado (verde azulado de --chart-1) sobre superficies claras: tono profundo con contraste AA. */
@@ -237,35 +237,35 @@
     .dark {
         color-scheme: dark;
 
-        --background: 220 14.29% 8.24%;
-        --foreground: 214.29 22.58% 93.92%;
+        --background: 0 0% 7.5%;
+        --foreground: 0 0% 93%;
 
-        --card: 220 14.75% 11.96%;
-        --card-foreground: 214.29 22.58% 93.92%;
+        --card: 0 0% 10.5%;
+        --card-foreground: 0 0% 93%;
 
-        --popover: 220 14.75% 11.96%;
-        --popover-foreground: 214.29 22.58% 93.92%;
+        --popover: 0 0% 10.5%;
+        --popover-foreground: 0 0% 93%;
 
         --primary: 212 100% 62%;
-        --primary-foreground: 224 60% 9.8%;
+        --primary-foreground: 0 0% 7.5%;
         --brand-accent: var(--primary);
         --brand-accent-text: var(--primary);
         --brand-accent-foreground: var(--primary-foreground);
 
-        --secondary: 216.92 14.61% 17.45%;
-        --secondary-foreground: 216 20.83% 90.59%;
+        --secondary: 0 0% 16.5%;
+        --secondary-foreground: 0 0% 91%;
 
-        --muted: 218.18 14.67% 14.71%;
-        --muted-foreground: 216 16.39% 76.08%;
+        --muted: 0 0% 13.5%;
+        --muted-foreground: 0 0% 68%;
 
         --accent: var(--secondary);
         --accent-foreground: var(--foreground);
 
-        --destructive: 0 100% 80.39%;
-        --destructive-foreground: 0 68% 9.8%;
+        --destructive: 0 84% 74%;
+        --destructive-foreground: 0 0% 7.5%;
 
-        --border: 217.5 12.9% 24.31%;
-        --input: 217.78 11.59% 54.31%;
+        --border: 0 0% 22%;
+        --input: 0 0% 42%;
         --ring: var(--primary);
 
         --chart-1: 172 55% 50%;
@@ -280,7 +280,7 @@
         --sidebar-primary-foreground: var(--primary-foreground);
         --sidebar-accent: var(--secondary);
         --sidebar-accent-foreground: var(--foreground);
-        --sidebar-border: 217.5 12.9% 24.31%;
+        --sidebar-border: 0 0% 22%;
         --sidebar-ring: var(--primary);
         /* En oscuro la sombra no se ve: superficie un tono más clara y un brillo fino arriba. */
         --sidebar-active: var(--secondary);
@@ -292,7 +292,7 @@
         --chart-1-deep: 172 60% 62%;
         --chart-1-soft: 173 32% 17%;
         --info: 200 70% 62%;
-        --info-foreground: 220 14.29% 8.24%;
+        --info-foreground: 0 0% 7.5%;
         --urgency-low: 152 48% 70%;
     }
 

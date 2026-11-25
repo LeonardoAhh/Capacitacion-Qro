@@ -23,7 +23,7 @@ interface IdentityStepProps extends StepProps {
 }
 
 // Crecen con el contenido (sin scroll interno); `rows` es el respaldo donde field-sizing no existe.
-const AUTO_TEXTAREA = "min-h-11 resize-none field-sizing-content"
+const AUTO_TEXTAREA = "min-h-(--control-height) resize-none field-sizing-content"
 const FIELD = "grid min-w-0 content-start gap-2"
 
 export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cursosError, puestos, departmentName, onPositionsChange }: IdentityStepProps) {
@@ -31,7 +31,7 @@ export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cur
   const allSelected = puestos.length > 0 && selectedCount === puestos.length
 
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-5 dense:gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className={FIELD}>
           <Label htmlFor="dnc-necesidad">Necesidad identificada</Label>
@@ -40,7 +40,7 @@ export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cur
         </div>
         <div className={FIELD}>
           <Label htmlFor="dnc-curso">Curso</Label>
-          {cursosLoading ? <Skeleton className="h-11 w-full" /> : (
+          {cursosLoading ? <Skeleton className="h-(--control-height) w-full" /> : (
             <Select value={form.course_id ?? ""} onValueChange={value => onChange("course_id", value)}>
               <SelectTrigger id="dnc-curso" disabled={Boolean(cursosError) || cursos.length === 0}>
                 <SelectValue placeholder="Selecciona un curso" />
@@ -60,10 +60,10 @@ export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cur
       <div role="group" aria-labelledby="dnc-puestos-label" className="grid min-w-0 gap-2">
         <div className="flex flex-wrap items-center justify-between gap-x-4">
           <p id="dnc-puestos-label" className="text-label-sm text-foreground">
-            Puestos <span className="text-body-sm text-muted-foreground">· {selectedCount} de {puestos.length}</span>
+            Puestos <span className="text-body-sm tabular-nums text-muted-foreground">· {selectedCount} de {puestos.length}</span>
           </p>
           {puestos.length > 0 && (
-            <label className="flex min-h-11 cursor-pointer items-center gap-2 text-body-md text-foreground">
+            <label className="flex min-h-(--control-height) cursor-pointer items-center gap-2 text-body-md text-foreground">
               <Checkbox checked={allSelected ? true : selectedCount > 0 ? "indeterminate" : false}
                 onCheckedChange={checked => onPositionsChange(checked === true ? puestos.map(puesto => puesto.id) : [])} />
               Todos
@@ -74,7 +74,7 @@ export function DncNeedIdentityStep({ form, onChange, cursos, cursosLoading, cur
         {puestos.length ? (
           <div className="grid gap-x-4 border-t border-border pt-1 sm:grid-cols-2 lg:grid-cols-3">
             {puestos.map(puesto => (
-              <label key={puesto.id} className="flex min-h-11 min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 text-body-md text-foreground hover:bg-muted">
+              <label key={puesto.id} className="flex min-h-(--control-height) min-w-0 cursor-pointer items-center gap-3 rounded-md px-2 text-body-md text-foreground hover:bg-muted">
                 <Checkbox checked={form.position_ids.includes(puesto.id)}
                   onCheckedChange={checked => onPositionsChange(checked === true
                     ? [...form.position_ids, puesto.id]
@@ -101,7 +101,7 @@ function ProgramacionHint({ programacion, form, onChange }: StepProps & { progra
   return (
     <p className="flex flex-wrap items-center gap-x-1 text-body-sm text-warning-deep sm:col-span-2">
       Al guardar, el mes y el tipo también se actualizarán en la DNC de {origen}.
-      <Button type="button" variant="link" size="xs" className="h-auto px-0" onClick={() => {
+      <Button type="button" variant="link" size="xs" className="touch-target h-auto px-0" onClick={() => {
         onChange("mes_sugerido", programacion.mes_sugerido)
         onChange("tipo", programacion.tipo)
       }}>

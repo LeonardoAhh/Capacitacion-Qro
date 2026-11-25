@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -13,6 +13,7 @@ import { notify } from "@/lib/notify"
 import { cargarCursosFijos, cargarPlan, MESES, type CursoFijo, type CursoPlan, type TipoCurso } from "@/lib/plan-anual"
 import { cargarPropuestasDnc, importarAlPlan, type PropuestaDnc } from "@/lib/plan-anual-dnc"
 import { rutaPlan } from "@/lib/plan-anual-rutas"
+import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
 
 type Fila = Pick<PropuestaDnc, "mes" | "tipo" | "area_solicitante" | "aplica_para"> & { incluir: boolean }
@@ -39,6 +40,7 @@ export function PlanAnualImportarDncPage({ anio }: { anio: number }) {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [dirty, setDirty] = useState(false)
 
   // Refleja las DNC y el plan tal como están al abrir la página.
   useEffect(() => {
@@ -60,17 +62,32 @@ export function PlanAnualImportarDncPage({ anio }: { anio: number }) {
     return () => { active = false }
   }, [anio])
 
+  const confirmDiscard = useCallback(() => notify.confirm({
+    title: "Descartar cambios",
+    description: "Los ajustes en la importación de DNC no se han guardado.",
+    confirmLabel: "Descartar",
+    tone: "warning",
+    size: "xs",
+  }), [])
+
+  useEffect(() => {
+    if (!dirty) return
+    return registerUnsavedChangesGuard(confirmDiscard)
+  }, [confirmDiscard, dirty])
+
   const disponibles = (datos?.propuestas ?? []).filter(propuesta => !propuesta.enPlan)
   const seleccionadas = disponibles.filter(propuesta => filas[propuesta.course_id]?.incluir)
   const todas = disponibles.length > 0 && seleccionadas.length === disponibles.length
 
   function actualizar(courseId: string, cambios: Partial<Fila>) {
     setFilas(current => ({ ...current, [courseId]: { ...current[courseId], ...cambios } }))
+    setDirty(true)
     setError(null)
   }
 
   function marcarTodas(incluir: boolean) {
     setFilas(current => Object.fromEntries(Object.entries(current).map(([courseId, fila]) => [courseId, { ...fila, incluir }])))
+    setDirty(true)
     setError(null)
   }
 
@@ -91,6 +108,7 @@ export function PlanAnualImportarDncPage({ anio }: { anio: number }) {
     setError(null)
     try {
       const agregados = await importarAlPlan(anio, items, datos.plan, datos.fijos)
+      setDirty(false)
       notify.success(agregados === 1 ? "1 curso agregado al plan" : `${agregados} cursos agregados al plan`)
       router.push(rutaPlan(anio, Math.min(...items.map(item => item.mes))))
     } catch (cause) {
@@ -157,7 +175,7 @@ function PropuestaFila({ propuesta, fila, onChange }: {
 
   return (
     <li className={cn("grid gap-3 px-(--card-padding) py-3 sm:grid-cols-2 lg:items-center lg:py-2", COLUMNAS, !editable && "bg-muted/30")}>
-      <label className={cn("flex min-w-0 items-center gap-3 sm:col-span-2 lg:col-span-1", enPlan ? "cursor-default" : "cursor-pointer")}>
+      <label className={cn("flex min-h-(--control-height) min-w-0 items-center gap-3 sm:col-span-2 lg:col-span-1 lg:min-h-0", enPlan ? "cursor-default" : "cursor-pointer")}>
         <Checkbox checked={editable} disabled={Boolean(enPlan)} onCheckedChange={checked => onChange({ incluir: checked === true })}
           aria-describedby={enPlan ? `${id}-en-plan` : undefined} />
         <span className="min-w-0">

@@ -5,7 +5,6 @@ import { CircleCheck, CircleDashed, CircleX, EllipsisVertical, Pencil, Trash2 } 
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { TruncatedText } from "@/components/ui/truncated-text"
 import { cn } from "@/lib/utils"
@@ -87,33 +86,6 @@ function DncTableHeader({ canEdit }: { canEdit: boolean }) {
   )
 }
 
-function DncSkeletonRows({ canEdit }: { canEdit: boolean }) {
-  return [1, 2, 3].map(number => (
-    <TableRow key={number} aria-hidden="true" className="hover:bg-transparent">
-      {TEXT_COLUMNS.map((column, index) => (
-        <TableCell key={column.key} className={cn(index === 0 && PINNED_START)}>
-          <Skeleton className="h-4 w-3/4 animate-none" />
-        </TableCell>
-      ))}
-      <TableCell><Skeleton className="h-4 w-3/4 animate-none" /></TableCell>
-      <TableCell><Skeleton className="h-4 w-3/4 animate-none" /></TableCell>
-      {canEdit && <TableCell className={PINNED_END}><Skeleton className="ml-auto h-4 w-4 animate-none" /></TableCell>}
-    </TableRow>
-  ))
-}
-
-export function DncTableSkeleton() {
-  return (
-    <Table aria-label="DNC sin registros" className={tableClass(false)}>
-      <DncColGroup canEdit={false} />
-      <DncTableHeader canEdit={false} />
-      <TableBody>
-        <DncSkeletonRows canEdit={false} />
-      </TableBody>
-    </Table>
-  )
-}
-
 /**
  * Estado de autorización al inicio del menú de acciones. Solo "No autorizada"
  * es interactivo: abre el motivo en el diálogo de detalle.
@@ -133,7 +105,7 @@ function DncAutorizacionEstado({ necesidad, onShowMotivo }: { necesidad: DncNece
   const autorizada = necesidad.autorizacion === "autorizado"
   const Icon = autorizada ? CircleCheck : CircleDashed
   return (
-    <DropdownMenuLabel className="flex min-h-11 items-center gap-2 py-0 text-body-md">
+    <DropdownMenuLabel className="flex min-h-(--menu-item-height) items-center gap-2 py-0 text-body-md">
       <Icon aria-hidden="true" className={cn("size-4 shrink-0", autorizada ? "text-success" : "text-muted-foreground")} />
       {autorizada ? "Autorizada" : "Sin autorización"}
     </DropdownMenuLabel>
@@ -165,7 +137,13 @@ export function DncNeedsTable({ necesidades, puestos, departmentName, anio, canE
         <DncColGroup canEdit={canEdit} />
         <DncTableHeader canEdit={canEdit} />
         <TableBody>
-          {necesidades.length === 0 && <DncSkeletonRows canEdit={canEdit} />}
+          {necesidades.length === 0 && (
+            <TableRow className="hover:bg-transparent">
+              <TableCell colSpan={canEdit ? 9 : 8} className="py-10 text-center text-body-md normal-case text-muted-foreground">
+                Aún no hay necesidades registradas en este departamento.
+              </TableCell>
+            </TableRow>
+          )}
           {necesidades.map(necesidad => (
             <TableRow key={necesidad.id} className="hover:bg-transparent">
               {TEXT_COLUMNS.map((column, index) => {

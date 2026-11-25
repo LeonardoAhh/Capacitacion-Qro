@@ -1,5 +1,4 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
 import { TruncatedText } from "@/components/ui/truncated-text"
 import { nombreCursoPlan, type CursoPlan } from "@/lib/plan-anual"
 import { PlanAnualActionsMenu } from "@/components/content/plan-anual-actions-menu"
@@ -33,16 +32,13 @@ export function PlanAnualTable({ cursos, canEdit, onOpen, onMetrics, onEdit, onD
         </TableRow>
       </TableHeader>
       <TableBody>
-        {cursos.length === 0 && [1, 2, 3].map(number => (
-          <TableRow key={number} aria-hidden="true" className="hover:bg-transparent">
-            <TableCell className="min-w-64"><Skeleton className="h-4 w-48 animate-none" /></TableCell>
-            <TableCell><Skeleton className="h-4 w-28 animate-none" /></TableCell>
-            <TableCell><Skeleton className="h-4 w-28 animate-none" /></TableCell>
-            <TableCell><Skeleton className="mx-auto h-4 w-4 animate-none" /></TableCell>
-            <TableCell><Skeleton className="mx-auto h-4 w-4 animate-none" /></TableCell>
-            <TableCell><Skeleton className="ml-auto h-4 w-4 animate-none" /></TableCell>
+        {cursos.length === 0 && (
+          <TableRow className="hover:bg-transparent">
+            <TableCell colSpan={6} className="py-10 text-center text-body-md text-muted-foreground">
+              Aún no hay cursos programados en este mes.
+            </TableCell>
           </TableRow>
-        ))}
+        )}
         {cursos.map(curso => (
           <TableRow key={curso.id}>
             <TableCell className="min-w-64 max-w-lg whitespace-normal font-medium">{nombreCursoPlan(curso)}</TableCell>
@@ -53,8 +49,8 @@ export function PlanAnualTable({ cursos, canEdit, onOpen, onMetrics, onEdit, onD
             <TableCell>
               <TruncatedText className={CELDA_LISTA} onExpand={() => onOpen(curso)} expandLabel="Ver a quién aplica">{curso.aplica_para}</TruncatedText>
             </TableCell>
-            <TableCell className="text-center">{curso.tipo === "interno" ? "Sí" : "—"}</TableCell>
-            <TableCell className="text-center">{curso.tipo === "externo" ? "Sí" : "—"}</TableCell>
+            <TableCell className="text-center">{curso.tipo === "interno" ? "Sí" : <span className="text-muted-foreground">-</span>}</TableCell>
+            <TableCell className="text-center">{curso.tipo === "externo" ? "Sí" : <span className="text-muted-foreground">-</span>}</TableCell>
             <TableCell className="text-right">
               <PlanAnualActionsMenu curso={curso} canEdit={canEdit} onOpen={onOpen} onMetrics={onMetrics}
                 onEdit={onEdit} onDelete={onDelete} />

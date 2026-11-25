@@ -37,7 +37,7 @@ export function DncCreateDialog({ anio, disponibles, onClose, onCreate }: DncCre
   return (
     <ResponsiveShell open onClose={onClose} size="sm" title="Crear DNC" description={`Reporte anual ${anio}`}>
       <ModalHeader title="Crear DNC" subtitle={`Año ${anio}`} onClose={onClose} />
-      <div className="grid gap-2 p-6">
+      <div className="grid gap-2 p-(--card-padding)">
         <Label htmlFor="dnc-departamento-nuevo">Departamento</Label>
         <Select value={departmentId} onValueChange={setDepartmentId}>
           <SelectTrigger id="dnc-departamento-nuevo"><SelectValue placeholder="Selecciona un departamento" /></SelectTrigger>

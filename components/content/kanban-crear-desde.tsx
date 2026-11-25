@@ -16,7 +16,7 @@ export function KanbanCrearDesdeItem({ datos }: { datos: TarjetaDesde }) {
   if (loading || isEvaluador) return null
   return (
     <DropdownMenuItem onSelect={() => router.push(enlaceNuevaTarjeta(datos))}>
-      <SquareKanban aria-hidden="true" />Crear tarjeta en Kanban
+      <SquareKanban aria-hidden="true" />Crear en Kankan
     </DropdownMenuItem>
   )
 }

@@ -34,7 +34,7 @@ export function PlanAnualStartDialog({ anio, disponibles, preferredMonth, onClos
   return (
     <ResponsiveShell open onClose={onClose} size="sm" title="Iniciar mes">
       <ModalHeader title="Iniciar mes" subtitle={`Plan anual ${anio}`} onClose={onClose} />
-      <div className="grid gap-2 p-6">
+      <div className="grid gap-2 p-(--card-padding)">
         <Label htmlFor="plan-mes">Mes de {anio}</Label>
         <Select value={mes} onValueChange={setMes}>
           <SelectTrigger id="plan-mes"><SelectValue /></SelectTrigger>

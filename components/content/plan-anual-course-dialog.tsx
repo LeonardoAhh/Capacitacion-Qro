@@ -48,10 +48,10 @@ export function PlanAnualCourseDialog({ curso, mes, catalog, catalogLoading, cat
   return (
     <ResponsiveShell open onClose={onClose} size="sm" title={curso ? "Editar curso" : "Agregar curso"}>
       <ModalHeader title={curso ? "Editar curso" : "Agregar curso"} subtitle={mes} onClose={onClose} />
-      <div className="grid gap-4 p-6">
+      <div className="grid gap-4 p-(--card-padding)">
         <div className="grid gap-2">
           <Label htmlFor="plan-curso-nombre">Nombre del curso</Label>
-          {catalogLoading ? <Skeleton className="h-11 w-full" /> : (
+          {catalogLoading ? <Skeleton className="h-(--control-height) w-full" /> : (
             <Select value={courseId} onValueChange={setCourseId}>
               <SelectTrigger id="plan-curso-nombre" disabled={Boolean(catalogError) || catalog.length === 0}>
                 <SelectValue placeholder="Selecciona un curso del catálogo" />

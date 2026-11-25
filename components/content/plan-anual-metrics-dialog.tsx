@@ -33,7 +33,7 @@ export function PlanAnualMetricsDialog({ curso, onClose }: PlanAnualMetricsDialo
     <ResponsiveShell open onClose={onClose} size="sm" title={nombreCursoPlan(curso)}
       description={`Personal pendiente de ${nombreCursoPlan(curso)}`}>
       <ModalHeader title={nombreCursoPlan(curso)} onClose={onClose} />
-      <div className="px-6 py-4">
+      <div className="px-(--card-padding) py-4">
         {!curso.course_id ? (
           <p className="text-body-md text-muted-foreground">Este curso aún no está vinculado al catálogo de Plantilla.</p>
         ) : error ? (
@@ -53,7 +53,7 @@ export function PlanAnualMetricsDialog({ curso, onClose }: PlanAnualMetricsDialo
               <dd className="text-heading-xl tabular-nums text-foreground">
                 {efficiency != null
                   ? `${new Intl.NumberFormat("es-MX", { maximumFractionDigits: 1 }).format(efficiency)}%`
-                  : "—"}
+                  : "Sin datos"}
               </dd>
             </div>
           </dl>

@@ -177,11 +177,10 @@ export default function PlanAnualPage({ initialYear, initialMonth }: {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Una sola fila: filtros a la izquierda y acciones a la derecha. Las etiquetas de los
-          botones aparecen cuando el área de trabajo tiene espacio (consulta de contenedor). */}
+    <div className="space-y-6 dense:space-y-4">
+      {/* Una sola fila en escritorio: filtros a la izquierda y acciones a la derecha; en móvil salta de línea sin desbordar. */}
       <div className="@container">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ready && (
             <>
               <Label htmlFor="plan-mes-vista" className="sr-only">Mes</Label>
@@ -209,7 +208,7 @@ export default function PlanAnualPage({ initialYear, initialMonth }: {
           </Select>
           {ready && (
             <TooltipProvider delayDuration={300}>
-              <div className="ml-auto flex shrink-0 items-center gap-2">
+              <div className="ml-auto flex flex-wrap items-center gap-2">
                 {/* Imprime el año completo; lo puede hacer quien consulta el plan. */}
                 <ToolbarAction icon={Printer} label="Imprimir" disabled={courses.length === 0} onClick={() => window.print()} />
                 {canEdit && <ToolbarAction icon={Pin} label="Cursos fijos" href={rutaCursosFijos(year)} />}

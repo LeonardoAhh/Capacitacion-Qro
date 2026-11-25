@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { DncCreateDialog } from "@/components/content/dnc-create-dialog"
 import { DncNeedDialog } from "@/components/content/dnc-need-dialog"
-import { DncTableSkeleton } from "@/components/content/dnc-needs-table"
 import { DncReport } from "@/components/content/dnc-report"
 import { useRole } from "@/lib/hooks"
 import { useCatalogoCursos } from "@/lib/hooks/useCatalogoCursos"
@@ -155,10 +154,10 @@ export default function DncPage() {
       </Select>
     </div>
     {ready && reports.length > 0 && (
-      <div className="min-w-48">
+      <div className="min-w-0 max-w-full">
         <Label htmlFor="dnc-departamento" className="sr-only">Departamento</Label>
         <Select value={selectedReportId} onValueChange={setSelectedReportId}>
-          <SelectTrigger id="dnc-departamento" className="w-auto min-w-48"><SelectValue /></SelectTrigger>
+          <SelectTrigger id="dnc-departamento" className="w-auto min-w-44 max-w-full"><SelectValue /></SelectTrigger>
           <SelectContent matchTriggerWidth>
             {reports.map(reporte => (
               <SelectItem key={reporte.id} value={reporte.id}>{nombreDepartamento(reporte)}</SelectItem>
@@ -184,14 +183,13 @@ export default function DncPage() {
           onSaveHeader={handleSaveHeader} onAdd={() => openNeedDialog("new")}
           onEdit={openNeedDialog} onDelete={handleDeleteNeed} />
       )}
-      {ready && !selectedReport && (departments.length ? (
-        <Card className="overflow-hidden">
-          <p className="sr-only">Aún no hay un DNC para este año.</p>
-          <DncTableSkeleton />
+      {ready && !selectedReport && (
+        <Card className="p-(--card-padding) text-center text-body-md text-muted-foreground">
+          {departments.length
+            ? `Aún no hay reportes DNC en ${year}.`
+            : "Agrega departamentos en Plantilla para crear un DNC."}
         </Card>
-      ) : (
-        <Card className="p-6 text-body-md text-muted-foreground">Agrega departamentos en Plantilla para crear un DNC.</Card>
-      ))}
+      )}
 
       {createOpen && (
         <DncCreateDialog anio={year} disponibles={availableDepartments}

@@ -75,25 +75,25 @@ export function PlanAnualProgressDialog({ curso, canEdit, onClose, onSave }: Pla
       description={`Seguimiento de ${MESES[curso.mes - 1]} ${curso.anio}`}>
       <ModalHeader title={nombreCursoPlan(curso)} subtitle={`${MESES[curso.mes - 1]} ${curso.anio}`} onClose={onClose} />
       {/* Completo aquí lo que en la tabla se recorta a una línea. */}
-      <dl className="grid gap-4 border-b px-6 py-4 sm:grid-cols-2">
+      <dl className="grid gap-4 border-b px-(--card-padding) py-4 sm:grid-cols-2">
         <Detail label="Área que solicita" value={curso.area_solicitante} />
         <Detail label="Aplica para" value={curso.aplica_para} />
       </dl>
       {canEdit ? (
-        <div className="grid gap-4 overflow-y-auto p-6 sm:grid-cols-2">
+        <div className="grid gap-4 overflow-y-auto p-(--card-padding) sm:grid-cols-2">
           <div className="grid gap-1 sm:col-span-2">
             <p className="text-label-sm text-muted-foreground">Periodo programado</p>
             <p className="text-body-md text-foreground">{periodoProgramado}</p>
           </div>
-          <div className="flex min-h-11 items-center gap-3">
+          <div className="flex min-h-(--control-height) items-center gap-3">
             <Checkbox id="plan-reprogramado" checked={reprogramado}
               onCheckedChange={checked => setReprogramado(checked === true)} />
-            <Label htmlFor="plan-reprogramado" className="flex min-h-11 flex-1 items-center">Se reprogramó</Label>
+            <Label htmlFor="plan-reprogramado" className="flex min-h-(--control-height) flex-1 cursor-pointer items-center">Se reprogramó</Label>
           </div>
-          <div className="flex min-h-11 items-center gap-3">
+          <div className="flex min-h-(--control-height) items-center gap-3">
             <Checkbox id="plan-impartido" checked={impartido}
               onCheckedChange={checked => setImpartido(checked === true)} />
-            <Label htmlFor="plan-impartido" className="flex min-h-11 flex-1 items-center">Curso impartido</Label>
+            <Label htmlFor="plan-impartido" className="flex min-h-(--control-height) flex-1 cursor-pointer items-center">Curso impartido</Label>
           </div>
           {reprogramado && (
             <>

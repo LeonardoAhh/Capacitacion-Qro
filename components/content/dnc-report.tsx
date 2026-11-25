@@ -136,7 +136,7 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
             </form>
           ) : (
             // Vista de solo lectura: deja claro que el encabezado ya está capturado y cuándo se modificó.
-            <dl className="flex min-h-11 flex-wrap items-end gap-x-8 gap-y-2">
+            <dl className="flex min-h-(--control-height) flex-wrap items-end gap-x-8 gap-y-2">
               <div className="grid gap-1">
                 <dt className="text-body-sm text-muted-foreground">Responsable de área</dt>
                 <dd className="text-label-sm text-foreground">{reporte.responsable_nombre || "Sin capturar"}</dd>

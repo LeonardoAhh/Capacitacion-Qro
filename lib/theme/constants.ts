@@ -57,8 +57,8 @@ export const THEME_STORAGE_KEYS = {
 // para que la barra y el header se vean como una sola superficie.
 // La meta theme-color no acepta variables CSS; actualizar junto con --card en globals.css.
 export const APP_THEME_COLORS: Record<ResolvedThemeMode, string> = {
-  light: "#ffffff",
-  dark: "#1a1d23",
+  light: "#fafafa",
+  dark: "#1b1b1b",
 }
 
 /**

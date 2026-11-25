@@ -117,20 +117,22 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
     <ResponsiveShell open onClose={onClose} size="xl" title={necesidad ? "Editar necesidad" : "Agregar necesidad"}>
       <ModalHeader title={necesidad ? "Editar necesidad" : "Agregar necesidad"}
         onClose={onClose} />
-      <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+      <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 dense:gap-4 dense:px-4 dense:py-4">
         <Stepper steps={PASOS} current={step} />
         {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
         <AutoHeight>
-        {step === 1 ? (
-          <DncNeedIdentityStep form={form} onChange={update} cursos={cursos} cursosLoading={cursosLoading}
-            cursosError={cursosError} puestos={puestos} departmentName={departmentName}
-            onPositionsChange={positionIds => {
-              setForm(current => ({ ...current, position_ids: positionIds }))
-              setError(null)
-            }} />
-        ) : step === 2
-          ? <DncNeedDetailsStep form={form} onChange={update} programacion={programacion} />
-          : <DncNeedAuthorizationStep form={form} onChange={update} />}
+          <div key={step} className="step-enter">
+            {step === 1 ? (
+              <DncNeedIdentityStep form={form} onChange={update} cursos={cursos} cursosLoading={cursosLoading}
+                cursosError={cursosError} puestos={puestos} departmentName={departmentName}
+                onPositionsChange={positionIds => {
+                  setForm(current => ({ ...current, position_ids: positionIds }))
+                  setError(null)
+                }} />
+            ) : step === 2
+              ? <DncNeedDetailsStep form={form} onChange={update} programacion={programacion} />
+              : <DncNeedAuthorizationStep form={form} onChange={update} />}
+          </div>
         </AutoHeight>
         {error && <p role="alert" className="-mt-2 text-body-sm text-destructive">{error}</p>}
       </div>
