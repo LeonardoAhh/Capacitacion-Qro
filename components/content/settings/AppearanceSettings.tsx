@@ -17,7 +17,7 @@ export function AppearanceSettings() {
   return (
     <div className="space-y-4">
       <SettingsGroup>
-        <SettingsRow label="Tema" description="Automático usa el de tu dispositivo." htmlFor="theme-mode">
+        <SettingsRow label="Tema" description="Sistema usa el de tu dispositivo." htmlFor="theme-mode">
           <Select value={themeMode} onValueChange={value => { if (isThemeMode(value)) setThemeMode(value) }}>
             <SelectTrigger id="theme-mode" className={CONTROL}><SelectValue /></SelectTrigger>
             <SelectContent>

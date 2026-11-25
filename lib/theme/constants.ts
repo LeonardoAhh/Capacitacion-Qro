@@ -27,7 +27,7 @@ export type ThemeMode = ResolvedThemeMode | "system"
 export const THEME_MODE_LABELS: Record<ThemeMode, string> = {
   light: "Claro",
   dark: "Oscuro",
-  system: "Automático",
+  system: "Sistema",
 }
 
 export function isThemeMode(value: string | null): value is ThemeMode {

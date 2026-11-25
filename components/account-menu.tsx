@@ -138,7 +138,7 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
               >
                 <DropdownMenuRadioItem value="light" className={OPCION}>Claro</DropdownMenuRadioItem>
                 <DropdownMenuRadioItem value="dark" className={OPCION}>Oscuro</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system" className={OPCION}>Automático</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuSubContent>
           </DropdownMenuSub>
