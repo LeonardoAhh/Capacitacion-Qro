@@ -32,7 +32,7 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const close = () => onOpenChange(false)
 
   return (
-    <ResponsiveShell open={open} onClose={close} title="Configuración" description="Tu perfil y cómo se ve la app." size="md">
+    <ResponsiveShell open={open} onClose={close} title="Configuración" description="Tu perfil y cómo se ve la app." size="lg">
       <Tabs value={activa.id} onValueChange={value => setSeccion(value as Seccion)} orientation={lateral ? "vertical" : "horizontal"}
         className="flex min-h-0 flex-col md:grid md:h-[min(32rem,85svh)] md:grid-cols-[11rem_minmax(0,1fr)]">
         {/* Móvil: una sola línea base compartida por las pestañas. Tablet y escritorio: barra lateral. */}

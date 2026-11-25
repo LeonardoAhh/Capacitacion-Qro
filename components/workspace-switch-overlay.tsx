@@ -42,7 +42,7 @@ export function WorkspaceSwitchProvider({ children }: { children: ReactNode }) {
     <WorkspaceSwitchContext.Provider value={start}>
       {children}
       <AnimatePresence>
-        {destino && <AppTransition key="workspace-switch" mode="overlay" message={`Entrando a ${destino.label}…`} />}
+        {destino && <AppTransition key="workspace-switch" mode="overlay" message={`Switching workspace…`} />}
       </AnimatePresence>
     </WorkspaceSwitchContext.Provider>
   )

@@ -10,6 +10,7 @@ import { DESKTOP_NAV_ID, MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections,
 import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { AccountMenu } from "@/components/account-menu"
 import { IdeaCapture } from "@/components/idea-capture"
+import { LinkPendingIcon } from "@/components/ui/link-pending-icon"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
 import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW } from "@/components/sidebar-density"
@@ -191,7 +192,8 @@ function NavTree({
                     active ? "text-sidebar-primary" : "text-muted-foreground",
                   )}
                 >
-                  <leaf.icon className={SIDEBAR_ICON} aria-hidden="true" />
+                  {/* Si la página tarda, el ícono pasa a spinner: el clic sí entró. */}
+                  <LinkPendingIcon icon={leaf.icon} className={SIDEBAR_ICON} />
                 </span>
                 <span className={mobile ? "line-clamp-2 min-w-0 break-words" : "truncate"}>{leaf.label}</span>
               </Link>

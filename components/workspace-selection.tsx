@@ -44,7 +44,7 @@ export function WorkspaceSelection() {
     window.setTimeout(() => router.replace(destination), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
   }
 
-  if (loading || sinEspacios) return <AppTransition message="Preparando tu espacio…" />
+  if (loading || sinEspacios) return <AppTransition message="¡Haciendo magia!.." />
 
   return (
     <main className={`${loginStyles.page} workspace-shell`}>
@@ -66,14 +66,13 @@ export function WorkspaceSelection() {
               className="surface-enter flex min-h-dvh w-full items-center justify-center px-6 py-12 text-center sm:h-full sm:min-h-0">
               <div className={cn("w-full max-w-2xl transition-[opacity,transform] duration-300 ease-out",
                 leaving && "-translate-y-2 opacity-0")}>
-                <h1 id="workspace-intro-title" aria-label="Elige tu espacio de trabajo."
+                <h1 id="workspace-intro-title" aria-label="Elige tu workspace."
                   className="text-heading-lg text-foreground sm:text-display-2xl">
                   <span aria-hidden="true">
-                    <PluckedText text="Elige tu espacio" loop />
-                    <PluckedText text="de trabajo." loop />
+                    <PluckedText text="Elige tu workspace." loop />
                   </span>
                 </h1>
-                <p className="mt-3 text-body-md text-muted-foreground">Toca una vista para ingresar.</p>
+                <p className="mt-3 text-body-md text-muted-foreground">¡Tu perfil, tu workspace!</p>
                 <div className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-4 sm:gap-6">
                   {WORKSPACE_OPTIONS.map((option) => {
                     const Icon = option.id === "safety" ? HardHat : GraduationCap

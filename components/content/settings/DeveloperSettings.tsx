@@ -7,7 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { MaintenancePreview } from "@/components/maintenance-preview"
 import { useMaintenanceMode } from "@/lib/hooks/useMaintenanceMode"
+import { notify } from "@/lib/notify"
 import { ASSIGNMENTS_PATH } from "@/lib/navigation"
 import { SettingsGroup, SettingsRow } from "./SettingsPrimitives"
 
@@ -19,18 +21,22 @@ const UNITS = [
 
 /** Opciones avanzadas: pausar la app por mantenimiento y asignar evaluadores. */
 export function DeveloperSettings({ onNavigate }: { onNavigate?: () => void }) {
-  const { isMaintenance, endsAt, toggleMaintenance, loading, saving, saveError } = useMaintenanceMode()
+  const { isMaintenance, endsAt, toggleMaintenance, loading, saving } = useMaintenanceMode()
   const [duration, setDuration] = useState("30")
   const [unit, setUnit] = useState("60")
-  const [feedback, setFeedback] = useState("")
   const seconds = Number(duration) * Number(unit)
   const validDuration = duration.trim() !== "" && Number.isFinite(seconds) && seconds >= 60 && seconds <= 365 * 86400
   const busy = loading || saving
 
+  const fin = isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt))
+    ? new Date(endsAt).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })
+    : null
+
+  // El resultado se avisa con toast; el modal solo muestra la validación del campo.
   const saveMaintenance = async (active: boolean) => {
-    setFeedback("")
     const success = await toggleMaintenance(active, seconds)
-    if (success) setFeedback(active ? "Mantenimiento activado." : "Mantenimiento desactivado.")
+    if (success) notify.success(active ? "Mantenimiento activado" : "Mantenimiento desactivado")
+    else notify.error("No se pudo actualizar el mantenimiento.")
   }
 
   return (
@@ -40,7 +46,8 @@ export function DeveloperSettings({ onNavigate }: { onNavigate?: () => void }) {
           <Switch id="maintenance-mode" checked={isMaintenance} onCheckedChange={saveMaintenance}
             disabled={busy || (!isMaintenance && !validDuration)} />
         </SettingsRow>
-        <SettingsRow label="Tiempo estimado" description="Se muestra como cuenta regresiva a los usuarios." htmlFor="maintenance-duration">
+        <SettingsRow label="Tiempo estimado" htmlFor="maintenance-duration"
+          description={fin ? `Termina aprox. el ${fin}.` : "Se muestra como cuenta regresiva a los usuarios."}>
           <div className="flex w-full items-center gap-2 sm:w-auto">
             <Input id="maintenance-duration" type="number" min="1" step="1" value={duration} onChange={event => setDuration(event.target.value)}
               disabled={busy} aria-invalid={!validDuration} className="w-20" />
@@ -57,16 +64,10 @@ export function DeveloperSettings({ onNavigate }: { onNavigate?: () => void }) {
             )}
           </div>
         </SettingsRow>
-        {(isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt))) || saveError || feedback || !validDuration ? (
-          <div className="space-y-1 py-2 text-body-sm">
-            {!validDuration && <p className="text-destructive">Escribe un tiempo de 1 minuto a 365 días.</p>}
-            {isMaintenance && endsAt && Number.isFinite(Date.parse(endsAt)) && (
-              <p className="text-muted-foreground">Termina aprox. el {new Date(endsAt).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" })}</p>
-            )}
-            {saveError && <p role="alert" className="text-destructive">{saveError}</p>}
-            {feedback && <p role="status" className="text-foreground">{feedback}</p>}
-          </div>
-        ) : null}
+        {!validDuration && <p role="alert" className="py-2 text-body-sm text-destructive">Escribe un tiempo de 1 minuto a 365 días.</p>}
+        <SettingsRow label="Vista previa" description="Mira la pantalla que verá el equipo, con el tiempo estimado de arriba. No activa nada.">
+          <MaintenancePreview seconds={validDuration ? seconds : null} />
+        </SettingsRow>
       </SettingsGroup>
 
       <SettingsGroup title="Evaluaciones">

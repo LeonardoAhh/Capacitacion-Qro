@@ -29,7 +29,7 @@ export function SignOutProvider({ children }: { children: ReactNode }) {
     <SignOutContext.Provider value={{ signingOut, setSigningOut }}>
       {children}
       <AnimatePresence>
-        {signingOut && <AppTransition key="signout" mode="overlay" message="Cerrando sesión…" />}
+        {signingOut && <AppTransition key="signout" mode="overlay" message="Signing out…" />}
       </AnimatePresence>
     </SignOutContext.Provider>
   )

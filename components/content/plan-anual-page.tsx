@@ -14,6 +14,7 @@ import { notify } from "@/lib/notify"
 import { useCatalogoCursos } from "@/lib/hooks/useCatalogoCursos"
 import { cargarAniosPlan, cargarCursosFijos, cargarPlan, completarCursosFijos, eliminarCurso, guardarCurso, guardarSeguimiento, iniciarMes, MESES, nombreCursoPlan, ordenarCursosMes, type CursoFijo, type CursoPlan, type CursoSeguimiento, type DatosCurso, type DatosSeguimiento } from "@/lib/plan-anual"
 import { PLAN_YEAR_MAX, PLAN_YEAR_MIN, rutaCursosFijos, rutaImportarDnc } from "@/lib/plan-anual-rutas"
+import { LinkPendingIcon } from "@/components/ui/link-pending-icon"
 import { PlanAnualCourseDialog } from "@/components/content/plan-anual-course-dialog"
 import { PlanAnualStartDialog } from "@/components/content/plan-anual-start-dialog"
 import { PlanAnualTable } from "@/components/content/plan-anual-table"
@@ -32,17 +33,15 @@ function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onCli
   /** …o enlace a su propia página. */
   href?: string
 }) {
-  const contenido = <>
-    <Icon aria-hidden="true" />
-    <span className="hidden @3xl:inline">{label}</span>
-  </>
+  const texto = <span className="hidden @3xl:inline">{label}</span>
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         {href ? (
-          <Button asChild variant={variant} aria-label={label} className="px-3"><Link href={href}>{contenido}</Link></Button>
+          // Si la página tarda, el ícono pasa a spinner.
+          <Button asChild variant={variant} aria-label={label} className="px-3"><Link href={href}><LinkPendingIcon icon={Icon} />{texto}</Link></Button>
         ) : (
-          <Button type="button" variant={variant} onClick={onClick} disabled={disabled} aria-label={label} className="px-3">{contenido}</Button>
+          <Button type="button" variant={variant} onClick={onClick} disabled={disabled} aria-label={label} className="px-3"><Icon aria-hidden="true" />{texto}</Button>
         )}
       </TooltipTrigger>
       <TooltipContent side="bottom">{label}</TooltipContent>

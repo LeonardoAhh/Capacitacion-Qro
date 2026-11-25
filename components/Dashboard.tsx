@@ -66,7 +66,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
   // El espacio de trabajo solo falta al hidratar; al navegar entre páginas ya está.
-  if (roleLoading || !workspace || !allowed) return <AppTransition message="Preparando tu espacio…" />
+  if (roleLoading || !workspace || !allowed) return <AppTransition message="¡Haciendo magia!.." />
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).

@@ -49,7 +49,7 @@ export function MaintenanceGuard({ children }: { children: React.ReactNode }) {
   }, [reducedMotion])
 
   // No montar páginas (incluido /login) antes de conocer el estado inicial.
-  if (loading || !transitionReady) return <AppTransition message="Preparando tu espacio…" />
+  if (loading || !transitionReady) return <AppTransition message="Reloading workspace…" />
 
   // ── Modo mantenimiento activo ──────────────────────────────────
   if (isMaintenance) {

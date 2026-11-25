@@ -41,11 +41,11 @@ export function PostLoginLoading() {
     return () => window.clearTimeout(timer)
   }, [roleLoading, ready, accessSaved, role, router, prefersReducedMotion])
 
-  const statusLabel = roleLoading
-    ? "Verificando acceso…"
-    : ready
-      ? "Redirigiendo…"
-      : "Preparando tu espacio…"
+  const statusLabel = (() => {
+  if (roleLoading) return "Checking access…";
+  if (ready) return "Redirecting…";
+  return "Preparing workspaces…";
+  })();
 
   return <AppTransition message={statusLabel} leaving={exiting} />
 }
