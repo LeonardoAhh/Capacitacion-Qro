@@ -175,6 +175,8 @@
         --warning-deep: 30 85% 30%;
         /* Texto de aprobado (verde azulado de --chart-1) sobre superficies claras: tono profundo con contraste AA. */
         --chart-1-deep: 174 72% 24%;
+        /* Fondo tenue y opaco de --chart-1 (p. ej. la racha del calendario): no deja ver lo que hay detrás. */
+        --chart-1-soft: 168 48% 94%;
         --urgency-low: 152 48% 30%;
         --info: 200 60% 46%;
         --info-foreground: 0 0% 98%;
@@ -283,6 +285,7 @@
 
         --warning-deep: 38 90% 66%;
         --chart-1-deep: 172 60% 62%;
+        --chart-1-soft: 173 32% 17%;
         --info: 200 70% 62%;
         --info-foreground: 220 14.29% 8.24%;
         --urgency-low: 152 48% 70%;

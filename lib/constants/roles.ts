@@ -1,5 +1,5 @@
 import type { WorkspaceId } from "@/lib/navigation"
-import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 
 /**
@@ -87,7 +87,7 @@ export function toAppRole(value: unknown): AppRole {
 }
 
 /** Rutas del espacio de Seguridad e Higiene; el resto pertenece a Capacitación. */
-const SAFETY_ROUTES = [SAFETY_HOME_PATH]
+const SAFETY_ROUTES = [SAFETY_HOME_PATH, OCCUPATIONAL_HEALTH_PATH]
 
 function matchesRoute(path: string, rule: string): boolean {
   if (!rule.endsWith("/*")) return path === rule

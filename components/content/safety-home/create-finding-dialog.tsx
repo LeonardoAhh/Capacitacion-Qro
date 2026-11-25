@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { JEFES_DE_AREA_POR_DEPARTAMENTO } from "@/lib/catalogos/personal"
+import { deISO, enmascararFecha, textoAISO } from "@/lib/fechas"
 import type { FindingPreview } from "@/components/content/safety-home/finding-card"
 import { createFinding } from "@/components/content/safety-home/findings-data"
 import { FindingFileField } from "@/components/content/safety-home/finding-file-field"
@@ -31,20 +32,6 @@ interface CreateFindingDialogProps {
   onCreate: (week: number, date: string) => Promise<void>
 }
 
-function formatDateInput(value: string): string {
-  const digits = value.replace(/\D/g, "").slice(0, 8)
-  if (digits.length <= 2) return digits
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
-}
-
-function isValidDate(value: string): boolean {
-  if (!/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return false
-  const [day, month, year] = value.split("/").map(Number)
-  const date = new Date(year, month - 1, day)
-  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day
-}
-
 function getIsoWeekNumber(date: Date): number {
   const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
   const dayNumber = target.getUTCDay() || 7
@@ -54,9 +41,8 @@ function getIsoWeekNumber(date: Date): number {
 }
 
 function parseDate(value: string): Date | null {
-  if (!isValidDate(value)) return null
-  const [day, month, year] = value.split("/").map(Number)
-  return new Date(year, month - 1, day)
+  const iso = textoAISO(value)
+  return iso ? deISO(iso) : null
 }
 
 export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFindingDialogProps) {
@@ -259,8 +245,8 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 maxLength={10}
                 placeholder="DD/MM/AAAA"
                 value={date}
-                onChange={(event) => setDate(formatDateInput(event.target.value))}
-                aria-invalid={submitted && !isValidDate(date)}
+                onChange={(event) => setDate(enmascararFecha(event.target.value))}
+                aria-invalid={submitted && !textoAISO(date)}
               />
             </div>
           </div>

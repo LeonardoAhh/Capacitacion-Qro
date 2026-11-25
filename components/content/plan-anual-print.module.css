@@ -1,0 +1,124 @@
+/* Plan anual impreso: carta vertical (el @page por defecto de la app). Archivo de
+   impresión: tamaños en pt y colores fijos del formato institucional. */
+.root {
+    display: none;
+}
+
+@media print {
+    .root {
+        --plan-print-band: #0d4f63;
+        --plan-print-line: #9aa5ab;
+        display: block;
+        color: #000;
+        font-size: 8pt;
+        line-height: 1.25;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .title {
+        margin: 0;
+        padding: 1.5mm 2mm;
+        background: var(--plan-print-band);
+        color: #fff;
+        font-size: 14pt;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .table th,
+    .table td {
+        border: 0.5pt solid var(--plan-print-line);
+        padding: 0.8mm 1.5mm;
+        vertical-align: middle;
+        overflow-wrap: break-word;
+    }
+
+    .table tbody tr {
+        break-inside: avoid;
+    }
+
+    .month th {
+        background: var(--plan-print-band);
+        color: #fff;
+        font-size: 10pt;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .head th {
+        background: var(--plan-print-band);
+        color: #fff;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .head th:first-child {
+        text-align: left;
+    }
+
+    /* Columnas angostas de tipo: letra menor y sin cortes para que «INTERNO» y «EXTERNO» quepan. */
+    .head .typeHead {
+        padding: 0.8mm 0.5mm;
+        font-size: 6pt;
+        white-space: nowrap;
+    }
+
+    .center {
+        text-align: center;
+    }
+
+    .mark {
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .empty {
+        color: #555;
+        text-align: center;
+    }
+
+    .layout {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .layout > tbody > tr > td,
+    .layout > tfoot > tr > td {
+        padding: 0;
+        border: none;
+    }
+
+    .footerSpace {
+        height: 7mm;
+    }
+
+    .signatures {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6mm;
+        margin: 10mm 0 0;
+        break-inside: avoid;
+    }
+
+    .signatures dt,
+    .signatures dd {
+        margin: 0;
+    }
+
+    .footer {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        justify-content: space-between;
+        font-size: 7pt;
+    }
+}

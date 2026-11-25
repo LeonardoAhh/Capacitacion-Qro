@@ -92,6 +92,14 @@ export function nombreEquipoDnc(departamento: string): string {
   return aMayusculasDnc(`Equipo de ${departamento}`)
 }
 
+/** Puestos de una necesidad: el equipo completo si abarca todos los del departamento; si no, sus nombres. */
+export function puestosDeNecesidad(necesidad: Pick<DncNecesidad, "position_ids">, puestos: DncPosition[], departamento: string): string | string[] {
+  const todos = puestos.length > 0 && puestos.every(puesto => necesidad.position_ids.includes(puesto.id))
+  return todos
+    ? nombreEquipoDnc(departamento)
+    : puestos.filter(puesto => necesidad.position_ids.includes(puesto.id)).map(puesto => puesto.name)
+}
+
 const REPORTE_COLUMNS = "id,anio,department_id,department:departments(name),responsable_nombre,fecha_elaboracion,updated_at"
 const NECESIDAD_COLUMNS = "id,reporte_id,orden,necesidad,course_id,curso_nombre,funcion_actividad,motivo,beneficio,mes_sugerido,tipo,autorizacion,motivo_no_autorizado,puestos:dnc_necesidad_puestos(position_id)"
 

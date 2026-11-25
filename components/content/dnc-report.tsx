@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Pencil, Plus } from "lucide-react"
+import { Pencil, Plus, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { notify } from "@/lib/notify"
 import { DncNeedsTable } from "@/components/content/dnc-needs-table"
+import { DncPrint } from "@/components/content/dnc-print"
 import { nombreDepartamento, responsablesDnc, type CambiosEncabezadoDnc, type DncNecesidad, type DncPosition, type DncReporte } from "@/lib/dnc"
 
 interface DncReportProps {
@@ -155,9 +156,14 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, onSaveHeader
               )}
             </dl>
           )}
-          {canEdit && (
-            <Button type="button" className="ml-auto" onClick={onAdd}><Plus aria-hidden="true" />Agregar necesidad</Button>
-          )}
+          <div className="ml-auto flex flex-wrap items-center gap-2">
+            <Button type="button" variant="outline" onClick={() => window.print()} disabled={necesidades.length === 0}>
+              <Printer aria-hidden="true" />Imprimir
+            </Button>
+            {canEdit && (
+              <Button type="button" onClick={onAdd}><Plus aria-hidden="true" />Agregar necesidad</Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -167,6 +173,8 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, onSaveHeader
             canEdit={canEdit} onEdit={onEdit} onDelete={onDelete} />
         </Card>
       </section>
+
+      <DncPrint reporte={reporte} necesidades={necesidades} puestos={puestos} departamento={nombreDepartamento(reporte)} />
     </div>
   )
 }

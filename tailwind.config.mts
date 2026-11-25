@@ -107,6 +107,7 @@ const config: Config = {
         chart: {
           "1": "hsl(var(--chart-1) / <alpha-value>)",
           "1-deep": "hsl(var(--chart-1-deep) / <alpha-value>)",
+          "1-soft": "hsl(var(--chart-1-soft) / <alpha-value>)",
           "2": "hsl(var(--chart-2) / <alpha-value>)",
           "3": "hsl(var(--chart-3) / <alpha-value>)",
           "4": "hsl(var(--chart-4) / <alpha-value>)",

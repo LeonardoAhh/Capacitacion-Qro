@@ -5,7 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
@@ -14,6 +14,7 @@ import {
   ClipboardPenLine,
   FolderOpen,
   Handshake,
+  HeartPulse,
   LayoutDashboard,
   SquareKanban,
   SquarePen,
@@ -110,6 +111,7 @@ export const SAFETY_NAV_SECTIONS: NavSection[] = [
     pinned: true,
     items: [
       { label: "Safe Walk", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
+      { label: "Occupational Health", href: OCCUPATIONAL_HEALTH_PATH, icon: HeartPulse },
     ],
   },
 ]
@@ -124,6 +126,7 @@ export function getWorkspaceNavSections(workspace: WorkspaceId): NavSection[] {
  */
 const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   [SAFETY_HOME_PATH]: "Safe Walk",
+  [OCCUPATIONAL_HEALTH_PATH]: "Occupational Health",
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",

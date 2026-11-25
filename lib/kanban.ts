@@ -1,3 +1,8 @@
+import { aISO, formatFechaCorta, hoyISO, inicioSemana, sumarDias } from "@/lib/fechas"
+
+// Fechas compartidas con los calendarios; se reexportan para quien ya las importa de aquí.
+export { formatFechaCorta, hoyISO, inicioSemana, sumarDias }
+
 /**
  * Tablero Kanban compartido (tabla public.kanban_tarjetas): tipos, columnas,
  * prioridades y utilidades de fecha.
@@ -132,23 +137,6 @@ export function formatFechaHora(iso: string): string {
   return Number.isNaN(date.getTime()) ? "" : FECHA_HORA.format(date)
 }
 
-/** Fecha local de hoy en YYYY-MM-DD (sin desfase por zona horaria). */
-export function hoyISO(): string {
-  return aISO(new Date())
-}
-
-/** Date local → YYYY-MM-DD. */
-function aISO(date: Date): string {
-  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-")
-}
-
-const FECHA_CORTA = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" })
-
-/** "2026-11-18" → "18 nov". */
-export function formatFechaCorta(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number)
-  return FECHA_CORTA.format(new Date(year, month - 1, day)).replace(".", "")
-}
 
 /** Rango legible: "18 nov – 22 nov", "Desde 18 nov", "Vence 22 nov". */
 export function formatRango(inicio: string | null, limite: string | null): string | null {
@@ -313,18 +301,6 @@ export function indicadoresEquipo(tarjetas: KanbanTarjeta[], ahora = Date.now())
 /** Marca de tiempo → fecha local YYYY-MM-DD. */
 export function fechaLocal(iso: string): string {
   return aISO(new Date(iso))
-}
-
-export function sumarDias(iso: string, dias: number): string {
-  const [year, month, day] = iso.split("-").map(Number)
-  return aISO(new Date(year, month - 1, day + dias))
-}
-
-/** Lunes de la semana que contiene la fecha. */
-export function inicioSemana(iso: string): string {
-  const [year, month, day] = iso.split("-").map(Number)
-  const diaSemana = (new Date(year, month - 1, day).getDay() + 6) % 7
-  return sumarDias(iso, -diaSemana)
 }
 
 const DIA_SEMANA = new Intl.DateTimeFormat("es-MX", { weekday: "short" })

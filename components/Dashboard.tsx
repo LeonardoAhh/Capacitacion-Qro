@@ -13,15 +13,18 @@ import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
 import { HOME_PATH, SAFETY_HOME_PATH, type WorkspaceId } from "@/lib/navigation"
+import { cn } from "@/lib/utils"
 
 interface DashboardProps {
   content?: ReactNode
   headerTitleHref?: string
   headerTitleHrefLabel?: string
   fullWidth?: boolean
+  /** Desde lg, el contenido ocupa exactamente el alto del panel (vistas de una sola pantalla, p. ej. calendarios). */
+  fillHeight?: boolean
 }
 
-export default function Dashboard({ content, headerTitleHref, headerTitleHrefLabel, fullWidth = false }: DashboardProps) {
+export default function Dashboard({ content, headerTitleHref, headerTitleHrefLabel, fullWidth = false, fillHeight = false }: DashboardProps) {
   const {
     showMobileSidebar,
     setShowMobileSidebar,
@@ -109,9 +112,9 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           >
             {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor.
                 Sumar ambos dejaba espacio extra y provocaba scroll aunque el contenido cupiera. */}
-            <WorkspaceContainer fullWidth={fullWidth} className="pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]">
+            <WorkspaceContainer fullWidth={fullWidth} className={cn("pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]", fillHeight && "lg:flex lg:h-full lg:flex-col")}>
               {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
-              <div className="surface-enter min-w-0 space-y-6">
+              <div className={cn("surface-enter min-w-0 space-y-6", fillHeight && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}>
                 {content}
               </div>
             </WorkspaceContainer>

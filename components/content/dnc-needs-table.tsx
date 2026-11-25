@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { TruncatedText } from "@/components/ui/truncated-text"
 import { cn } from "@/lib/utils"
 import { MESES } from "@/lib/plan-anual"
-import { nombreEquipoDnc, type DncNecesidad, type DncPosition } from "@/lib/dnc"
+import { puestosDeNecesidad, type DncNecesidad, type DncPosition } from "@/lib/dnc"
 import { rangoDelMes, type TarjetaDesde } from "@/lib/kanban"
 import { KanbanCrearDesdeItem } from "@/components/content/kanban-crear-desde"
 
@@ -155,12 +155,7 @@ export function DncNeedsTable({ necesidades, puestos, departmentName, anio, canE
   const [detailOpen, setDetailOpen] = useState(false)
 
   function valueOf(necesidad: DncNecesidad, key: TextColumn): string[] | string {
-    if (key === "puestos") {
-      const allSelected = puestos.length > 0 && puestos.every(puesto => necesidad.position_ids.includes(puesto.id))
-      return allSelected
-        ? nombreEquipoDnc(departmentName)
-        : puestos.filter(puesto => necesidad.position_ids.includes(puesto.id)).map(puesto => puesto.name)
-    }
+    if (key === "puestos") return puestosDeNecesidad(necesidad, puestos, departmentName)
     return necesidad[key]
   }
 

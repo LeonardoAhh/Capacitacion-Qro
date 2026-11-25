@@ -1,0 +1,95 @@
+/* Formato RG-ADM-001 para impresión: carta horizontal. Archivo de impresión:
+   tamaños en pt y colores fijos (blanco y negro), fuera de la escala de pantalla. */
+.root {
+    display: none;
+}
+
+@media print {
+    .root {
+        display: block;
+        color: #000;
+        font-size: 6pt;
+        line-height: 1.2;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .header {
+        display: grid;
+        grid-template-columns: 34mm 1fr;
+        align-items: center;
+        gap: 6mm;
+        margin-bottom: 2mm;
+    }
+
+    /* El PNG del logo (400×400) solo tiene dibujo entre y=97 y y=251: se muestra esa franja
+       (400×164 px) recortando el aire de arriba y abajo. */
+    .logo {
+        width: 34mm;
+        height: 14mm;
+        object-fit: cover;
+        object-position: 50% 39%;
+    }
+
+    .title {
+        margin: 0;
+        font-size: 11pt;
+        font-weight: 700;
+        text-align: center;
+    }
+
+    .instructions {
+        margin: 0 0 2mm;
+        font-size: 6.5pt;
+    }
+
+    .table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+    }
+
+    .table th,
+    .table td {
+        border: 0.5pt solid #000;
+        padding: 1mm 1.2mm;
+        text-align: center;
+        vertical-align: middle;
+        overflow-wrap: break-word;
+        hyphens: manual;
+    }
+
+    .table thead th {
+        font-weight: 400;
+    }
+
+    .table tbody tr {
+        break-inside: avoid;
+    }
+
+    .meta th {
+        font-weight: 700;
+        text-align: left;
+    }
+
+    .metaValue {
+        font-weight: 700;
+    }
+
+    /* Celda vacía repetida al pie de cada hoja: deja libre el espacio del pie fijo. */
+    .footerSpace td {
+        height: 7mm;
+        border: none;
+        padding: 0;
+    }
+
+    .footer {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        justify-content: space-between;
+        font-size: 6pt;
+    }
+}
