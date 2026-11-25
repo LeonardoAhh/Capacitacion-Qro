@@ -16,12 +16,11 @@ const noticeOffset = {
 
 export function SonnerProvider() {
   const { themeMode } = useTheme()
-  // Dev-only handle: lets you trigger toasts from the browser console
-  // (window.__toast.success(...)) to verify styles per variant.
   useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      ;(window as unknown as { __toast: typeof toast }).__toast = toast
-    }
+    if (process.env.NODE_ENV !== "development") return
+    const devWindow = window as unknown as { __toast?: typeof toast }
+    devWindow.__toast = toast
+    return () => { delete devWindow.__toast }
   }, [])
 
   return (

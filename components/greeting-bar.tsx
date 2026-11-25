@@ -22,22 +22,7 @@ function useSaludo(): string | null {
     return saludo
 }
 
-const horaFormatter = new Intl.DateTimeFormat("es-MX", { hour: "2-digit", minute: "2-digit" })
-const fechaFormatter = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" })
-
-/** "hoy, 09:15", "ayer, 17:40" o "18 nov, 08:02". */
-function formatAcceso(iso: string): string {
-    const fecha = new Date(iso)
-    const dias = Math.round((new Date().setHours(0, 0, 0, 0) - new Date(fecha).setHours(0, 0, 0, 0)) / 86_400_000)
-    const dia = dias === 0 ? "hoy" : dias === 1 ? "ayer" : fechaFormatter.format(fecha)
-    return `${dia}, ${horaFormatter.format(fecha)}`
-}
-
-/**
- * Saludo compacto de las páginas de inicio (heading-md + body-sm): saludo por hora y nombre; debajo,
- * puesto y el inicio de sesión anterior (para notar un acceso que no se reconozca).
- * `actions` va del lado opuesto.
- */
+/** Saludo limpio de Inicio con accesos directos del lado opuesto. */
 export function GreetingBar({ actions }: { actions?: ReactNode }) {
     const { user } = useUser()
     const { profile } = useProfile(user?.id)
@@ -46,14 +31,9 @@ export function GreetingBar({ actions }: { actions?: ReactNode }) {
 
     return (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-                <h2 className="truncate text-heading-md text-foreground">
-                    {saludo ?? " "}{saludo && nombre ? `, ${nombre}` : ""}
-                </h2>
-                {(profile?.puesto || (saludo && profile?.previousAccess)) && <p className="truncate text-body-sm text-muted-foreground">
-                    {[profile?.puesto, saludo && profile?.previousAccess && `Último acceso: ${formatAcceso(profile.previousAccess)}`].filter(Boolean).join(" · ")}
-                </p>}
-            </div>
+            <h2 className="min-w-0 truncate text-heading-md text-foreground">
+                {saludo ?? "\u00A0"}{saludo && nombre ? `, ${nombre}` : ""}
+            </h2>
             {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
         </div>
     )

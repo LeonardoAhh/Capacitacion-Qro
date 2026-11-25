@@ -49,12 +49,12 @@ export function EvaluationPlaceholder() {
       </div>
 
       <div className="absolute inset-x-0 top-1/3 flex justify-center px-4">
-        <div className="flex max-w-sm flex-col items-center gap-2 rounded-xl border bg-card p-(--card-padding) text-center shadow-sm">
+        <div className="flex max-w-sm flex-col items-center gap-2 ui-floating-surface rounded-xl bg-card p-(--card-padding) text-center">
           <span aria-hidden="true" className="grid size-10 place-items-center rounded-md bg-primary/10 text-primary">
             <UserSearch className="size-5" />
           </span>
-          <h2 id="evaluation-placeholder-title" className="text-heading-md text-foreground">Busca a una persona para comenzar</h2>
-          <p className={evaluationStyles.description}>Escribe su número o nombre en el buscador de arriba. Aquí aparecerá su evaluación, con el periodo ya asignado.</p>
+          <h2 id="evaluation-placeholder-title" className="text-heading-md text-foreground">Busca una persona para evaluar</h2>
+          <p className={evaluationStyles.description}>Escribe su número o nombre arriba.</p>
         </div>
       </div>
     </section>;

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Check, GraduationCap, HardHat, LogOut } from "lucide-react"
 import { motion } from "framer-motion"
@@ -15,95 +15,128 @@ import { useRole } from "@/lib/hooks/useRole"
 import { loginStyles } from "@/lib/login/presentation"
 import { WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { homeFor } from "@/lib/constants/roles"
+import { WORKSPACE_SELECTION, workspaceStyles } from "@/lib/workspace/presentation"
 import { cn } from "@/lib/utils"
 
 export function WorkspaceSelection() {
   const router = useRouter()
   const { role, workspaces, loading } = useRole()
-  // Roles sin espacio de trabajo (evaluador) van directo a su inicio.
   const sinEspacios = workspaces.length === 0
   const reducedMotion = useAppReducedMotion()
   const { signingOut, logout } = useLogout()
   const [activeWorkspace, setWorkspace] = useActiveWorkspace()
   const [leaving, setLeaving] = useState(false)
-  // Marca la vista elegida al tocarla; antes, la del último espacio usado.
   const [chosen, setChosen] = useState<WorkspaceId | null>(null)
+  const navTimerRef = useRef<number | null>(null)
   const selected = chosen ?? activeWorkspace
 
   useEffect(() => {
     if (!loading && sinEspacios) router.replace(homeFor(role))
   }, [loading, role, router, sinEspacios])
 
+  useEffect(() => {
+    return () => {
+      if (navTimerRef.current !== null) window.clearTimeout(navTimerRef.current)
+    }
+  }, [])
+
   const chooseWorkspace = (workspace: WorkspaceId) => {
     if (leaving || !workspaces.includes(workspace)) return
     setWorkspace(workspace)
     setChosen(workspace)
-    // El contenido sale primero; luego entra el workspace.
     setLeaving(true)
     const destination = homeFor(role, workspace)
-    window.setTimeout(() => router.replace(destination), reducedMotion ? 0 : APP_TRANSITION_EXIT_MS)
+    navTimerRef.current = window.setTimeout(
+      () => router.replace(destination),
+      reducedMotion ? 0 : APP_TRANSITION_EXIT_MS
+    )
   }
 
-  if (loading || sinEspacios) return <AppTransition message="¡Haciendo magia!.." />
+  if (loading || sinEspacios) return <AppTransition message={WORKSPACE_SELECTION.loading} />
 
   return (
     <main className={`${loginStyles.page} workspace-shell`}>
-      <div className="workspace-frame bg-card md:rounded-xl md:border md:border-border">
+      <div className={loginStyles.frame}>
         <div className={loginStyles.container}>
-          {/* Mismo fondo que la pantalla de carga. */}
           <WorkspaceBackdrop>
-            <Button
-              type="button"
-              variant="ghost"
-              disabled={signingOut || leaving}
-              onClick={() => { void logout() }}
-              className="surface-enter absolute right-6 top-6 z-20 hidden hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive focus-visible:text-destructive-foreground md:inline-flex"
-            >
-              <LogOut aria-hidden="true" />
-              Cerrar sesión
-            </Button>
-            <section aria-label="Elegir espacio de trabajo" aria-busy={leaving}
-              className="surface-enter flex min-h-dvh w-full items-center justify-center px-6 py-12 text-center sm:h-full sm:min-h-0">
-              <div className={cn("w-full max-w-2xl transition-[opacity,transform] duration-300 ease-out",
-                leaving && "-translate-y-2 opacity-0")}>
-                <h1 id="workspace-intro-title" aria-label="Elige tu workspace."
-                  className="text-heading-lg text-foreground sm:text-display-2xl">
-                  <span aria-hidden="true">
-                    <PluckedText text="Elige tu workspace." loop />
-                  </span>
-                </h1>
-                <p className="mt-3 text-body-md text-muted-foreground">¡Tu perfil, tu workspace!</p>
-                <div className="mx-auto mt-8 grid max-w-xl grid-cols-2 gap-4 sm:gap-6">
-                  {WORKSPACE_OPTIONS.map((option) => {
-                    const Icon = option.id === "safety" ? HardHat : GraduationCap
-                    const permitido = workspaces.includes(option.id)
-                    const isSelected = selected === option.id
-                    return (
-                      <motion.button key={option.id} type="button" disabled={leaving || !permitido} onClick={() => chooseWorkspace(option.id)}
-                        aria-pressed={isSelected}
-                        aria-label={permitido ? option.label : `${option.label}, sin acceso para tu rol`}
-                        whileHover={reducedMotion || !permitido ? undefined : { y: -4 }}
-                        whileTap={reducedMotion || !permitido ? undefined : { scale: 0.98, y: 0 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 26 }}
-                        className="group relative grid gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed">
-                        {/* Solo el mockup: la selección se marca con su sombra y el círculo de abajo. */}
-                        <WorkspacePreview icon={Icon} workspace={option.id} className={cn("transition-shadow",
-                          isSelected ? "shadow-lg" : "group-hover:shadow-md",
-                          !permitido && "opacity-50")} />
-                        {/* Indicador sobre la esquina de la vista y el nombre solo debajo: así el nombre
-                            cabe en una línea aun en celular ("Seguridad e Higiene"). */}
-                        <span aria-hidden="true" className={cn("absolute -right-2 -top-2 grid size-6 place-items-center rounded-full border-2 border-card transition-colors",
-                          isSelected ? cn("text-card", WORKSPACE_ACCENT[option.id].solid) : "bg-muted")}>
-                          {isSelected && <Check className="size-3.5" />}
-                        </span>
-                        <span className={cn("whitespace-nowrap text-center text-label-sm text-foreground", !permitido && "text-muted-foreground")}>{option.label}</span>
-                        {!permitido && <span aria-hidden="true" className="-mt-2 text-center text-body-sm text-muted-foreground">¡Te falta magia para entrar aquí.!</span>}
-                      </motion.button>
-                    )
-                  })}
-                </div>
+            <div className={workspaceStyles.backdropInner}>
+              <div className={workspaceStyles.topBar}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={signingOut || leaving}
+                  onClick={() => { void logout() }}
+                  className="hover:bg-destructive hover:text-destructive-foreground focus-visible:bg-destructive focus-visible:text-destructive-foreground"
+                >
+                  <LogOut aria-hidden="true" />
+                  <span>{signingOut ? WORKSPACE_SELECTION.loggingOut : WORKSPACE_SELECTION.logout}</span>
+                </Button>
               </div>
-            </section>
+              <section
+                aria-labelledby="workspace-intro-title"
+                aria-busy={leaving}
+                className={workspaceStyles.region}
+              >
+                <div className={cn(workspaceStyles.content, leaving && "-translate-y-2 opacity-0")}>
+                  <h1 id="workspace-intro-title" className={workspaceStyles.heading}>
+                    <PluckedText text={WORKSPACE_SELECTION.heading} />
+                  </h1>
+                  <p className={workspaceStyles.subtitle}>{WORKSPACE_SELECTION.subtitle}</p>
+                  <div className={workspaceStyles.grid}>
+                    {WORKSPACE_OPTIONS.map((option) => {
+                      const Icon = option.id === "safety" ? HardHat : GraduationCap
+                      const permitido = workspaces.includes(option.id)
+                      const isSelected = selected === option.id
+                      const noteId = `workspace-note-${option.id}`
+                      return (
+                        <motion.button
+                          key={option.id}
+                          type="button"
+                          disabled={leaving || !permitido}
+                          onClick={() => chooseWorkspace(option.id)}
+                          aria-pressed={isSelected}
+                          aria-describedby={!permitido ? noteId : undefined}
+                          whileHover={reducedMotion || !permitido ? undefined : { y: -4 }}
+                          whileTap={reducedMotion || !permitido ? undefined : { scale: 0.98, y: 0 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 26 }}
+                          className={workspaceStyles.optionButton}
+                        >
+                          <WorkspacePreview
+                            icon={Icon}
+                            workspace={option.id}
+                            className={cn(
+                              "transition-[border-color,box-shadow]",
+                              isSelected
+                                ? "border-primary ring-1 ring-primary shadow-[var(--floating-shadow)]"
+                                : !permitido
+                                  ? "opacity-50"
+                                  : "group-hover:border-foreground/30 group-hover:shadow-[var(--floating-shadow)]"
+                            )}
+                          />
+                          <span
+                            aria-hidden="true"
+                            className={cn(
+                              "absolute -right-2 -top-2 grid size-6 place-items-center rounded-md border-2 border-card transition-colors",
+                              isSelected ? WORKSPACE_ACCENT[option.id].solid : "bg-muted"
+                            )}
+                          >
+                            {isSelected && <Check className="size-3.5" />}
+                          </span>
+                          <span className={cn(workspaceStyles.optionLabel, !permitido && "text-muted-foreground")}>
+                            {option.label}
+                          </span>
+                          {!permitido && (
+                            <span id={noteId} className={workspaceStyles.optionNote}>
+                              {WORKSPACE_SELECTION.noAccess}
+                            </span>
+                          )}
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+                </div>
+              </section>
+            </div>
           </WorkspaceBackdrop>
         </div>
       </div>

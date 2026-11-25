@@ -69,7 +69,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
 
   // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
   // El espacio de trabajo solo falta al hidratar; al navegar entre páginas ya está.
-  if (roleLoading || !workspace || !allowed) return <AppTransition message="¡Haciendo magia!.." />
+  if (roleLoading || !workspace || !allowed) return <AppTransition message="Cargando espacio de trabajo…" />
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).
@@ -111,22 +111,33 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           {/* Panel del contenido: en escritorio, hundido (fondo del tema, borde y radio) con las líneas radiales
               detrás; en móvil ocupa toda la pantalla y el fondo queda fijo al viewport. */}
           <div className="workspace-stage relative isolate">
-          <RadiantLines colors={palette} starCount={700} displacement={2.5} containerRef={desktop ? mainRef : undefined}
-            className="-z-10 bg-transparent max-md:fixed" />
-          <main
-            ref={mainRef}
-            id="main-content"
-            className="workspace-main min-w-0 flex-1 safe-right"
-          >
-            {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor.
-                Sumar ambos dejaba espacio extra y provocaba scroll aunque el contenido cupiera. */}
-            <WorkspaceContainer fullWidth={fullWidth} className={cn("pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]", fillHeight && "lg:flex lg:h-full lg:flex-col")}>
-              {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
-              <div className={cn("surface-enter min-w-0 space-y-6", fillHeight && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}>
-                <HeaderSearchSlot.Provider value={searchSlot}>{content}</HeaderSearchSlot.Provider>
-              </div>
-            </WorkspaceContainer>
-          </main>
+            <RadiantLines
+              colors={palette}
+              starCount={260}
+              displacement={1.4}
+              containerRef={desktop ? mainRef : undefined}
+              className="-z-10 bg-transparent opacity-30 dark:opacity-40 max-md:fixed"
+            />
+            <main
+              ref={mainRef}
+              id="main-content"
+              tabIndex={-1}
+              className="workspace-main min-w-0 flex-1 safe-left safe-right focus:outline-none"
+            >
+              {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor. */}
+              <WorkspaceContainer
+                fullWidth={fullWidth}
+                className={cn(
+                  "pt-(--workspace-content-padding-y) pb-[max(var(--workspace-content-padding-y),env(safe-area-inset-bottom,0px))]",
+                  fillHeight && "lg:flex lg:h-full lg:flex-col",
+                )}
+              >
+                {/* Cada página entra con un desvanecido corto; header y barra lateral no se mueven. */}
+                <div className={cn("surface-enter min-w-0 space-y-6 dense:space-y-4", fillHeight && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}>
+                  <HeaderSearchSlot.Provider value={searchSlot}>{content}</HeaderSearchSlot.Provider>
+                </div>
+              </WorkspaceContainer>
+            </main>
           </div>
         </div>
       </div>

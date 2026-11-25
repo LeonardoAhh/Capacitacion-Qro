@@ -1,6 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
@@ -8,6 +10,7 @@ import { AutoHeight } from "@/components/ui/auto-height"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { DESCRIPCION_ACCIDENTE_MAX, type Accidente, type DatosAccidente } from "@/lib/salud-ocupacional"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import { FIELD } from "./accidente-campos"
 import { AccidenteAtencion } from "./accidente-atencion"
 import { AccidenteClasificacion } from "./accidente-clasificacion"
@@ -69,8 +72,8 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
     setSaving(true)
     try {
       await onSave(aDatos(form, form.empleado, form.severidad))
-    } catch {
-      setError("No se pudo guardar el accidente. Inténtalo de nuevo.")
+    } catch (err) {
+      setError(describeSupabaseError(err, "No se pudo guardar el accidente. Inténtalo de nuevo."))
       setSaving(false)
     }
   }
@@ -87,16 +90,24 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
           <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
             <div className={FIELD}>
               <Label htmlFor="accidente-fecha">Fecha</Label>
-              <DateTextInput id="accidente-fecha" value={form.fecha} onValueChange={value => cambiar("fecha", value)} />
+              <DateTextInput id="accidente-fecha" value={form.fecha} disabled={saving}
+                aria-invalid={Boolean(error && !form.fecha)}
+                onValueChange={value => cambiar("fecha", value)} />
             </div>
             <div className={FIELD}>
               <Label htmlFor="accidente-colaborador">Colaborador <span className="font-normal text-muted-foreground">· por número de empleado</span></Label>
-              <EmpleadoSelect id="accidente-colaborador" value={form.empleado} onChange={value => cambiar("empleado", value)} />
+              <EmpleadoSelect id="accidente-colaborador" value={form.empleado}
+                invalid={Boolean(error && !form.empleado)}
+                onChange={value => cambiar("empleado", value)} />
             </div>
           </div>
           <div className={FIELD}>
-            <Label htmlFor="accidente-descripcion">¿Qué ocurrió?</Label>
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="accidente-descripcion">¿Qué ocurrió?</Label>
+              <span className="text-body-sm tabular-nums text-muted-foreground">{form.descripcion.length}/{DESCRIPCION_ACCIDENTE_MAX}</span>
+            </div>
             <Textarea id="accidente-descripcion" rows={3} value={form.descripcion} maxLength={DESCRIPCION_ACCIDENTE_MAX}
+              disabled={saving} aria-invalid={Boolean(error && !form.descripcion.trim())}
               className="min-h-20 resize-none field-sizing-content"
               onChange={event => cambiar("descripcion", event.target.value)} />
           </div>
@@ -106,7 +117,12 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
         {step === 3 && <AccidenteAtencion form={form} cambiar={cambiar} />}
         </AutoHeight>
 
-        {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
+        {error && (
+          <Alert variant="destructive" className="bg-destructive/10">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
       </form>
       <ModalFooter onCancel={step === 1 ? cerrar : () => { setError(null); setStep((step - 1) as Paso) }}
         cancelLabel={step === 1 ? "Cancelar" : "Volver"}

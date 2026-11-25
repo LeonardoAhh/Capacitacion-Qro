@@ -39,7 +39,7 @@ export function WorkspaceBrand({ workspace, mobile = false }: WorkspaceBrandProp
   const label = workspaces.length === 0 ? DESEMPENO.title : workspaceLabel(workspace)
 
   return (
-    <div className={cn("flex min-h-11 min-w-0 flex-1 items-center gap-2 px-2", mobile && "mr-11")}>
+    <div className={cn("flex min-h-(--control-height) min-w-0 flex-1 items-center gap-2 px-2", mobile && "mr-11")}>
       <AppMark className="size-6 shrink-0" />
       <span className="line-clamp-2 min-w-0 text-balance text-label-sm text-foreground">{label}</span>
     </div>

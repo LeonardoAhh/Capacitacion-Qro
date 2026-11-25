@@ -5,7 +5,7 @@ import { DIAS_MAX } from "@/lib/salud-ocupacional"
 /** Piezas compartidas por los pasos del modal de accidente. */
 export const FIELD = "grid min-w-0 content-start gap-2"
 /** Pregunta que depende de la anterior: sangrada bajo ella, con una línea guía. */
-export const ANIDADO = "grid gap-4 border-l-2 border-border pl-4"
+export const ANIDADO = "grid gap-4 border-l border-border pl-4"
 
 export const SI_NO = [{ value: "si", label: "Sí" }, { value: "no", label: "No" }] as const
 

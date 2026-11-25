@@ -34,8 +34,6 @@ export function ActionButton({
     </TooltipTrigger><TooltipContent>{tooltip}</TooltipContent></Tooltip>;
 }
 
-// ─── Aviso con severidad (color semántico por tema, responsivo) ───────────────
-
 export function NoticeCard({
   tone,
   icon,
@@ -47,13 +45,12 @@ export function NoticeCard({
   title: string;
   children: React.ReactNode;
 }) {
-  // Color semántico mediante los tokens compartidos.
   const color = tone === "danger" ? "text-destructive" : "text-warning-deep";
   return <div role="alert" className="flex items-center gap-2 py-1">
     <span className={cn("flex shrink-0 items-center justify-center", color)} aria-hidden="true">
       {icon}
     </span>
-    <div className="flex flex-col sm:flex-row sm:items-center min-w-0 gap-x-2 gap-y-1 text-body-md">
+    <div className="flex min-w-0 flex-col gap-x-2 gap-y-1 text-body-md sm:flex-row sm:items-center">
       <span className={cn("font-medium", color)}>
         {title}{title ? ":" : ""}
       </span>
@@ -61,8 +58,6 @@ export function NoticeCard({
     </div>
   </div>;
 }
-
-// ─── Botón de práctica ────────────────────────────────────────────────────────
 
 interface GuiaButtonProps {
   onClick: () => void;
@@ -72,7 +67,7 @@ export function GuiaButton({
 }: GuiaButtonProps) {
   return <Tooltip>
     <TooltipTrigger asChild>
-      <Button type="button" variant="outline" size="sm" onClick={onClick} aria-label="Practicar evaluación con ejemplo" aria-haspopup="dialog" className="w-9 shrink-0 px-0 sm:w-auto sm:px-3">
+      <Button type="button" variant="outline" size="sm" onClick={onClick} aria-label="Practicar evaluación con ejemplo" aria-haspopup="dialog" className="w-(--control-height-sm) shrink-0 px-0 sm:w-auto sm:px-3">
         <GraduationCap aria-hidden="true" />
         <span className="sr-only sm:not-sr-only">Practicar</span>
       </Button>

@@ -22,10 +22,10 @@ export function EvaluationStepper({ activeView, onSelect }: { activeView: number
         return <li key={label} className="min-w-0">
           <button type="button" disabled={!done} onClick={() => onSelect(view)} aria-current={current ? "step" : undefined}
             aria-label={done ? `Volver a ${label}` : label}
-            className={cn("flex w-full min-w-0 flex-col gap-1.5 rounded-md pt-1 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            className={cn("flex min-h-(--control-height) w-full min-w-0 flex-col justify-center gap-1.5 rounded-md text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
               done ? "cursor-pointer text-foreground hover:text-primary" : "cursor-default",
               current ? "text-foreground" : !done && "text-muted-foreground")}>
-            <span aria-hidden="true" className={cn("h-1 w-full rounded-full", done || current ? "bg-primary" : "bg-muted")} />
+            <span aria-hidden="true" className={cn("h-1 w-full rounded-sm transition-colors duration-200 motion-reduce:transition-none", done || current ? "bg-primary" : "bg-muted")} />
             <span className="flex min-w-0 items-center gap-1 text-body-sm">
               {done ? <Check className="size-3.5 shrink-0 text-primary" aria-hidden="true" /> : <span className="shrink-0 tabular-nums">{view}</span>}
               <span className={cn("hidden truncate sm:inline", current && "font-medium")}>{label}</span>
@@ -48,11 +48,11 @@ export function EvaluationNavBar({ back, next, done, total, error }: {
   total: number;
   error: string;
 }) {
-  const message = error || (total > 1 ? `${done} de ${total} respondidos` : "");
+  const message = error || (total > 1 ? `${done}/${total} respondidos` : "");
   return <div role="group" aria-label="Navegación de la evaluación" className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t pt-4">
     {back}
     <p role={error ? "alert" : "status"}
-      className={cn("order-first w-full text-body-sm sm:order-none sm:w-auto sm:flex-1 sm:text-right", error ? "text-destructive" : "text-muted-foreground", !message && "max-sm:hidden")}>
+      className={cn("order-first w-full text-body-sm tabular-nums sm:order-none sm:w-auto sm:flex-1 sm:text-right", error ? "text-destructive" : "text-muted-foreground", !message && "max-sm:hidden")}>
       {message}
     </p>
     <div className="ml-auto sm:ml-0">{next}</div>

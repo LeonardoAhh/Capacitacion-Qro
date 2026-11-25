@@ -30,7 +30,7 @@ function AtencionCard({ atencion, accidente }: { atencion: (typeof ATENCIONES)[n
   const pasos = SEGUIMIENTO[atencion.value] ?? []
   const hechos = pasos.filter(paso => accidente[paso.key]).length
   return (
-    <li className="grid gap-2 rounded-lg border p-3">
+    <li className="grid gap-2 rounded-md border p-3">
       <div className="flex items-center gap-2">
         <atencion.icon aria-hidden="true" className={cn("size-4 shrink-0", atencion.text)} />
         <p className="min-w-0 flex-1 truncate text-label-sm text-foreground">{atencion.label}</p>
@@ -82,7 +82,7 @@ export function AccidentePanel({ accidente, side, onClose }: {
       {/* Resumen en dos columnas: lo que se busca primero, antes del relato. */}
       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 border-t px-(--card-padding) py-4">
         <Dato label="Severidad">
-          {severidad && <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", severidad.dot)} />}
+          {severidad && <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-sm", severidad.dot)} />}
           {severidad?.label ?? <span className="text-muted-foreground">Sin registrar</span>}
         </Dato>
         <Dato label="Reporte">

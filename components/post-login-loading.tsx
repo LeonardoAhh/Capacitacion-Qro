@@ -7,6 +7,7 @@ import { useRole } from "@/lib/hooks"
 import { supabase } from "@/lib/supabase/client"
 import { POST_LOGIN_PATH } from "@/lib/navigation"
 import { homeFor, ROLE_POLICIES } from "@/lib/constants/roles"
+import { WORKSPACE_SELECTION } from "@/lib/workspace/presentation"
 
 export function PostLoginLoading() {
   const { role, loading: roleLoading } = useRole()
@@ -41,11 +42,11 @@ export function PostLoginLoading() {
     return () => window.clearTimeout(timer)
   }, [roleLoading, ready, accessSaved, role, router, prefersReducedMotion])
 
-  const statusLabel = (() => {
-  if (roleLoading) return "Checking access…";
-  if (ready) return "Redirecting…";
-  return "Preparing workspaces…";
-  })();
+  const statusLabel = roleLoading
+    ? WORKSPACE_SELECTION.postLogin.checkingAccess
+    : ready
+      ? WORKSPACE_SELECTION.postLogin.redirecting
+      : WORKSPACE_SELECTION.postLogin.preparing
 
   return <AppTransition message={statusLabel} leaving={exiting} />
 }

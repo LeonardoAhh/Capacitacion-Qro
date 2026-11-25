@@ -1,9 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
-
-// ─── Types ──────────────────────────────────────────────────────────────────
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface RegistroRaw {
   fecha_vencimiento_rg: string | null
@@ -18,17 +17,15 @@ export interface DeptDataRg {
   pct: number
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
 export const META_RG = 70
 
 export type QuarterId = "Q1" | "Q2" | "Q3" | "Q4"
 
 export const QUARTERS = [
-  { id: "Q1" as const, label: "ENE – MAR", meses: [0, 1, 2] },
-  { id: "Q2" as const, label: "ABR – JUN", meses: [3, 4, 5] },
-  { id: "Q3" as const, label: "JUL – SEP", meses: [6, 7, 8] },
-  { id: "Q4" as const, label: "OCT – DIC", meses: [9, 10, 11] },
+  { id: "Q1" as const, label: "Ene-Mar", meses: [0, 1, 2] },
+  { id: "Q2" as const, label: "Abr-Jun", meses: [3, 4, 5] },
+  { id: "Q3" as const, label: "Jul-Sep", meses: [6, 7, 8] },
+  { id: "Q4" as const, label: "Oct-Dic", meses: [9, 10, 11] },
 ] as const
 
 export function currentQuarter(): QuarterId {
@@ -48,31 +45,45 @@ export function colorPctRg(pct: number): string {
   return "hsl(var(--destructive))"
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
 export function useRgCumplimiento() {
   const [registros, setRegistros] = useState<RegistroRaw[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [quarter, setQuarter] = useState<QuarterId>(currentQuarter())
   const [año, setAño] = useState(currentYear())
+  const requestIdRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const cargar = useCallback(async () => {
+    const currentRequest = ++requestIdRef.current
     setLoading(true)
+    setError(null)
     try {
-      const { data, error } = await supabase
+      const { data, error: queryError } = await supabase
         .from("nuevo_ingreso")
         .select("fecha_vencimiento_rg, departamento, rg_rec_048")
         .not("fecha_vencimiento_rg", "is", null)
-      if (error) throw error
+      if (queryError) throw queryError
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       setRegistros((data ?? []) as RegistroRaw[])
+    } catch (err) {
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
+      console.error("RG cumplimiento error:", err instanceof Error ? err.message : JSON.stringify(err))
+      setError(describeSupabaseError(err, "No se pudo cargar el cumplimiento de RG-REC-048"))
     } finally {
-      setLoading(false)
+      if (mountedRef.current && currentRequest === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
-  useEffect(() => { cargar() }, [cargar])
+  useEffect(() => { void cargar() }, [cargar])
 
-  // Derived data
   const añoNum = parseInt(año, 10)
   const mesesQ: readonly number[] = QUARTERS.find((q) => q.id === quarter)!.meses
 
@@ -109,7 +120,7 @@ export function useRgCumplimiento() {
   if (!añosDisponibles.includes(año)) añosDisponibles.unshift(año)
 
   return {
-    loading, quarter, setQuarter, año, setAño,
+    loading, error, quarter, setQuarter, año, setAño,
     chartData, totalGeneral, entregadosGeneral, pctGeneral,
     añosDisponibles, cargar,
   }

@@ -3,7 +3,8 @@
 import { useState, type FormEvent } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Lightbulb, Loader2 } from "lucide-react"
+import { AlertCircle, Lightbulb, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -13,6 +14,7 @@ import { useRole } from "@/lib/hooks"
 import { enviarIdea, IDEA_MAX, SECCION_GENERAL } from "@/lib/ideas"
 import { getRouteLabel, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
 import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import { cn } from "@/lib/utils"
 import { IDEAS_PATH } from "@/lib/workspace-paths"
 
@@ -68,8 +70,8 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       setTexto("")
       setOpen(false)
       notify.success("Gracias, idea enviada")
-    } catch {
-      setError("No se pudo enviar la idea. Inténtalo de nuevo.")
+    } catch (err) {
+      setError(describeSupabaseError(err, "No se pudo enviar la idea. Inténtalo de nuevo."))
     } finally {
       setSaving(false)
     }
@@ -88,27 +90,35 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       {/* collisionPadding: separado de los bordes de la pantalla. El margen va en el formulario: una
           regla global (globals.css) quita el padding inferior a todo [role="dialog"], y el panel lo es. */}
       <PopoverContent side={side} align="end" sideOffset={8} collisionPadding={16} className="w-80 max-w-[calc(100vw-2rem)] p-0">
-        <form className="grid gap-3 p-4" onSubmit={event => void enviar(event)}>
+        <form className="grid gap-3 p-4" onSubmit={event => void enviar(event)} noValidate>
           <div className="grid gap-2">
-            <Label htmlFor="idea-texto">¿Qué mejorarías?</Label>
-            <Textarea id="idea-texto" autoFocus rows={3} maxLength={IDEA_MAX} value={texto}
+            <div className="flex items-center justify-between gap-2">
+              <Label htmlFor="idea-texto">¿Qué mejorarías?</Label>
+              <span className="text-body-sm tabular-nums text-muted-foreground">{texto.length}/{IDEA_MAX}</span>
+            </div>
+            <Textarea id="idea-texto" autoFocus rows={3} maxLength={IDEA_MAX} value={texto} disabled={saving}
               className="min-h-20 resize-none field-sizing-content"
               aria-invalid={(Boolean(error) && !texto.trim()) || undefined} aria-describedby={error ? "idea-error" : undefined}
               onChange={event => { setTexto(event.target.value); setError(null) }} />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="idea-seccion">¿Dónde?</Label>
-            <Select value={seccion} onValueChange={value => { setSeccion(value); setError(null) }}>
+            <Select value={seccion} onValueChange={value => { setSeccion(value); setError(null) }} disabled={saving}>
               <SelectTrigger id="idea-seccion" aria-invalid={(Boolean(error) && !seccion) || undefined}><SelectValue placeholder="Selecciona una sección" /></SelectTrigger>
               <SelectContent className="max-h-60">
                 {secciones.map(nombre => <SelectItem key={nombre} value={nombre}>{nombre}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
-          {error && <p id="idea-error" role="alert" className="text-body-sm text-destructive">{error}</p>}
+          {error && (
+            <Alert variant="destructive" id="idea-error" className="bg-destructive/10 p-3 [&>svg]:left-3 [&>svg]:top-3">
+              <AlertCircle className="size-4" aria-hidden="true" />
+              <AlertDescription className="text-body-sm">{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-center gap-2">
             {canReviewIdeas && (
-              <Link href={IDEAS_PATH} className="mr-auto rounded-sm text-body-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              <Link href={IDEAS_PATH} className="relative touch-target mr-auto inline-flex items-center rounded-sm text-body-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 onClick={() => { setOpen(false); onNavigate?.() }}>
                 Ver todas
               </Link>

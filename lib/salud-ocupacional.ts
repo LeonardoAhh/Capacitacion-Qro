@@ -32,9 +32,9 @@ export const META_INCIDENTES_MES = 1
  * (tokens --chart-*): el día del calendario toma el de la atención más alta.
  */
 export const ATENCIONES: readonly { value: AtencionAccidente; label: string; corto: string; icon: LucideIcon; text: string; dot: string; chip: string }[] = [
-  { value: "servicio_medico", label: "Servicio médico de planta", corto: "Servicio médico", icon: BriefcaseMedical, text: "text-chart-2", dot: "bg-chart-2", chip: "border-chart-2/30 bg-chart-2/10 text-chart-2" },
-  { value: "clinica_particular", label: "Clínica particular", corto: "Clínica", icon: Hospital, text: "text-chart-4", dot: "bg-chart-4", chip: "border-chart-4/30 bg-chart-4/10 text-chart-4" },
-  { value: "imss", label: "IMSS", corto: "IMSS", icon: Ambulance, text: "text-chart-5", dot: "bg-chart-5", chip: "border-chart-5/30 bg-chart-5/10 text-chart-5" },
+  { value: "servicio_medico", label: "Servicio médico de planta", corto: "Servicio médico", icon: BriefcaseMedical, text: "text-chart-2", dot: "bg-chart-2", chip: "border-chart-2/30 bg-chart-2/10 text-foreground" },
+  { value: "clinica_particular", label: "Clínica particular", corto: "Clínica", icon: Hospital, text: "text-chart-4", dot: "bg-chart-4", chip: "border-chart-4/30 bg-chart-4/10 text-foreground" },
+  { value: "imss", label: "IMSS", corto: "IMSS", icon: Ambulance, text: "text-chart-5", dot: "bg-chart-5", chip: "border-chart-5/30 bg-chart-5/10 text-foreground" },
 ]
 
 /**
@@ -53,11 +53,9 @@ export const SEGUIMIENTO: Partial<Record<AtencionAccidente, readonly { key: Paso
   ],
 }
 
-/** Riesgo de trabajo y racha completan los cinco colores de la paleta. */
-export const TONO_RIESGO = { dot: "bg-chart-3", chip: "border-chart-3/30 bg-chart-3/10 text-chart-3" } as const
+export const TONO_RIESGO = { dot: "bg-chart-3", chip: "border-chart-3/30 bg-chart-3/10 text-warning-deep" } as const
 export const TONO_RACHA = { fondo: "bg-chart-1-soft", texto: "text-chart-1-deep", barra: "bg-chart-1" } as const
-/** Accidente sin atención registrada: casco, en ámbar de riesgo. */
-const MARCADOR_SIN_ATENCION = { icon: HardHat, text: "text-chart-3" } as const
+const MARCADOR_SIN_ATENCION = { icon: HardHat, text: "text-warning-deep" } as const
 
 export interface Accidente {
   id: string

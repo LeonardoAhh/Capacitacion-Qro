@@ -4,6 +4,7 @@ import { SaludOcupacionalPage } from "@/components/content/salud-ocupacional/sal
 
 export const metadata: Metadata = {
   title: "Occupational Health",
+  description: "Calendario, indicadores y seguimiento de accidentes de Salud Ocupacional.",
 }
 
 export default function Page() {

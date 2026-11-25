@@ -120,9 +120,10 @@ export default function PluckedText({
       return;
     }
 
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let reduceMotion =
+      mqReduce.matches ||
+      document.documentElement.classList.contains("reduce-motion");
     const letters = Array.from(lettersEl.children).slice(
       0,
       -1
@@ -419,9 +420,28 @@ export default function PluckedText({
       { threshold: [0, 0.6] }
     );
     intersection.observe(stage);
-    const loopTimer = loop && !reduceMotion
+    const onReduceChange = () => {
+      reduceMotion =
+        mqReduce.matches ||
+        document.documentElement.classList.contains("reduce-motion");
+      if (reduceMotion) {
+        grab = null;
+        release = null;
+        delete stage.dataset.grabbing;
+        settle();
+        draw();
+        ghost.setAttribute("d", path.getAttribute("d") ?? "");
+      }
+    };
+    mqReduce.addEventListener("change", onReduceChange);
+    const motionObserver = new MutationObserver(onReduceChange);
+    motionObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    const loopTimer = loop
       ? window.setInterval(() => {
-          if (!visible || length <= 0 || grab) return;
+          if (reduceMotion || !visible || length <= 0 || grab) return;
           triangleModes(modes, length, length * 0.3, -swing * 0.5);
           start();
         }, LOOP_MS)
@@ -443,6 +463,8 @@ export default function PluckedText({
     return () => {
       cancelAnimationFrame(raf);
       if (loopTimer !== null) window.clearInterval(loopTimer);
+      mqReduce.removeEventListener("change", onReduceChange);
+      motionObserver.disconnect();
       resizeObserver.disconnect();
       intersection.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import {
-  CircleAlert, CircleCheck, Clock3, EllipsisVertical, Hourglass, Paperclip, Pencil, Trash2, type LucideIcon,
+  CircleAlert, CircleCheck, Clock3, EllipsisVertical, Hourglass, ImageOff, Paperclip, Pencil, Trash2, type LucideIcon,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -11,11 +11,9 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Skeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 import type { FindingPreview } from "./finding-card"
-import type { FindingDeadline } from "./finding-constraints"
+import type { FindingDeadline, FindingStatus } from "./finding-constraints"
 
-/** Piezas compartidas por la tarjeta, la lista y el panel de detalle del hallazgo. */
-
-const STATUS_META: Record<FindingPreview["status"], { icon: LucideIcon; className: string }> = {
+const STATUS_META: Record<FindingStatus, { icon: LucideIcon; className: string }> = {
   Abierto: { icon: CircleAlert, className: "border-destructive/20 bg-destructive/10 text-destructive" },
   "En seguimiento": { icon: Clock3, className: "border-warning/30 bg-warning/10 text-warning-deep" },
   Cerrado: { icon: CircleCheck, className: "border-success/20 bg-success/10 text-success" },
@@ -64,11 +62,22 @@ export function FindingImage(props: FindingImageProps) {
 
 function FindingImageLoader({ src, alt, sizes }: FindingImageProps) {
   const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(!src)
+
+  if (failed) {
+    return (
+      <div className="flex size-full flex-col items-center justify-center gap-2 bg-muted p-4 text-center text-muted-foreground">
+        <ImageOff className="size-5" aria-hidden="true" />
+        <span className="text-body-sm">Imagen no disponible</span>
+      </div>
+    )
+  }
+
   return (
     <>
       {!loaded && <Skeleton className="absolute inset-0 rounded-none" aria-hidden="true" />}
       <Image src={src} alt={alt} fill unoptimized sizes={sizes}
-        onLoad={() => setLoaded(true)} onError={() => setLoaded(true)}
+        onLoad={() => setLoaded(true)} onError={() => { setLoaded(true); setFailed(true) }}
         className={cn(
           "object-cover transition-[opacity,transform] duration-200 ease-out group-hover:scale-[1.02] group-focus-visible:scale-[1.02] motion-reduce:transform-none",
           loaded ? "opacity-100" : "opacity-0",

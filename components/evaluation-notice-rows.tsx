@@ -1,10 +1,10 @@
 "use client"
 
-import { CircleAlert, Clock3 } from "lucide-react"
+import { ChevronRight, CircleAlert, Clock3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 
-const ITEM = "flex min-h-(--menu-item-height) w-full items-center gap-2 px-3 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+const ITEM = "flex min-h-(--menu-item-height) w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
 
 /**
  * Resumen de evaluaciones en una sola fila: vencidas (en rojo) y próximas.
@@ -31,6 +31,7 @@ export function EvaluationNoticeRows({ vencidas, proximas, onOpen }: {
         {vencidas > 0 && proximas > 0 && <span className="text-muted-foreground"> · </span>}
         {proximas > 0 && <span>{partes[partes.length - 1]}</span>}
       </span>
+      <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
     </button>
   )
 }

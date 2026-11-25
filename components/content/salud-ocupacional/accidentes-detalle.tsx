@@ -1,7 +1,9 @@
 "use client"
 
 import { ArrowLeft, EllipsisVertical, Pencil, Plus, Trash2 } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { LIST_WITH_DETAIL_GRID } from "@/components/ui/side-detail-panel"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -10,7 +12,6 @@ import { cn } from "@/lib/utils"
 import { AccidentePanel } from "./accidente-panel"
 
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
-const CHIP = "inline-flex items-center rounded-md border px-1.5 py-0.5 text-body-sm"
 const siNo = (value: boolean) => value ? "Sí" : "No"
 
 /** Columnas que se ocultan cuando el panel de detalle ocupa el lado derecho (como Safe Walk). */
@@ -57,13 +58,13 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
         </div>
         {canEdit && (
           <Button type="button" className="shrink-0" aria-label="Registrar accidente en este día" onClick={onCreate}>
-            <Plus aria-hidden="true" /><span className="hidden sm:inline">Crear</span>
+            <Plus aria-hidden="true" /><span className="hidden sm:inline">Registrar</span>
           </Button>
         )}
       </header>
 
       <div className={seleccionado && side ? LIST_WITH_DETAIL_GRID : undefined}>
-        <div className="min-w-0 overflow-hidden rounded-xl border bg-card">
+        <Card className="min-w-0 overflow-hidden">
           <Table className="table-fixed">
             <caption className="sr-only">Accidentes del {titulo}; elige uno para ver su detalle</caption>
             <TableHeader className="bg-muted/50">
@@ -96,7 +97,7 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
                     <TableCell className="hidden truncate text-body-sm text-foreground sm:table-cell">{accidente.descripcion}</TableCell>
                     <TableCell className={cn(col.riesgo, "text-body-sm")}>
                       {accidente.riesgoTrabajo
-                        ? <span className="inline-flex items-center gap-1.5 text-foreground"><span aria-hidden="true" className={cn("size-2 rounded-full", TONO_RIESGO.dot)} />Sí</span>
+                        ? <span className="inline-flex items-center gap-1.5 text-foreground"><span aria-hidden="true" className={cn("size-2 rounded-sm", TONO_RIESGO.dot)} />Sí</span>
                         : <span className="text-muted-foreground">No</span>}
                     </TableCell>
                     <TableCell className={cn(col.reporte, "text-body-sm")}>{siNo(accidente.reporteGenerado)}</TableCell>
@@ -104,7 +105,12 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
                       {atenciones.length
                         ? <span className="flex gap-1 whitespace-nowrap">
                             <span className="sr-only">{atenciones.map(atencion => atencion.label).join(", ")}</span>
-                            {atenciones.map(atencion => <span key={atencion.value} aria-hidden="true" className={cn(CHIP, atencion.chip)}>{atencion.corto}</span>)}
+                            {atenciones.map(atencion => (
+                              <Badge key={atencion.value} variant="outline" size="sm" aria-hidden="true" className={cn("font-normal", atencion.chip)}>
+                                <span className={cn("size-1.5 shrink-0 rounded-sm", atencion.dot)} />
+                                {atencion.corto}
+                              </Badge>
+                            ))}
                           </span>
                         : <span className="text-body-sm text-muted-foreground">Sin atención</span>}
                     </TableCell>
@@ -130,7 +136,7 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
               })}
             </TableBody>
           </Table>
-        </div>
+        </Card>
 
         {seleccionado && (
           <AccidentePanel key={seleccionado.id} accidente={seleccionado} side={side} onClose={() => onSelect(null)} />

@@ -1,8 +1,11 @@
 "use client"
 
 import { useState, type FormEvent } from "react"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import { addCompletionEvidence } from "./findings-data"
 import type { FindingPreview } from "./finding-card"
 import { FindingFileField } from "./finding-file-field"
@@ -27,8 +30,8 @@ export function CompletionEvidenceDialog({ finding, onClose, onSaved }: Completi
       await addCompletionEvidence(finding, files)
       await onSaved()
       onClose()
-    } catch {
-      setError("No se pudo guardar la evidencia. Intenta de nuevo.")
+    } catch (err) {
+      setError(describeSupabaseError(err, "No se pudo guardar la evidencia. Intenta de nuevo."))
     } finally {
       setSaving(false)
     }
@@ -45,11 +48,18 @@ export function CompletionEvidenceDialog({ finding, onClose, onSaved }: Completi
         </DialogFooter>
       }>
         <form id="completion-evidence-form" onSubmit={save} className="space-y-4">
-          <DialogHeader><DialogTitle>Evidencia de cumplimiento</DialogTitle></DialogHeader>
-          <p className="truncate text-body-md text-foreground" title={finding.title}>{finding.title}</p>
+          <DialogHeader>
+            <DialogTitle>Evidencia de cumplimiento</DialogTitle>
+            <DialogDescription className="truncate" title={finding.title}>{finding.title}</DialogDescription>
+          </DialogHeader>
           <FindingFileField label="Archivos" files={files} onChange={setFiles} acceptPdf
             existingCount={finding.completionEvidencePaths.length} disabled={saving} />
-          {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
+          {error && (
+            <Alert variant="destructive" className="bg-destructive/10">
+              <AlertCircle className="size-4" aria-hidden="true" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
         </form>
       </DialogContent>
     </Dialog>

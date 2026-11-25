@@ -20,13 +20,13 @@ export function CommitmentsCard({
   </CardHeader>
     <CardContent className="space-y-3 p-(--card-padding) pt-0">
       <FieldValue label={DESEMPENO.fields.commitments}>
-        <p className="whitespace-pre-line">{data.compromisos || "—"}</p>
+        <p className="whitespace-pre-line">{data.compromisos || "Sin compromisos"}</p>
     </FieldValue>
       <FieldValue label={DESEMPENO.fields.reviewDate}>
-        <p>{data.fecha_revision || "—"}</p>
+        <p>{data.fecha_revision || "Sin fecha"}</p>
     </FieldValue>
       <FieldValue label={DESEMPENO.fields.observations}>
-        <p>{data.observaciones || "—"}</p>
+        <p>{data.observaciones || "Sin observaciones"}</p>
     </FieldValue>
   </CardContent>
 </Card>;

@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import { daysFromToday } from "@/lib/hooks/useNuevoIngreso"
 import { notify } from "@/lib/notify"
 import { normalizeDepartamento } from "@/lib/catalogo"
@@ -10,8 +11,6 @@ import { pendingEvalStatus, type PendingEvalStatus } from "@/lib/desempeno/pendi
 
 export { pendingEvalStatus }
 export type { PendingEvalStatus }
-
-// ─── Types ──────────────────────────────────────────────────────────────────
 
 export type EvalPeriodo = "1er Mes" | "2° Mes" | "3er Mes"
 
@@ -45,11 +44,15 @@ export interface DeptGroup {
   items: EmployeePending[]
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
-
-export function usePendingEvals(filterDepartamentos?: string[] | null, enabled = true) {
-  const [loading, setLoading] = useState(true)
+export function usePendingEvals(
+  filterDepartamentos?: string[] | null,
+  enabled = true,
+  options?: { silent?: boolean },
+) {
+  const silent = options?.silent ?? false
+  const [loading, setLoading] = useState(enabled)
   const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [deptGroups, setDeptGroups] = useState<DeptGroup[]>([])
   const [totalEmployees, setTotalEmployees] = useState(0)
   const [totalEvals, setTotalEvals] = useState(0)
@@ -198,6 +201,7 @@ export function usePendingEvals(filterDepartamentos?: string[] | null, enabled =
         .sort((a, b) => a.departamento.localeCompare(b.departamento, "es"))
 
       if (currentRequest !== requestId.current) return
+      setError(null)
       setDeptGroups(groups)
       setTotalEmployees(employeeMap.size)
       setTotalEvals(evalCount)
@@ -207,23 +211,37 @@ export function usePendingEvals(filterDepartamentos?: string[] | null, enabled =
     } catch (err) {
       if (currentRequest !== requestId.current) return
       console.error("usePendingEvals:", err)
-      notify.error("No se pudieron cargar las evaluaciones pendientes")
+      const message = describeSupabaseError(err, "No se pudieron cargar las evaluaciones pendientes")
+      setError(message)
+      if (!silent) notify.error(message)
     } finally {
       if (currentRequest === requestId.current) {
         if (showSkeleton) setLoading(false)
         else setRefreshing(false)
       }
     }
-  }, [departmentKey])
+  }, [departmentKey, silent])
 
   const cargar = useCallback(() => load(false), [load])
 
   useEffect(() => {
-    if (!enabled) return
+    if (!enabled) {
+      requestId.current += 1
+      setLoading(false)
+      setRefreshing(false)
+      setError(null)
+      setDeptGroups([])
+      setTotalEmployees(0)
+      setTotalEvals(0)
+      setTotalVencidas(0)
+      setTotalProximas(0)
+      setTotalATiempo(0)
+      return
+    }
     let cancelled = false
     queueMicrotask(() => { if (!cancelled) void load(true) })
     return () => { cancelled = true }
   }, [enabled, load])
 
-  return { loading, refreshing, deptGroups, totalEmployees, totalEvals, totalVencidas, totalProximas, totalATiempo, cargar }
+  return { loading, refreshing, error, deptGroups, totalEmployees, totalEvals, totalVencidas, totalProximas, totalATiempo, cargar }
 }

@@ -1,18 +1,21 @@
 "use client"
 
 import { useMemo, useState, type FormEvent } from "react"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { AutoHeight } from "@/components/ui/auto-height"
+import { Button } from "@/components/ui/button"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { AutoHeight } from "@/components/ui/auto-height"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -20,30 +23,25 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
 import { JEFES_DE_AREA_POR_DEPARTAMENTO } from "@/lib/catalogos/personal"
-import { deISO, enmascararFecha, textoAISO } from "@/lib/fechas"
-import type { FindingPreview } from "@/components/content/safety-home/finding-card"
-import { createFinding } from "@/components/content/safety-home/findings-data"
-import { FindingFileField } from "@/components/content/safety-home/finding-file-field"
-import { FINDING_DEADLINES, MAX_FINDING_DESCRIPTION_LENGTH, MAX_FINDING_TITLE_LENGTH, type FindingDeadline } from "@/components/content/safety-home/finding-constraints"
+import { describeSupabaseError } from "@/lib/supabase/errors"
+import {
+  FINDING_DEADLINES,
+  FINDING_STATUSES,
+  isoWeek,
+  MAX_FINDING_DESCRIPTION_LENGTH,
+  MAX_FINDING_TITLE_LENGTH,
+  type FindingDeadline,
+  type FindingStatus,
+} from "./finding-constraints"
+import { FindingFileField } from "./finding-file-field"
+import { createFinding } from "./findings-data"
 
 interface CreateFindingDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreate: (week: number, date: string) => Promise<void>
-}
-
-function getIsoWeekNumber(date: Date): number {
-  const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()))
-  const dayNumber = target.getUTCDay() || 7
-  target.setUTCDate(target.getUTCDate() + 4 - dayNumber)
-  const yearStart = new Date(Date.UTC(target.getUTCFullYear(), 0, 1))
-  return Math.ceil((((target.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
-}
-
-function parseDate(value: string): Date | null {
-  const iso = textoAISO(value)
-  return iso ? deISO(iso) : null
+  onCreate: (week: number, year: number) => Promise<void>
 }
 
 export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFindingDialogProps) {
@@ -55,21 +53,21 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const [responsible, setResponsible] = useState("")
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
-  const [status, setStatus] = useState<FindingPreview["status"]>("Abierto")
+  const [status, setStatus] = useState<FindingStatus>("Abierto")
   const [deadline, setDeadline] = useState<FindingDeadline | "">("")
-  const [date, setDate] = useState("")
+  const [dateIso, setDateIso] = useState("")
   const [images, setImages] = useState<File[]>([])
   const [submitted, setSubmitted] = useState(false)
-  const [imageError, setImageError] = useState("")
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [saving, setSaving] = useState(false)
-  const [saveError, setSaveError] = useState("")
+  const [formError, setFormError] = useState("")
 
   const responsibleOptions = department
     ? JEFES_DE_AREA_POR_DEPARTAMENTO[department] ?? []
     : []
 
   const handleOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen && saving) return
     if (!nextOpen) {
       setDepartment("")
       setResponsible("")
@@ -77,11 +75,10 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
       setDescription("")
       setStatus("Abierto")
       setDeadline("")
-      setDate("")
+      setDateIso("")
       setImages([])
       setSubmitted(false)
-      setImageError("")
-      setSaveError("")
+      setFormError("")
       setStep(1)
     }
     onOpenChange(nextOpen)
@@ -90,40 +87,67 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const handleDepartmentChange = (value: string) => {
     setDepartment(value)
     setResponsible("")
+    setFormError("")
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (saving) return
     setSubmitted(true)
 
     if (step === 1) {
-      if (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH || !description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH) return
+      if (!title.trim() || !description.trim()) {
+        setFormError("Completa el título y la descripción para continuar.")
+        return
+      }
+      if (title.trim().length > MAX_FINDING_TITLE_LENGTH || description.length > MAX_FINDING_DESCRIPTION_LENGTH) {
+        setFormError("Reduce la longitud del texto al límite permitido.")
+        return
+      }
       setSubmitted(false)
+      setFormError("")
       setStep(2)
       return
     }
-    const parsedDate = parseDate(date)
     if (step === 2) {
-      if (!department || !responsible || !parsedDate) return
+      if (!department || !responsible || !dateIso) {
+        setFormError("Selecciona departamento, responsable y una fecha válida (DD/MM/AAAA).")
+        return
+      }
       setSubmitted(false)
+      setFormError("")
       setStep(3)
       return
     }
-    if (images.length === 0) {
-      setImageError("Selecciona al menos una imagen del hallazgo.")
+    if (!deadline) {
+      setFormError("Selecciona un plazo de atención.")
       return
     }
-    if (!title.trim() || !description.trim() || !department || !responsible || !parsedDate || !deadline) return
+    if (images.length === 0) {
+      setFormError("Selecciona al menos una imagen del hallazgo.")
+      return
+    }
+    if (!title.trim() || !description.trim() || !department || !responsible || !dateIso) return
 
     setSaving(true)
-    setSaveError("")
+    setFormError("")
     try {
-      await createFinding({ title: title.trim(), description: description.trim(), area: department,
-        responsible, date, status, deadline }, images)
-      await onCreate(getIsoWeekNumber(parsedDate), date)
+      await createFinding(
+        {
+          title: title.trim(),
+          description: description.trim(),
+          area: department,
+          responsible,
+          date: dateIso,
+          status,
+          deadline,
+        },
+        images,
+      )
+      await onCreate(isoWeek(dateIso), Number(dateIso.slice(0, 4)))
       handleOpenChange(false)
-    } catch {
-      setSaveError("No se pudo guardar el hallazgo. Intenta de nuevo.")
+    } catch (err) {
+      setFormError(describeSupabaseError(err, "No se pudo guardar el hallazgo. Intenta de nuevo."))
     } finally {
       setSaving(false)
     }
@@ -143,6 +167,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 if (step === 1) handleOpenChange(false)
                 else {
                   setSubmitted(false)
+                  setFormError("")
                   setStep(step === 3 ? 2 : 1)
                 }
               }}
@@ -155,121 +180,123 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
           </DialogFooter>
         }
       >
-        <form id="create-finding-form" onSubmit={handleSubmit} className="space-y-6">
+        <form id="create-finding-form" onSubmit={handleSubmit} className="space-y-6" noValidate>
           <DialogHeader className="flex-row items-center justify-between gap-3">
             <DialogTitle>Nuevo hallazgo</DialogTitle>
-            <span className="shrink-0 text-body-sm text-muted-foreground" aria-live="polite">Paso {step} de 3</span>
+            <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground" aria-live="polite">Paso {step} de 3</span>
+            <DialogDescription className="sr-only">Formulario en tres pasos para registrar un hallazgo de Safe Walk.</DialogDescription>
           </DialogHeader>
-          {saveError && <p role="alert" className="text-body-sm text-destructive">{saveError}</p>}
-
-          {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
-          <AutoHeight>
-          {step === 1 ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="finding-title">Título</Label>
-                <span className="text-body-sm text-muted-foreground tabular-nums">{title.length}/{MAX_FINDING_TITLE_LENGTH}</span>
-              </div>
-              <Input
-                id="finding-title"
-                value={title}
-                maxLength={MAX_FINDING_TITLE_LENGTH}
-                onChange={(event) => setTitle(event.target.value)}
-                aria-invalid={submitted && (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Label htmlFor="finding-description">Descripción</Label>
-                <span className="text-body-sm text-muted-foreground tabular-nums">{description.length}/{MAX_FINDING_DESCRIPTION_LENGTH}</span>
-              </div>
-              <Textarea
-                id="finding-description"
-                value={description}
-                maxLength={MAX_FINDING_DESCRIPTION_LENGTH}
-                onChange={(event) => setDescription(event.target.value)}
-                aria-invalid={submitted && (!description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH)}
-              />
-            </div>
-
-          </div>
-          ) : step === 2 ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Departamento</Label>
-              <Select value={department} onValueChange={handleDepartmentChange}>
-                <SelectTrigger aria-label="Departamento" aria-invalid={submitted && !department}>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent matchTriggerWidth>
-                  {departments.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Responsable</Label>
-              <Select value={responsible} onValueChange={setResponsible} disabled={!department}>
-                <SelectTrigger aria-label="Responsable" aria-invalid={submitted && !responsible}>
-                  <SelectValue placeholder="Seleccionar" />
-                </SelectTrigger>
-                <SelectContent matchTriggerWidth>
-                  {responsibleOptions.map((item) => (
-                    <SelectItem key={item} value={item}>{item}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="finding-status">Estado</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as FindingPreview["status"])}>
-                <SelectTrigger id="finding-status" aria-label="Estado">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent matchTriggerWidth>
-                  <SelectItem value="Abierto">Abierto</SelectItem>
-                  <SelectItem value="En seguimiento">En seguimiento</SelectItem>
-                  <SelectItem value="Cerrado">Cerrado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="finding-date">Fecha</Label>
-              <Input
-                id="finding-date"
-                inputMode="numeric"
-                autoComplete="off"
-                maxLength={10}
-                placeholder="DD/MM/AAAA"
-                value={date}
-                onChange={(event) => setDate(enmascararFecha(event.target.value))}
-                aria-invalid={submitted && !textoAISO(date)}
-              />
-            </div>
-          </div>
-          ) : (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="finding-deadline">Plazo</Label>
-              <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)}>
-                <SelectTrigger id="finding-deadline" aria-invalid={submitted && !deadline}>
-                  <SelectValue placeholder="Seleccionar plazo" />
-                </SelectTrigger>
-                <SelectContent matchTriggerWidth>
-                  {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <FindingFileField label="Imágenes del hallazgo" files={images} onChange={(files) => { setImages(files); setImageError("") }} required disabled={saving} />
-            {imageError && <p role="alert" className="text-body-sm text-destructive">{imageError}</p>}
-          </div>
+          {formError && (
+            <Alert variant="destructive" className="bg-destructive/10">
+              <AlertCircle className="size-4" aria-hidden="true" />
+              <AlertDescription>{formError}</AlertDescription>
+            </Alert>
           )}
+
+          <AutoHeight>
+            {step === 1 ? (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="finding-title">Título</Label>
+                    <span className="text-body-sm tabular-nums text-muted-foreground">{title.length}/{MAX_FINDING_TITLE_LENGTH}</span>
+                  </div>
+                  <Input
+                    id="finding-title"
+                    value={title}
+                    maxLength={MAX_FINDING_TITLE_LENGTH}
+                    disabled={saving}
+                    onChange={(event) => { setTitle(event.target.value); setFormError("") }}
+                    aria-invalid={submitted && (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="finding-description">Descripción</Label>
+                    <span className="text-body-sm tabular-nums text-muted-foreground">{description.length}/{MAX_FINDING_DESCRIPTION_LENGTH}</span>
+                  </div>
+                  <Textarea
+                    id="finding-description"
+                    value={description}
+                    maxLength={MAX_FINDING_DESCRIPTION_LENGTH}
+                    disabled={saving}
+                    onChange={(event) => { setDescription(event.target.value); setFormError("") }}
+                    aria-invalid={submitted && (!description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH)}
+                  />
+                </div>
+              </div>
+            ) : step === 2 ? (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="finding-department">Departamento</Label>
+                  <Select value={department} onValueChange={handleDepartmentChange} disabled={saving}>
+                    <SelectTrigger id="finding-department" aria-invalid={submitted && !department}>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent matchTriggerWidth>
+                      {departments.map((item) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="finding-responsible">Responsable</Label>
+                  <Select value={responsible} onValueChange={(value) => { setResponsible(value); setFormError("") }} disabled={saving || !department}>
+                    <SelectTrigger id="finding-responsible" aria-invalid={submitted && !responsible}>
+                      <SelectValue placeholder="Seleccionar" />
+                    </SelectTrigger>
+                    <SelectContent matchTriggerWidth>
+                      {responsibleOptions.map((item) => (
+                        <SelectItem key={item} value={item}>{item}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="finding-status">Estado</Label>
+                  <Select value={status} onValueChange={(value) => setStatus(value as FindingStatus)} disabled={saving}>
+                    <SelectTrigger id="finding-status">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent matchTriggerWidth>
+                      {FINDING_STATUSES.map((option) => (
+                        <SelectItem key={option} value={option}>{option}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="finding-date">Fecha</Label>
+                  <DateTextInput
+                    id="finding-date"
+                    value={dateIso}
+                    disabled={saving}
+                    onValueChange={(nextIso) => { setDateIso(nextIso); setFormError("") }}
+                    aria-invalid={submitted && !dateIso}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="finding-deadline">Plazo</Label>
+                  <Select value={deadline} onValueChange={(value) => { setDeadline(value as FindingDeadline); setFormError("") }} disabled={saving}>
+                    <SelectTrigger id="finding-deadline" aria-invalid={submitted && !deadline}>
+                      <SelectValue placeholder="Seleccionar plazo" />
+                    </SelectTrigger>
+                    <SelectContent matchTriggerWidth>
+                      {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <FindingFileField label="Imágenes del hallazgo" files={images} onChange={(files) => { setImages(files); setFormError("") }} required disabled={saving} />
+              </div>
+            )}
           </AutoHeight>
         </form>
       </DialogContent>

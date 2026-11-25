@@ -1,8 +1,6 @@
 import { toast, type ExternalToast } from "sonner"
 import { confirm as confirmDialog, type ConfirmOptions } from "@/components/ui/confirm-dialog"
 
-// ─── Tipos ────────────────────────────────────────────────────────────────────
-
 type ToastKind = "success" | "error" | "warning" | "info"
 
 interface Action {
@@ -14,9 +12,7 @@ interface NotifyOptions extends Omit<ExternalToast, "action"> {
   action?: Action
 }
 
-// ─── Duración por severidad ───────────────────────────────────────────────────
-// Más grave = más tiempo visible.
-
+// Higher severity stays visible longer so errors are readable before auto-dismiss.
 const DURATION: Record<ToastKind, number> = {
   success: 2500,
   info:    3000,
@@ -24,25 +20,12 @@ const DURATION: Record<ToastKind, number> = {
   error:   5000,
 }
 
-// ─── Helper interno ───────────────────────────────────────────────────────────
-
 function emit(kind: ToastKind, message: string, opts?: NotifyOptions) {
   return toast[kind](message, {
     duration: DURATION[kind],
     ...opts,
   })
 }
-
-// ─── API pública ──────────────────────────────────────────────────────────────
-//
-//   notify.success("Guardado")
-//   notify.error("Sin conexión", { action: { label: "Reintentar", onClick } })
-//   notify.warning("Sesión por expirar")
-//   notify.info("3 cursos nuevos disponibles")
-//   notify.promise(fn, { loading, success, error })
-//   await notify.confirm({ title, tone: "destructive" })
-//   notify.dismiss()
-//
 
 export const notify = {
   success: (msg: string, opts?: NotifyOptions) => emit("success", msg, opts),
@@ -63,7 +46,5 @@ export const notify = {
 
   confirm: (options: ConfirmOptions) => confirmDialog(options),
 } as const
-
-// ─── Re-exports ───────────────────────────────────────────────────────────────
 
 export type { NotifyOptions, ConfirmOptions }

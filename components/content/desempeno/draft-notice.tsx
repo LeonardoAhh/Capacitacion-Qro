@@ -15,8 +15,8 @@ export function DraftNotice({ draft, onRestore, onDiscard }: {
   return <section aria-labelledby="draft-notice-title" className="flex flex-wrap items-center gap-3 rounded-xl border border-primary/30 bg-primary/5 p-(--card-padding) print:hidden">
     <History className="size-5 shrink-0 text-primary" aria-hidden="true" />
     <div className="grid min-w-0 flex-1 gap-0.5">
-      <h2 id="draft-notice-title" className="text-label-sm text-foreground">Tienes una captura sin terminar</h2>
-      <p className="text-body-sm text-muted-foreground">Se guardó en este equipo el {savedAtFormatter.format(draft.savedAt)}. Puedes continuar donde te quedaste.</p>
+      <h2 id="draft-notice-title" className="text-label-sm text-foreground">Captura sin terminar</h2>
+      <p className="text-body-sm text-muted-foreground">Guardada en este equipo el {savedAtFormatter.format(draft.savedAt)}.</p>
     </div>
     <div className="flex shrink-0 flex-wrap items-center gap-2">
       <Button type="button" variant="ghost" onClick={onDiscard}>Empezar de nuevo</Button>

@@ -89,10 +89,9 @@ export function HeaderSearch({ label, value, onValueChange, ...props }: Componen
       <Tooltip open={hint || hover} onOpenChange={next => { setHover(next); if (!next) setHint(false) }}>
         <TooltipTrigger asChild>
           <Button ref={toggleRef} type="button" variant="ghost" size="icon" className="relative shrink-0 text-muted-foreground"
-            aria-label={active ? `${label}. Filtrando por: ${value}` : label} aria-expanded={false} onClick={openSearch}>
+            aria-label={active ? `${label}. Filtrando por: ${value}` : label} aria-expanded={open} onClick={openSearch}>
             <Search aria-hidden="true" />
-            {/* Celular: hay una búsqueda aplicada aunque el panel esté cerrado. */}
-            {active && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-full bg-primary ring-2 ring-card" />}
+            {active && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-sm bg-primary ring-2 ring-card" />}
           </Button>
         </TooltipTrigger>
         <TooltipContent side="bottom" align="end">{hint ? "Ahora la búsqueda está aquí" : "Buscar"}</TooltipContent>
@@ -115,8 +114,10 @@ export function HeaderSearch({ label, value, onValueChange, ...props }: Componen
                 <SearchInput {...props} label={label} value={value} onValueChange={onValueChange} autoFocus
                   className="flex-1 [&_input]:border-0 [&_input]:shadow-none [&_input]:focus-visible:ring-0"
                   onKeyDown={event => { if (event.key === "Enter") setOpen(false) }} />
-                <DialogPrimitive.Close className="shrink-0 rounded-md border border-border px-2 py-1 text-eyebrow uppercase text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                  Esc
+                <DialogPrimitive.Close asChild>
+                  <Button type="button" variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-foreground">
+                    Cerrar
+                  </Button>
                 </DialogPrimitive.Close>
               </div>
               <p className="border-t border-border px-4 py-6 text-center text-body-sm text-muted-foreground">

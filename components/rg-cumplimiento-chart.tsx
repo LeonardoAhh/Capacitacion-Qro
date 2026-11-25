@@ -4,162 +4,186 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, Cell, LabelList, ReferenceLine,
 } from "recharts"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { ShieldCheck } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { PanelHeader, PanelStats } from "@/components/dashboard-panel"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { ShieldCheck } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader, PanelStats } from "@/components/dashboard-panel"
+import { useTheme } from "@/components/theme-context"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import {
   useRgCumplimiento, QUARTERS, META_RG as META,
   colorPctRg as colorPct, type DeptDataRg as DeptData, type QuarterId,
 } from "@/lib/hooks/useRgCumplimiento"
-import { useTheme } from "@/components/theme-context"
+import { cn } from "@/lib/utils"
 
-// ── Tooltip ──────────────────────────────────────────────────────────────────
 interface RgTooltipEntry { payload: DeptData }
+
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: RgTooltipEntry[]; label?: string }) {
   if (!active || !payload?.length) return null
   const d = payload[0]?.payload
   const cumple = d.pct >= META
   return (
-    <div className="min-w-[180px] rounded-md border bg-popover p-3 text-body-md shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-bold text-foreground mb-1 truncate">{label}</p>
-      <div className="flex items-center justify-between gap-4 text-muted-foreground">
-        <span>Entregados</span><span className="font-bold text-success">{d.entregados}</span>
-      </div>
-      <div className="flex items-center justify-between gap-4 text-muted-foreground">
-        <span>Total</span><span className="font-medium">{d.total}</span>
-      </div>
-      <div className="flex items-center justify-between gap-4 text-muted-foreground mt-1 pt-1 border-t">
-        <span>Cumplimiento</span>
-        <span className={`font-bold ${cumple ? "text-success" : "text-destructive"}`}>{d.pct}%</span>
-      </div>
-      <div className="mt-1 text-body-sm">
-        <span className={cumple ? "text-success" : "text-destructive"}>
-          {cumple ? "✓ Cumple meta (≥70%)" : "✗ No cumple meta (<70%)"}
-        </span>
+    <div className={CHART_TOOLTIP_CLASS}>
+      <p className="mb-1.5 truncate text-label-sm text-foreground">{label}</p>
+      <div className="space-y-1 text-muted-foreground">
+        <div className="flex items-center justify-between gap-4">
+          <span>Entregados</span>
+          <span className="font-bold text-chart-1-deep">{d.entregados}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span>Total</span>
+          <span className="font-medium text-foreground">{d.total}</span>
+        </div>
+        <div className="mt-1 flex items-center justify-between gap-4 border-t pt-1">
+          <span>Cumplimiento</span>
+          <span className={cn("font-bold", cumple ? "text-chart-1-deep" : "text-destructive")}>{d.pct}%</span>
+        </div>
+        <p className={cn("pt-0.5", cumple ? "text-chart-1-deep" : "text-destructive")}>
+          {cumple ? `Cumple meta (≥ ${META}%)` : `Bajo meta (< ${META}%)`}
+        </p>
       </div>
     </div>
   )
 }
 
-// ── Skeleton ──────────────────────────────────────────────────────────────────
 function SkeletonContent() {
   return (
-    <div className="space-y-4">
+    <div role="status" aria-label="Cargando RG-REC-048" className="space-y-3">
+      <span className="sr-only">Cargando cumplimiento de RG-REC-048…</span>
       {[78, 55, 90, 42, 68].map((w, i) => (
         <div key={i} className="flex items-center gap-3">
-          <Skeleton className="h-3 w-20 shrink-0" />
-          <div className="flex-1 h-5 bg-muted/50 rounded-sm overflow-hidden">
-            <motion.div className="h-full bg-muted-foreground/20 rounded-sm"
-              initial={{ width: 0 }} animate={{ width: `${w}%` }}
-              transition={{ duration: 0.55, delay: i * 0.08, ease: "easeOut" }} />
-          </div>
-          <Skeleton className="h-3 w-8 shrink-0" />
+          <Skeleton className="h-3.5 w-20 shrink-0" />
+          <Skeleton className="h-5 rounded-sm" style={{ width: `${w}%` }} />
         </div>
       ))}
     </div>
   )
 }
 
-// ── Componente principal ──────────────────────────────────────────────────────
 export default function RgCumplimientoChart() {
   const {
-    loading, quarter, setQuarter, año, setAño,
+    loading, error, quarter, setQuarter, año, setAño,
     chartData, totalGeneral, entregadosGeneral, pctGeneral,
-    añosDisponibles,
+    añosDisponibles, cargar,
   } = useRgCumplimiento()
 
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useMediaQuery("(prefers-reduced-motion: reduce)")
   const { reducedMotion } = useTheme()
-  const skip = !!(prefersReduced || reducedMotion)
+  const skip = prefersReduced || reducedMotion
 
   const abrevDept = (n: string) => n.length <= 12 ? n : n.substring(0, 11) + "…"
 
-  // KPI badges inline — mismo patrón CapacitacionChart
   const kpiBadges = [
     { color: colorPct(pctGeneral), label: "Cumplimiento", value: `${pctGeneral}%` },
-    { color: "hsl(var(--success))",  label: "Entregados",   value: `${entregadosGeneral}/${totalGeneral}` },
+    { color: "hsl(var(--chart-1))", label: "Entregados", value: `${entregadosGeneral}/${totalGeneral}` },
   ]
 
   return (
     <Card>
-      <PanelHeader description="Por departamento · Trimestral" actions={
+      <PanelHeader
+        description="Entregas por departamento"
+        actions={
           <Select value={año} onValueChange={setAño}>
             <SelectTrigger aria-label="Filtrar por año" className="w-full sm:w-auto"><SelectValue /></SelectTrigger>
             <SelectContent>
               {añosDisponibles.map(y => <SelectItem key={y} value={y}>{y}</SelectItem>)}
             </SelectContent>
           </Select>
-      }>
-        {/* Cifras solo con datos; el estado frente a la meta va junto a ellas. */}
-        {!loading && totalGeneral > 0 && (
+        }
+      >
+        {!loading && !error && totalGeneral > 0 && (
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <PanelStats items={kpiBadges} />
             <Badge variant={pctGeneral >= META ? "success" : "destructive"} size="sm">
-              {pctGeneral >= META ? "Cumple" : "No cumple"}
+              {pctGeneral >= META ? "Cumple" : "Bajo meta"} · {META}%
             </Badge>
           </div>
         )}
         <Tabs value={quarter} onValueChange={v => setQuarter(v as QuarterId)}>
           <TabsList className="grid w-full grid-cols-4">
             {QUARTERS.map(q => (
-              <TabsTrigger key={q.id} value={q.id}>{q.label}</TabsTrigger>
+              <TabsTrigger key={q.id} value={q.id} className="px-1.5 sm:px-3">{q.label}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
       </PanelHeader>
 
-      <CardContent>
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-              <SkeletonContent />
-            </motion.div>
-          ) : totalGeneral === 0 ? (
-            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-              className="flex flex-col items-center justify-center py-16 text-muted-foreground gap-2">
-              <ShieldCheck size={32} className="opacity-30" />
-              <p className="text-body-md">Sin registros en este trimestre</p>
-            </motion.div>
-          ) : (
-            <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              {/* Bar chart — directo, sin wrapper pesado */}
-              <div className="w-full overflow-x-auto" role="img"
-                aria-label={`Cumplimiento RG-REC-048: ${pctGeneral}% sobre ${chartData.length} departamentos`}>
-                <ResponsiveContainer className="text-body-sm" width="100%" height={chartData.length * 48 + 40} minHeight={160}>
-                  <BarChart data={chartData} layout="vertical"
-                    margin={{ top: 0, right: 44, left: 0, bottom: 0 }} barSize={24}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
-                    <XAxis type="number" domain={[0, 100]} tickFormatter={v => `${v}%`}
-                      tick={{ fill: "currentColor" }} className="text-muted-foreground"
-                      tickLine={false} axisLine={false} ticks={[0, 25, 50, 70, 100]} />
-                    <ReferenceLine x={META} stroke="hsl(var(--chart-4))" strokeDasharray="4 3" strokeWidth={1.5}
-                      label={{ value: "Meta", position: "top", fill: "hsl(var(--chart-4))" }} />
-                    <YAxis type="category" dataKey="departamento" width={110}
-                      tick={{ fill: "currentColor" }} className="text-muted-foreground"
-                      tickLine={false} axisLine={false} tickFormatter={abrevDept} />
-                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-                    <Bar dataKey="pct" radius={[0, 4, 4, 0]}
-                      background={{ fill: "hsl(var(--muted) / 0.2)", radius: 4 }}
-                      animationBegin={skip ? undefined : 100} animationDuration={skip ? 0 : 600} animationEasing="ease-out">
-                      {chartData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
-                      <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`}
-                        style={{ fontWeight: 700 }} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="flex flex-wrap gap-3 mt-3 text-body-sm text-muted-foreground justify-end">
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--chart-1))" }} /> Cumple (≥ 70%)</span>
-                <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "hsl(var(--destructive))" }} /> No cumple (&lt; 70%)</span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      <CardContent className="p-(--card-padding) pt-0">
+        {loading ? (
+          <SkeletonContent />
+        ) : error ? (
+          <PanelError message={error} onRetry={() => void cargar()} />
+        ) : totalGeneral === 0 ? (
+          <PanelEmpty
+            icon={<ShieldCheck className="size-6 text-muted-foreground" aria-hidden="true" />}
+            title="Sin registros en este trimestre."
+          />
+        ) : (
+          <>
+            <div
+              className="w-full overflow-x-auto"
+              role="img"
+              aria-label={`Cumplimiento RG-REC-048: ${pctGeneral}% en ${chartData.length} departamentos`}
+            >
+              <ResponsiveContainer className="text-body-sm" width="100%" height={chartData.length * 48 + 40} minHeight={160}>
+                <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 48, left: 0, bottom: 0 }} barSize={24}>
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
+                  <XAxis
+                    type="number"
+                    domain={[0, 100]}
+                    tickFormatter={v => `${v}%`}
+                    tick={{ fill: "currentColor" }}
+                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    ticks={[0, 25, 50, 70, 100]}
+                  />
+                  <ReferenceLine
+                    x={META}
+                    stroke="hsl(var(--muted-foreground))"
+                    strokeDasharray="4 4"
+                    label={{ value: `Meta ${META}%`, position: "top", fill: "hsl(var(--muted-foreground))" }}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="departamento"
+                    width={110}
+                    tick={{ fill: "currentColor" }}
+                    className="text-muted-foreground"
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={abrevDept}
+                  />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
+                  <Bar
+                    dataKey="pct"
+                    radius={[0, 4, 4, 0]}
+                    background={{ fill: "hsl(var(--muted) / 0.2)", radius: 4 }}
+                    isAnimationActive={!skip}
+                    animationDuration={skip ? 0 : 600}
+                    animationEasing="ease-out"
+                  >
+                    {chartData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
+                    <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`} style={{ fontWeight: 700 }} />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="mt-3 flex flex-wrap justify-end gap-4 text-body-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 shrink-0 rounded-sm" style={{ background: "hsl(var(--chart-1))" }} aria-hidden="true" />
+                Cumple (≥ {META}%)
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 shrink-0 rounded-sm" style={{ background: "hsl(var(--destructive))" }} aria-hidden="true" />
+                Bajo meta (&lt; {META}%)
+              </span>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

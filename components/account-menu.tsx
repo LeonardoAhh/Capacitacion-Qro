@@ -27,14 +27,12 @@ import { useTheme } from "@/components/theme-context"
 import { SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
 import { AccountSheet } from "@/components/account-sheet"
 
-// Tarjeta elevada, con los mismos tokens que el elemento activo de la barra lateral.
 // Filas del menú de cuenta: solo texto, el foco cambia el color del texto (no el fondo).
-// Texto en body-sm (13px): el menú se lee como lista compacta, no como navegación.
-const ITEM = cn(SIDEBAR_MENU_ROW, "gap-2 px-2 text-body-sm focus:bg-transparent focus:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary")
+const ITEM = cn(SIDEBAR_MENU_ROW, "gap-2 px-2 text-body-md focus:bg-transparent focus:text-primary data-[state=open]:bg-transparent data-[state=open]:text-primary")
 const SEPARADOR = "mx-2 my-0"
-const OPCION = cn(SIDEBAR_MENU_ROW, "text-body-sm")
+const OPCION = cn(SIDEBAR_MENU_ROW, "text-body-md")
 // Anillo de foco por dentro: la barra lateral recorta lo que sale de ella (overflow por la animación).
-const TRIGGER = "flex min-h-11 w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+const TRIGGER = "flex min-h-(--control-height) w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
 
 type AccountMenuProps = {
   onNavigate?: () => void
@@ -145,12 +143,12 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
           <DropdownMenuSeparator className={SEPARADOR} />
 
           <DropdownMenuItem
-            className={cn(ITEM, "focus:text-destructive")}
+            className={cn(ITEM, "text-destructive focus:bg-destructive/10 focus:text-destructive")}
             disabled={signingOut}
             onSelect={() => { void logout() }}
           >
-            <span className="flex-1">Cerrar sesión</span>
-            <LogOut className="text-muted-foreground" aria-hidden="true" />
+            <span className="flex-1">{signingOut ? "Cerrando sesión…" : "Cerrar sesión"}</span>
+            <LogOut className="size-4 shrink-0" aria-hidden="true" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>}

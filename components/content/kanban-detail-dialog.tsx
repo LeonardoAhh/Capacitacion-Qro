@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Trash2, X } from "lucide-react"
+import { HandHelping, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -81,7 +81,7 @@ function Checklist({ tarjeta, pasos, onAgregar, onMarcar, onEliminar }: {
             {pasos.map(paso => {
               const id = `kanban-paso-${paso.id}`
               return (
-                <li key={paso.id} className="group flex min-h-9 items-center gap-3">
+                <li key={paso.id} className="group flex min-h-(--control-height) items-center gap-3">
                   <Checkbox id={id} checked={paso.hecho} onCheckedChange={next => onMarcar(paso, next === true)} />
                   <label htmlFor={id}
                     className={cn("min-w-0 flex-1 cursor-pointer break-words py-1 text-body-md",
@@ -107,7 +107,7 @@ function Checklist({ tarjeta, pasos, onAgregar, onMarcar, onEliminar }: {
           <Label htmlFor={`kanban-nuevo-paso-${tarjeta.id}`} className="sr-only">Nuevo paso</Label>
           <Input id={`kanban-nuevo-paso-${tarjeta.id}`} placeholder="Agregar paso" autoComplete="off" maxLength={MAX_PASO}
             value={texto} onChange={event => setTexto(limpiarAlEscribir(event.target.value))} />
-          <Button type="submit" variant="outline" className="shrink-0" disabled={saving || !texto.trim()}>Agregar</Button>
+          <Button type="submit" variant="outline" className="shrink-0" disabled={saving || !texto.trim()} aria-busy={saving || undefined}>Agregar</Button>
         </form>
       )}
       {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
@@ -159,7 +159,7 @@ function Comentarios({ tarjeta, comentarios, miembros, userId, onComentar, onEli
                 <div className="grid min-w-0 flex-1 gap-0.5">
                   <p className="flex flex-wrap items-baseline gap-x-2 text-body-sm">
                     <span aria-hidden="true" className="font-medium text-foreground">{autor?.nombre ?? "Usuario sin perfil"}</span>
-                    <span className="text-muted-foreground">{formatHace(comentario.created_at)}</span>
+                    <time dateTime={comentario.created_at} className="tabular-nums text-muted-foreground">{formatHace(comentario.created_at)}</time>
                   </p>
                   <p className="whitespace-pre-line break-words text-body-md text-foreground">{comentario.texto}</p>
                 </div>
@@ -181,7 +181,7 @@ function Comentarios({ tarjeta, comentarios, miembros, userId, onComentar, onEli
       }}>
         <Label htmlFor={`kanban-comentario-${tarjeta.id}`} className="sr-only">Nuevo comentario</Label>
         <Textarea id={`kanban-comentario-${tarjeta.id}`} rows={1} placeholder="Escribe un comentario"
-          className="min-h-11 resize-none field-sizing-content" maxLength={MAX_COMENTARIO} value={texto}
+          className="min-h-(--control-height) resize-none field-sizing-content" maxLength={MAX_COMENTARIO} value={texto}
           onChange={event => setTexto(limpiarAlEscribir(event.target.value, true))}
           onKeyDown={event => {
             // Ctrl/⌘ + Enter publica; Enter solo agrega una línea.
@@ -190,7 +190,7 @@ function Comentarios({ tarjeta, comentarios, miembros, userId, onComentar, onEli
               void publicar()
             }
           }} />
-        <Button type="submit" variant="outline" size="sm" className="justify-self-end" disabled={saving || !texto.trim()}>
+        <Button type="submit" variant="outline" size="sm" className="justify-self-end" disabled={saving || !texto.trim()} aria-busy={saving || undefined}>
           Comentar
         </Button>
       </form>
@@ -222,7 +222,10 @@ export function KanbanDetailDialog({
           </div>
           {!concluida && <KanbanBloqueo tarjeta={tarjeta} />}
           {tarjeta.necesita_apoyo && tarjeta.apoyo_nota && (
-            <p className="text-body-sm text-info">Pide apoyo: {tarjeta.apoyo_nota}</p>
+            <p className="flex items-start gap-1.5 text-body-sm text-foreground">
+              <HandHelping className="mt-0.5 size-4 shrink-0 text-info" aria-hidden="true" />
+              <span>Pide apoyo: {tarjeta.apoyo_nota}</span>
+            </p>
           )}
           {tarjeta.descripcion && (
             <p className="whitespace-pre-line break-words text-body-md text-muted-foreground">{tarjeta.descripcion}</p>

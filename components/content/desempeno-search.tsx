@@ -1,5 +1,6 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -111,7 +112,7 @@ function DesempenoSearchContent() {
       // Con acción, el toast permanece hasta que se use o se cierre.
       ...(needsRegularization && supervisesEvaluations ? {
         duration: Infinity,
-        action: { label: "Regularizar →", onClick: () => router.push(DESEMPENO.routes.late) },
+        action: { label: "Regularizar", onClick: () => router.push(DESEMPENO.routes.late) },
       } : {}),
     });
   }, [error, supervisesEvaluations, roleLoading, router]);
@@ -133,14 +134,13 @@ function DesempenoSearchContent() {
         </Button>}
       </>;
   const actions = <>
-        {context.modoEdicion && data && <Button type="button" variant="outline" size="sm" disabled className="px-3">Editando</Button>}
+        {context.modoEdicion && data && <Badge variant="secondary" className="h-(--control-height-sm) px-3 font-medium">Editando</Badge>}
         {data && <ActionButton icon={<X />} label="Cerrar" tooltip="Cerrar evaluación" onClick={context.closeEvaluation} variant="outline" />}
       </>;
 
   return <TooltipProvider>
     <EvaluationWorkspace start={data ? start : undefined} actions={data ? actions : undefined}>
 
-      {/* ── Buscador: oculto mientras se evalúa; Cerrar vive en las acciones ── */}
       {!data && <PracticeNotice onPractice={() => setGuiaOpen(true)} />}
       {!data && <SearchPanel context={context} actions={<>{start}{actions}</>} />}
 
@@ -178,8 +178,6 @@ function DesempenoSearchContent() {
     <DesempenoGuia open={guiaOpen} onClose={() => setGuiaOpen(false)} />
 </TooltipProvider>;
 }
-
-// ─── Export con Suspense boundary ─────────────────────────────────────────────
 
 export default function DesempenoSearch() {
   return <Suspense fallback={<EvaluationLoadingSkeleton />}>

@@ -36,18 +36,23 @@ export function KanbanTeam({ tarjetas, miembros }: KanbanTeamProps) {
         <h2 id="kanban-indicadores" className="text-label-sm text-foreground">
           Indicadores <span className="font-normal text-muted-foreground">· últimos {DIAS_INDICADORES} días</span>
         </h2>
-        <dl className="grid grid-cols-3 divide-x divide-border rounded-xl border border-border bg-card">
+        <dl className="grid grid-cols-1 divide-y divide-border rounded-xl border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
           <Indicador label="Concluidas" valor={String(indicadores.concluidas)} detalle="tarjetas" />
-          <Indicador label="A tiempo" valor={porcentaje === null ? "—" : `${porcentaje}%`}
-            detalle={indicadores.conFecha ? `${indicadores.aTiempo} de ${indicadores.conFecha} con fecha` : "sin fechas límite"} />
-          <Indicador label="Tiempo promedio" valor={dias === null ? "—" : String(dias)} detalle={dias === 1 ? "día por tarjeta" : "días por tarjeta"} />
+          <Indicador label="A tiempo" valor={porcentaje === null ? "Sin datos" : `${porcentaje}%`}
+            detalle={indicadores.conFecha ? `${indicadores.aTiempo}/${indicadores.conFecha} con fecha` : "sin fechas límite"} />
+          <Indicador label="Tiempo promedio" valor={dias === null ? "Sin datos" : `${dias} d`} detalle="por tarjeta" />
         </dl>
       </section>
 
       <section aria-labelledby="kanban-carga" className="grid gap-2">
         <h2 id="kanban-carga" className="text-label-sm text-foreground">
-          Carga del equipo <span className="font-normal text-muted-foreground">· en progreso máximo {LIMITE_EN_PROGRESO} por persona</span>
+          Carga del equipo <span className="font-normal text-muted-foreground">· límite sugerido {LIMITE_EN_PROGRESO} en progreso</span>
         </h2>
+        {carga.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-border bg-card px-4 py-8 text-center">
+            <p className="text-body-sm text-muted-foreground">Sin integrantes registrados.</p>
+          </div>
+        ) : (
         <ul className="divide-y divide-border rounded-xl border border-border bg-card">
           {carga.map(({ miembro, activas, enProgreso, vencidas, bloqueadas }) => {
             const excedido = enProgreso > LIMITE_EN_PROGRESO
@@ -59,7 +64,7 @@ export function KanbanTeam({ tarjetas, miembros }: KanbanTeamProps) {
                 </span>
                 <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-muted-foreground max-sm:pl-8">
                   <div className="flex gap-1"><dt>Activas</dt><dd className="tabular-nums text-foreground">{activas}</dd></div>
-                  <div className={cn("flex gap-1", excedido && "font-medium text-warning")}>
+                  <div className={cn("flex gap-1", excedido && "font-medium text-warning-deep")}>
                     <dt>En progreso</dt>
                     <dd className={cn("tabular-nums", !excedido && "text-foreground")}>{enProgreso}/{LIMITE_EN_PROGRESO}</dd>
                   </div>
@@ -67,13 +72,14 @@ export function KanbanTeam({ tarjetas, miembros }: KanbanTeamProps) {
                     <div className="flex gap-1 font-medium text-destructive"><dt>Vencidas</dt><dd className="tabular-nums">{vencidas}</dd></div>
                   )}
                   {bloqueadas > 0 && (
-                    <div className="flex gap-1 text-warning"><dt>Bloqueadas</dt><dd className="tabular-nums">{bloqueadas}</dd></div>
+                    <div className="flex gap-1 font-medium text-warning-deep"><dt>Bloqueadas</dt><dd className="tabular-nums">{bloqueadas}</dd></div>
                   )}
                 </dl>
               </li>
             )
           })}
         </ul>
+        )}
       </section>
     </div>
   )

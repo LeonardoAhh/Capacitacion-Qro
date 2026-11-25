@@ -14,10 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ModalHeader / ModalFooter
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface ModalHeaderProps {
   title: string
   subtitle?: string
@@ -43,10 +39,6 @@ export function ModalHeader({ title, subtitle, onClose }: ModalHeaderProps) {
     </DialogHeader>
   )
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ModalFooter — action buttons at the bottom
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface ModalSecondaryAction {
   icon?: React.ReactNode
@@ -88,7 +80,7 @@ export function ModalFooter({
   const confirmWarningClasses = confirmVariant === 'warning' ? "bg-warning text-warning-foreground hover:bg-warning/90" : undefined
 
   return (
-    <DialogFooter detached className={cn("mt-auto shrink-0 items-stretch border-t bg-card px-4 py-3 sm:items-center sm:justify-between sm:gap-3 sm:px-6", className)}>
+    <DialogFooter detached className={cn("mt-auto shrink-0 items-stretch border-t bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:items-center sm:justify-between sm:gap-3 sm:px-6 sm:pb-3", className)}>
       <div className="sm:flex-1">
         {secondaryAction && (
           <Button
@@ -128,10 +120,6 @@ export function ModalFooter({
     </DialogFooter>
   )
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ResponsiveShell — shared bottom sheet on mobile, centered Dialog on larger screens
-// ─────────────────────────────────────────────────────────────────────────────
 
 export type ModalSize = "xs" | "sm" | "md" | "lg" | "xl"
 

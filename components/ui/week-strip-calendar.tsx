@@ -45,11 +45,11 @@ export const WeekStripCalendar = forwardRef<HTMLDivElement, WeekStripCalendarPro
       <div className="flex items-center justify-between gap-2">
         <p className="text-body-md font-bold first-letter:uppercase">{monthYear.format(days[3])}</p>
         <div className="flex items-center gap-1">
-          <button type="button" aria-label="Semana anterior" onClick={() => setWeekStart(previous => addDays(previous, -7))} className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ChevronLeft className="size-4" aria-hidden="true" /></button>
-          <button type="button" aria-label="Semana siguiente" onClick={() => setWeekStart(previous => addDays(previous, 7))} className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"><ChevronRight className="size-4" aria-hidden="true" /></button>
+          <button type="button" aria-label="Semana anterior" onClick={() => setWeekStart(previous => addDays(previous, -7))} className="relative touch-target flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><ChevronLeft className="size-4" aria-hidden="true" /></button>
+          <button type="button" aria-label="Semana siguiente" onClick={() => setWeekStart(previous => addDays(previous, 7))} className="relative touch-target flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"><ChevronRight className="size-4" aria-hidden="true" /></button>
         </div>
       </div>
-      <p aria-live="polite" className="mt-1 text-body-sm text-muted-foreground">{shortDate.format(days[0])} – {shortDate.format(days[6])}</p>
+      <p aria-live="polite" className="mt-1 text-body-sm tabular-nums text-muted-foreground">{shortDate.format(days[0])} a {shortDate.format(days[6])}</p>
       <div className="mt-2 grid grid-cols-7 gap-0.5" role="group" aria-label="Días de la semana">
         {days.map((date, index) => {
           const selected = value ? isSameDay(date, value) : false;
@@ -61,7 +61,7 @@ export const WeekStripCalendar = forwardRef<HTMLDivElement, WeekStripCalendarPro
             aria-pressed={selected}
             aria-current={current ? "date" : undefined}
             onClick={() => onSelect(startOfDay(date))}
-            className="group flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="group flex min-h-14 min-w-0 flex-col items-center justify-center gap-1 rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           >
             <span aria-hidden="true" className={cn("text-body-sm font-medium text-muted-foreground", selected && "text-foreground")}>{WEEKDAYS[index]}</span>
             <span aria-hidden="true" className={cn("flex size-9 items-center justify-center rounded-md text-body-md font-medium tabular-nums transition-colors", selected ? "bg-primary font-bold text-primary-foreground" : current ? "border border-border text-foreground group-hover:bg-muted" : "group-hover:bg-muted")}>{date.getDate()}</span>

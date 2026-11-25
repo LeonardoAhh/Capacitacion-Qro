@@ -34,7 +34,7 @@ export function ChoiceToggle<T extends string>({ id, label, value, options, onCh
             <Button key={option.value} id={`${id}-${option.value}`} type="button" variant="outline" aria-pressed={elegida}
               className={cn("min-w-0 px-3 text-body-md", elegida ? "border-primary text-primary hover:text-primary" : "font-normal text-foreground")}
               onClick={() => onChange(option.value)}>
-              {option.dot && <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", option.dot)} />}
+              {option.dot && <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-sm", option.dot)} />}
               <span className="truncate">{option.label}</span>
             </Button>
           )

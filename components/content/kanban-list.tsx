@@ -1,6 +1,5 @@
 "use client"
 
-import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import {
@@ -15,35 +14,20 @@ interface KanbanListProps {
   miembros: Map<string, KanbanMiembro>
 }
 
-/** Lista vacía: filas de muestra con esqueletos estáticos (no es una carga en curso). */
-function KanbanListPlaceholderRows() {
-  return [1, 2, 3].map(row => (
-    <TableRow key={row} aria-hidden="true" className="hover:bg-transparent">
-      <TableCell>
-        <Skeleton className="h-4 w-3/5 animate-none" />
-        <Skeleton className="mt-1.5 h-3 w-2/5 animate-none" />
-      </TableCell>
-      <TableCell><Skeleton className="h-3 w-20 animate-none" /></TableCell>
-      <TableCell><Skeleton className="h-3 w-20 animate-none" /></TableCell>
-      <TableCell><Skeleton className="h-3 w-12 animate-none" /></TableCell>
-      <TableCell>
-        <span className="flex items-center gap-2">
-          <Skeleton className="size-6 animate-none rounded-full" />
-          <Skeleton className="h-3 w-20 animate-none" />
-        </span>
-      </TableCell>
-      <TableCell><Skeleton className="h-3 w-24 animate-none" /></TableCell>
-      <TableCell><Skeleton className="ml-auto size-4 animate-none rounded-sm" /></TableCell>
-    </TableRow>
-  ))
-}
-
 /** Vista de lista: una fila por tarjeta, con las mismas piezas que la vista de tablero. */
 export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
   const { ver } = useKanbanAcciones()
+  if (tarjetas.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border bg-card px-4 py-10 text-center">
+        <p className="text-body-md text-muted-foreground">Sin tarjetas en el tablero.</p>
+      </div>
+    )
+  }
+
   return (
     <div className="overflow-hidden rounded-xl border border-border">
-      <Table aria-label={tarjetas.length ? "Tarjetas" : "Tarjetas, sin registros"} className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm">
+      <Table aria-label="Tarjetas" className="min-w-[48rem] [&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm">
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead scope="col">Tarjeta</TableHead>
@@ -56,7 +40,6 @@ export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tarjetas.length === 0 && <KanbanListPlaceholderRows />}
           {tarjetas.map(tarjeta => {
             const responsable = tarjeta.responsable_id ? miembros.get(tarjeta.responsable_id) ?? null : null
             return (
@@ -65,7 +48,7 @@ export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
                   <span className="flex min-w-0 items-center gap-2">
                     <button type="button" onClick={() => ver(tarjeta)}
                       className={cn(
-                        "line-clamp-1 min-w-0 break-all rounded-sm text-left text-label-sm",
+                        "line-clamp-1 min-w-0 break-words rounded-sm text-left text-label-sm",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                         tarjeta.estado === "concluido" ? "text-muted-foreground" : "text-foreground",
                       )}>

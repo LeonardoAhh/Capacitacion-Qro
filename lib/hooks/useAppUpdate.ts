@@ -1,30 +1,23 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react"
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useCallback, useEffect, useRef, useSyncExternalStore } from "react"
 
 export type UpdateStatus =
-  | "idle"        // No check has run yet
-  | "checking"    // Actively polling the server for a new SW
-  | "available"   // A new SW is installed & waiting
-  | "applying"    // User confirmed; SKIP_WAITING sent, reload imminent
-  | "up-to-date"  // Check completed — no new version found
+  | "idle"
+  | "checking"
+  | "available"
+  | "applying"
+  | "up-to-date"
 
 export const APP_UPDATE_COMPLETED_KEY = "app-update-completed"
 
-// ─── Singleton store ──────────────────────────────────────────────────────────
-// A single shared store so every component that calls useAppUpdate() sees the
-// same state without duplicating SW event listeners.
-
+// Shared store so multiple callers read one SW update state without duplicating listeners.
 let status: UpdateStatus = "idle"
 const listeners = new Set<() => void>()
 
 function getStatus() { return status }
 function subscribe(cb: () => void) { listeners.add(cb); return () => { listeners.delete(cb) } }
 function setStatus(next: UpdateStatus) { status = next; listeners.forEach((cb) => cb()) }
-
-// ─── Internal helpers ─────────────────────────────────────────────────────────
 
 async function getRegistration(): Promise<ServiceWorkerRegistration | undefined> {
   if (!("serviceWorker" in navigator)) return undefined
@@ -36,32 +29,31 @@ function activateWaitingWorker() {
     if (reg?.waiting) {
       reg.waiting.postMessage({ type: "SKIP_WAITING" })
     } else {
-      // Edge case: no waiting worker but user requested update — hard reload
       window.location.reload()
     }
   })
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export function useAppUpdate() {
   const currentStatus = useSyncExternalStore(subscribe, getStatus, getStatus)
   const upToDateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const applyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // ── Passive detection: listen for a new SW installing in the background ──
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return
 
+    let cancelled = false
     let reg: ServiceWorkerRegistration | undefined
 
     const onUpdateFound = () => {
       const installing = reg?.installing
       if (!installing) return
-      installing.onstatechange = () => {
+      const onStateChange = () => {
         if (installing.state === "installed" && navigator.serviceWorker.controller) {
           setStatus("available")
         }
       }
+      installing.addEventListener("statechange", onStateChange)
     }
 
     const onControllerChange = () => {
@@ -69,16 +61,15 @@ export function useAppUpdate() {
         try {
           sessionStorage.setItem(APP_UPDATE_COMPLETED_KEY, "1")
         } catch {
-          // Storage can be unavailable in restricted browser contexts.
+          // Storage unavailable in restricted browser contexts.
         }
       }
       window.location.reload()
     }
 
     navigator.serviceWorker.getRegistration().then((r) => {
-      if (!r) return
+      if (cancelled || !r) return
       reg = r
-      // Already a waiting worker from a previous visit?
       if (r.waiting && navigator.serviceWorker.controller) {
         setStatus("available")
       }
@@ -88,14 +79,13 @@ export function useAppUpdate() {
     navigator.serviceWorker.addEventListener("controllerchange", onControllerChange)
 
     return () => {
+      cancelled = true
       reg?.removeEventListener("updatefound", onUpdateFound)
       navigator.serviceWorker.removeEventListener("controllerchange", onControllerChange)
     }
   }, [])
 
-  // ── Manual check triggered by the user ──────────────────────────────────
   const checkForUpdate = useCallback(async () => {
-    // Prevent duplicate checks
     const current = getStatus()
     if (current === "checking" || current === "applying") return
 
@@ -105,27 +95,22 @@ export function useAppUpdate() {
     const reg = await getRegistration()
 
     if (!reg) {
-      // No SW registered — nothing to update
       setStatus("up-to-date")
       upToDateTimerRef.current = setTimeout(() => setStatus("idle"), 4000)
       return
     }
 
-    // Already has a waiting worker → update available right now
     if (reg.waiting && navigator.serviceWorker.controller) {
       setStatus("available")
       return
     }
 
-    // Ask the browser to check the server for a new SW
     try {
       await reg.update()
     } catch {
-      // Network error during update check — treat as up-to-date
+      // Offline during manual check: stay non-blocking and settle as up-to-date.
     }
 
-    // Give the browser a moment to fire "updatefound" if a new worker was found.
-    // If status hasn't changed to "available" after this timeout, we're current.
     await new Promise((resolve) => setTimeout(resolve, 2000))
 
     if (getStatus() === "checking") {
@@ -134,15 +119,17 @@ export function useAppUpdate() {
     }
   }, [])
 
-  // ── Apply the waiting update ────────────────────────────────────────────
   const applyUpdate = useCallback(() => {
+    if (getStatus() === "applying") return
     setStatus("applying")
-    // Small delay so the user sees the "applying" state before the reload
-    setTimeout(() => activateWaitingWorker(), 600)
+    // Delay reload briefly so the applying state is perceptible.
+    applyTimerRef.current = setTimeout(() => activateWaitingWorker(), 600)
   }, [])
 
-  // Clean up timers
-  useEffect(() => () => { if (upToDateTimerRef.current) clearTimeout(upToDateTimerRef.current) }, [])
+  useEffect(() => () => {
+    if (upToDateTimerRef.current) clearTimeout(upToDateTimerRef.current)
+    if (applyTimerRef.current) clearTimeout(applyTimerRef.current)
+  }, [])
 
   return { status: currentStatus, checkForUpdate, applyUpdate, getLatestStatus: getStatus } as const
 }

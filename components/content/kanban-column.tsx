@@ -5,7 +5,6 @@ import { ChevronLeft, ChevronRight, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { KanbanCard } from "@/components/content/kanban-card"
-import { Skeleton } from "@/components/ui/skeleton"
 import type { KanbanEstado, KanbanMiembro, KanbanTarjeta } from "@/lib/kanban"
 
 /** Tarjetas por página en cada columna; cada columna pagina por su cuenta. */
@@ -22,25 +21,10 @@ interface KanbanColumnProps {
   footer?: ReactNode
 }
 
-/**
- * Columna vacía: silueta de una tarjeta (misma estructura y medidas) con
- * esqueletos estáticos. El texto "Sin tarjetas" queda para lectores de pantalla.
- */
-function KanbanCardPlaceholder() {
+function KanbanColumnEmpty() {
   return (
-    <div className="grid gap-2 rounded-md border border-dashed border-border p-3">
-      <p className="sr-only">Sin tarjetas</p>
-      <div aria-hidden="true" className="flex items-center gap-2">
-        <Skeleton className="h-3 w-20 animate-none" />
-        <Skeleton className="ml-auto size-4 animate-none rounded-sm" />
-      </div>
-      <Skeleton aria-hidden="true" className="h-4 w-4/5 animate-none" />
-      <Skeleton aria-hidden="true" className="h-3 w-3/5 animate-none" />
-      <div aria-hidden="true" className="flex items-center gap-2 pt-1">
-        <Skeleton className="h-3 w-24 animate-none" />
-        <Skeleton className="ml-auto h-3 w-10 animate-none" />
-        <Skeleton className="size-6 animate-none rounded-full" />
-      </div>
+    <div className="flex min-h-24 items-center justify-center rounded-md border border-dashed border-border p-4 text-center">
+      <p className="text-body-sm text-muted-foreground">Sin tarjetas</p>
     </div>
   )
 }
@@ -88,12 +72,13 @@ export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onDropC
           <Plus aria-hidden="true" />
         </Button>
         {totalPages > 1 && (
-          <nav aria-label={`Páginas de ${label}`} className="ml-auto flex items-center">
+          <nav aria-label={`Páginas de ${label}`} className="ml-auto flex items-center gap-0.5">
             <span className="sr-only" aria-live="polite">Página {currentPage} de {totalPages}</span>
             <Button type="button" variant="ghost" size="xs" className="px-1 text-muted-foreground" disabled={currentPage === 1}
               onClick={() => setPage(currentPage - 1)} aria-label="Página anterior">
               <ChevronLeft aria-hidden="true" />
             </Button>
+            <span aria-hidden="true" className="text-body-sm tabular-nums text-muted-foreground">{currentPage}/{totalPages}</span>
             <Button type="button" variant="ghost" size="xs" className="px-1 text-muted-foreground" disabled={currentPage === totalPages}
               onClick={() => setPage(currentPage + 1)} aria-label="Página siguiente">
               <ChevronRight aria-hidden="true" />
@@ -111,7 +96,7 @@ export function KanbanColumn({ estado, label, tarjetas, miembros, onAdd, onDropC
           ))}
         </ul>
       ) : (
-        <KanbanCardPlaceholder />
+        <KanbanColumnEmpty />
       )}
       {footer}
     </section>

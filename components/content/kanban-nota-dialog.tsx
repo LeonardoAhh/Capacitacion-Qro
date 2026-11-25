@@ -29,7 +29,7 @@ export function KanbanNotaDialog({ config, onClose }: { config: KanbanNotaConfig
     const limpio = normalizarTexto(texto)
     setTexto(limpio)
     if (config.required && !limpio) {
-      setError(`Escribe ${config.label.toLocaleLowerCase("es-MX")}.`)
+      setError("Completa este campo para continuar.")
       return
     }
     setSaving(true)
@@ -55,7 +55,7 @@ export function KanbanNotaDialog({ config, onClose }: { config: KanbanNotaConfig
         <Label htmlFor="kanban-nota">
           {config.label}{!config.required && <span className="font-normal text-muted-foreground"> (opcional)</span>}
         </Label>
-        <Textarea id="kanban-nota" rows={2} className="min-h-11 resize-none field-sizing-content"
+        <Textarea id="kanban-nota" rows={2} className="min-h-(--control-height) resize-none field-sizing-content"
           value={texto} maxLength={maxLength} aria-invalid={Boolean(error)}
           onChange={event => {
             setTexto(limpiarAlEscribir(event.target.value))

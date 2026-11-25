@@ -1,16 +1,28 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { DateTextInput } from "@/components/ui/date-text-input"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { JEFES_DE_AREA_POR_DEPARTAMENTO } from "@/lib/catalogos/personal"
+import { isoATexto, textoAISO } from "@/lib/fechas"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import type { FindingPreview } from "./finding-card"
 import { updateFinding } from "./findings-data"
-import { FINDING_DEADLINES, MAX_FINDING_DESCRIPTION_LENGTH, MAX_FINDING_TITLE_LENGTH, type FindingDeadline } from "./finding-constraints"
+import {
+  FINDING_DEADLINES,
+  FINDING_STATUSES,
+  MAX_FINDING_DESCRIPTION_LENGTH,
+  MAX_FINDING_TITLE_LENGTH,
+  type FindingDeadline,
+  type FindingStatus,
+} from "./finding-constraints"
 
 interface Props {
   finding: FindingPreview
@@ -19,20 +31,31 @@ interface Props {
 }
 
 export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
+  const departments = useMemo(
+    () => Object.keys(JEFES_DE_AREA_POR_DEPARTAMENTO).sort((a, b) => a.localeCompare(b, "es")),
+    [],
+  )
   const [title, setTitle] = useState(finding.title)
   const [description, setDescription] = useState(finding.description)
   const [area, setArea] = useState(finding.area)
   const [responsible, setResponsible] = useState(finding.responsible ?? "")
-  const [status, setStatus] = useState(finding.status)
+  const [status, setStatus] = useState<FindingStatus>(finding.status)
   const [deadline, setDeadline] = useState<FindingDeadline | "">(finding.deadline ?? "")
-  const [date, setDate] = useState(finding.date.split("/").reverse().join("-"))
+  const [dateIso, setDateIso] = useState(() => textoAISO(finding.date) ?? "")
+  const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState("")
   const responsibleOptions = JEFES_DE_AREA_POR_DEPARTAMENTO[area] ?? []
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if (!title.trim() || !description.trim() || !area || !responsible || !date) return
+    if (saving) return
+    setSubmitted(true)
+
+    if (!title.trim() || !description.trim() || !area || !responsible || !dateIso) {
+      setError("Completa todos los campos obligatorios y verifica la fecha (DD/MM/AAAA).")
+      return
+    }
     if (title.trim().length > MAX_FINDING_TITLE_LENGTH) {
       setError(`El título debe tener máximo ${MAX_FINDING_TITLE_LENGTH} caracteres.`)
       return
@@ -43,14 +66,22 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
     }
     setSaving(true)
     setError("")
-    const updated = { ...finding, title: title.trim(), description: description.trim(), area,
-      responsible, status, deadline: deadline || null, date: date.split("-").reverse().join("/") }
+    const updated: FindingPreview = {
+      ...finding,
+      title: title.trim(),
+      description: description.trim(),
+      area,
+      responsible,
+      status,
+      deadline: deadline || null,
+      date: isoATexto(dateIso),
+    }
     try {
       await updateFinding(updated)
       await onSaved(updated)
       onClose()
-    } catch {
-      setError("No se pudo guardar el hallazgo. Intenta de nuevo.")
+    } catch (err) {
+      setError(describeSupabaseError(err, "No se pudo guardar el hallazgo. Intenta de nuevo."))
     } finally {
       setSaving(false)
     }
@@ -64,60 +95,74 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
           <Button type="submit" form="edit-finding-form" disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</Button>
         </DialogFooter>
       }>
-        <form id="edit-finding-form" onSubmit={save} className="space-y-4">
-          <DialogHeader><DialogTitle>Editar hallazgo</DialogTitle></DialogHeader>
-          {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}
+        <form id="edit-finding-form" onSubmit={save} className="space-y-4" noValidate>
+          <DialogHeader>
+            <DialogTitle>Editar hallazgo</DialogTitle>
+            <DialogDescription className="sr-only">Actualiza los datos del hallazgo seleccionado.</DialogDescription>
+          </DialogHeader>
+          {error && (
+            <Alert variant="destructive" className="bg-destructive/10">
+              <AlertCircle className="size-4" aria-hidden="true" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="edit-finding-title">Título</Label>
-              <span className="text-body-sm text-muted-foreground tabular-nums">{title.length}/{MAX_FINDING_TITLE_LENGTH}</span>
+              <span className="text-body-sm tabular-nums text-muted-foreground">{title.length}/{MAX_FINDING_TITLE_LENGTH}</span>
             </div>
-            <Input id="edit-finding-title" value={title} maxLength={MAX_FINDING_TITLE_LENGTH}
-              aria-invalid={title.trim().length > MAX_FINDING_TITLE_LENGTH}
-              onChange={(event) => setTitle(event.target.value)} required />
+            <Input id="edit-finding-title" value={title} maxLength={MAX_FINDING_TITLE_LENGTH} disabled={saving}
+              aria-invalid={submitted && (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH)}
+              onChange={(event) => { setTitle(event.target.value); setError("") }} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="edit-finding-description">Descripción</Label>
-              <span className="text-body-sm text-muted-foreground tabular-nums">{description.length}/{MAX_FINDING_DESCRIPTION_LENGTH}</span>
+              <span className="text-body-sm tabular-nums text-muted-foreground">{description.length}/{MAX_FINDING_DESCRIPTION_LENGTH}</span>
             </div>
-            <Textarea id="edit-finding-description" value={description} maxLength={MAX_FINDING_DESCRIPTION_LENGTH}
-              aria-invalid={description.length > MAX_FINDING_DESCRIPTION_LENGTH}
-              onChange={(event) => setDescription(event.target.value)} required />
+            <Textarea id="edit-finding-description" value={description} maxLength={MAX_FINDING_DESCRIPTION_LENGTH} disabled={saving}
+              aria-invalid={submitted && (!description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH)}
+              onChange={(event) => { setDescription(event.target.value); setError("") }} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label>Departamento</Label>
-              <Select value={area} onValueChange={(value) => { setArea(value); setResponsible("") }}>
-                <SelectTrigger aria-label="Departamento"><SelectValue /></SelectTrigger>
-                <SelectContent matchTriggerWidth>{Object.keys(JEFES_DE_AREA_POR_DEPARTAMENTO).sort((a, b) => a.localeCompare(b, "es")).map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
+              <Label htmlFor="edit-finding-department">Departamento</Label>
+              <Select value={area} onValueChange={(value) => { setArea(value); setResponsible(""); setError("") }} disabled={saving}>
+                <SelectTrigger id="edit-finding-department" aria-invalid={submitted && !area}><SelectValue /></SelectTrigger>
+                <SelectContent matchTriggerWidth>{departments.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Responsable</Label>
-              <Select value={responsible} onValueChange={setResponsible} disabled={!area}>
-                <SelectTrigger aria-label="Responsable"><SelectValue placeholder="Seleccionar" /></SelectTrigger>
+              <Label htmlFor="edit-finding-responsible">Responsable</Label>
+              <Select value={responsible} onValueChange={(value) => { setResponsible(value); setError("") }} disabled={saving || !area}>
+                <SelectTrigger id="edit-finding-responsible" aria-invalid={submitted && !responsible}><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent matchTriggerWidth>{responsibleOptions.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Estado</Label>
-              <Select value={status} onValueChange={(value) => setStatus(value as FindingPreview["status"])}>
-                <SelectTrigger aria-label="Estado"><SelectValue /></SelectTrigger>
+              <Label htmlFor="edit-finding-status">Estado</Label>
+              <Select value={status} onValueChange={(value) => setStatus(value as FindingStatus)} disabled={saving}>
+                <SelectTrigger id="edit-finding-status"><SelectValue /></SelectTrigger>
                 <SelectContent matchTriggerWidth>
-                  <SelectItem value="Abierto">Abierto</SelectItem>
-                  <SelectItem value="En seguimiento">En seguimiento</SelectItem>
-                  <SelectItem value="Cerrado">Cerrado</SelectItem>
+                  {FINDING_STATUSES.map((option) => (
+                    <SelectItem key={option} value={option}>{option}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-finding-date">Fecha</Label>
-              <Input id="edit-finding-date" type="date" value={date} onChange={(event) => setDate(event.target.value)} required />
+              <DateTextInput
+                id="edit-finding-date"
+                value={dateIso}
+                disabled={saving}
+                aria-invalid={submitted && !dateIso}
+                onValueChange={(nextIso) => { setDateIso(nextIso); setError("") }}
+              />
             </div>
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="edit-finding-deadline">Plazo</Label>
-              <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)}>
+              <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)} disabled={saving}>
                 <SelectTrigger id="edit-finding-deadline"><SelectValue placeholder="Seleccionar plazo" /></SelectTrigger>
                 <SelectContent matchTriggerWidth>
                   {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}

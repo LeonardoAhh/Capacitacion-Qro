@@ -42,8 +42,17 @@ export function useKanban() {
   // Última lista conocida, para revertir un movimiento optimista.
   const tarjetasRef = useRef(tarjetas)
   tarjetasRef.current = tarjetas
+  const requestIdRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const cargar = useCallback(async () => {
+    const currentRequest = ++requestIdRef.current
+    setLoading(true)
     setError(null)
     // RLS limita "Mi día" a las filas de quien consulta.
     const [tarjetasResult, miembrosResult, plantillasResult, miDiaResult, pasosResult, comentariosResult] = await Promise.all([
@@ -54,6 +63,7 @@ export function useKanban() {
       supabase.from(TABLA_PASOS).select(KANBAN_PASOS_SELECT).order("created_at"),
       supabase.from(TABLA_COMENTARIOS).select(KANBAN_COMENTARIOS_SELECT).order("created_at"),
     ])
+    if (!mountedRef.current || currentRequest !== requestIdRef.current) return
     const fallo = tarjetasResult.error ?? miembrosResult.error ?? plantillasResult.error ?? miDiaResult.error
       ?? pasosResult.error ?? comentariosResult.error
     if (fallo) {

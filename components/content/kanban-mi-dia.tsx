@@ -21,14 +21,14 @@ export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
         <Sun className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <h2 id="kanban-mi-dia" className="text-label-sm text-foreground">Mi día</h2>
         <span className="ml-auto text-body-sm tabular-nums text-muted-foreground">
-          {hechas} de {tarjetas.length}<span className="sr-only"> concluidas</span>
+          {hechas}/{tarjetas.length}<span className="sr-only"> concluidas</span>
         </span>
       </header>
       <ul className="divide-y divide-border">
         {tarjetas.map(tarjeta => {
           const concluida = tarjeta.estado === "concluido"
           return (
-            <li key={tarjeta.id} className="flex min-h-(--control-height) items-center gap-3 pl-3 pr-1">
+            <li key={tarjeta.id} className="flex min-h-(--control-height) items-center gap-3 py-1 pl-3 pr-1 transition-colors hover:bg-muted/40">
               <button type="button" onClick={() => ver(tarjeta)}
                 className={cn(
                   "min-w-0 flex-1 truncate rounded-sm text-left text-body-md",

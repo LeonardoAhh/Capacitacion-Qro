@@ -29,11 +29,16 @@ function useActiveIndicator(list: HTMLElement | null) {
         : null)
     }
     medir()
+    let cancelled = false
+    document.fonts?.ready.then(() => {
+      if (!cancelled) medir()
+    })
     const cambios = new MutationObserver(medir)
     cambios.observe(list, { subtree: true, attributes: true, attributeFilter: ["data-state", "aria-orientation"] })
     const tamano = new ResizeObserver(medir)
     tamano.observe(list)
     return () => {
+      cancelled = true
       cambios.disconnect()
       tamano.disconnect()
     }
@@ -66,7 +71,7 @@ const TabsList = React.forwardRef<
       {children}
       {box && (
         <span aria-hidden="true"
-          className={cn("tabs-indicator pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-full bg-primary", box.animate && "tabs-indicator-animate")}
+          className={cn("tabs-indicator pointer-events-none absolute -bottom-px left-0 h-0.5 rounded-none bg-primary", box.animate && "tabs-indicator-animate")}
           style={{ width: box.width, transform: `translateX(${box.left}px)` }} />
       )}
     </TabsPrimitive.List>
@@ -81,9 +86,8 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      // Estilo "line": texto sobre la línea base y subrayado en la pestaña activa.
-      // El subrayado de la activa lo dibuja TabsList (se desliza); aquí solo el texto cambia de tono.
-      "-mb-px inline-flex min-h-(--control-height) items-center justify-center whitespace-nowrap rounded-t-md border-b-2 border-transparent px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
+      // Estilo "line": texto sobre la línea base; el subrayado activo lo dibuja TabsList.
+      "inline-flex min-h-(--control-height) items-center justify-center whitespace-nowrap rounded-t-md px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
       className
     )}
     {...props}
@@ -99,7 +103,7 @@ const TabsContent = React.forwardRef<
     ref={ref}
     className={cn(
       // La pestaña que entra aparece con un fundido corto (globals.css, .tabs-content-enter).
-      "tabs-content-enter mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+      "tabs-content-enter mt-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
       className
     )}
     {...props}

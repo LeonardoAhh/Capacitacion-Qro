@@ -54,6 +54,7 @@ export function EmpleadoSelect({ id, value, onChange, invalid }: {
   }
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (!resultados.length) return
     if (event.key === "ArrowDown") { event.preventDefault(); setActivo(index => Math.min(index + 1, resultados.length - 1)) }
     if (event.key === "ArrowUp") { event.preventDefault(); setActivo(index => Math.max(index - 1, 0)) }
     if (event.key === "Enter") { event.preventDefault(); if (resultados[activo]) elegir(resultados[activo]) }
@@ -75,7 +76,7 @@ export function EmpleadoSelect({ id, value, onChange, invalid }: {
           <ChevronDown className="shrink-0 text-muted-foreground" aria-hidden="true" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="start" className="grid w-[var(--radix-popover-trigger-width)] min-w-72 gap-1 p-1">
+      <PopoverContent align="start" className="grid w-[var(--radix-popover-trigger-width)] min-w-[min(18rem,calc(100vw-2rem))] gap-1 p-1">
         <SearchInput label="Número de empleado" placeholder="Número de empleado" inputMode="numeric" autoFocus
           value={numero} onValueChange={value => setNumero(value.replace(/\D/g, ""))} onKeyDown={onKeyDown} loading={loading}
           role="combobox" aria-expanded={resultados.length > 0} aria-controls={listId}
@@ -87,7 +88,7 @@ export function EmpleadoSelect({ id, value, onChange, invalid }: {
               {resultados.map((empleado, index) => (
                 <li key={empleado.numero} id={`${listId}-${index}`} role="option" aria-selected={index === activo}
                   onMouseDown={event => event.preventDefault()} onMouseEnter={() => setActivo(index)} onClick={() => elegir(empleado)}
-                  className={cn("grid cursor-pointer gap-0.5 rounded-sm px-2 py-1.5", index === activo && "bg-muted")}>
+                  className={cn("grid min-h-(--control-height) cursor-pointer content-center gap-0.5 rounded-sm px-2 py-1.5", index === activo && "bg-muted")}>
                   <span className="truncate text-body-md text-foreground"><span className="tabular-nums text-muted-foreground">#{empleado.numero}</span> · {empleado.nombre}</span>
                   {(empleado.puesto || empleado.departamento) && (
                     <span className="truncate text-body-sm text-muted-foreground">{empleado.puesto ?? empleado.departamento}</span>

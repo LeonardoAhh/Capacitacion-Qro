@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
-import { notify } from "@/lib/notify"
-
-// ─── Types ──────────────────────────────────────────────────────────────────
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface MonthlyPoint {
   month: string
@@ -15,10 +13,8 @@ export interface MonthlyPoint {
 
 interface Department { id: string; name: string }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const MONTHS = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"]
-export const YEARS = ["2024","2025","2026"] as const
+const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+export const YEARS = ["2024", "2025", "2026"] as const
 const CHART_START_DATE = `${YEARS[0]}-01-01`
 const CHART_END_DATE = `${Number(YEARS[YEARS.length - 1]) + 1}-01-01`
 
@@ -28,16 +24,14 @@ export const COLORS_CHART: Record<string, string> = {
   "2026": "hsl(var(--chart-1))",
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
 function linearTrend(values: number[]): number[] {
   const n = values.length
   const xs = values.map((_, i) => i)
-  const sumX  = xs.reduce((a, b) => a + b, 0)
-  const sumY  = values.reduce((a, b) => a + b, 0)
+  const sumX = xs.reduce((a, b) => a + b, 0)
+  const sumY = values.reduce((a, b) => a + b, 0)
   const sumXY = xs.reduce((s, x, i) => s + x * values[i], 0)
   const sumX2 = xs.reduce((s, x) => s + x * x, 0)
-  const slope     = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
+  const slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX)
   const intercept = (sumY - slope * sumX) / n
   return xs.map(x => Math.max(0, Math.round((slope * x + intercept) * 10) / 10))
 }
@@ -51,29 +45,34 @@ function buildEmpty(): MonthlyPoint[] {
   }))
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
 export function useCapacitacionChart() {
   const [departmentState, setDepartmentState] = useState({ items: [] as Department[], loaded: false })
   const { items: departments, loaded: departmentsLoaded } = departmentState
   const [selectedDept, setSelectedDept] = useState<string>("all")
   const [chartData, setChartData] = useState<MonthlyPoint[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [yearTotals, setYearTotals] = useState<{ year: string; total: number }[]>([])
+  const requestIdRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   useEffect(() => {
     let active = true
     const loadDepartments = async () => {
       try {
-        const { data, error } = await supabase
+        const { data, error: deptError } = await supabase
           .from("departments")
           .select("id, name")
           .order("name")
-        if (error) throw new Error(error.message)
+        if (deptError) throw deptError
         if (active) setDepartmentState({ items: data ?? [], loaded: true })
       } catch (err) {
         console.error("Department load error:", err instanceof Error ? err.message : JSON.stringify(err))
-        notify.error("Error al cargar departamentos")
         if (active) setDepartmentState({ items: [], loaded: true })
       }
     }
@@ -82,7 +81,9 @@ export function useCapacitacionChart() {
   }, [])
 
   const loadData = useCallback(async (deptId: string) => {
+    const currentRequest = ++requestIdRef.current
     setLoading(true)
+    setError(null)
     try {
       let employeeIds: string[] | null = null
 
@@ -90,9 +91,10 @@ export function useCapacitacionChart() {
         const deptName = departments.find(d => d.id === deptId)?.name ?? ""
         const { data: empData, error: empError } = await supabase
           .from("employees").select("id").ilike("departamento", deptName)
-        if (empError) throw new Error(empError.message)
+        if (empError) throw empError
         employeeIds = (empData ?? []).map(e => e.id)
         if (employeeIds.length === 0) {
+          if (!mountedRef.current || currentRequest !== requestIdRef.current) return
           setChartData(buildEmpty())
           setYearTotals(YEARS.map(y => ({ year: y, total: 0 })))
           return
@@ -117,8 +119,8 @@ export function useCapacitacionChart() {
           query = query.in("employee_id", employeeIds)
         }
 
-        const { data, error } = await query
-        if (error) throw new Error(error.message)
+        const { data, error: rowsError } = await query
+        if (rowsError) throw rowsError
         allRows = allRows.concat(data ?? [])
         hasMore = (data?.length ?? 0) === PAGE_SIZE
         from += PAGE_SIZE
@@ -133,7 +135,7 @@ export function useCapacitacionChart() {
         if (!r.fecha_aplicacion) continue
         const parts = r.fecha_aplicacion.split("-")
         if (parts.length !== 3) continue
-        const year  = parts[0]
+        const year = parts[0]
         const month = parseInt(parts[1], 10) - 1
         if (!grid[year] || month < 0 || month > 11) continue
         const key = r.course_id ?? r.raw_course_name.trim().toUpperCase()
@@ -153,13 +155,17 @@ export function useCapacitacionChart() {
         "2026": rawValues["2026"][i], "2026_trend": trends["2026"][i],
       }))
 
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       setChartData(points)
       setYearTotals(YEARS.map(y => ({ year: y, total: rawValues[y].reduce((s, v) => s + v, 0) })))
     } catch (err) {
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       console.error("Chart error:", err instanceof Error ? err.message : JSON.stringify(err))
-      notify.error("Error al cargar gráfica")
+      setError(describeSupabaseError(err, "No se pudieron cargar los cursos impartidos"))
     } finally {
-      setLoading(false)
+      if (mountedRef.current && currentRequest === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }, [departments])
 
@@ -168,8 +174,8 @@ export function useCapacitacionChart() {
   }, [departmentsLoaded, selectedDept, loadData])
 
   return {
-    loading, departments, selectedDept, setSelectedDept,
+    loading, error, departments, selectedDept, setSelectedDept,
     chartData, yearTotals,
-    refresh: () => loadData(selectedDept),
+    refresh: () => void loadData(selectedDept),
   }
 }

@@ -1,9 +1,10 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
 import { DESKTOP_NAV_ID, MOBILE_NAV_ID, findActiveLeaf, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
@@ -21,16 +22,11 @@ import { confirmUnsavedChanges, hasUnsavedChanges } from "@/lib/unsaved-changes"
 
 const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
 
-// Hover: gris tenue y plano. Seleccionado: "elevado", una tarjeta con borde fino y sombra suave
-// sobre la barra, con el ícono en el color primario; así no se confunde con el hover.
 const rowIdle = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 const rowActive = "border-sidebar-border bg-sidebar-active font-medium text-foreground shadow-(--sidebar-active-shadow)"
 const navLinkBase = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sidebar-ring"
-// Celular (menú a pantalla completa): mosaicos en dos columnas para que todo quepa sin scroll;
-// el nombre usa hasta dos renglones en lugar de recortarse.
-const tileBase = "min-h-14 gap-3 rounded-lg px-3 py-2 text-body-md leading-tight"
+const tileBase = "min-h-14 gap-3 rounded-md px-3 py-2 text-body-md"
 const tileIdle = "border-sidebar-border text-muted-foreground hover:bg-muted/60 hover:text-foreground"
-const controlBase = "flex size-11 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sidebar-ring"
 
 export interface SidebarApi {
   showMobileSidebar: boolean
@@ -99,14 +95,16 @@ function SidebarBrand({
     <div className="relative mx-3 mb-2 flex h-[var(--workspace-header-height)] shrink-0 items-center border-b border-sidebar-border">
       <WorkspaceBrand workspace={workspace} mobile />
       {onClose && (
-        <button
+        <Button
           type="button"
+          variant="ghost"
+          size="icon"
           onClick={onClose}
           aria-label="Cerrar menú"
-          className={cn(controlBase, "absolute right-0")}
+          className="absolute right-0 text-muted-foreground hover:text-foreground"
         >
-          <X className="size-4" aria-hidden="true" />
-        </button>
+          <X aria-hidden="true" />
+        </Button>
       )}
     </div>
   )
@@ -138,24 +136,24 @@ function NavTree({
   mobile?: boolean
   workspace: WorkspaceId
 }) {
-  const navSections = getWorkspaceNavSections(workspace)
-  // Secciones fijas (pinned) primero y en su orden declarado; el resto, alfabético.
   const { canAccess } = useRole()
   const router = useRouter()
-  // Cada rol solo ve las secciones que puede abrir (lib/constants/roles).
-  const toItems = (sections: typeof navSections) => sections.flatMap((section) => {
-    const items = section.items.filter((leaf) => canAccess(leaf.href))
-    const activeLeaf = findActiveLeaf(items, pathname)
-    return items.map((leaf) => ({
-      leaf,
-      active: leaf.href === activeLeaf?.href,
-    }))
-  })
-  const navigationItems = [
-    ...toItems(navSections.filter((section) => section.pinned)),
-    ...toItems(navSections.filter((section) => !section.pinned))
-      .sort((a, b) => a.leaf.label.localeCompare(b.leaf.label, "es", { sensitivity: "base" })),
-  ]
+  const navigationItems = useMemo(() => {
+    const navSections = getWorkspaceNavSections(workspace)
+    const toItems = (sections: typeof navSections) => sections.flatMap((section) => {
+      const items = section.items.filter((leaf) => canAccess(leaf.href))
+      const activeLeaf = findActiveLeaf(items, pathname)
+      return items.map((leaf) => ({
+        leaf,
+        active: leaf.href === activeLeaf?.href,
+      }))
+    })
+    return [
+      ...toItems(navSections.filter((section) => section.pinned)),
+      ...toItems(navSections.filter((section) => !section.pinned))
+        .sort((a, b) => a.leaf.label.localeCompare(b.leaf.label, "es", { sensitivity: "base" })),
+    ]
+  }, [workspace, canAccess, pathname])
 
   return (
       <nav
@@ -210,8 +208,6 @@ function NavTree({
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
-
 interface SidebarProps {
   showMobileSidebar: boolean
   setShowMobileSidebar: (v: boolean) => void
@@ -236,7 +232,6 @@ export default function Sidebar({
 
   return (
     <>
-      {/* ── Mobile drawer (focus trap + Escape + scroll lock via Radix/vaul) ── */}
       <Drawer direction="left" shouldScaleBackground={false} open={showMobileSidebar} onOpenChange={setShowMobileSidebar}>
         <DrawerContent
           id={MOBILE_NAV_ID}
@@ -266,9 +261,7 @@ export default function Sidebar({
         </DrawerContent>
       </Drawer>
 
-      {/* ── Desktop sidebar: visible o completamente oculta (control en el header) ── */}
-      {/* Al ocultarse se desliza (el ancho llega a 0, globals.css) en lugar de desaparecer de golpe;
-          oculta queda fuera del orden de tabulación y de los lectores de pantalla (inert). */}
+      {/* Oculta queda fuera del orden de tabulación y lectores de pantalla (inert). */}
       <aside
         id={DESKTOP_NAV_ID}
         aria-label="Menú principal"

@@ -1,28 +1,15 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
-import { LayoutGrid, List, Plus } from "lucide-react"
-import { ImageExpansion } from "@/components/content/safety-home/image-expansion"
-import { Button } from "@/components/ui/button"
-import { GreetingBar } from "@/components/greeting-bar"
-import { FindingCard, type FindingPreview } from "@/components/content/safety-home/finding-card"
-import { CreateFindingDialog } from "@/components/content/safety-home/create-finding-dialog"
-import { CompletionEvidenceDialog } from "@/components/content/safety-home/completion-evidence-dialog"
-import { CompletionEvidenceViewer } from "@/components/content/safety-home/completion-evidence-viewer"
-import { CompactPager } from "@/components/ui/compact-pager"
-import { deleteFinding, loadFindings } from "@/components/content/safety-home/findings-data"
-import { EditFindingDialog } from "@/components/content/safety-home/edit-finding-dialog"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { AlertCircle, ClipboardCheck, LayoutGrid, List, Plus, RotateCw } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
-import { useRole } from "@/lib/hooks/useRole"
-import { Skeleton } from "@/components/ui/skeleton"
-import { FINDING_PREVIEW_RATIO } from "@/components/content/safety-home/finding-constraints"
-import { FindingList, FindingListSkeleton } from "@/components/content/safety-home/finding-list"
-import { FINDING_DETAIL_SIDE_QUERY, FindingDetailPanel } from "@/components/content/safety-home/finding-detail"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { CompactPager } from "@/components/ui/compact-pager"
 import {
   Select,
   SelectContent,
@@ -30,29 +17,73 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { LIST_WITH_DETAIL_GRID } from "@/components/ui/side-detail-panel"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { textoAISO } from "@/lib/fechas"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
+import { useRole } from "@/lib/hooks/useRole"
+import { describeSupabaseError } from "@/lib/supabase/errors"
+import { CompletionEvidenceDialog } from "./completion-evidence-dialog"
+import { CompletionEvidenceViewer } from "./completion-evidence-viewer"
+import { CreateFindingDialog } from "./create-finding-dialog"
+import { EditFindingDialog } from "./edit-finding-dialog"
+import { FindingCard, type FindingPreview } from "./finding-card"
+import { FINDING_PREVIEW_RATIO, isoWeek, sortWeekKeysDesc } from "./finding-constraints"
+import { FINDING_DETAIL_SIDE_QUERY, FindingDetailPanel } from "./finding-detail"
+import { FindingList, FindingListSkeleton } from "./finding-list"
+import { deleteFinding, loadFindings } from "./findings-data"
+import { ImageExpansion } from "./image-expansion"
 
 const FINDINGS_PER_PAGE = 2
 
 type FindingsView = "tarjetas" | "lista"
 const VIEW_TRIGGER = "gap-1.5 max-sm:flex-1 [&_svg]:size-4 [&_svg]:shrink-0"
 
-function FindingSkeletons({ isPreview = false }: { isPreview?: boolean }) {
-  const still = isPreview ? "animate-none" : ""
+function weekKeyOf(finding: Pick<FindingPreview, "year" | "week">): string {
+  return `${finding.year}-${finding.week}`
+}
+
+function FindingSkeletons() {
   return (
-    <div className="space-y-4" aria-label={isPreview ? "Vista previa de hallazgos" : "Cargando hallazgos"}>
-        <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="space-y-4 rounded-xl border border-border bg-card p-6">
-            <Skeleton className={`h-6 w-1/2 ${still}`} />
-            <Skeleton className={`h-4 w-full ${still}`} />
-            <Skeleton className={`h-4 w-3/4 ${still}`} />
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              <Skeleton className={`h-4 w-2/3 ${still}`} />
-              <Skeleton className={`h-4 w-2/3 ${still}`} />
-            </div>
+    <div role="status" className="space-y-4" aria-label="Cargando hallazgos">
+      <span className="sr-only">Cargando hallazgos…</span>
+      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
+        <Card className="space-y-4 p-(--card-padding)">
+          <Skeleton className="h-6 w-1/2" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-3/4" />
+          <div className="grid grid-cols-2 gap-4 pt-4">
+            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-2/3" />
           </div>
-          <Skeleton className={`w-full rounded-xl ${still}`} style={{ aspectRatio: String(FINDING_PREVIEW_RATIO) }} />
-        </div>
+        </Card>
+        <Skeleton className="w-full rounded-xl" style={{ aspectRatio: String(FINDING_PREVIEW_RATIO) }} />
+      </div>
     </div>
+  )
+}
+
+function FindingEmptyState({ canEdit, onCreate }: { canEdit: boolean; onCreate: () => void }) {
+  return (
+    <Card className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
+      <span className="grid size-12 place-items-center rounded-md border border-border bg-muted text-muted-foreground" aria-hidden="true">
+        <ClipboardCheck className="size-5" />
+      </span>
+      <div className="max-w-sm space-y-1">
+        <h2 className="text-heading-md text-foreground">Sin hallazgos registrados</h2>
+        <p className="text-body-md text-muted-foreground">
+          {canEdit
+            ? "Registra el primer hallazgo de Safe Walk para dar seguimiento a su corrección."
+            : "Aún no hay hallazgos publicados para esta semana."}
+        </p>
+      </div>
+      {canEdit && (
+        <Button type="button" className="mt-1" onClick={onCreate}>
+          <Plus aria-hidden="true" />Crear hallazgo
+        </Button>
+      )}
+    </Card>
   )
 }
 
@@ -70,7 +101,7 @@ export function SafetyHome() {
   const [deleting, setDeleting] = useState<FindingPreview | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const populatedWeeks = useMemo(
-    () => [...new Set(findingPreviews.map((finding) => `${finding.year}-${finding.week}`))].sort((a, b) => b.localeCompare(a)),
+    () => sortWeekKeysDesc([...new Set(findingPreviews.map(weekKeyOf))]),
     [findingPreviews],
   )
   const [selectedWeek, setSelectedWeek] = useState("")
@@ -78,30 +109,50 @@ export function SafetyHome() {
   const [view, setView] = useState<FindingsView>("lista")
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const detailSide = useMediaQuery(FINDING_DETAIL_SIDE_QUERY)
+
+  const refreshFindings = useCallback(async (preferredWeek?: string, fallbackError = "No se pudieron cargar los hallazgos.") => {
+    try {
+      const findings = await loadFindings()
+      const weeks = sortWeekKeysDesc([...new Set(findings.map(weekKeyOf))])
+      setFindingPreviews(findings)
+      setSelectedWeek((current) => {
+        if (preferredWeek && weeks.includes(preferredWeek)) return preferredWeek
+        if (current && weeks.includes(current)) return current
+        return weeks[0] ?? ""
+      })
+      if (preferredWeek) setPage(1)
+      setError("")
+    } catch (err) {
+      setError(describeSupabaseError(err, fallbackError))
+    }
+  }, [])
+
   useEffect(() => {
     let active = true
     loadFindings().then((findings) => {
       if (!active) return
+      const weeks = sortWeekKeysDesc([...new Set(findings.map(weekKeyOf))])
       setFindingPreviews(findings)
-      setSelectedWeek((current) => current && findings.some((finding) => `${finding.year}-${finding.week}` === current)
-        ? current : findings[0] ? `${findings[0].year}-${findings[0].week}` : "")
+      setSelectedWeek((current) => (current && weeks.includes(current) ? current : weeks[0] ?? ""))
       setError("")
-    }).catch(() => { if (active) setError("No se pudieron cargar los hallazgos.") })
-      .finally(() => { if (active) setLoading(false) })
+    }).catch((err) => {
+      if (active) setError(describeSupabaseError(err, "No se pudieron cargar los hallazgos."))
+    }).finally(() => {
+      if (active) setLoading(false)
+    })
     return () => { active = false }
   }, [])
+
   const filteredFindings = useMemo(
-    () => findingPreviews.filter((finding) => `${finding.year}-${finding.week}` === selectedWeek),
+    () => findingPreviews.filter((finding) => weekKeyOf(finding) === selectedWeek),
     [findingPreviews, selectedWeek],
   )
   const totalPages = Math.ceil(filteredFindings.length / FINDINGS_PER_PAGE)
   const currentPage = Math.min(page, Math.max(1, totalPages))
   const pageStart = (currentPage - 1) * FINDINGS_PER_PAGE
   const visibleFindings = filteredFindings.slice(pageStart, pageStart + FINDINGS_PER_PAGE)
-  // Se deriva de la semana visible: si el hallazgo se borra o cambia de semana, el panel se cierra solo.
-  const selectedIndex = filteredFindings.findIndex((finding) => finding.id === selectedId)
-  const selectedFinding = selectedIndex >= 0 ? filteredFindings[selectedIndex] : null
-  /** En la hoja inferior, las acciones abren su propio diálogo: primero se cierra la hoja. */
+  const selectedFinding = filteredFindings.find((finding) => finding.id === selectedId) ?? null
+
   const fromDetail = (action: (finding: FindingPreview) => void) => (finding: FindingPreview) => {
     if (!detailSide) setSelectedId(null)
     action(finding)
@@ -109,31 +160,8 @@ export function SafetyHome() {
 
   return (
     <Tabs asChild value={view} onValueChange={(value) => setView(value as FindingsView)}>
-    <section className="flex flex-col gap-6">
-      {/* Saludo a la izquierda; semana, vista, página y "Crear" en una línea del lado opuesto.
-          En celular, rejilla de 2 columnas: semana y "Crear" arriba; vista y página abajo, con la
-          semana y la vista del mismo ancho. El orden de escritorio lo da sm:order-last en "Crear". */}
-      <GreetingBar actions={
-        <div className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:w-auto sm:flex-wrap">
-          <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
-            <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium max-sm:w-full max-sm:justify-between">
-              <SelectValue placeholder="Sin semanas" />
-            </SelectTrigger>
-            <SelectContent matchTriggerWidth>
-              {populatedWeeks.map((key) => (
-                <SelectItem key={key} value={key}>
-                  Semana {key.split("-")[1]} · {key.split("-")[0]}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {canEdit ? (
-            <Button type="button" className="sm:order-last" onClick={() => setIsCreateOpen(true)}>
-              <Plus aria-hidden="true" />Crear
-            </Button>
-          ) : <span className="sm:hidden" />}
-
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <TabsList aria-label="Vista de hallazgos" className="max-sm:w-full">
             <TabsTrigger value="lista" className={VIEW_TRIGGER}>
               <List aria-hidden="true" />Lista
@@ -142,153 +170,213 @@ export function SafetyHome() {
               <LayoutGrid aria-hidden="true" />Tarjetas
             </TabsTrigger>
           </TabsList>
-          {view === "tarjetas" && <div className="justify-self-end"><CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} /></div>}
-        </div>
-      } />
 
-      {error && <p role="alert" className="text-body-md text-destructive">{error}</p>}
+          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+            <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
+              <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium max-sm:min-w-0 max-sm:flex-1 max-sm:justify-between">
+                <SelectValue placeholder="Sin semanas" />
+              </SelectTrigger>
+              <SelectContent matchTriggerWidth>
+                {populatedWeeks.map((key) => {
+                  const [year, week] = key.split("-")
+                  return (
+                    <SelectItem key={key} value={key}>
+                      Semana {week} · {year}
+                    </SelectItem>
+                  )
+                })}
+              </SelectContent>
+            </Select>
 
-      <TabsContent value="tarjetas" className="mt-0 space-y-4">
-        {error ? null : loading ? (
-          <FindingSkeletons />
-        ) : filteredFindings.length > 0 ? (
-          visibleFindings.map((finding, index) => (
-            <FindingCard
-              key={finding.id}
-              finding={finding}
-              index={pageStart + index}
-              onExpand={setExpandedImage}
-              onExpandCompletion={setExpandedCompletion}
-              onManageCompletion={setManagingCompletion}
-              canEdit={canEdit}
-              onEdit={setEditing}
-              onDelete={setDeleting}
-            />
-          ))
-        ) : (
-          <FindingSkeletons isPreview />
-        )}
-      </TabsContent>
+            {view === "tarjetas" && (
+              <CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+            )}
 
-      <TabsContent value="lista" className="mt-0">
-        {error ? null : loading ? (
-          <FindingListSkeleton />
-        ) : filteredFindings.length > 0 ? (
-          <div className={selectedFinding && detailSide
-            ? "grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_24rem] xl:grid-cols-[minmax(0,1fr)_28rem] 2xl:grid-cols-[minmax(0,1fr)_32rem]"
-            : undefined}>
-            <FindingList findings={filteredFindings} selectedId={selectedFinding?.id ?? null}
-              narrow={!!selectedFinding && detailSide}
-              onSelect={(finding) => setSelectedId(finding.id)}
-              canEdit={canEdit} onEdit={setEditing} onDelete={setDeleting} onManageCompletion={setManagingCompletion} />
-            {selectedFinding && (
-              <FindingDetailPanel
-                key={selectedFinding.id}
-                side={detailSide}
-                finding={selectedFinding}
-                index={selectedIndex}
-                onClose={() => setSelectedId(null)}
-                onExpand={fromDetail(setExpandedImage)}
-                onViewCompletion={fromDetail(setExpandedCompletion)}
-              />
+            {canEdit && (
+              <Button type="button" onClick={() => setIsCreateOpen(true)}>
+                <Plus aria-hidden="true" />Crear
+              </Button>
             )}
           </div>
-        ) : (
-          <FindingListSkeleton isPreview />
+        </div>
+
+        {error && (
+          <Alert variant="destructive" className="flex flex-wrap items-center justify-between gap-3 bg-destructive/10 [&>svg]:top-1/2 [&>svg]:-translate-y-1/2">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertDescription className="min-w-0 flex-1">{error}</AlertDescription>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0"
+              onClick={() => {
+                setLoading(true)
+                void refreshFindings().finally(() => setLoading(false))
+              }}
+            >
+              <RotateCw aria-hidden="true" />Reintentar
+            </Button>
+          </Alert>
         )}
-      </TabsContent>
 
-      {expandedImage && (
-        <ImageExpansion
-          src={expandedImage.src}
-          alt={expandedImage.alt}
-          ratio={16 / 9}
-          evidences={expandedImage.evidences}
-          onClose={() => setExpandedImage(null)}
+        <TabsContent value="tarjetas" className="mt-0 space-y-4">
+          {loading ? (
+            <FindingSkeletons />
+          ) : filteredFindings.length > 0 ? (
+            visibleFindings.map((finding) => (
+              <FindingCard
+                key={finding.id}
+                finding={finding}
+                onExpand={setExpandedImage}
+                onExpandCompletion={setExpandedCompletion}
+                onManageCompletion={setManagingCompletion}
+                canEdit={canEdit}
+                onEdit={setEditing}
+                onDelete={setDeleting}
+              />
+            ))
+          ) : !error ? (
+            <FindingEmptyState canEdit={canEdit} onCreate={() => setIsCreateOpen(true)} />
+          ) : null}
+        </TabsContent>
+
+        <TabsContent value="lista" className="mt-0">
+          {loading ? (
+            <FindingListSkeleton />
+          ) : filteredFindings.length > 0 ? (
+            <div className={selectedFinding && detailSide ? LIST_WITH_DETAIL_GRID : undefined}>
+              <FindingList
+                findings={filteredFindings}
+                selectedId={selectedFinding?.id ?? null}
+                narrow={!!selectedFinding && detailSide}
+                onSelect={(finding) => setSelectedId(finding.id)}
+                canEdit={canEdit}
+                onEdit={setEditing}
+                onDelete={setDeleting}
+                onManageCompletion={setManagingCompletion}
+              />
+              {selectedFinding && (
+                <FindingDetailPanel
+                  key={selectedFinding.id}
+                  side={detailSide}
+                  finding={selectedFinding}
+                  onClose={() => setSelectedId(null)}
+                  onExpand={fromDetail(setExpandedImage)}
+                  onViewCompletion={fromDetail(setExpandedCompletion)}
+                />
+              )}
+            </div>
+          ) : !error ? (
+            <FindingEmptyState canEdit={canEdit} onCreate={() => setIsCreateOpen(true)} />
+          ) : null}
+        </TabsContent>
+
+        {expandedImage && (
+          <ImageExpansion
+            src={expandedImage.src}
+            alt={expandedImage.alt}
+            ratio={16 / 9}
+            evidences={expandedImage.evidences}
+            onClose={() => setExpandedImage(null)}
+          />
+        )}
+        {expandedCompletion && (
+          <CompletionEvidenceViewer
+            finding={expandedCompletion}
+            onClose={() => setExpandedCompletion(null)}
+            onOpenImage={(src, evidences) => {
+              setExpandedCompletionImage({ src, evidences, alt: expandedCompletion.title })
+              setExpandedCompletion(null)
+            }}
+          />
+        )}
+        {expandedCompletionImage && (
+          <ImageExpansion
+            src={expandedCompletionImage.src}
+            alt={expandedCompletionImage.alt}
+            ratio={16 / 9}
+            evidences={expandedCompletionImage.evidences}
+            label="Evidencias de cumplimiento"
+            onClose={() => setExpandedCompletionImage(null)}
+          />
+        )}
+
+        {editing && (
+          <EditFindingDialog
+            key={editing.id}
+            finding={editing}
+            onClose={() => setEditing(null)}
+            onSaved={async (updated) => {
+              const iso = textoAISO(updated.date)
+              const updatedWeek = iso ? `${iso.slice(0, 4)}-${isoWeek(iso)}` : undefined
+              await refreshFindings(
+                updatedWeek && updatedWeek !== selectedWeek ? updatedWeek : undefined,
+                "El hallazgo se guardó, pero no se pudo actualizar la lista. Recarga la página.",
+              )
+            }}
+          />
+        )}
+
+        {managingCompletion && (
+          <CompletionEvidenceDialog
+            key={managingCompletion.id}
+            finding={managingCompletion}
+            onClose={() => setManagingCompletion(null)}
+            onSaved={() => refreshFindings(undefined, "La evidencia se guardó, pero no se pudo actualizar la lista. Recarga la página.")}
+          />
+        )}
+
+        <AlertDialog open={!!deleting} onOpenChange={(open) => { if (!open && !isDeleting) setDeleting(null) }}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>¿Borrar hallazgo?</AlertDialogTitle>
+              <AlertDialogDescription>Se borrará el hallazgo y sus evidencias.</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={isDeleting}
+                className="bg-destructive text-destructive-foreground ui-hover-destructive"
+                onClick={async (event) => {
+                  event.preventDefault()
+                  if (!deleting) return
+                  setIsDeleting(true)
+                  try {
+                    await deleteFinding(deleting)
+                    const remaining = findingPreviews.filter((item) => item.id !== deleting.id)
+                    const remainingWeeks = sortWeekKeysDesc([...new Set(remaining.map(weekKeyOf))])
+                    const nextWeek = remainingWeeks.includes(selectedWeek) ? selectedWeek : remainingWeeks[0] ?? ""
+                    const nextWeekCount = remaining.filter((item) => weekKeyOf(item) === nextWeek).length
+                    setFindingPreviews(remaining)
+                    setSelectedWeek(nextWeek)
+                    setPage((current) => Math.min(current, Math.max(1, Math.ceil(nextWeekCount / FINDINGS_PER_PAGE))))
+                    setDeleting(null)
+                    setError("")
+                  } catch (err) {
+                    setError(describeSupabaseError(err, "No se pudo borrar el hallazgo."))
+                    setDeleting(null)
+                  } finally {
+                    setIsDeleting(false)
+                  }
+                }}
+              >
+                {isDeleting ? "Borrando…" : "Borrar"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <CreateFindingDialog
+          open={isCreateOpen}
+          onOpenChange={setIsCreateOpen}
+          onCreate={(week, year) =>
+            refreshFindings(
+              `${year}-${week}`,
+              "El hallazgo se guardó, pero no se pudo actualizar la lista. Recarga la página.",
+            )
+          }
         />
-      )}
-      {expandedCompletion && <CompletionEvidenceViewer finding={expandedCompletion} onClose={() => setExpandedCompletion(null)}
-        onOpenImage={(src, evidences) => {
-          setExpandedCompletionImage({ src, evidences, alt: expandedCompletion.title })
-          setExpandedCompletion(null)
-        }} />}
-      {expandedCompletionImage && <ImageExpansion src={expandedCompletionImage.src} alt={expandedCompletionImage.alt}
-        ratio={16 / 9} evidences={expandedCompletionImage.evidences} label="Evidencias de cumplimiento"
-        onClose={() => setExpandedCompletionImage(null)} />}
-
-      {editing && <EditFindingDialog key={editing.id} finding={editing} onClose={() => setEditing(null)}
-        onSaved={async (updated) => {
-          try {
-            const findings = await loadFindings()
-            setFindingPreviews(findings)
-            const saved = findings.find((item) => item.id === updated.id)
-            if (saved && `${saved.year}-${saved.week}` !== selectedWeek) {
-              setSelectedWeek(`${saved.year}-${saved.week}`)
-              setPage(1)
-            }
-            setError("")
-          } catch {
-            setError("El hallazgo se guardó, pero no se pudo actualizar la lista. Recarga la página.")
-          }
-        }} />}
-
-      {managingCompletion && <CompletionEvidenceDialog key={managingCompletion.id} finding={managingCompletion}
-        onClose={() => setManagingCompletion(null)}
-        onSaved={async () => {
-          try {
-            setFindingPreviews(await loadFindings())
-            setError("")
-          } catch {
-            setError("La evidencia se guardó, pero no se pudo actualizar la lista. Recarga la página.")
-          }
-        }} />}
-
-      <AlertDialog open={!!deleting} onOpenChange={(open) => { if (!open && !isDeleting) setDeleting(null) }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Borrar hallazgo?</AlertDialogTitle>
-            <AlertDialogDescription>Se borrará el hallazgo y sus evidencias.</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction disabled={isDeleting} className="bg-destructive text-destructive-foreground"
-              onClick={async (event) => {
-                event.preventDefault()
-                if (!deleting) return
-                setIsDeleting(true)
-                try {
-                  await deleteFinding(deleting)
-                  setFindingPreviews((current) => current.filter((item) => item.id !== deleting.id))
-                  setPage((current) => Math.min(current, Math.max(1, Math.ceil((filteredFindings.length - 1) / FINDINGS_PER_PAGE))))
-                  setDeleting(null)
-                  setError("")
-                } catch {
-                  setError("No se pudo borrar el hallazgo.")
-                  setDeleting(null)
-                } finally {
-                  setIsDeleting(false)
-                }
-              }}>Borrar</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <CreateFindingDialog
-        open={isCreateOpen}
-        onOpenChange={setIsCreateOpen}
-        onCreate={async (week, date) => {
-          try {
-            const findings = await loadFindings()
-            setFindingPreviews(findings)
-            setSelectedWeek(`${date.slice(-4)}-${week}`)
-            setPage(1)
-            setError("")
-          } catch {
-            setError("El hallazgo se guardó, pero no se pudo actualizar la lista. Recarga la página.")
-          }
-        }}
-      />
-    </section>
+      </section>
     </Tabs>
   )
 }

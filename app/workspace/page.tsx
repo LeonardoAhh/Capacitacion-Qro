@@ -1,8 +1,10 @@
 import type { Metadata } from "next"
 import { WorkspaceSelection } from "@/components/workspace-selection"
+import { WORKSPACE_SELECTION } from "@/lib/workspace/presentation"
 
 export const metadata: Metadata = {
-  title: "Elegir espacio de trabajo",
+  title: WORKSPACE_SELECTION.pageTitle,
+  description: WORKSPACE_SELECTION.pageDescription,
 }
 
 export default function WorkspacePage() {

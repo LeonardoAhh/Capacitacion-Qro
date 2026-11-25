@@ -2,11 +2,12 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { CalendarRange, LayoutTemplate, List, Plus, SquareKanban, Users } from "lucide-react"
+import { AlertCircle, CalendarRange, ChevronLeft, ChevronRight, LayoutTemplate, List, Plus, RotateCw, SquareKanban, Users } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { KanbanCalendar } from "@/components/content/kanban-calendar"
+import { DIAS_SEMANA, KanbanCalendar } from "@/components/content/kanban-calendar"
 import { KanbanCardDialog } from "@/components/content/kanban-card-dialog"
 import { KanbanColumn } from "@/components/content/kanban-column"
 import { KanbanDetailDialog } from "@/components/content/kanban-detail-dialog"
@@ -20,8 +21,8 @@ import { useKanban, type CambiosTarjeta } from "@/lib/hooks/useKanban"
 import { useUser } from "@/lib/hooks/useUser"
 import { notify } from "@/lib/notify"
 import {
-  DIAS_CONCLUIDAS_VISIBLES, enProgresoDe, esConcluidaAntigua, KANBAN_COLUMNAS, leerNuevaTarjeta, LIMITE_EN_PROGRESO,
-  MAX_TITULO, ordenarTarjetas, PARAM_TARJETA, plantillaDesdeTarjeta,
+  enProgresoDe, esConcluidaAntigua, formatFechaCorta, hoyISO, inicioSemana, KANBAN_COLUMNAS, leerNuevaTarjeta, LIMITE_EN_PROGRESO,
+  MAX_TITULO, ordenarTarjetas, PARAM_TARJETA, plantillaDesdeTarjeta, sumarDias,
   type DatosTarjeta, type KanbanEstado, type KanbanPlantilla, type KanbanTarjeta, type TarjetaDesde,
 } from "@/lib/kanban"
 
@@ -77,6 +78,10 @@ export default function KanbanPage() {
   } = useKanban()
   const userId = useUser().user?.id ?? null
   const [vista, setVista] = useState<Vista>("tablero")
+  const hoy = hoyISO()
+  const semanaActual = inicioSemana(hoy)
+  const [semanaInicio, setSemanaInicio] = useState(semanaActual)
+  const semanaFin = sumarDias(semanaInicio, DIAS_SEMANA - 1)
   const [dialog, setDialog] = useState<{ tarjeta: KanbanTarjeta | null; estado: KanbanEstado; base?: DatosTarjeta; duplicando?: boolean } | null>(null)
   const [nota, setNota] = useState<KanbanNotaConfig | null>(null)
   // Solo el id: la tarjeta se toma de la lista para reflejar cambios en tiempo real.
@@ -147,7 +152,7 @@ export default function KanbanPage() {
   const verAnterioresBoton = antiguas > 0 && (
     <Button type="button" variant="ghost" size="sm" className="self-start px-2 text-muted-foreground"
       onClick={() => setVerAnteriores(current => !current)} aria-pressed={verAnteriores}>
-      {verAnteriores ? `Ocultar concluidas de hace más de ${DIAS_CONCLUIDAS_VISIBLES} días` : `Ver anteriores (${antiguas})`}
+      {verAnteriores ? "Ocultar anteriores" : `Ver anteriores (${antiguas})`}
     </Button>
   )
 
@@ -157,7 +162,7 @@ export default function KanbanPage() {
     const actuales = enProgresoDe(tarjetas, responsableId, excluirId)
     if (actuales < LIMITE_EN_PROGRESO) return
     const quien = responsableId === userId ? "Ya tienes" : `${miembrosPorId.get(responsableId)?.nombre ?? "Esta persona"} ya tiene`
-    notify.warning(`${quien} ${actuales} en progreso. Considera concluir alguna antes de empezar otra.`)
+    notify.warning(`${quien} ${actuales} en progreso (límite sugerido: ${LIMITE_EN_PROGRESO}).`)
   }
 
   /** Cambio rápido desde el menú, con aviso de éxito o error. */
@@ -255,6 +260,7 @@ export default function KanbanPage() {
     miDia,
     resumenes,
     ver: tarjeta => setDetalleId(tarjeta.id),
+    mover: (tarjeta, estado) => void handleMove(tarjeta.id, estado),
     editar: tarjeta => setDialog({ tarjeta, estado: tarjeta.estado }),
     duplicar: tarjeta => {
       const { tipo, estado, prioridad, titulo, descripcion, fecha_inicio, fecha_limite, responsable_id, repeticion, colaboradores } = tarjeta
@@ -323,17 +329,40 @@ export default function KanbanPage() {
       <Suspense fallback={null}>
         <KanbanEnlaces listo={!loading && !error} onAbrir={abrirDesdeEnlace} onNueva={nuevaDesdeEnlace} />
       </Suspense>
-      <div className="space-y-4">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="@container space-y-4">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
           <Tabs value={vista} onValueChange={value => cambiarVista(value as Vista)}>
             <TabsList aria-label="Vista">
               {VISTAS.map(item => (
-                <TabsTrigger key={item.value} value={item.value} className="gap-2 max-sm:w-11 max-sm:px-0" title={item.label}>
+                <TabsTrigger key={item.value} value={item.value} className="gap-1.5 px-2.5 max-sm:w-(--control-height) max-sm:px-0" title={item.label}>
                   <item.icon className="size-4" aria-hidden="true" /><span className="max-sm:sr-only">{item.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
+
+          {vista === "calendario" && !loading && !error && (
+            <div className="flex shrink-0 items-center gap-0.5">
+              <Button type="button" variant="ghost" size="xs" className="px-1 text-muted-foreground" aria-label="Semana anterior"
+                onClick={() => setSemanaInicio(sumarDias(semanaInicio, -DIAS_SEMANA))}>
+                <ChevronLeft aria-hidden="true" />
+              </Button>
+              <h2 id="kanban-semana" className="whitespace-nowrap px-1 text-label-sm tabular-nums text-foreground">
+                {formatFechaCorta(semanaInicio)} a {formatFechaCorta(semanaFin)}
+              </h2>
+              <Button type="button" variant="ghost" size="xs" className="px-1 text-muted-foreground" aria-label="Semana siguiente"
+                onClick={() => setSemanaInicio(sumarDias(semanaInicio, DIAS_SEMANA))}>
+                <ChevronRight aria-hidden="true" />
+              </Button>
+              {semanaInicio !== semanaActual && (
+                <Button type="button" variant="ghost" size="xs" className="text-muted-foreground"
+                  onClick={() => setSemanaInicio(semanaActual)}>
+                  Hoy
+                </Button>
+              )}
+            </div>
+          )}
+
           <div className="ml-auto flex shrink-0 items-center gap-2">
             {plantillas.length > 0 && (
               <Button type="button" variant="outline" size="icon" aria-label={`Plantillas (${plantillas.length})`} title="Plantillas"
@@ -341,18 +370,24 @@ export default function KanbanPage() {
                 <LayoutTemplate aria-hidden="true" />
               </Button>
             )}
-            <Button type="button" className="max-sm:w-11 max-sm:px-0" disabled={loading || Boolean(error)}
+            <Button type="button" title="Nueva tarjeta"
+              className="w-(--control-height) px-0 @3xl:w-auto @3xl:px-4" disabled={loading || Boolean(error)}
               onClick={() => setDialog({ tarjeta: null, estado: "por_hacer" })}>
-              <Plus aria-hidden="true" /><span className="max-sm:sr-only">Nueva tarjeta</span>
+              <Plus aria-hidden="true" /><span className="sr-only @3xl:not-sr-only">Nueva tarjeta</span>
             </Button>
           </div>
         </div>
 
         {error ? (
-          <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
-            <p className="text-body-md text-destructive">{error}</p>
-            <Button type="button" variant="outline" size="sm" onClick={() => void recargar()}>Reintentar</Button>
-          </div>
+          <Alert variant="destructive" className="grid gap-3 bg-destructive/10 p-4 [&>svg]:left-4 [&>svg]:top-4">
+            <AlertCircle className="size-4" aria-hidden="true" />
+            <AlertDescription className="text-body-md">{error}</AlertDescription>
+            <div>
+              <Button type="button" variant="outline" size="sm" onClick={() => void recargar()}>
+                <RotateCw aria-hidden="true" />Reintentar
+              </Button>
+            </div>
+          </Alert>
         ) : loading ? (
           <div role="status" aria-busy="true" className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <span className="sr-only">Cargando tablero</span>
@@ -364,7 +399,7 @@ export default function KanbanPage() {
             {vista === "equipo" ? (
               <KanbanTeam tarjetas={tarjetas} miembros={miembros} />
             ) : vista === "calendario" ? (
-              <KanbanCalendar tarjetas={tarjetas} />
+              <KanbanCalendar tarjetas={tarjetas} inicio={semanaInicio} hoy={hoy} />
             ) : vista === "lista" ? (
               <div className="grid gap-2">
                 <KanbanList tarjetas={enLista} miembros={miembrosPorId} />

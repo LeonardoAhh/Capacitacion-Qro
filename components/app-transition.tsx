@@ -3,10 +3,9 @@
 import { motion, useReducedMotion } from "framer-motion"
 import { useTheme } from "@/components/theme-context"
 import { WorkspaceBackdrop } from "@/components/workspace-backdrop"
-import PluckedText from "@/components/ui/PluckedText"
 
-export const APP_TRANSITION_MIN_MS = 2000
-export const APP_TRANSITION_EXIT_MS = 350
+export const APP_TRANSITION_MIN_MS = 600
+export const APP_TRANSITION_EXIT_MS = 220
 /** Salida rápida y frenado suave: la misma curva en todas las transiciones de acceso. */
 export const APP_TRANSITION_EASE = [0.22, 1, 0.36, 1] as const
 const APP_MARK_MASK = "url('/icons/icon.svg') center / contain no-repeat"
@@ -24,24 +23,11 @@ export function useAppReducedMotion() {
 }
 
 export function AppMark({ className }: { className: string }) {
-  const reducedMotion = useAppReducedMotion()
-
   return (
-    <motion.span
+    <span
       aria-hidden="true"
       className={`block bg-foreground ${className}`}
       style={{ mask: APP_MARK_MASK, WebkitMask: APP_MARK_MASK }}
-      initial={false}
-      animate={
-        reducedMotion
-          ? { opacity: 1, scale: 1 }
-          : { opacity: [0.7, 1, 0.7], scale: [0.96, 1, 0.96] }
-      }
-      transition={
-        reducedMotion
-          ? { duration: 0 }
-          : { duration: 2.2, ease: "easeInOut", repeat: Infinity }
-      }
     />
   )
 }
@@ -82,9 +68,8 @@ export function AppTransition({
             animate={leaving ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
             transition={transition}
           >
-            <span className="sr-only">{message}</span>
-            <span aria-hidden="true" className="pointer-events-none text-heading-md text-foreground sm:text-heading-xl">
-              {reducedMotion ? message : <PluckedText text={message} loop strum={false} />}
+            <span className="text-heading-md text-foreground sm:text-heading-xl">
+              {message}
             </span>
           </motion.div>
         </WorkspaceBackdrop>

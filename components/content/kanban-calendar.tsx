@@ -1,25 +1,26 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { ChevronLeft, ChevronRight, Flag } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useMemo } from "react"
+import { Flag } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { COLOR_PRIORIDAD, useKanbanAcciones } from "@/components/content/kanban-meta"
 import {
-  etiquetaPrioridad, formatDiaSemana, formatFechaCorta, hoyISO, inicioSemana, ordenarTarjetas, sumarDias,
+  etiquetaPrioridad, formatDiaSemana, ordenarTarjetas, sumarDias,
   type KanbanTarjeta,
 } from "@/lib/kanban"
 
-const DIAS_SEMANA = 7
+export const DIAS_SEMANA = 7
 
 /**
  * Semana por fecha límite. En móvil los días se apilan; desde lg se ven en 7 columnas.
  * Las tarjetas sin fecha límite no aparecen aquí.
  */
-export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
+export function KanbanCalendar({ tarjetas, inicio, hoy }: {
+  tarjetas: KanbanTarjeta[]
+  inicio: string
+  hoy: string
+}) {
   const { ver } = useKanbanAcciones()
-  const hoy = hoyISO()
-  const [inicio, setInicio] = useState(() => inicioSemana(hoy))
   const dias = useMemo(() => Array.from({ length: DIAS_SEMANA }, (_, index) => sumarDias(inicio, index)), [inicio])
   const fin = dias[DIAS_SEMANA - 1]
 
@@ -31,26 +32,9 @@ export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
     }
     return mapa
   }, [tarjetas, inicio, fin])
-  const total = [...porDia.values()].reduce((sum, list) => sum + list.length, 0)
 
   return (
-    <section aria-labelledby="kanban-semana" className="grid gap-3">
-      <div className="flex items-center gap-1">
-        <Button type="button" variant="ghost" size="icon" aria-label="Semana anterior" onClick={() => setInicio(sumarDias(inicio, -DIAS_SEMANA))}>
-          <ChevronLeft aria-hidden="true" />
-        </Button>
-        <h2 id="kanban-semana" className="text-label-sm tabular-nums text-foreground">
-          {formatFechaCorta(inicio)} – {formatFechaCorta(fin)}
-          <span className="sr-only">, {total} {total === 1 ? "vencimiento" : "vencimientos"}</span>
-        </h2>
-        <Button type="button" variant="ghost" size="icon" aria-label="Semana siguiente" onClick={() => setInicio(sumarDias(inicio, DIAS_SEMANA))}>
-          <ChevronRight aria-hidden="true" />
-        </Button>
-        {inicio !== inicioSemana(hoy) && (
-          <Button type="button" variant="outline" size="sm" className="ml-auto" onClick={() => setInicio(inicioSemana(hoy))}>Hoy</Button>
-        )}
-      </div>
-
+    <section aria-labelledby="kanban-semana">
       <ol className="grid overflow-hidden rounded-xl border border-border bg-card max-lg:divide-y max-lg:divide-border lg:grid-cols-7 lg:divide-x lg:divide-border">
         {dias.map(dia => {
           const lista = porDia.get(dia) ?? []
@@ -69,11 +53,11 @@ export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
                     <li key={tarjeta.id}>
                       <button type="button" onClick={() => ver(tarjeta)}
                         className={cn(
-                          "flex w-full min-w-0 items-start gap-1.5 rounded-md border border-border px-2 py-1.5 text-left text-body-sm hover:bg-muted",
+                          "flex w-full min-w-0 items-start gap-1.5 rounded-md border border-border px-2 py-2 text-left text-body-sm transition-colors hover:bg-muted max-lg:min-h-(--control-height) max-lg:items-center",
                           "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
                           tarjeta.estado === "concluido" ? "text-muted-foreground line-through" : "text-foreground",
                         )}>
-                        <Flag className={cn("mt-0.5 size-3 shrink-0 fill-current", COLOR_PRIORIDAD[tarjeta.prioridad])} aria-hidden="true" />
+                        <Flag className={cn("mt-0.5 size-3 shrink-0 fill-current max-lg:mt-0", COLOR_PRIORIDAD[tarjeta.prioridad])} aria-hidden="true" />
                         <span className="sr-only">Prioridad {etiquetaPrioridad(tarjeta.prioridad)}: </span>
                         <span className="line-clamp-2 min-w-0 break-words">{tarjeta.titulo}</span>
                       </button>
@@ -81,7 +65,7 @@ export function KanbanCalendar({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
                   ))}
                 </ul>
               ) : (
-                <p className="text-body-sm text-muted-foreground/60"><span aria-hidden="true">—</span><span className="sr-only">Sin vencimientos</span></p>
+                <p className="text-body-sm text-muted-foreground lg:sr-only">Sin vencimientos</p>
               )}
             </li>
           )

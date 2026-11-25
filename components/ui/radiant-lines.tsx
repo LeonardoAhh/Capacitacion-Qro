@@ -213,8 +213,10 @@ export function createRadiantLines(
 
   const mqReduce = window.matchMedia("(prefers-reduced-motion: reduce)")
   // También respeta "Reducir movimiento" de la app (clase reduce-motion en <html>).
-  const onReduce = () => {
-    reduce = mqReduce.matches || document.documentElement.classList.contains("reduce-motion")
+  const onReduce = (force = false) => {
+    const nextReduce = mqReduce.matches || document.documentElement.classList.contains("reduce-motion")
+    if (!force && nextReduce === reduce) return
+    reduce = nextReduce
     if (reduce) {
       speedTarget = 0.06
       dir = -1
@@ -403,8 +405,9 @@ export function createRadiantLines(
   io.observe(canvas)
   const onVisibility = () => wake()
   document.addEventListener("visibilitychange", onVisibility)
-  onReduce()
-  mqReduce.addEventListener("change", onReduce)
+  onReduce(true)
+  const onReduceMedia = () => onReduce()
+  mqReduce.addEventListener("change", onReduceMedia)
   const syncTheme = () => {
     onReduce()
     const next = resolveDark(options.theme)
@@ -441,7 +444,7 @@ export function createRadiantLines(
       io.disconnect()
       unbindScroll()
       document.removeEventListener("visibilitychange", onVisibility)
-      mqReduce.removeEventListener("change", onReduce)
+      mqReduce.removeEventListener("change", onReduceMedia)
       unwatchTheme()
     },
   }
@@ -503,9 +506,9 @@ export function RadiantLines({
   return (
     <div
       data-slot="radiant-lines"
-      aria-hidden
+      aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute inset-0 overflow-hidden bg-background",
+        "pointer-events-none absolute inset-0 overflow-hidden bg-background print:hidden",
         className
       )}
     >

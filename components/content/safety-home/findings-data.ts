@@ -1,6 +1,15 @@
 import { supabase } from "@/lib/supabase/client"
+import { isoATexto, textoAISO } from "@/lib/fechas"
 import type { FindingPreview } from "./finding-card"
-import { FINDING_DEADLINES, MAX_FINDING_DESCRIPTION_LENGTH, MAX_FINDING_IMAGES, MAX_FINDING_TITLE_LENGTH, type FindingDeadline } from "./finding-constraints"
+import {
+  FINDING_DEADLINES,
+  isoWeek,
+  MAX_FINDING_DESCRIPTION_LENGTH,
+  MAX_FINDING_IMAGES,
+  MAX_FINDING_TITLE_LENGTH,
+  type FindingDeadline,
+  type FindingStatus,
+} from "./finding-constraints"
 import { isCompletionEvidenceFile, isFindingImageFile } from "./finding-file-types"
 
 const BUCKET = "safety-findings"
@@ -11,19 +20,16 @@ type FindingRow = {
   description: string
   department: string
   responsible: string
-  status: FindingPreview["status"]
+  status: FindingStatus
   deadline: FindingDeadline | null
   finding_date: string
   evidence_paths: string[]
   completion_evidence_paths: string[]
 }
 
-function isoWeek(dateString: string): number {
-  const date = new Date(`${dateString}T12:00:00Z`)
-  const day = date.getUTCDay() || 7
-  date.setUTCDate(date.getUTCDate() + 4 - day)
-  const first = new Date(Date.UTC(date.getUTCFullYear(), 0, 1))
-  return Math.ceil((((date.getTime() - first.getTime()) / 86400000) + 1) / 7)
+function toIsoDate(value: string): string {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  return textoAISO(value) ?? value
 }
 
 export async function loadFindings(): Promise<FindingPreview[]> {
@@ -36,14 +42,18 @@ export async function loadFindings(): Promise<FindingPreview[]> {
   return Promise.all(((data ?? []) as FindingRow[]).map(async (row) => {
     const signPath = async (path: string) => {
       const { data: signed, error: signError } = await supabase.storage.from(BUCKET).createSignedUrl(path, 3600)
-      if (signError) throw signError
+      if (signError || !signed?.signedUrl) {
+        console.warn("No se pudo firmar evidencia de Safe Walk:", path, signError)
+        return ""
+      }
       return signed.signedUrl
     }
-    const [urls, completionUrls] = await Promise.all([
+    const [rawUrls, completionUrls] = await Promise.all([
       Promise.all(row.evidence_paths.map(signPath)),
       Promise.all(row.completion_evidence_paths.map(signPath)),
     ])
-    const [year, month, day] = row.finding_date.split("-")
+    const urls = rawUrls.filter(Boolean)
+    const [year] = row.finding_date.split("-")
     return {
       id: row.id,
       week: isoWeek(row.finding_date),
@@ -52,7 +62,7 @@ export async function loadFindings(): Promise<FindingPreview[]> {
       description: row.description,
       area: row.department,
       responsible: row.responsible,
-      date: `${day}/${month}/${year}`,
+      date: isoATexto(row.finding_date),
       status: row.status,
       deadline: row.deadline,
       src: urls[0] ?? "",
@@ -69,7 +79,6 @@ export async function updateFinding(finding: FindingPreview): Promise<void> {
   if (finding.title.trim().length > MAX_FINDING_TITLE_LENGTH) throw new Error("Título demasiado largo")
   if (finding.description.length > MAX_FINDING_DESCRIPTION_LENGTH) throw new Error("Descripción demasiado larga")
   if (finding.deadline && !FINDING_DEADLINES.includes(finding.deadline)) throw new Error("Plazo no válido")
-  const [day, month, year] = finding.date.split("/")
   const { data, error } = await supabase.from("safety_findings").update({
     title: finding.title,
     description: finding.description,
@@ -77,7 +86,7 @@ export async function updateFinding(finding: FindingPreview): Promise<void> {
     responsible: finding.responsible,
     status: finding.status,
     deadline: finding.deadline,
-    finding_date: `${year}-${month}-${day}`,
+    finding_date: toIsoDate(finding.date),
   }).eq("id", finding.id).select("id").single()
   if (error || !data) throw error ?? new Error("No se pudo actualizar el hallazgo.")
 }
@@ -138,7 +147,6 @@ export async function createFinding(input: Omit<FindingPreview, "id" | "src" | "
       if (error) throw error
       paths.push(path)
     }
-    const [day, month, year] = input.date.split("/")
     const { error } = await supabase.from("safety_findings").insert({
       id: findingId,
       title: input.title,
@@ -147,7 +155,7 @@ export async function createFinding(input: Omit<FindingPreview, "id" | "src" | "
       responsible: input.responsible,
       status: input.status,
       deadline: input.deadline,
-      finding_date: `${year}-${month}-${day}`,
+      finding_date: toIsoDate(input.date),
       evidence_paths: paths,
       created_by: userData.user.id,
     })

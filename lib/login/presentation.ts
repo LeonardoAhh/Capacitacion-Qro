@@ -1,8 +1,8 @@
-/** Shared copy for the login screen and its accessible status messages. */
 export const LOGIN = {
   brandLineOne: "ViñoPlastic",
   brandLineTwo: "Querétaro",
   tagline: "Un espacio para nuestro equipo.",
+  access: "Acceder",
   title: "Inicia sesión",
   description: "Accede con tu cuenta de ViñoPlastic.",
   pageTitle: "Iniciar sesión",
@@ -18,23 +18,29 @@ export const LOGIN = {
   submitting: "Iniciando sesión…",
   success: "¡Bienvenido!",
   error: "Correo o contraseña incorrectos.",
+  networkError: "Sin conexión. Verifica tu internet e inténtalo de nuevo.",
+  rateLimitError: "Demasiados intentos. Espera un momento e inténtalo de nuevo.",
   requiredFields: "Ingresa tu correo y contraseña.",
   invalidEmail: "Ingresa un correo electrónico válido.",
   retry: "Volver a intentar",
 } as const
 
-/** Layout and typography use the system spacing scale and semantic theme tokens. */
 export const loginStyles = {
-  page: "min-h-dvh bg-background text-foreground safe-bottom-content sm:h-dvh sm:min-h-0 sm:flex-row sm:items-stretch sm:px-[var(--workspace-inset)]",
-  container: "flex min-h-dvh w-full flex-1 flex-col bg-card sm:my-[var(--workspace-inset)] sm:min-h-0 sm:rounded-xl sm:border sm:border-border md:my-0 md:rounded-none md:border-0",
-  formRegion: "flex min-h-dvh min-w-0 flex-1 items-center justify-center overflow-y-auto px-4 py-8 text-card-foreground sm:h-full sm:min-h-0 sm:px-6",
+  page: "bg-background text-foreground",
+  frame: "workspace-frame bg-card md:rounded-xl md:border md:border-border",
+  container: "flex min-h-dvh w-full flex-1 flex-col bg-card md:min-h-0",
+  promoRegion:
+    "flex min-h-dvh w-full items-center justify-center px-4 py-8 safe-top-content safe-bottom-content text-center sm:px-6 md:h-full md:min-h-0 md:py-12",
+  formRegion:
+    "flex min-h-dvh min-w-0 flex-1 items-center justify-center overflow-y-auto px-4 py-8 safe-top-content safe-bottom-content text-card-foreground sm:px-6 md:h-full md:min-h-0 md:py-8",
   form: "mx-auto flex w-full max-w-md flex-col gap-6",
-  heading: "text-heading-md font-bold leading-7 tracking-[-0.4px] text-foreground",
-  description: "text-body-md leading-relaxed text-muted-foreground",
+  heading: "text-heading-md text-foreground",
+  description: "text-body-md text-muted-foreground",
   fields: "flex flex-col gap-4",
   field: "flex flex-col gap-2",
-  input: "h-11",
-  passwordInput: "h-11 pr-12",
-  passwordToggle: "absolute inset-y-0 right-0 size-11 text-muted-foreground hover:text-foreground",
-  submit: "mt-2 h-11 w-full",
+  input: "scroll-mb-24",
+  passwordInput: "scroll-mb-24 pr-12",
+  passwordToggle:
+    "absolute right-0 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground",
+  submit: "mt-2 w-full",
 } as const

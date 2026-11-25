@@ -4,22 +4,18 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, Legend, ResponsiveContainer,
 } from "recharts"
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion"
+import { GraduationCap } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { PanelHeader } from "@/components/dashboard-panel"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { GraduationCap, Info } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
+import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader } from "@/components/dashboard-panel"
+import { useTheme } from "@/components/theme-context"
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import {
   useCapacitacionChart,
   YEARS,
   COLORS_CHART as COLORS,
 } from "@/lib/hooks/useCapacitacionChart"
-import { useTheme } from "@/components/theme-context"
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Tooltip
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface TooltipEntry {
   dataKey: string
@@ -31,82 +27,43 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   if (!active || !payload?.length) return null
   const dataPoints = payload.filter((p) => !p.dataKey.includes("_trend"))
   return (
-    <div className="min-w-[150px] rounded-md border bg-popover p-3 text-body-md shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-      <p className="font-bold text-foreground mb-2">{label}</p>
-      {dataPoints.map((p) => (
-        <div key={p.dataKey} className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="h-2 w-2 rounded-md" style={{ background: p.color }} />
-            {p.dataKey}
-          </span>
-          <span className="font-medium text-foreground">
-            {p.value} {p.value === 1 ? "curso" : "cursos"}
-          </span>
-        </div>
-      ))}
+    <div className={CHART_TOOLTIP_CLASS}>
+      <p className="mb-1.5 text-label-sm text-foreground">{label}</p>
+      <div className="space-y-1">
+        {dataPoints.map((p) => (
+          <div key={p.dataKey} className="flex items-center justify-between gap-4">
+            <span className="flex items-center gap-1.5 text-muted-foreground">
+              <span className="size-2 shrink-0 rounded-sm" style={{ background: p.color }} aria-hidden="true" />
+              {p.dataKey}
+            </span>
+            <span className="font-medium text-foreground">
+              {p.value} {p.value === 1 ? "curso" : "cursos"}
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Skeleton content-aware — líneas SVG
-// ─────────────────────────────────────────────────────────────────────────────
 
 function SkeletonContent() {
   return (
-    <div className="h-72 flex flex-col gap-3 pt-2">
-      {/* Header badges skeleton */}
-      <div className="flex gap-3">
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-5 w-16 rounded-md" />
-        ))}
-      </div>
-      {/* Line chart skeleton */}
-      <div className="flex-1 relative overflow-hidden rounded-xl bg-muted/30">
-        {/* Simulated wave lines */}
-        <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-          {[
-            { d: "M0,60 C40,40 80,80 120,55 C160,30 200,70 240,50 C280,30 320,65 360,45", delay: 0, color: "hsl(var(--chart-1))" },
-            { d: "M0,80 C40,60 80,95 120,70 C160,45 200,85 240,65 C280,50 320,80 360,60", delay: 0.1, color: "hsl(var(--chart-2))" },
-            { d: "M0,45 C40,65 80,50 120,40 C160,55 200,45 240,60 C280,40 320,55 360,42", delay: 0.2, color: "hsl(var(--chart-3))" },
-          ].map((line, i) => (
-            <motion.path
-              key={i}
-              d={line.d}
-              fill="none"
-              stroke={line.color}
-              strokeWidth={2}
-              strokeOpacity={0.25}
-              pathLength={0}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 1.2, delay: line.delay, ease: "easeInOut" }}
-            />
-          ))}
-        </svg>
-        {/* X axis skeleton */}
-        <div className="absolute bottom-2 left-2 right-2 flex justify-between gap-1">
-          {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={i} className="h-2.5 flex-1" />
-          ))}
-        </div>
-      </div>
+    <div role="status" aria-label="Cargando cursos impartidos" className="space-y-3">
+      <span className="sr-only">Cargando cursos impartidos…</span>
+      <Skeleton className="h-64 w-full rounded-xl" />
     </div>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Componente principal
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function CapacitacionChart() {
   const {
-    loading, departments, selectedDept, setSelectedDept,
-    chartData, yearTotals,
+    loading, error, departments, selectedDept, setSelectedDept,
+    chartData, yearTotals, refresh,
   } = useCapacitacionChart()
 
-  const prefersReduced = useReducedMotion()
+  const prefersReduced = useMediaQuery("(prefers-reduced-motion: reduce)")
   const { reducedMotion } = useTheme()
-  const skip = !!(prefersReduced || reducedMotion)
+  const skip = prefersReduced || reducedMotion
 
   const isEmpty = chartData.every(
     p => p["2024"] === 0 && p["2025"] === 0 && p["2026"] === 0
@@ -114,140 +71,96 @@ export default function CapacitacionChart() {
 
   return (
     <Card>
-      <PanelHeader stats={yearTotals.map(({ year, total }) => ({ color: COLORS[year], label: year, value: total }))} actions={
+      <PanelHeader
+        description="Cursos únicos por mes"
+        stats={!loading && !error && !isEmpty ? yearTotals.map(({ year, total }) => ({ color: COLORS[year], label: year, value: total })) : undefined}
+        actions={
           <Select value={selectedDept} onValueChange={setSelectedDept}>
             <SelectTrigger aria-label="Filtrar por departamento" className="w-full sm:w-auto">
-              <SelectValue placeholder="Departamentos" />
+              <SelectValue placeholder="Todos los departamentos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Departamentos</SelectItem>
+              <SelectItem value="all">Todos los departamentos</SelectItem>
               {departments.map(d => (
                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
-      } />
+        }
+      />
 
-      <CardContent>
-        <AnimatePresence mode="wait">
-          {loading ? (
-            <motion.div
-              key="skeleton"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-            >
-              <SkeletonContent />
-            </motion.div>
-          ) : isEmpty ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="flex flex-col items-center justify-center h-72 text-muted-foreground gap-2"
-            >
-              <GraduationCap className="h-10 w-10 opacity-30" />
-              <p className="text-body-md">No hay datos de historial importados aún.</p>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="content"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3 }}
-            >
-              {/* Alto por clase para que la densidad compacta lo reduzca. */}
-              <div role="img" aria-label="Capacitaciones completadas por mes y año" className="h-75 dense:h-56">
-                <ResponsiveContainer className="text-body-sm" width="100%" height="100%">
-                  <LineChart data={chartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      className="stroke-muted-foreground/15"
-                      vertical={false}
-                    />
-                    <XAxis
-                      dataKey="month"
-                      className="text-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis
-                      className="text-muted-foreground"
-                      axisLine={false}
-                      tickLine={false}
-                      allowDecimals={false}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      wrapperStyle={{ paddingTop: 8 }}
-                      content={() => {
-                        const items = [
-                          ...YEARS.map(y => ({ value: y as string, color: COLORS[y] })),
-                          { value: "Tendencia", color: "hsl(var(--muted-foreground))" },
-                        ]
-                        return (
-                          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", paddingTop: 8 }}>
-                            {items.map(item => (
-                              <span key={item.value} style={{ color: item.color, display: "flex", alignItems: "center", gap: 4 }}>
-                                <svg width="12" height="2" style={{ display: "inline" }}><line x1="0" y1="1" x2="12" y2="1" stroke={item.color} strokeWidth="2" /></svg>
-                                {item.value}
-                              </span>
-                            ))}
-                          </div>
-                        )
-                      }}
-                    />
+      <CardContent className="p-(--card-padding) pt-0">
+        {loading ? (
+          <SkeletonContent />
+        ) : error ? (
+          <PanelError message={error} onRetry={refresh} />
+        ) : isEmpty ? (
+          <PanelEmpty
+            icon={<GraduationCap className="size-6 text-muted-foreground" aria-hidden="true" />}
+            title="Sin historial de cursos."
+          />
+        ) : (
+          <div role="img" aria-label="Cursos únicos impartidos por mes y año" className="h-75 dense:h-56">
+            <ResponsiveContainer className="text-body-sm" width="100%" height="100%">
+              <LineChart data={chartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/15" vertical={false} />
+                <XAxis dataKey="month" className="text-muted-foreground" axisLine={false} tickLine={false} />
+                <YAxis className="text-muted-foreground" axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend
+                  wrapperStyle={{ paddingTop: 8 }}
+                  content={() => (
+                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 text-body-sm text-muted-foreground">
+                      {YEARS.map(year => (
+                        <span key={year} className="flex items-center gap-1.5 tabular-nums">
+                          <span className="h-0.5 w-3 shrink-0" style={{ background: COLORS[year] }} aria-hidden="true" />
+                          {year}
+                        </span>
+                      ))}
+                      <span className="flex items-center gap-1.5">
+                        <span className="w-3 shrink-0 border-t border-dashed border-muted-foreground" aria-hidden="true" />
+                        Tendencia
+                      </span>
+                    </div>
+                  )}
+                />
 
-                    {/* Líneas principales con animación draw */}
-                    {YEARS.map(year => (
-                      <Line
-                        key={year}
-                        type="monotone"
-                        dataKey={year}
-                        stroke={COLORS[year]}
-                        strokeWidth={2}
-                        dot={{ r: 3.5, fill: COLORS[year], strokeWidth: 0 }}
-                        activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--background))" }}
-                        connectNulls
-                        animationDuration={skip ? 0 : 1200}
-                        animationEasing="ease-in-out"
-                      />
-                    ))}
+                {YEARS.map(year => (
+                  <Line
+                    key={year}
+                    type="monotone"
+                    dataKey={year}
+                    stroke={COLORS[year]}
+                    strokeWidth={2}
+                    dot={{ r: 3.5, fill: COLORS[year], strokeWidth: 0 }}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--background))" }}
+                    connectNulls
+                    isAnimationActive={!skip}
+                    animationDuration={skip ? 0 : 700}
+                    animationEasing="ease-in-out"
+                  />
+                ))}
 
-                    {/* Líneas de tendencia (dashed) */}
-                    {YEARS.map(year => (
-                      <Line
-                        key={`${year}_trend`}
-                        type="linear"
-                        dataKey={`${year}_trend`}
-                        stroke={COLORS[year]}
-                        strokeWidth={1.5}
-                        strokeDasharray="5 4"
-                        dot={false}
-                        activeDot={false}
-                        legendType="none"
-                        animationDuration={skip ? 0 : 1400}
-                        animationEasing="ease-in-out"
-                      />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Nota al pie */}
-              <div className="flex items-start gap-1.5 mt-3 text-body-sm text-muted-foreground">
-                <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span>
-                  Solo se cuentan cursos únicos por mes (un curso solo se cuenta una vez por mes aunque se haya impartido varias veces)
-                </span>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+                {YEARS.map(year => (
+                  <Line
+                    key={`${year}_trend`}
+                    type="linear"
+                    dataKey={`${year}_trend`}
+                    stroke={COLORS[year]}
+                    strokeWidth={1.5}
+                    strokeDasharray="5 4"
+                    dot={false}
+                    activeDot={false}
+                    legendType="none"
+                    isAnimationActive={!skip}
+                    animationDuration={skip ? 0 : 900}
+                    animationEasing="ease-in-out"
+                  />
+                ))}
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

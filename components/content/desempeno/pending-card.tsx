@@ -14,7 +14,7 @@ const cardVariants: Record<CardVariant, string> = {
 };
 
 const statusTones: Record<StatusTone, string> = {
-  success: "border-success/20 bg-success/10 text-success",
+  success: "border-chart-1/30 bg-chart-1/15 text-chart-1-deep",
   warning: "border-warning/30 bg-warning/10 text-warning-deep",
   muted: "border-border bg-muted text-muted-foreground",
   destructive: "border-destructive/20 bg-destructive/10 text-destructive",
@@ -56,11 +56,11 @@ export function PendingCardFields({
   status: ReactNode;
 }) {
   return <>
-    <span className="min-w-0 text-body-sm leading-4 tabular-nums text-muted-foreground">#{number ?? "—"}</span>
+    <span className="min-w-0 text-body-sm tabular-nums text-muted-foreground">{number ? `#${number}` : "Sin número"}</span>
     {status}
     <span className="col-span-2 min-w-0">
-      <span className="block break-words text-body-md font-medium leading-5 text-foreground">{name}</span>
-      {detail && <span className="block break-words text-body-sm leading-4 text-muted-foreground">{detail}</span>}
+      <span className="block break-words text-label-sm text-foreground">{name}</span>
+      {detail && <span className="block break-words text-body-sm text-muted-foreground">{detail}</span>}
     </span>
   </>;
 }
@@ -75,7 +75,7 @@ export function PendingCardStatus({
   children: ReactNode;
 }) {
   return <span className={cn(
-    "inline-flex min-h-6 min-w-20 items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 text-body-sm font-medium leading-4",
+    "inline-flex min-h-6 min-w-20 items-center justify-center gap-1 whitespace-nowrap rounded-md border px-2 text-body-sm font-medium",
     statusTones[tone],
   )}>
     {icon}

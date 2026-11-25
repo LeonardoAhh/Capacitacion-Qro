@@ -14,8 +14,6 @@ import RgCumplimientoChart from "@/components/rg-cumplimiento-chart"
 import CapacitacionChart from "@/components/capacitacion-chart"
 import TrainingHoursKPI from "@/components/training-hours-kpi"
 
-// ─── Dashboard Content ────────────────────────────────────────────────────────
-
 /** Apartados de Inicio: uno a la vez, elegidos en la barra lateral interna. */
 const SECCIONES = [
     { id: "horas", label: "Horas de capacitación", icon: Clock, Panel: TrainingHoursKPI },
@@ -43,24 +41,22 @@ function DashboardContent() {
                 </Button>
             </>} />
 
-            <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[14rem_minmax(0,1fr)]">
-                <aside className="min-w-0 md:sticky md:top-0">
+            <div className="grid items-start gap-6 dense:gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
+                <aside className="min-w-0 lg:sticky lg:top-0">
                     <Select value={activa} onValueChange={value => setActiva(value as SeccionId)}>
-                        <SelectTrigger aria-label="Apartado" className="w-full md:hidden"><SelectValue /></SelectTrigger>
+                        <SelectTrigger aria-label="Apartado" className="w-full lg:hidden"><SelectValue /></SelectTrigger>
                         <SelectContent>
                             {SECCIONES.map(item => <SelectItem key={item.id} value={item.id}>{item.label}</SelectItem>)}
                         </SelectContent>
                     </Select>
-                    <nav aria-label="Apartados de inicio" className="hidden md:block">
+                    <nav aria-label="Apartados de inicio" className="hidden lg:block">
                         <ul className="space-y-0.5">
                             {SECCIONES.map(({ id, label, icon: Icon }) => {
                                 const current = id === activa
                                 return (
                                     <li key={id}>
                                         <button type="button" aria-current={current || undefined} onClick={() => setActiva(id)}
-                                            // Mismo trato que la barra lateral: la activa es una tarjeta elevada (blanca, borde
-                                            // y sombra suave) con el ícono en primario; el hover, blanco y plano.
-                                            className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                                            className={cn("flex min-h-(--control-height) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
                                                 current ? "border-sidebar-border bg-sidebar-active text-label-sm text-foreground shadow-(--sidebar-active-shadow)" : "text-muted-foreground hover:bg-card hover:text-foreground")}>
                                             <Icon className={cn("size-4 shrink-0", current && "text-primary")} aria-hidden="true" />
                                             <span className="min-w-0 truncate">{label}</span>
@@ -72,7 +68,6 @@ function DashboardContent() {
                     </nav>
                 </aside>
 
-                {/* El nombre del apartado lo da la barra lateral; aquí queda para lectores de pantalla. */}
                 <section aria-labelledby="inicio-apartado" className="min-w-0">
                     <h2 id="inicio-apartado" className="sr-only">{seccion.label}</h2>
                     <Panel />
@@ -81,8 +76,6 @@ function DashboardContent() {
         </div>
     )
 }
-
-// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function DashboardHome() {
     return (

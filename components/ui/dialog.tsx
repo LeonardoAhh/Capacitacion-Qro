@@ -37,7 +37,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "fixed inset-x-0 bottom-0 top-auto z-50 flex w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden ui-floating-surface rounded-t-xl",
+          "fixed inset-x-0 bottom-0 top-auto z-50 flex w-full max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden ui-floating-surface rounded-t-xl rounded-b-none",
           "max-h-[85dvh]",
           "sm:inset-x-auto sm:bottom-auto sm:left-1/2 sm:top-1/2 sm:w-[calc(100vw-2rem)] sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-xl sm:max-h-[80dvh]",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
@@ -66,7 +66,7 @@ const DialogContent = React.forwardRef<
 
             {/* Botón cerrar */}
             {!hideClose && (
-              <DialogPrimitive.Close className="absolute right-2 top-2 z-50 flex size-11 items-center justify-center rounded-md bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none">
+              <DialogPrimitive.Close className="absolute right-2 top-2 z-50 touch-target flex size-(--control-height) items-center justify-center rounded-md bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none">
                 <X className="size-4" aria-hidden="true" />
                 <span className="sr-only">Cerrar</span>
               </DialogPrimitive.Close>

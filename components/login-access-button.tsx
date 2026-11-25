@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { MorphIcon } from "morphicons/react"
 import { useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
+import { LOGIN } from "@/lib/login/presentation"
 
 interface LoginAccessButtonProps {
   onContinue: () => void
@@ -30,7 +31,7 @@ export default function LoginAccessButton({ onContinue }: LoginAccessButtonProps
         whileTap={reducedMotion ? undefined : { scale: 0.98, y: 0 }}
         transition={{ type: "spring", stiffness: 400, damping: 26 }}
       >
-        <span>Acceder</span>
+        <span>{LOGIN.access}</span>
         <motion.span
           aria-hidden="true"
           className="flex size-7 items-center justify-center"

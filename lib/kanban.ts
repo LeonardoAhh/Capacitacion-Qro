@@ -138,9 +138,9 @@ export function formatFechaHora(iso: string): string {
 }
 
 
-/** Rango legible: "18 nov – 22 nov", "Desde 18 nov", "Vence 22 nov". */
+/** Rango legible: "18 nov a 22 nov", "Desde 18 nov", "Vence 22 nov". */
 export function formatRango(inicio: string | null, limite: string | null): string | null {
-  if (inicio && limite) return inicio === limite ? formatFechaCorta(limite) : `${formatFechaCorta(inicio)} – ${formatFechaCorta(limite)}`
+  if (inicio && limite) return inicio === limite ? formatFechaCorta(limite) : `${formatFechaCorta(inicio)} a ${formatFechaCorta(limite)}`
   if (limite) return `Vence ${formatFechaCorta(limite)}`
   if (inicio) return `Desde ${formatFechaCorta(inicio)}`
   return null
@@ -235,8 +235,6 @@ export function validarTarjeta(datos: DatosTarjeta): string | null {
   return validarContenido(datos) ?? validarSeguimiento(datos)
 }
 
-// ─── Equipo: participación, carga e indicadores ───────────────────────────────
-
 /** Responsable o colaborador de la tarjeta. */
 export function participa(tarjeta: Pick<KanbanTarjeta, "responsable_id" | "colaboradores">, userId: string): boolean {
   return tarjeta.responsable_id === userId || tarjeta.colaboradores.includes(userId)
@@ -296,9 +294,7 @@ export function indicadoresEquipo(tarjetas: KanbanTarjeta[], ahora = Date.now())
   }
 }
 
-// ─── Fechas de calendario ─────────────────────────────────────────────────────
-
-/** Marca de tiempo → fecha local YYYY-MM-DD. */
+/** Marca de tiempo a fecha local YYYY-MM-DD. */
 export function fechaLocal(iso: string): string {
   return aISO(new Date(iso))
 }
@@ -311,8 +307,6 @@ export function formatDiaSemana(iso: string): string {
   return DIA_SEMANA.format(new Date(year, month - 1, day)).replace(".", "")
 }
 
-// ─── Notas (apoyo / bloqueo) y plantillas ────────────────────────────────────
-
 /** Nota breve ya normalizada; vacía = null. */
 export function normalizarNota(texto: string): string | null {
   const limpio = normalizarTexto(texto)
@@ -323,8 +317,6 @@ export function plantillaDesdeTarjeta(tarjeta: KanbanTarjeta, nombre: string): D
   const { tipo, prioridad, titulo, descripcion, repeticion } = tarjeta
   return { nombre: normalizarTexto(nombre), tipo, prioridad, titulo, descripcion, repeticion }
 }
-
-// ─── Checklist, comentarios y avisos ─────────────────────────────────────────
 
 export interface KanbanPaso {
   id: string
@@ -380,7 +372,9 @@ const TIEMPO_RELATIVO = new Intl.RelativeTimeFormat("es-MX", { numeric: "auto" }
 
 /** "hace 5 minutos", "ayer". */
 export function formatHace(iso: string, ahora = Date.now()): string {
-  const minutos = Math.round((new Date(iso).getTime() - ahora) / 60_000)
+  const ms = new Date(iso).getTime()
+  if (Number.isNaN(ms)) return ""
+  const minutos = Math.round((ms - ahora) / 60_000)
   if (Math.abs(minutos) < 60) return TIEMPO_RELATIVO.format(minutos, "minute")
   const horas = Math.round(minutos / 60)
   if (Math.abs(horas) < 24) return TIEMPO_RELATIVO.format(horas, "hour")
@@ -395,8 +389,6 @@ export function porVencer<T extends Pick<KanbanTarjeta, "estado" | "fecha_limite
   return tarjetas.filter(tarjeta => tarjeta.estado !== "concluido" && participa(tarjeta, userId)
     && tarjeta.fecha_limite !== null && tarjeta.fecha_limite >= hoy && tarjeta.fecha_limite <= manana)
 }
-
-// ─── Crear tarjetas desde otros módulos ──────────────────────────────────────
 
 export type TarjetaDesde = Pick<DatosTarjeta, "titulo" | "descripcion" | "fecha_inicio" | "fecha_limite">
 

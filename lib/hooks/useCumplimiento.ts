@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { fetchAllRows } from "@/lib/supabase/fetchAll"
-import { notify } from "@/lib/notify"
-
-// ─── Types ──────────────────────────────────────────────────────────────────
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface DeptCumplimiento {
   departamento: string
@@ -29,8 +27,6 @@ interface ComplianceSourceData {
   employeeCourses: EmployeeCourseRow[]
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
 export const META = 80
 const APROBADO_MIN = 7
 
@@ -40,16 +36,21 @@ export function colorPct(pct: number): string {
   return "hsl(var(--destructive))"
 }
 
+export function textColorPct(pct: number): string {
+  if (pct >= META) return "text-chart-1-deep"
+  if (pct >= 50) return "text-warning-deep"
+  return "text-destructive"
+}
+
 export const COLORS_CUMPLIMIENTO = {
-  aprobado:  "hsl(var(--chart-1))",
+  aprobado: "hsl(var(--chart-1))",
   reprobado: "hsl(var(--destructive))",
   pendiente: "hsl(var(--chart-3))",
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
 export function useCumplimiento() {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [departments, setDepartments] = useState<DepartmentRow[]>([])
   const [totalAsignados, setTotalAsignados] = useState(0)
   const [totalAprobados, setTotalAprobados] = useState(0)
@@ -59,9 +60,18 @@ export function useCumplimiento() {
   const [totalEmpleadosConPuesto, setTotalEmpleadosConPuesto] = useState(0)
   const [deptData, setDeptData] = useState<DeptCumplimiento[]>([])
   const [sourceData, setSourceData] = useState<ComplianceSourceData | null>(null)
+  const requestIdRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const cargar = useCallback(async () => {
+    const currentRequest = ++requestIdRef.current
     setLoading(true)
+    setError(null)
     try {
       const [depts, positions, posCourses, employees, empCourses] =
         await Promise.all([
@@ -72,6 +82,7 @@ export function useCumplimiento() {
           fetchAllRows<EmployeeCourseRow>("employee_courses", "employee_id, course_id, calificacion"),
         ])
 
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       setDepartments(depts.sort((a, b) => a.name.localeCompare(b.name)))
 
       const deptNameToId = new Map<string, string>()
@@ -148,17 +159,20 @@ export function useCumplimiento() {
 
       setDeptData(deptArr)
     } catch (err) {
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       console.error("Cumplimiento error:", err instanceof Error ? err.message : JSON.stringify(err))
-      notify.error("Error al cargar cumplimiento")
+      setError(describeSupabaseError(err, "No se pudo cargar el cumplimiento"))
     } finally {
-      setLoading(false)
+      if (mountedRef.current && currentRequest === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
-  useEffect(() => { cargar() }, [cargar])
+  useEffect(() => { void cargar() }, [cargar])
 
   return {
-    loading, departments, deptData,
+    loading, error, departments, deptData,
     totalAsignados, totalAprobados, totalReprobados, totalPendientes,
     totalEmpleados, totalEmpleadosConPuesto,
     sourceData, cargar,

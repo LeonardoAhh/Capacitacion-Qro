@@ -2,18 +2,19 @@
 
 import { createContext, useContext } from "react"
 import {
-  BellRing, CalendarDays, CircleSlash, Copy, EllipsisVertical, Flag, HandHelping, LayoutTemplate, ListChecks, ListTodo,
-  MessageSquare, Pencil, Sun, SunDim, Trash2, UserPlus,
+  ArrowRightLeft, BellRing, CalendarDays, CircleSlash, Copy, EllipsisVertical, Flag, HandHelping, LayoutTemplate,
+  ListChecks, ListTodo, MessageSquare, Pencil, Sun, SunDim, Trash2, UserPlus,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuSub,
+  DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import {
-  estaVencida, etiquetaPrioridad, etiquetaTipo, formatRango, inicial, participa,
-  type KanbanMiembro, type KanbanPrioridad, type KanbanTarjeta, type KanbanTipo,
+  estaVencida, etiquetaPrioridad, etiquetaTipo, formatRango, inicial, KANBAN_COLUMNAS, participa,
+  type KanbanEstado, type KanbanMiembro, type KanbanPrioridad, type KanbanTarjeta, type KanbanTipo,
 } from "@/lib/kanban"
 
 /** Piezas compartidas por la vista de tablero y la de lista. */
@@ -22,7 +23,7 @@ import {
 export const COLOR_PRIORIDAD: Record<KanbanPrioridad, string> = {
   alta: "text-destructive",
   media: "text-warning-deep",
-  baja: "text-success",
+  baja: "text-chart-1-deep",
 }
 
 const TIPO_ICON: Record<KanbanTipo, typeof ListTodo> = {
@@ -141,7 +142,7 @@ export function KanbanResumen({ resumen }: { resumen?: ResumenTarjeta }) {
   return (
     <span className="flex shrink-0 items-center gap-2 text-body-sm tabular-nums text-muted-foreground">
       {resumen.pasos > 0 && (
-        <span className={cn("flex items-center gap-1", completo && "text-success")}>
+        <span className={cn("flex items-center gap-1", completo && "text-chart-1-deep")}>
           <ListChecks className="size-3.5" aria-hidden="true" />
           {resumen.hechos}/{resumen.pasos}<span className="sr-only"> pasos hechos</span>
         </span>
@@ -163,6 +164,7 @@ export interface KanbanAcciones {
   resumenes: Map<string, ResumenTarjeta>
   /** Abre el detalle (checklist y comentarios). */
   ver: (tarjeta: KanbanTarjeta) => void
+  mover: (tarjeta: KanbanTarjeta, estado: KanbanEstado) => void
   editar: (tarjeta: KanbanTarjeta) => void
   duplicar: (tarjeta: KanbanTarjeta) => void
   guardarPlantilla: (tarjeta: KanbanTarjeta) => void
@@ -200,6 +202,16 @@ export function KanbanTarjetaMenu({ tarjeta, className }: { tarjeta: KanbanTarje
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={() => acciones.editar(tarjeta)}><Pencil aria-hidden="true" />Editar</DropdownMenuItem>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger><ArrowRightLeft aria-hidden="true" />Mover a</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            {KANBAN_COLUMNAS.filter(columna => columna.estado !== tarjeta.estado).map(columna => (
+              <DropdownMenuItem key={columna.estado} onSelect={() => acciones.mover(tarjeta, columna.estado)}>
+                {columna.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuItem onSelect={() => acciones.duplicar(tarjeta)}><Copy aria-hidden="true" />Duplicar</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => acciones.guardarPlantilla(tarjeta)}>
           <LayoutTemplate aria-hidden="true" />Guardar como plantilla

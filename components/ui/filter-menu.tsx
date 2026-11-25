@@ -36,7 +36,7 @@ export function FilterMenu({ facets, onClear }: {
           <ListFilter aria-hidden="true" />
           Filtros
           {active.length > 0 && (
-            <span className="grid min-w-5 place-items-center rounded-full bg-primary px-1 text-eyebrow tabular-nums text-primary-foreground" aria-hidden="true">
+            <span className="grid min-w-5 place-items-center rounded-sm bg-primary px-1 text-eyebrow tabular-nums text-primary-foreground" aria-hidden="true">
               {active.length}
             </span>
           )}

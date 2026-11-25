@@ -32,7 +32,7 @@ export function WorkspaceClock() {
       aria-label={`${date}, ${time}`}
       className="flex shrink-0 items-center gap-2 text-body-sm text-muted-foreground"
     >
-      <span>{shortDateFormatter.format(now)}</span>
+      <span>{date}</span>
       <span aria-hidden="true">·</span>
       <span className="tabular-nums">{time}</span>
     </time>

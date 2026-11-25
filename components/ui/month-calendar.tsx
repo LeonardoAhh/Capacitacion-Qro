@@ -156,8 +156,8 @@ export function MonthCalendar({ month, onMonthChange, selected, onSelect, onActi
                       elegido && "bg-primary/5 ring-1 ring-inset ring-primary/40",
                     )}>
                     <span className={cn(
-                      "grid size-6 shrink-0 place-items-center rounded-full text-label-sm tabular-nums md:size-7",
-                      esHoy ? "bg-primary text-primary-foreground" : fueraDeMes ? "text-muted-foreground/60" : "text-foreground",
+                      "grid size-6 shrink-0 place-items-center rounded-md text-label-sm tabular-nums md:size-7",
+                      esHoy ? "bg-primary text-primary-foreground" : fueraDeMes ? "text-muted-foreground" : "text-foreground",
                     )}>
                       {deISO(date).getDate()}
                     </span>
@@ -166,7 +166,7 @@ export function MonthCalendar({ month, onMonthChange, selected, onSelect, onActi
                       <span aria-hidden="true" className={cn("flex items-center gap-0.5 md:gap-1", markersOnly ? "md:min-h-7" : "md:hidden")}>
                         {delDia.slice(0, MARCADORES_VISIBLES).map(event => event.icon
                           ? <event.icon key={event.id} className={cn("size-3.5 shrink-0 md:size-4", event.tone ?? "text-primary")} />
-                          : <span key={event.id} className={cn("size-1.5 rounded-full md:size-2", event.tone ?? "bg-primary")} />)}
+                          : <span key={event.id} className={cn("size-1.5 rounded-sm md:size-2", event.tone ?? "bg-primary")} />)}
                         {delDia.length > MARCADORES_VISIBLES && <span className="text-body-sm text-muted-foreground">+{delDia.length - MARCADORES_VISIBLES}</span>}
                       </span>
                     )}

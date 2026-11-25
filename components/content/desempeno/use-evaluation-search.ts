@@ -54,12 +54,14 @@ export function useEvaluationSearch() {
   const [pendingDraft, setPendingDraft] = useState<EvaluationDraft | null>(null);
   const {
     loading: pendingLoading,
+    error: pendingError,
+    cargar: recargarPendientes,
     deptGroups,
     totalEvals,
     totalVencidas,
     totalProximas,
     totalATiempo
-  } = usePendingEvals();
+  } = usePendingEvals(undefined, true, { silent: true });
   // La práctica se abre a petición (botón Guía o aviso de práctica); nunca bloquea la página.
   const [guiaOpen, setGuiaOpen] = useState(false);
   const [modoEdicion, setModoEdicion] = useState(false);
@@ -310,7 +312,7 @@ export function useEvaluationSearch() {
     }
   };
 
-  // Se "ensucia" al editar o cargar otro empleado → deshabilita imprimir.
+  // Al editar o cargar otro empleado se deshabilita imprimir hasta volver a guardar.
   useEffect(() => {
     if (!data) {
       savedSnapshotRef.current = null;
@@ -362,6 +364,8 @@ export function useEvaluationSearch() {
     canEdit,
     deptGroups,
     pendingLoading,
+    pendingError,
+    recargarPendientes,
     totalEvals,
     totalVencidas,
     totalProximas,

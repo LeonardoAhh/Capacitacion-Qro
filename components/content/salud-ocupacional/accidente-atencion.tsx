@@ -8,7 +8,7 @@ import type { FormularioAccidente } from "./accidente-form"
 type Cambiar = <K extends keyof FormularioAccidente>(key: K, value: FormularioAccidente[K]) => void
 
 const GOCE = [{ value: "si", label: "Con goce" }, { value: "no", label: "Sin goce" }] as const
-const CASILLA = "flex min-h-9 cursor-pointer items-center gap-3 text-body-md text-foreground"
+const CASILLA = "flex min-h-(--control-height) cursor-pointer items-center gap-3 text-body-md text-foreground"
 
 /** Detalle que se abre al marcar una atención: reposo del servicio médico o pasos de clínica e IMSS. */
 function DetalleAtencion({ atencion, form, cambiar }: { atencion: AtencionAccidente; form: FormularioAccidente; cambiar: Cambiar }) {
@@ -48,12 +48,12 @@ export function AccidenteAtencion({ form, cambiar }: { form: FormularioAccidente
           const marcada = form.atenciones.includes(atencion.value)
           return (
             <div key={atencion.value} className={cn("rounded-md border", marcada ? "border-primary" : "border-border")}>
-              <label className="flex min-h-11 cursor-pointer items-center gap-3 rounded-md px-3 text-body-md text-foreground hover:bg-muted">
+              <label className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md px-3 text-body-md text-foreground hover:bg-muted">
                 <Checkbox id={`accidente-atencion-${index}`} checked={marcada}
                   onCheckedChange={checked => cambiar("atenciones", checked === true
                     ? [...form.atenciones, atencion.value]
                     : form.atenciones.filter(item => item !== atencion.value))} />
-                <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", atencion.dot)} />
+                <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-sm", atencion.dot)} />
                 <span className="min-w-0">{atencion.label}</span>
               </label>
               {marcada && (

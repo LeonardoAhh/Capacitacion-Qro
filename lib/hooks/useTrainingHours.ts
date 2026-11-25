@@ -1,10 +1,8 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
-import { notify } from "@/lib/notify"
-
-// ─── Tipos ─────────────────────────────────────────────────────────────────
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface TrainingHoursMonthStat {
   month: number
@@ -24,6 +22,7 @@ export interface TrainingHoursYearStat {
 
 export interface TrainingHoursStats {
   loading: boolean
+  error: string | null
   years: TrainingHoursYearStat[]
   totalCoursesInCatalog: number
   coursesWithDurationCount: number
@@ -34,18 +33,28 @@ const PAGE_SIZE = 1000
 
 export function useTrainingHours(): TrainingHoursStats {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [years, setYears] = useState<TrainingHoursYearStat[]>([])
   const [totalCoursesInCatalog, setTotalCoursesInCatalog] = useState(0)
   const [coursesWithDurationCount, setCoursesWithDurationCount] = useState(0)
+  const requestIdRef = useRef(0)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
 
   const load = useCallback(async () => {
+    const currentRequest = ++requestIdRef.current
     setLoading(true)
+    setError(null)
     try {
       const currentYear = new Date().getFullYear()
       const { data: coursesData, error: coursesError } = await supabase
         .from("courses")
         .select("id, duration_hours, tipo")
-      if (coursesError) throw new Error(coursesError.message)
+      if (coursesError) throw coursesError
 
       const allCourses = coursesData ?? []
       const durationMap = new Map<string, number>()
@@ -56,6 +65,7 @@ export function useTrainingHours(): TrainingHoursStats {
           if (c.tipo) courseTypeMap.set(c.id as string, c.tipo as string)
         }
       }
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       setTotalCoursesInCatalog(allCourses.length)
       setCoursesWithDurationCount(durationMap.size)
 
@@ -69,7 +79,7 @@ export function useTrainingHours(): TrainingHoursStats {
       let from = 0
       let hasMore = true
       while (hasMore) {
-        const { data, error } = await supabase
+        const { data, error: rowsError } = await supabase
           .from("employee_courses")
           .select("employee_id, course_id, fecha_aplicacion")
           .in("course_id", courseIds)
@@ -77,7 +87,7 @@ export function useTrainingHours(): TrainingHoursStats {
           .gte("fecha_aplicacion", `${currentYear - 2}-01-01`)
           .lt("fecha_aplicacion", `${currentYear + 1}-01-01`)
           .range(from, from + PAGE_SIZE - 1)
-        if (error) throw new Error(error.message)
+        if (rowsError) throw rowsError
         const rows = (data ?? []) as { employee_id: string; course_id: string | null; fecha_aplicacion: string | null }[]
         allRows = allRows.concat(
           rows
@@ -116,21 +126,21 @@ export function useTrainingHours(): TrainingHoursStats {
         .map(([year, g]) => {
           const months: TrainingHoursMonthStat[] = []
           for (let m = 1; m <= 12; m++) {
-             const monthCourseSet = g.monthCourses.get(m)
-             let indCount = 0
-             if (monthCourseSet) {
-               for (const cid of monthCourseSet) {
-                 const t = courseTypeMap.get(cid)
-                 if (t && t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("induccion")) {
-                   indCount++
-                 }
-               }
-             }
-             months.push({ 
-               month: m, 
-               uniqueCourses: monthCourseSet?.size ?? 0,
-               inductionCourses: indCount
-             })
+            const monthCourseSet = g.monthCourses.get(m)
+            let indCount = 0
+            if (monthCourseSet) {
+              for (const cid of monthCourseSet) {
+                const t = courseTypeMap.get(cid)
+                if (t && t.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes("induccion")) {
+                  indCount++
+                }
+              }
+            }
+            months.push({
+              month: m,
+              uniqueCourses: monthCourseSet?.size ?? 0,
+              inductionCourses: indCount,
+            })
           }
 
           return {
@@ -145,19 +155,24 @@ export function useTrainingHours(): TrainingHoursStats {
         })
         .sort((a, b) => a.year.localeCompare(b.year))
 
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       setYears(stats)
     } catch (err) {
+      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
       console.error("training hours error:", err instanceof Error ? err.message : JSON.stringify(err))
-      notify.error("Error al cargar horas de capacitación")
+      setError(describeSupabaseError(err, "No se pudieron cargar las horas de capacitación"))
     } finally {
-      setLoading(false)
+      if (mountedRef.current && currentRequest === requestIdRef.current) {
+        setLoading(false)
+      }
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
+  useEffect(() => { void load() }, [load])
 
   return {
     loading,
+    error,
     years,
     totalCoursesInCatalog,
     coursesWithDurationCount,

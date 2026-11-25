@@ -6,7 +6,7 @@ import { AnimatePresence } from "framer-motion"
 import { AppTransition } from "@/components/app-transition"
 
 /** Tiempo mínimo en pantalla: evita un parpadeo cuando la página nueva carga al instante. */
-const MIN_VISIBLE_MS = 900
+const MIN_VISIBLE_MS = 450
 /** Si la navegación no llega (p. ej. ruta sin permiso), la capa se retira de todos modos. */
 const MAX_VISIBLE_MS = 6000
 
@@ -42,7 +42,13 @@ export function WorkspaceSwitchProvider({ children }: { children: ReactNode }) {
     <WorkspaceSwitchContext.Provider value={start}>
       {children}
       <AnimatePresence>
-        {destino && <AppTransition key="workspace-switch" mode="overlay" message={`Switching workspace…`} />}
+        {destino && (
+          <AppTransition
+            key="workspace-switch"
+            mode="overlay"
+            message={destino.label ? `Entrando a ${destino.label}…` : "Cambiando de espacio…"}
+          />
+        )}
       </AnimatePresence>
     </WorkspaceSwitchContext.Provider>
   )

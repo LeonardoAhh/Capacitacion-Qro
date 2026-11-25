@@ -2,7 +2,7 @@
 
 import { BellRing, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import type { KanbanPushState } from "@/lib/kanban-push"
+import type { KanbanPushHookState } from "@/lib/hooks/useKanbanPush"
 
 const HINT = "border-t border-border px-3 py-2 text-body-sm text-muted-foreground"
 
@@ -11,7 +11,7 @@ const HINT = "border-t border-border px-3 py-2 text-body-sm text-muted-foregroun
  * dispositivo; una vez activas, se desactivan desde el encabezado del panel.
  */
 export function KanbanPushControl({ state, onActivate }: {
-  state: KanbanPushState | "checking" | "saving"
+  state: KanbanPushHookState
   onActivate: () => void
 }) {
   if (state === "needs-install") {
@@ -20,17 +20,23 @@ export function KanbanPushControl({ state, onActivate }: {
   if (state === "denied") {
     return <p className={HINT}>Notificaciones bloqueadas. Permítelas en la configuración del navegador.</p>
   }
-  if (state !== "inactive" && state !== "saving") return null
+  if (state !== "inactive" && state !== "activating") return null
 
-  const saving = state === "saving"
+  const activating = state === "activating"
   return (
     <div className="border-t border-border">
-      <Button type="button" variant="ghost" className="w-full justify-start rounded-none px-3 text-body-sm text-foreground"
-        disabled={saving} aria-busy={saving || undefined} onClick={onActivate}>
-        {saving
+      <Button
+        type="button"
+        variant="ghost"
+        className="w-full justify-start rounded-none px-3 text-body-sm text-foreground focus-visible:-outline-offset-2"
+        disabled={activating}
+        aria-busy={activating || undefined}
+        onClick={onActivate}
+      >
+        {activating
           ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
           : <BellRing aria-hidden="true" />}
-        {saving ? "Activando…" : "Activar notificaciones en este dispositivo"}
+        {activating ? "Activando…" : "Activar notificaciones en este dispositivo"}
       </Button>
     </div>
   )

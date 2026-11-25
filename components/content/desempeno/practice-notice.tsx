@@ -24,7 +24,7 @@ export function PracticeNotice({ onPractice }: { onPractice: () => void }) {
       <GraduationCap className="size-5 shrink-0 text-primary" aria-hidden="true" />
       <div className="grid min-w-0 flex-1 gap-1">
         <h2 id="practice-notice-title" className="text-label-sm text-foreground">¿Primera vez evaluando?</h2>
-        <p className="text-body-sm text-muted-foreground">Practica con un ejemplo de datos ficticios; nada se guarda ni se imprime.</p>
+        <p className="text-body-sm text-muted-foreground">Prueba con un ejemplo ficticio sin guardar datos.</p>
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <Button type="button" size="sm" onClick={() => { markSeen(); onPractice() }}>Practicar</Button>

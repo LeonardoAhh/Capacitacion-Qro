@@ -1,8 +1,7 @@
 /**
  * Densidad de la barra lateral y de sus menús (cuenta, espacio de trabajo).
- * En celular se usa con el dedo: filas de 44px. Desde md las filas son compactas
- * para que en las pantallas chicas de planta la navegación quepa sin scroll;
- * el texto se mantiene en 14px para leerse bien.
+ * En celular filas de 44px; desde md filas compactas de 32px para pantallas de planta,
+ * manteniendo texto en body-md (15px).
  */
 export const SIDEBAR_ROW = "min-h-11 gap-3 px-3 text-body-md md:min-h-8 md:gap-2 md:px-2"
 export const SIDEBAR_ICON_BOX = "size-6 md:size-4"

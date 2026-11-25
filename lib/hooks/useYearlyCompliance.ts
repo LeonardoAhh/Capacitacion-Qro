@@ -3,8 +3,6 @@
 import { useMemo } from "react"
 import { useCumplimientoShared } from "@/components/dashboard-cumplimiento-context"
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
 export interface YearStats {
   year: string
   empleados: number
@@ -15,21 +13,17 @@ export interface YearStats {
   pct: number
 }
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
 const APROBADO_MIN = 7
 const YEARS_NUM = [2024, 2025, 2026] as const
 
 export const COLORS_YEARLY = {
-  aprobado:  "hsl(var(--chart-1))",
+  aprobado: "hsl(var(--chart-1))",
   reprobado: "hsl(var(--destructive))",
   pendiente: "hsl(var(--chart-3))",
 }
 
-// ─── Hook ───────────────────────────────────────────────────────────────────
-
 export function useYearlyCompliance() {
-  const { loading, sourceData, cargar } = useCumplimientoShared()
+  const { loading, error, sourceData, cargar } = useCumplimientoShared()
 
   const yearStats = useMemo<YearStats[]>(() => {
     if (!sourceData) return []
@@ -94,5 +88,5 @@ export function useYearlyCompliance() {
     })
   }, [sourceData])
 
-  return { loading, yearStats, cargar }
+  return { loading, error, yearStats, cargar }
 }

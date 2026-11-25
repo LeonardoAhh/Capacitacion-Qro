@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ArrowLeft, FileText, Image as ImageIcon } from "lucide-react"
+import { ArrowLeft, ExternalLink, FileText, Image as ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
@@ -21,20 +21,29 @@ export function CompletionEvidenceViewer({ finding, onClose, onOpenImage }: Comp
     const url = finding.completionEvidences?.[index]
     return url && !isPdfPath(path) ? [url] : []
   })
+  const availableItems = finding.completionEvidencePaths
+    .map((path, index) => ({ path, index, url: finding.completionEvidences?.[index] ?? "" }))
+    .filter((item) => Boolean(item.url))
 
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onClose() }}>
-      {/* Con un PDF abierto el diálogo toma alto fijo y el visor llena el espacio sin scroll extra. */}
       <DialogContent className={cn(activePdfUrl && "h-[85dvh] sm:h-[80dvh] sm:max-w-5xl")}>
         <div className="flex h-full min-h-0 flex-col">
-          <DialogHeader className="flex-row items-center gap-1">
+          <DialogHeader className="flex-row items-center gap-2">
             {activePdfUrl && (
               <Button type="button" variant="ghost" size="icon" className="-ml-2 shrink-0"
-                aria-label="Volver a las evidencias" title="Volver" onClick={() => setActivePdfIndex(null)}>
+                aria-label="Volver a las evidencias" onClick={() => setActivePdfIndex(null)}>
                 <ArrowLeft aria-hidden="true" />
               </Button>
             )}
-            <DialogTitle className="min-w-0 truncate">Evidencia de cumplimiento</DialogTitle>
+            <DialogTitle className="min-w-0 flex-1 truncate">Evidencia de cumplimiento</DialogTitle>
+            {activePdfUrl && (
+              <Button asChild variant="outline" size="sm" className="shrink-0">
+                <a href={activePdfUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink aria-hidden="true" />Abrir PDF
+                </a>
+              </Button>
+            )}
             <DialogDescription className="sr-only">{finding.title}</DialogDescription>
           </DialogHeader>
           {activePdfUrl ? (
@@ -44,11 +53,9 @@ export function CompletionEvidenceViewer({ finding, onClose, onOpenImage }: Comp
               className="mt-2 min-h-0 w-full flex-1 rounded-md border border-border bg-card"
               referrerPolicy="no-referrer"
             />
-          ) : (
+          ) : availableItems.length > 0 ? (
             <ul className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
-              {finding.completionEvidencePaths.map((path, index) => {
-                const url = finding.completionEvidences?.[index]
-                if (!url) return null
+              {availableItems.map(({ path, index, url }) => {
                 const isPdf = isPdfPath(path)
                 return (
                   <li key={path}>
@@ -62,6 +69,8 @@ export function CompletionEvidenceViewer({ finding, onClose, onOpenImage }: Comp
                 )
               })}
             </ul>
+          ) : (
+            <p className="mt-4 text-body-md text-muted-foreground">No hay evidencias disponibles para mostrar.</p>
           )}
         </div>
       </DialogContent>

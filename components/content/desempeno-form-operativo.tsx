@@ -71,7 +71,7 @@ function PercentageControl({ id, label, value, noAplica, helpId, showError, onCh
         onChange(digits && Number(digits) > 100 ? "100" : digits, false);
       }}
       disabled={noAplica} aria-describedby={helpId}
-      aria-invalid={showError && pending} className={cn("w-24 shrink-0 text-body-lg font-medium tabular-nums", showError && pending && "border-destructive")} />
+      aria-invalid={showError && pending} className="w-24 shrink-0 text-body-lg font-medium tabular-nums" />
     {/* Botón del mismo alto que el campo: más fácil de atinar que una casilla. */}
     <Button type="button" variant={noAplica ? "default" : "outline"} aria-pressed={noAplica === true}
       onClick={() => onChange("", !noAplica)} className="shrink-0">
@@ -110,10 +110,10 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
     <p id={percentageHelpId} className="sr-only">Ingresa un porcentaje entero de 0 a 100 o marca No aplica.</p>
     <EvaluationStepper activeView={activeView} onSelect={context.goToView} />
 
-    {activeView === 1 && <div className="space-y-4"><StepHeading context={context} title="Datos de la evaluación" description="Verifica a la persona, el periodo y selecciona al evaluador responsable." /><EmployeeCard context={context} /></div>}
+    {activeView === 1 && <div key="step-1" className="step-enter space-y-4"><StepHeading context={context} title="Datos de la evaluación" description="Verifica los datos y elige al evaluador." /><EmployeeCard context={context} /></div>}
 
-    {activeView === 2 && <div className="space-y-4">
-      <StepHeading context={context} title={`Objetivos (${EVALUATION_WEIGHTS.objetivos * 100}%)`} description="Ingresa de 0 a 100% o marca No aplica en cada objetivo." />
+    {activeView === 2 && <div key="step-2" className="step-enter space-y-4">
+      <StepHeading context={context} title={`Objetivos (${EVALUATION_WEIGHTS.objetivos * 100}%)`} description="Captura de 0 a 100% o marca No aplica." />
       <div className="grid gap-3 lg:auto-rows-fr lg:grid-cols-2">{data.objetivos.map((item, index) => <PercentageCriterionCard
         key={`${item.numero}-${index}`}
         title={`Objetivo ${item.numero}`}
@@ -125,8 +125,8 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
       </PercentageCriterionCard>)}</div>
     </div>}
 
-    {activeView === 3 && <div className="space-y-4">
-      <StepHeading context={context} title={`Responsabilidades (${EVALUATION_WEIGHTS.cumplimiento * 100}%)`} description="Completa cada responsabilidad con un porcentaje o marca No aplica cuando corresponda." />
+    {activeView === 3 && <div key="step-3" className="step-enter space-y-4">
+      <StepHeading context={context} title={`Responsabilidades (${EVALUATION_WEIGHTS.cumplimiento * 100}%)`} description="Captura el porcentaje o marca No aplica." />
       <div className="grid gap-3 lg:auto-rows-fr lg:grid-cols-2">{data.cumplimiento_responsabilidades.map((item, index) => esAutomatica(data, index) ? null : <PercentageCriterionCard
           key={`${item.descripcion}-${index}`}
           title={`Responsabilidad ${index + 1}`}
@@ -136,27 +136,26 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
         >
           <PercentageControl id={`${formId}-responsabilidad-${index}`} label="Cumplimiento (%)" value={item.porcentaje} noAplica={item.no_aplica} helpId={percentageHelpId} showError={Boolean(stepError)} onChange={(value, na) => context.updateResponsabilidad(index, value, na)} />
         </PercentageCriterionCard>)}</div>
-      {/* Lo que calcula el sistema va aparte y solo para consulta: no se captura. */}
       {data.cumplimiento_responsabilidades.some((_, index) => esAutomatica(data, index)) && <Card>
         <CardContent className="space-y-3 p-(--card-padding)">
           <div className="space-y-0.5">
             <h3 className="text-label-sm text-foreground">Calculadas por el sistema</h3>
-            <p className="text-body-sm text-muted-foreground">Se toman de los registros de RH y SGI del periodo; no necesitas capturarlas.</p>
+            <p className="text-body-sm text-muted-foreground">Datos de RH y SGI de solo lectura.</p>
           </div>
           <ul className="divide-y">{data.cumplimiento_responsabilidades.map((item, index) => esAutomatica(data, index) && <li key={`${item.descripcion}-${index}`} className="flex items-baseline justify-between gap-4 py-2">
               <span className="min-w-0 text-body-md text-foreground">{item.descripcion}</span>
-              <span className="shrink-0 text-label-sm tabular-nums text-foreground">{item.no_aplica || item.porcentaje === "NA" ? "No aplica" : item.porcentaje ? `${item.porcentaje}%` : "—"}</span>
+              <span className="shrink-0 text-label-sm tabular-nums text-foreground">{item.no_aplica || item.porcentaje === "NA" ? "No aplica" : item.porcentaje ? `${item.porcentaje}%` : "Pendiente"}</span>
             </li>)}</ul>
         </CardContent>
       </Card>}
     </div>}
 
-    {activeView === 4 && <div className="space-y-4">
-      <StepHeading context={context} title={`Competencias (${EVALUATION_WEIGHTS.competencias * 100}%)`} description="Selecciona una calificación para cada competencia. El cero es una respuesta válida." />
+    {activeView === 4 && <div key="step-4" className="step-enter space-y-4">
+      <StepHeading context={context} title={`Competencias (${EVALUATION_WEIGHTS.competencias * 100}%)`} description="Califica del 0 al 4 cada competencia." />
       <div role="note" aria-label="Escala de competencias" className="flex flex-wrap items-center gap-x-4 gap-y-1 text-body-sm text-muted-foreground">
         <span className="font-medium text-foreground">Escala</span>
         {ESCALA_COMPETENCIAS.map(({ valor, etiqueta }) => <span key={valor}>
-          <span className="font-medium text-foreground">{valor}</span> {etiqueta}
+          <span className="font-medium tabular-nums text-foreground">{valor}</span> {etiqueta}
         </span>)}
       </div>
       <div className="space-y-3">{data.competencias.map((item, index) => <CompetencyRatingCard
@@ -168,8 +167,8 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
       />)}</div>
     </div>}
 
-    {activeView === 5 && <div className="space-y-4">
-      <StepHeading context={context} title="Revisión y compromisos" description="Revisa el resultado y registra los acuerdos de seguimiento antes de guardar." />
+    {activeView === 5 && <div key="step-5" className="step-enter space-y-4">
+      <StepHeading context={context} title="Revisión y compromisos" description="Confirma la calificación y registra acuerdos si aplican." />
       <Card><CardContent className="space-y-4 p-(--card-padding)">
         <div className="flex items-center justify-between gap-4 border-b border-border pb-3">
           <h3 className="text-label-sm text-muted-foreground">Calificación del periodo</h3>
@@ -178,9 +177,9 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
         <div className="space-y-2">
           <div className={FIELD_HEAD}>
             <Label htmlFor={`${formId}-compromisos`}>Compromisos y acuerdos</Label>
-            {requiereCompromisos && <span id={`${formId}-compromisos-hint`} className="text-body-sm text-muted-foreground">Obligatorios si la calificación es menor a {UMBRAL_CALIFICACION_APROBATORIA}%</span>}
+            {requiereCompromisos && <span id={`${formId}-compromisos-hint`} className="text-body-sm text-muted-foreground">Obligatorios si es menor a {UMBRAL_CALIFICACION_APROBATORIA}%</span>}
           </div>
-          <Textarea id={`${formId}-compromisos`} value={data.compromisos} onChange={(e) => context.updateReview({ compromisos: e.target.value })} aria-required={requiereCompromisos} aria-describedby={requiereCompromisos ? `${formId}-compromisos-hint` : undefined} className="min-h-24" />
+          <Textarea id={`${formId}-compromisos`} value={data.compromisos} onChange={(e) => context.updateReview({ compromisos: e.target.value })} aria-required={requiereCompromisos} aria-invalid={Boolean(stepError) && requiereCompromisos && !data.compromisos.trim()} aria-describedby={requiereCompromisos ? `${formId}-compromisos-hint` : undefined} className="min-h-24" />
         </div>
         {lateCapture ? <div className="grid gap-4 md:grid-cols-2">
           <div className="flex min-w-0 flex-col gap-2">

@@ -14,7 +14,7 @@ const THEME_ICON: Record<ThemeMode, LucideIcon> = { light: Sun, dark: Moon, syst
 const THEME_OPTIONS = (Object.keys(THEME_MODE_LABELS) as ThemeMode[])
   .map(value => ({ value, label: THEME_MODE_LABELS[value], icon: THEME_ICON[value] }))
 // Mismas filas que el menú de cuenta en escritorio: ícono, texto y palomita en la elegida.
-const ROW = "flex min-h-11 w-full items-center gap-3 rounded-md px-3 text-left text-body-md text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
+const ROW = "flex min-h-(--control-height) w-full items-center gap-3 rounded-md px-3 text-left text-body-md text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
 const ICON = "size-4 shrink-0 text-muted-foreground"
 
 /** Grupo de opciones como filas; la elegida lleva palomita. */
@@ -83,7 +83,7 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
           )}
           <button type="button" className={cn(ROW, "text-destructive hover:bg-destructive/10")} disabled={signingOut} onClick={onLogout}>
             <LogOut className="size-4 shrink-0" aria-hidden="true" />
-            Cerrar sesión
+            {signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
           </button>
         </div>
       </div>

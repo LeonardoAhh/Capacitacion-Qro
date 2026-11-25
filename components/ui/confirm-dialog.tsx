@@ -44,7 +44,7 @@ const TONE_STYLES: Record<ConfirmTone, { container: string; icon: React.ReactNod
   destructive: { container: "bg-destructive/10 text-destructive", icon: <Trash2 aria-hidden="true" /> },
   warning: { container: "bg-warning/10 text-warning-deep", icon: <OctagonAlert aria-hidden="true" /> },
   info: { container: "bg-info/10 text-info", icon: <Info aria-hidden="true" /> },
-  success: { container: "bg-success/10 text-success", icon: <BadgeCheck aria-hidden="true" /> },
+  success: { container: "bg-chart-1/15 text-chart-1-deep", icon: <BadgeCheck aria-hidden="true" /> },
 }
 
 interface ConfirmationDialogProps extends ConfirmOptions {
@@ -93,6 +93,12 @@ export function ConfirmationDialog({
               id="confirm-required-text"
               value={inputValue}
               onChange={event => onInputChange(event.target.value)}
+              onKeyDown={event => {
+                if (event.key === "Enter" && !confirmDisabled) {
+                  event.preventDefault()
+                  onConfirm()
+                }
+              }}
               placeholder={requireInputText}
               autoComplete="off"
             />
@@ -100,7 +106,7 @@ export function ConfirmationDialog({
         )}
       </div>
       <ModalFooter
-        className="border-t-0 pb-4 pt-2 sm:pb-6"
+        className="border-t-0 pt-2 sm:pb-6"
         onCancel={onCancel}
         cancelLabel={cancelLabel}
         onConfirm={onConfirm}

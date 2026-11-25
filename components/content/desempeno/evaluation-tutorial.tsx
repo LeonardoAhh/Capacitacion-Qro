@@ -161,7 +161,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
       ? "min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain p-4 sm:p-6"
       : "min-h-0 flex-1 space-y-6 overflow-y-auto overscroll-contain p-4 sm:p-6"}>
       <div className="space-y-3">
-        <div className="flex items-center justify-between gap-3 text-body-sm text-muted-foreground">
+        <div className="flex items-center justify-between gap-3 text-body-sm tabular-nums text-muted-foreground">
           <span>Paso {step + 1} de {TUTORIAL_STEPS.length}</span>
           <span>{Math.round(((step + 1) / TUTORIAL_STEPS.length) * 100)}%</span>
         </div>
@@ -171,9 +171,9 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
         </div>
       </div>
 
-      <div id="tutorial-action" role="status" className="rounded-md border border-border border-l-2 border-l-primary bg-muted/40 px-4 py-3">
-        <p className="text-eyebrow uppercase text-muted-foreground">Haz esto ahora</p>
-        <p className="mt-1 text-label-sm">{nextAction}</p>
+      <div id="tutorial-action" role="status" className="rounded-md border border-border bg-muted/40 px-4 py-3">
+        <p className="text-eyebrow uppercase text-muted-foreground">Siguiente paso</p>
+        <p className="mt-1 text-label-sm text-foreground">{nextAction}</p>
       </div>
 
       {step === 0 && <div className="space-y-3">
@@ -182,7 +182,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input id="tutorial-search" value={query} onChange={event => { setQuery(event.target.value); setSelected(false); resetSimulation(); }} placeholder="Escribe 0000" className="pl-9" />
         </div>
-        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-11 w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 text-left text-body-md transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-(--control-height) w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left text-body-md transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
           <span className="min-w-0"><span className="block font-medium">{DEMO.name}</span><span className="block text-body-sm text-muted-foreground">#{DEMO.number} · {DEMO.position}</span></span>
           {selected && <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />}
         </button>}
@@ -190,15 +190,15 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
       </div>}
 
       {step === 1 && <div className="space-y-4">
-        <Card><CardContent className="grid gap-3 p-6 sm:grid-cols-2">
-          <div><p className="text-body-sm text-muted-foreground">Número empleado</p><p className="text-body-md font-medium">{DEMO.number}</p></div>
+        <Card><CardContent className="grid gap-3 p-(--card-padding) sm:grid-cols-2">
+          <div><p className="text-body-sm text-muted-foreground">Número empleado</p><p className="text-body-md font-medium tabular-nums">{DEMO.number}</p></div>
           <div><p className="text-body-sm text-muted-foreground">Nombre</p><p className="text-body-md font-medium">{DEMO.name}</p></div>
           <div><p className="text-body-sm text-muted-foreground">Puesto</p><p className="text-body-md font-medium">{DEMO.position}</p></div>
           <div><p className="text-body-sm text-muted-foreground">Periodo asignado</p><p className="text-body-md font-medium">Semestral · {period}</p></div>
         </CardContent></Card>
         <div className="space-y-2"><Label htmlFor="tutorial-evaluator">Evaluador</Label>
           <Select value={evaluator} onValueChange={value => { setEvaluator(value); resetSimulation(); }}>
-            <SelectTrigger id="tutorial-evaluator" className="h-11 w-full"><SelectValue placeholder="Selecciona al evaluador" /></SelectTrigger>
+            <SelectTrigger id="tutorial-evaluator" className="w-full"><SelectValue placeholder="Selecciona al evaluador" /></SelectTrigger>
             <SelectContent><SelectItem value={DEMO.evaluator}>{DEMO.evaluator}</SelectItem></SelectContent>
           </Select>
         </div>
@@ -228,7 +228,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
         name="tutorial-competency" showError={false} onChange={value => { setCompetency(value); resetSimulation(); }}
       />}
 
-      {step === 5 && <Card><CardContent className="space-y-3 p-6">
+      {step === 5 && <Card><CardContent className="space-y-3 p-(--card-padding)">
         <div className="flex items-baseline justify-between gap-3 border-b border-border pb-2">
           <span className="text-body-md text-muted-foreground">Calificación de práctica</span>
           <span className="text-heading-md tabular-nums" aria-live="polite">{score}%</span>
@@ -238,7 +238,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
           <div className="space-y-3">
             <div className="space-y-1">
               <Label htmlFor="tutorial-commitments">Compromisos y acuerdos</Label>
-              {needsCommitments && <p className="text-body-sm text-muted-foreground">Obligatorios si la calificación es menor a {UMBRAL_CALIFICACION_APROBATORIA}%.</p>}
+              {needsCommitments && <p className="text-body-sm text-muted-foreground">Obligatorios si es menor a {UMBRAL_CALIFICACION_APROBATORIA}%.</p>}
               <Textarea id="tutorial-commitments" value={commitments} onChange={event => { setCommitments(event.target.value); resetSimulation(); }} className="h-20 resize-none" />
             </div>
             <div className="space-y-1"><Label htmlFor="tutorial-observations">Observaciones</Label>
@@ -250,7 +250,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
       </CardContent></Card>}
 
       {step === 6 && <div className="space-y-4">
-        <Card><CardContent className="space-y-3 p-6">
+        <Card><CardContent className="space-y-3 p-(--card-padding)">
           <p className="text-label-sm">Evaluación de práctica guardada · {score}%</p>
           <p className="text-body-md text-muted-foreground">En el sistema real, Imprimir abre el formato oficial. Aquí solo se simula el paso.</p>
           <Button id="tutorial-print" type="button" onClick={() => setPrinted(true)} disabled={printed}><Printer aria-hidden="true" /> {printed ? "Impresión simulada" : "Simular impresión"}</Button>

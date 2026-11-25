@@ -4,6 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
 import type { FindingPreview } from "./finding-card"
+import { UNASSIGNED_LABEL } from "./finding-constraints"
 import { CompletionEvidenceBadge, FindingActionsMenu, FindingBadges } from "./finding-parts"
 
 /**
@@ -70,9 +71,9 @@ export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, o
                 </TableCell>
                 <TableCell className={col.area}>
                   <span className="block truncate text-label-sm text-foreground">{finding.area}</span>
-                  <span className="block truncate text-body-sm text-muted-foreground">{finding.responsible ?? "—"}</span>
+                  <span className="block truncate text-body-sm text-muted-foreground">{finding.responsible || UNASSIGNED_LABEL}</span>
                 </TableCell>
-                <TableCell className={cn(col.date, "whitespace-nowrap text-body-sm text-foreground")}>{finding.date}</TableCell>
+                <TableCell className={cn(col.date, "whitespace-nowrap text-body-sm tabular-nums text-foreground")}>{finding.date}</TableCell>
                 <TableCell className={col.evidence}>
                   <CompletionEvidenceBadge finding={finding} />
                 </TableCell>
@@ -90,16 +91,18 @@ export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, o
   )
 }
 
-/** Filas de carga (o de vista previa sin hallazgos) con la forma de la lista. */
-export function FindingListSkeleton({ isPreview = false }: { isPreview?: boolean }) {
-  const still = isPreview ? "animate-none" : ""
+export function FindingListSkeleton() {
   return (
-    <div className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card"
-      aria-label={isPreview ? "Vista previa de hallazgos" : "Cargando hallazgos"}>
+    <div
+      role="status"
+      aria-label="Cargando hallazgos"
+      className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card"
+    >
+      <span className="sr-only">Cargando hallazgos…</span>
       {Array.from({ length: 4 }, (_, row) => (
         <div key={row} className="grid gap-2 px-(--table-cell-padding-x) py-(--table-cell-padding-y)">
-          <Skeleton className={cn("h-4 w-1/3", still)} />
-          <Skeleton className={cn("h-3 w-2/3", still)} />
+          <Skeleton className="h-4 w-1/3" />
+          <Skeleton className="h-3 w-2/3" />
         </div>
       ))}
     </div>

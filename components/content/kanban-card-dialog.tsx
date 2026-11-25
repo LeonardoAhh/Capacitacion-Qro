@@ -78,7 +78,7 @@ function ColaboradoresField({ miembros, responsableId, value, onChange }: Colabo
               return (
                 <li key={miembro.user_id}>
                   <label htmlFor={id}
-                    className="flex min-h-9 cursor-pointer items-center gap-3 rounded-sm px-2 text-body-md text-foreground hover:bg-muted has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+                    className="flex min-h-(--menu-item-height) cursor-pointer items-center gap-3 rounded-md px-2 text-body-md text-foreground transition-colors hover:bg-muted has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
                     <Checkbox id={id} checked={checked} disabled={!checked && lleno}
                       onCheckedChange={next => onChange(next === true
                         ? [...value, miembro.user_id]
@@ -185,9 +185,9 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
         }}>
         <Stepper steps={PASOS} current={step} />
         {/* El alto sigue al paso con transición: el modal no salta al cambiar de paso. */}
-        <AutoHeight className="grid gap-4">
+        <AutoHeight>
         {step === 1 ? (
-          <>
+          <div key="step-1" className="step-enter grid gap-4">
             {!tarjeta && !base && plantillas.length > 0 && (
               <div className={FIELD}>
                 <Label htmlFor="kanban-plantilla">Plantilla <span className="font-normal text-muted-foreground">(opcional)</span></Label>
@@ -208,7 +208,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
                 aria-labelledby="kanban-tipo-label" className="grid grid-cols-2 gap-2">
                 {KANBAN_TIPOS.map(opcion => (
                   <label key={opcion.tipo} htmlFor={`kanban-tipo-${opcion.tipo}`}
-                    className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground hover:bg-muted has-[[data-state=checked]]:border-primary">
+                    className="flex min-h-(--control-height) cursor-pointer items-center gap-3 rounded-md border border-border px-3 text-body-md text-foreground transition-colors hover:bg-muted has-[[data-state=checked]]:border-primary">
                     <RadioGroupItem id={`kanban-tipo-${opcion.tipo}`} value={opcion.tipo} />
                     {opcion.label}
                   </label>
@@ -219,6 +219,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
             <div className={FIELD}>
               <Label htmlFor="kanban-titulo">Título</Label>
               <Input id="kanban-titulo" value={form.titulo} maxLength={MAX_TITULO} autoComplete="off"
+                aria-invalid={Boolean(error) && step === 1}
                 onChange={event => update("titulo", limpiarAlEscribir(event.target.value))}
                 onBlur={event => update("titulo", normalizarTexto(event.target.value))} />
             </div>
@@ -230,9 +231,9 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
                 onChange={event => update("descripcion", limpiarAlEscribir(event.target.value, true))}
                 onBlur={event => update("descripcion", normalizarTexto(event.target.value, true))} />
             </div>
-          </>
+          </div>
         ) : (
-          <>
+          <div key="step-2" className="step-enter grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className={FIELD}>
                 <Label htmlFor="kanban-estado">Estado</Label>
@@ -281,6 +282,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
               <div className={FIELD}>
                 <Label htmlFor="kanban-limite">Fecha límite <span className="font-normal text-muted-foreground">(opcional)</span></Label>
                 <Input id="kanban-limite" type="date" value={form.fecha_limite ?? ""} min={form.fecha_inicio ?? undefined}
+                  aria-invalid={Boolean(error) && step === 2}
                   onChange={event => update("fecha_limite", event.target.value || null)} />
               </div>
             </div>
@@ -295,11 +297,11 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
                   </SelectContent>
                 </Select>
                 {form.repeticion !== "ninguna" && (
-                  <p className="text-body-sm text-muted-foreground">Al concluirlo se crea el siguiente con las fechas recorridas.</p>
+                  <p className="text-body-sm text-muted-foreground">Al concluir, se programa el siguiente automáticamente.</p>
                 )}
               </div>
             )}
-          </>
+          </div>
         )}
         </AutoHeight>
 
