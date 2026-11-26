@@ -24,6 +24,7 @@ import { textoAISO } from "@/lib/fechas"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { useRole } from "@/lib/hooks/useRole"
 import { describeSupabaseError } from "@/lib/supabase/errors"
+import { PanelEmpty } from "@/components/dashboard-panel"
 import { CompletionEvidenceDialog } from "./completion-evidence-dialog"
 import { CompletionEvidenceViewer } from "./completion-evidence-viewer"
 import { CreateFindingDialog } from "./create-finding-dialog"
@@ -64,26 +65,14 @@ function FindingSkeletons() {
   )
 }
 
-function FindingEmptyState({ canEdit, onCreate }: { canEdit: boolean; onCreate: () => void }) {
+/** Sin hallazgos: el botón Crear de la barra ya es la acción, aquí no se repite. */
+function FindingEmptyState({ canEdit }: { canEdit: boolean }) {
   return (
-    <Card className="flex flex-col items-center justify-center gap-3 px-6 py-12 text-center">
-      <span className="grid size-12 place-items-center rounded-md border border-border bg-muted text-muted-foreground" aria-hidden="true">
-        <ClipboardCheck className="size-5" />
-      </span>
-      <div className="max-w-sm space-y-1">
-        <h2 className="text-heading-md text-foreground">Sin hallazgos registrados</h2>
-        <p className="text-body-md text-muted-foreground">
-          {canEdit
-            ? "Registra el primer hallazgo de Safe Walk para dar seguimiento a su corrección."
-            : "Aún no hay hallazgos publicados para esta semana."}
-        </p>
-      </div>
-      {canEdit && (
-        <Button type="button" className="mt-1" onClick={onCreate}>
-          <Plus aria-hidden="true" />Crear hallazgo
-        </Button>
-      )}
-    </Card>
+    <PanelEmpty
+      icon={<ClipboardCheck className="size-6 text-muted-foreground" aria-hidden="true" />}
+      title="Sin hallazgos registrados."
+      hint={canEdit ? "Registra el primero con Crear." : "Aún no hay hallazgos publicados para esta semana."}
+    />
   )
 }
 
@@ -236,7 +225,7 @@ export function SafetyHome() {
               />
             ))
           ) : !error ? (
-            <FindingEmptyState canEdit={canEdit} onCreate={() => setIsCreateOpen(true)} />
+            <FindingEmptyState canEdit={canEdit} />
           ) : null}
         </TabsContent>
 
@@ -267,7 +256,7 @@ export function SafetyHome() {
               )}
             </div>
           ) : !error ? (
-            <FindingEmptyState canEdit={canEdit} onCreate={() => setIsCreateOpen(true)} />
+            <FindingEmptyState canEdit={canEdit} />
           ) : null}
         </TabsContent>
 

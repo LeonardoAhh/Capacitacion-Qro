@@ -10,6 +10,8 @@ import { DESKTOP_NAV_ID, MAIN_CONTENT_ID, MOBILE_NAV_ID, SIDEBAR_COLLAPSED_ATTR,
 import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { AccountMenu } from "@/components/account-menu"
 import { IdeaCapture } from "@/components/idea-capture"
+import { ChangelogButton } from "@/components/changelog"
+import { SidebarAcciones } from "@/components/sidebar-acciones"
 import { SidebarNav } from "@/components/sidebar-nav"
 import { WorkspaceClock } from "@/components/workspace-clock"
 import { KanbanAvisos } from "@/components/kanban-avisos"
@@ -196,6 +198,8 @@ export default function Sidebar({
             <div className="shrink-0 px-3 pb-2">
               <IdeaCapture workspace={workspace} side="top" onNavigate={closeMobile}
                 triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
+              <ChangelogButton onOpen={closeMobile}
+                triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
             </div>
             <div className="safe-bottom-content mx-3 shrink-0 border-t border-sidebar-border pt-2">
               <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
@@ -222,9 +226,9 @@ export default function Sidebar({
         </div>
         <SidebarNav pathname={pathname} workspace={workspace} />
         {showStatus && <SidebarStatus />}
-        {/* Ideas de mejora: al pie de la navegación, justo antes de la cuenta. */}
+        {/* Ideas de mejora y Novedades alternan en un renglón al pie de la navegación, antes de la cuenta. */}
         <div className="shrink-0 px-3 pb-2">
-          <IdeaCapture workspace={workspace} side="right"
+          <SidebarAcciones workspace={workspace}
             triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
         </div>
         {/* Cuenta separada de la navegación con la misma línea que la marca; termina a la altura del panel. */}

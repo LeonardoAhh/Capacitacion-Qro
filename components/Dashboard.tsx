@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Sidebar, { useSidebar } from "@/components/sidebar"
+import { InstallPrompt } from "@/components/install-prompt"
+import { Changelog } from "@/components/changelog"
 import Header from "@/components/header"
 import { useRole, useUser } from "@/lib/hooks"
 import { homeFor } from "@/lib/constants/roles"
@@ -94,6 +96,10 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
       >
         Saltar al contenido
       </a>
+
+      {/* Solo dentro del workspace: en el login no se invita a instalar ni se anuncian novedades. */}
+      <InstallPrompt />
+      <Changelog />
 
       <div className="workspace-panel">
         <Sidebar

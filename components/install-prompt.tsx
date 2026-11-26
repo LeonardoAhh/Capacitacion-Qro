@@ -1,9 +1,16 @@
 "use client"
 
-import { useEffect, useState, useCallback } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { Download, EyeOff, Share, Smartphone, X, Plus } from "lucide-react"
+import { Smartphone } from "lucide"
+import { Plus, Share, X } from "lucide-react"
+import { useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
+} from "@/components/ui/dialog"
+import { NoticeIcon } from "@/components/ui/notice-icon"
+import { useChangelog } from "@/lib/hooks/useChangelog"
 
 type BeforeInstallPromptEvent = Event & {
   readonly platforms: string[]
@@ -12,73 +19,58 @@ type BeforeInstallPromptEvent = Event & {
 }
 
 const DISMISS_KEY = "pwa-install-dismissed-at"
-const SHOW_AFTER_MS = 15_000 // don't nag the user on first paint
+/** No aparece en cuanto carga la página. */
+const SHOW_AFTER_MS = 15_000
 const REPROMPT_AFTER_DAYS = 7
+const DAY_MS = 86_400_000
 
 function isStandalone(): boolean {
-  if (typeof window === "undefined") return false
   if (window.matchMedia?.("(display-mode: standalone)").matches) return true
-  // iOS Safari
-  if ((window.navigator as unknown as { standalone?: boolean }).standalone === true) return true
-  return false
+  return (window.navigator as unknown as { standalone?: boolean }).standalone === true
 }
 
+/** iPhone, iPad y iPadOS (que se presenta como Mac con pantalla táctil). */
 function isIOS(): boolean {
-  if (typeof navigator === "undefined") return false
   const ua = navigator.userAgent
-  // iPhone / iPad / iPod — also iPadOS masquerading as Mac with touch
   return /iPhone|iPad|iPod/.test(ua) || (/Mac/.test(ua) && navigator.maxTouchPoints > 1)
 }
 
 function recentlyDismissed(): boolean {
-  if (typeof window === "undefined") return true
-  const raw = window.localStorage.getItem(DISMISS_KEY)
-  if (!raw) return false
-  const at = parseInt(raw, 10)
-  if (Number.isNaN(at)) return false
-  const elapsedDays = (Date.now() - at) / (1000 * 60 * 60 * 24)
-  return elapsedDays < REPROMPT_AFTER_DAYS
+  try {
+    const at = Number(window.localStorage.getItem(DISMISS_KEY))
+    return at > 0 && (Date.now() - at) / DAY_MS < REPROMPT_AFTER_DAYS
+  } catch {
+    return false
+  }
 }
 
 /**
- * Redesigned PWA install invitation.
- *
- *  - Android / Chromium: listens for `beforeinstallprompt`, shows a single
- *    "Instalar" CTA that triggers the native prompt.
- *  - iOS Safari: no programmatic prompt exists, so we show a concise
- *    instructions sheet ("Compartir → Agregar a la pantalla de inicio").
- *  - Hidden entirely if the app is already installed (display-mode:
- *    standalone or `navigator.standalone`).
- *  - Dismissing stores a timestamp in localStorage; we don't re-prompt for
- *    7 days. "Instalar" also dismisses permanently on success.
+ * Invitación a instalar la app, con la misma forma que el aviso de actualización.
+ * Chromium: botón que abre el diálogo de instalación del navegador.
+ * iOS: Safari no permite instalar desde la página, así que se muestran los pasos.
+ * No aparece si ya está instalada; al cerrarla vuelve a ofrecerse en 7 días.
  */
 export function InstallPrompt() {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
-  const [iosSheetOpen, setIosSheetOpen] = useState(false)
   const [isIos, setIsIos] = useState(false)
+  const [stepsOpen, setStepsOpen] = useState(false)
+  const reduced = useAppReducedMotion()
+  const { nuevo: hayNovedades } = useChangelog()
 
   useEffect(() => {
     if (isStandalone() || recentlyDismissed()) return
+    setIsIos(isIOS())
 
-    const ios = isIOS()
-    setIsIos(ios)
-
-    // Delay so we don't nag users on first paint.
     const showTimer = setTimeout(() => setVisible(true), SHOW_AFTER_MS)
-
-    const onBeforeInstall = (e: Event) => {
-      e.preventDefault()
-      setPrompt(e as BeforeInstallPromptEvent)
-      // Beforeinstallprompt beats the timer: show immediately once we have it
-      setVisible(true)
+    const onBeforeInstall = (event: Event) => {
+      event.preventDefault()
+      setPrompt(event as BeforeInstallPromptEvent)
     }
     const onInstalled = () => {
       setVisible(false)
       setPrompt(null)
-      window.localStorage.removeItem(DISMISS_KEY)
     }
-
     window.addEventListener("beforeinstallprompt", onBeforeInstall)
     window.addEventListener("appinstalled", onInstalled)
     return () => {
@@ -90,138 +82,111 @@ export function InstallPrompt() {
 
   const dismiss = useCallback(() => {
     setVisible(false)
-    setIosSheetOpen(false)
+    setStepsOpen(false)
     try {
       window.localStorage.setItem(DISMISS_KEY, String(Date.now()))
     } catch {
-      /* no-op */
+      // Sin almacenamiento en contextos restringidos: solo se oculta en esta visita.
     }
   }, [])
 
   const install = useCallback(async () => {
+    if (isIos) {
+      setStepsOpen(true)
+      return
+    }
     if (!prompt) return
     try {
       await prompt.prompt()
       const { outcome } = await prompt.userChoice
-      if (outcome === "accepted") {
-        setVisible(false)
-      } else {
-        dismiss()
-      }
+      if (outcome === "accepted") setVisible(false)
+      else dismiss()
     } catch {
       dismiss()
     } finally {
       setPrompt(null)
     }
-  }, [prompt, dismiss])
+  }, [dismiss, isIos, prompt])
 
-  // Nothing to show if we have neither a native prompt nor an iOS user.
-  const canShow = visible && (prompt !== null || isIos)
+  // Sin diálogo del navegador ni iOS no hay forma de instalar: no se muestra.
+  // Comparte lugar con el aviso de novedades: espera a que se vean para no encimarse.
+  const canShow = visible && (prompt !== null || isIos) && !hayNovedades
 
   return (
-    <AnimatePresence>
-      {canShow ? (
-        <>
+    <>
+      <AnimatePresence>
+        {canShow && (
           <motion.div
-            role="dialog"
-            aria-label="Instalar aplicación"
-            initial={{ opacity: 0, y: 24 }}
+            initial={reduced ? false : { opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 24 }}
-            transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-            className="pointer-events-none fixed inset-x-0 bottom-[max(env(safe-area-inset-bottom),1rem)] z-[55] flex justify-center px-4"
+            exit={reduced ? undefined : { opacity: 0, y: -16 }}
+            transition={{ duration: reduced ? 0 : 0.2 }}
+            className="app-update-banner"
           >
-            <div className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-xl border border-border bg-card p-3 pl-4 shadow-[0_2px_2px_hsl(0_0%_0%/0.06),0_16px_32px_-8px_hsl(0_0%_0%/0.24)]">
-              <div className="grid size-10 place-items-center rounded-md bg-primary/10 text-primary" aria-hidden>
-                <Smartphone className="size-5" strokeWidth={1.75} />
-              </div>
+            <div
+              role="status"
+              aria-live="polite"
+              className="ui-floating-surface flex min-h-14 items-center gap-3 rounded-(--notice-radius) py-2 pl-3 pr-2"
+            >
+              <NoticeIcon icon={Smartphone} />
               <div className="min-w-0 flex-1">
-                <p className="truncate text-body-md font-bold text-foreground">Instalar la app</p>
+                <p className="break-words text-label-sm text-foreground">Instalar la app</p>
+                <p className="break-words text-body-sm text-muted-foreground">Para una mejor experiencia en tu dispositivo</p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  size="icon"
-                  onClick={() => (isIos ? setIosSheetOpen(true) : install())}
-                  aria-label="Instalar"
-                  title="Instalar"
-                >
-                  <Download className="size-3.5" aria-hidden />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  aria-label="Cerrar"
-                  onClick={dismiss}
-                  className="size-9"
-                >
-                  <X className="size-4" aria-hidden />
-                </Button>
-              </div>
+              <Button type="button" size="sm" className="shrink-0" onClick={() => void install()}>
+                Instalar
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="xs"
+                className="size-8 shrink-0 px-0 text-muted-foreground hover:text-foreground"
+                aria-label="Cerrar invitación para instalar"
+                onClick={dismiss}
+              >
+                <X aria-hidden="true" />
+              </Button>
             </div>
           </motion.div>
+        )}
+      </AnimatePresence>
 
-          <AnimatePresence>
-            {iosSheetOpen ? (
-              <motion.div
-                role="dialog"
-                aria-modal="true"
-                aria-label="Cómo instalar en iOS"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[60] flex items-end justify-center bg-black/50 sm:items-center"
-                onClick={() => setIosSheetOpen(false)}
-              >
-                <motion.div
-                  initial={{ y: 40, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 40, opacity: 0 }}
-                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                  className="w-full max-w-md rounded-t-xl border border-border bg-card p-6 shadow-[0_2px_2px_hsl(0_0%_0%/0.06),0_16px_32px_-8px_hsl(0_0%_0%/0.24)] sm:rounded-xl"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className="text-body-lg font-bold text-foreground">Instalar en iPhone / iPad</h2>
-                      <p className="mt-1 text-body-md text-muted-foreground">Dos pasos en Safari.</p>
-                    </div>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      aria-label="Cerrar"
-                      onClick={() => setIosSheetOpen(false)}
-                      className="size-9 shrink-0"
-                    >
-                      <X className="size-4" aria-hidden />
-                    </Button>
-                  </div>
-                  <ol className="mt-5 space-y-4 text-body-md">
-                    <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-body-sm font-bold text-muted-foreground">1</span>
-                      <span className="flex-1 text-foreground">Toca el botón</span>
-                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-body-sm font-medium">
-                        <Share className="size-3.5" aria-hidden /> Compartir
-                      </span>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <span className="grid size-7 shrink-0 place-items-center rounded-md bg-muted text-body-sm font-bold text-muted-foreground">2</span>
-                      <span className="flex-1 text-foreground">Elige</span>
-                      <span className="inline-flex items-center gap-1 rounded-md border border-border/60 bg-muted/60 px-2 py-1 text-body-sm font-medium">
-                        <Plus className="size-3.5" aria-hidden /> Agregar al inicio
-                      </span>
-                    </li>
-                  </ol>
-                  <div className="mt-6 flex justify-end">
-                    <Button variant="outline" size="icon" onClick={dismiss} aria-label="No volver a mostrar" title="No volver a mostrar">
-                      <EyeOff className="size-3.5" aria-hidden />
-                    </Button>
-                  </div>
-                </motion.div>
-              </motion.div>
-            ) : null}
-          </AnimatePresence>
-        </>
-      ) : null}
-    </AnimatePresence>
+      <Dialog open={stepsOpen} onOpenChange={setStepsOpen}>
+        <DialogContent
+          className="sm:max-w-md"
+          footer={
+            <DialogFooter>
+              <Button type="button" variant="outline" size="sm" className="touch-target" onClick={dismiss}>
+                Ahora no
+              </Button>
+              <Button type="button" size="sm" className="touch-target" onClick={() => setStepsOpen(false)}>
+                Entendido
+              </Button>
+            </DialogFooter>
+          }
+        >
+          <DialogHeader>
+            <DialogTitle>Instalar en iPhone o iPad</DialogTitle>
+            <DialogDescription className="sr-only">Dos pasos en Safari.</DialogDescription>
+          </DialogHeader>
+          <ol className="space-y-3 text-body-md text-foreground">
+            <li className="flex items-center gap-2">
+              <span className="text-label-sm tabular-nums text-muted-foreground">1.</span>
+              Toca
+              <span className="inline-flex items-center gap-1 text-label-sm">
+                <Share className="size-4" aria-hidden="true" />Compartir
+              </span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span className="text-label-sm tabular-nums text-muted-foreground">2.</span>
+              Elige
+              <span className="inline-flex items-center gap-1 text-label-sm">
+                <Plus className="size-4" aria-hidden="true" />Agregar a inicio
+              </span>
+            </li>
+          </ol>
+        </DialogContent>
+      </Dialog>
+    </>
   )
 }

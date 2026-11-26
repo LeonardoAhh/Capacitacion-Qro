@@ -15,6 +15,7 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useProfile, useRole, useUser } from "@/lib/hooks"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import type { WorkspaceId } from "@/lib/navigation"
@@ -62,10 +63,13 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
 
   // Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto.
   const triggerContent = <>
-    {/* Avatar con la inicial: único elemento circular permitido (design.md). */}
-    <span aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-label-sm text-primary-foreground">
-      {displayName.charAt(0).toLocaleUpperCase("es-MX")}
-    </span>
+    {/* Foto de perfil o, sin ella, la inicial: único elemento circular permitido (design.md). */}
+    <Avatar aria-hidden="true" className="size-8 shrink-0">
+      {profile?.avatar && <AvatarImage src={profile.avatar} alt="" className="object-cover" />}
+      <AvatarFallback className="bg-primary text-label-sm text-primary-foreground">
+        {displayName.charAt(0).toLocaleUpperCase("es-MX")}
+      </AvatarFallback>
+    </Avatar>
     <span className="flex min-w-0 flex-1 flex-col text-left">
       <span className="truncate text-label-sm text-foreground">{displayName}</span>
       <span className="truncate text-body-sm text-muted-foreground">{roleLabel ?? "\u00A0"}</span>

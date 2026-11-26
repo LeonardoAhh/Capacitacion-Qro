@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type FormEvent } from "react"
+import { useState, type FormEvent, type ReactElement } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { AlertCircle, Lightbulb, Loader2 } from "lucide-react"
@@ -28,7 +28,7 @@ const EXTRA_TRAINING_SECTIONS: readonly { label: string; href: string }[] = [
  * (qué mejorarías y dónde). Cualquiera puede enviar; la lista la revisa quien
  * tiene canReviewIdeas.
  */
-export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassName, iconClassName, onNavigate }: {
+export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassName, iconClassName, onNavigate, trigger, onOpenChange }: {
   workspace: WorkspaceId
   /** Escritorio: a la derecha de la barra; menú móvil: hacia arriba. */
   side: "right" | "top"
@@ -38,6 +38,13 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
   iconClassName: string
   /** Al ir a la lista (cierra el menú móvil). */
   onNavigate?: () => void
+  /**
+   * Disparador propio (renglón que alterna con Novedades). Si su onClick llama
+   * preventDefault, la captura no se abre: el clic era para otra acción.
+   */
+  trigger?: ReactElement
+  /** Avisa al abrir y cerrar (p. ej. para pausar la alternancia del renglón). */
+  onOpenChange?: (open: boolean) => void
 }) {
   const pathname = usePathname()
   const { canAccess, canReviewIdeas } = useRole()
@@ -72,6 +79,7 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       setError(null)
     }
     setOpen(next)
+    onOpenChange?.(next)
   }
 
   async function enviar(event: FormEvent) {
@@ -86,7 +94,7 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       // El autor lo registra la base de datos con la sesión.
       await enviarIdea(texto, seccion)
       setTexto("")
-      setOpen(false)
+      abrir(false)
       notify.success("Gracias, idea enviada")
     } catch (err) {
       setError(describeSupabaseError(err, "No se pudo enviar la idea. Inténtalo de nuevo."))
@@ -98,12 +106,14 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
   return (
     <Popover open={open} onOpenChange={abrir}>
       <PopoverTrigger asChild>
-        <button type="button" className={triggerClassName}>
-          <span className={cn("grid shrink-0 place-items-center rounded-md text-muted-foreground", iconBoxClassName)}>
-            <Lightbulb className={iconClassName} aria-hidden="true" />
-          </span>
-          <span className="truncate">Ideas de mejora</span>
-        </button>
+        {trigger ?? (
+          <button type="button" className={triggerClassName}>
+            <span className={cn("grid shrink-0 place-items-center rounded-md text-muted-foreground", iconBoxClassName)}>
+              <Lightbulb className={iconClassName} aria-hidden="true" />
+            </span>
+            <span className="truncate">Ideas de mejora</span>
+          </button>
+        )}
       </PopoverTrigger>
       {/* collisionPadding: separado de los bordes de la pantalla. El margen va en el formulario: una
           regla global (globals.css) quita el padding inferior a todo [role="dialog"], y el panel lo es. */}
@@ -137,7 +147,7 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
           <div className="flex items-center gap-2 pt-0.5">
             {canReviewIdeas && (
               <Button asChild variant="ghost" size="sm" className="touch-target -ml-2 text-muted-foreground hover:text-foreground">
-                <Link href={IDEAS_PATH} onClick={() => { setOpen(false); onNavigate?.() }}>
+                <Link href={IDEAS_PATH} onClick={() => { abrir(false); onNavigate?.() }}>
                   Ver todas
                 </Link>
               </Button>
