@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  AlarmClock, BadgeCheck, BookPlus, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, X, type LucideIcon,
+  AlarmClock, BadgeCheck, BookUp, Fingerprint, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, X, type LucideIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CompactPager } from "@/components/ui/compact-pager"
+import { CARGAR_CURSOS_PATH } from "@/components/content/plantilla-paths"
 import { FILTER_ALL } from "@/components/ui/filter-menu"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
@@ -31,6 +32,7 @@ function employeeLinks(emp: Employee): { href: string; label: string; icon: Luci
       { href: `/plantilla/actas/${numero}`, label: "Actas administrativas", icon: FilePenLine },
       { href: `/plantilla/incumplimientos/${numero}`, label: "Incumplimiento", icon: ShieldAlert },
       { href: `/plantilla/retardos/${numero}`, label: "Retardos", icon: AlarmClock },
+      { href: `/plantilla/omisiones/${numero}`, label: "Omisión de marcajes", icon: Fingerprint },
     ] : []),
   ]
 }
@@ -40,18 +42,16 @@ interface CapHistorialTabProps {
   loadingEmployees: boolean
   canEdit: boolean
   newEmpSuccess: boolean
-  addCoursesSuccess: boolean
   onNewEmployee: () => void
   onEditEmployee: (emp: Employee) => void
-  onAddCourses: (emp: Employee) => void
   onDeleteEmployee: (emp: Employee) => void
 }
 
 export function CapHistorialTab({
   employees, loadingEmployees, canEdit,
-  newEmpSuccess, addCoursesSuccess,
+  newEmpSuccess,
   onNewEmployee,
-  onEditEmployee, onAddCourses, onDeleteEmployee,
+  onEditEmployee, onDeleteEmployee,
 }: CapHistorialTabProps) {
   const { canAccess } = useRole()
   const [empSearch, setEmpSearch]         = useState("")
@@ -85,11 +85,11 @@ export function CapHistorialTab({
 
   return (
     <div className="space-y-4">
-      {(newEmpSuccess || addCoursesSuccess) && (
+      {newEmpSuccess && (
         <Alert className="border-success/30 bg-success/10">
           <BadgeCheck className="h-4 w-4 text-success" />
           <AlertDescription className="text-success">
-            {newEmpSuccess ? 'Empleado registrado correctamente.' : 'Cursos guardados correctamente.'}
+            Empleado registrado correctamente.
           </AlertDescription>
         </Alert>
       )}
@@ -131,6 +131,14 @@ export function CapHistorialTab({
           </Button>
         )}
         <div className="ml-auto flex items-center gap-2">
+          {canEdit && (
+            <Button asChild variant="outline" size="sm" className="touch-target">
+              <Link href={CARGAR_CURSOS_PATH} aria-label="Cargar cursos">
+                <BookUp aria-hidden="true" />
+                <span className="hidden @3xl:inline">Cargar cursos</span>
+              </Link>
+            </Button>
+          )}
           {canEdit && (
             <Button size="sm" className="touch-target" onClick={onNewEmployee} aria-label="Nuevo empleado">
               <UserPlus aria-hidden="true" />
@@ -193,10 +201,6 @@ export function CapHistorialTab({
                         ))}
                         {canEdit && (
                           <>
-                            <DropdownMenuItem onSelect={() => onAddCourses(emp)}>
-                              <BookPlus aria-hidden="true" />
-                              Agregar cursos
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onSelect={() => onEditEmployee(emp)}>
                               <UserRoundPen aria-hidden="true" />

@@ -7,9 +7,10 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { formatCount, formatMinutes, MAX_CANTIDAD, type RegistroPorDiaConfig, type ValoresDia } from "@/lib/plantilla/registros-por-dia"
+import { formatCount, formatMinutes, MAX_CANTIDAD, tipoLabels, type RegistroPorDiaConfig, type ValoresDia } from "@/lib/plantilla/registros-por-dia"
 
 interface RegistroPorDiaFormDialogProps {
   config: RegistroPorDiaConfig
@@ -20,6 +21,8 @@ interface RegistroPorDiaFormDialogProps {
   count: string
   /** Solo se usa si config.conMinutos. */
   minutes: string
+  /** Solo se usa si config.tipos: reemplaza a la cantidad. */
+  tipos: string[]
   existing: ValoresDia | null
   employeeName: string
   employeeNumber: string
@@ -27,6 +30,7 @@ interface RegistroPorDiaFormDialogProps {
   onDateChange: (date: string) => void
   onCountChange: (count: string) => void
   onMinutesChange: (minutes: string) => void
+  onTiposChange: (tipos: string[]) => void
   onSave: () => void
   onReturnFocus: () => void
 }
@@ -40,6 +44,7 @@ export function RegistroPorDiaFormDialog({
   date,
   count,
   minutes,
+  tipos,
   existing,
   employeeName,
   employeeNumber,
@@ -47,6 +52,7 @@ export function RegistroPorDiaFormDialog({
   onDateChange,
   onCountChange,
   onMinutesChange,
+  onTiposChange,
   onSave,
   onReturnFocus,
 }: RegistroPorDiaFormDialogProps) {
@@ -55,8 +61,11 @@ export function RegistroPorDiaFormDialog({
   const errorId = `${formId}-error`
   const dateInputRef = useRef<HTMLInputElement>(null)
   const describedBy = [existing && existingId, error && errorId].filter(Boolean).join(" ") || undefined
+  const existingDetail = existing
+    ? config.conMinutos ? formatMinutes(existing.minutos) : tipoLabels(config, existing.tipos).join(", ")
+    : ""
   const existingLabel = existing
-    ? config.conMinutos ? `${formatCount(existing.cantidad, config)} (${formatMinutes(existing.minutos)})` : formatCount(existing.cantidad, config)
+    ? existingDetail ? `${formatCount(existing.cantidad, config)} (${existingDetail})` : formatCount(existing.cantidad, config)
     : null
 
   return (
@@ -102,7 +111,7 @@ export function RegistroPorDiaFormDialog({
           className="space-y-4"
         >
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className={config.conMinutos ? "min-w-0 space-y-2 sm:col-span-2" : "min-w-0 space-y-2"}>
+            <div className={config.conMinutos || config.tipos ? "min-w-0 space-y-2 sm:col-span-2" : "min-w-0 space-y-2"}>
               <Label htmlFor={`${formId}-fecha`}>Fecha</Label>
               <Input
                 ref={dateInputRef}
@@ -114,24 +123,49 @@ export function RegistroPorDiaFormDialog({
                 disabled={saving}
               />
             </div>
-            <div className="min-w-0 space-y-2">
-              <Label htmlFor={`${formId}-cantidad`}>Cantidad total del día</Label>
-              <Input
-                id={`${formId}-cantidad`}
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={MAX_CANTIDAD}
-                step={1}
-                required
-                value={count}
-                onChange={event => onCountChange(event.target.value)}
-                disabled={saving}
-                aria-invalid={Boolean(error) || undefined}
-                aria-describedby={describedBy}
-                className="tabular-nums"
-              />
-            </div>
+            {config.tipos ? (
+              // Un tipo por omisión: la cantidad del día es cuántos se marcan.
+              <fieldset className="min-w-0 space-y-2 sm:col-span-2" aria-describedby={describedBy}>
+                <legend className="text-label-sm text-foreground">Tipos del día</legend>
+                <div className="grid gap-x-4 sm:grid-cols-2">
+                  {config.tipos.map(tipo => {
+                    const checkboxId = `${formId}-tipo-${tipo.value}`
+                    return (
+                      <label key={tipo.value} htmlFor={checkboxId} className="flex min-h-(--control-height) cursor-pointer items-center gap-2 text-body-md text-foreground">
+                        <Checkbox
+                          id={checkboxId}
+                          checked={tipos.includes(tipo.value)}
+                          disabled={saving}
+                          onCheckedChange={value => onTiposChange(value === true
+                            ? [...tipos, tipo.value]
+                            : tipos.filter(item => item !== tipo.value))}
+                        />
+                        {tipo.label}
+                      </label>
+                    )
+                  })}
+                </div>
+              </fieldset>
+            ) : (
+              <div className="min-w-0 space-y-2">
+                <Label htmlFor={`${formId}-cantidad`}>Cantidad total del día</Label>
+                <Input
+                  id={`${formId}-cantidad`}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={MAX_CANTIDAD}
+                  step={1}
+                  required
+                  value={count}
+                  onChange={event => onCountChange(event.target.value)}
+                  disabled={saving}
+                  aria-invalid={Boolean(error) || undefined}
+                  aria-describedby={describedBy}
+                  className="tabular-nums"
+                />
+              </div>
+            )}
             {config.conMinutos && <div className="min-w-0 space-y-2">
               <Label htmlFor={`${formId}-minutos`}>Minutos totales del día</Label>
               <Input
@@ -155,7 +189,7 @@ export function RegistroPorDiaFormDialog({
           {existingLabel && (
             <p id={existingId} role="status" className="flex items-start gap-2 rounded-md bg-muted p-3 text-body-sm text-muted-foreground">
               <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-              Ya hay {existingLabel} este día. Si hubo reincidencia, captura el nuevo total.
+              Ya hay {existingLabel} este día. {config.tipos ? "Marca todos los tipos del día." : "Si hubo reincidencia, captura el nuevo total."}
             </p>
           )}
           {error && <p id={errorId} role="alert" className="text-body-sm text-destructive">{error}</p>}

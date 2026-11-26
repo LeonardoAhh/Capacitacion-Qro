@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { useRegistrosPorDia } from "@/lib/hooks/useRegistrosPorDia"
 import {
-  capitalize, formatCount, formatMinutes, formatMonth, isValidDate, MAX_CANTIDAD, recordDate, sortRecords, today,
+  capitalize, formatCount, formatMinutes, formatMonth, isValidDate, MAX_CANTIDAD, recordDate, sortRecords, tipoLabels, today,
   type RegistroPorDia, type RegistroPorDiaConfig, type ValoresDia,
 } from "@/lib/plantilla/registros-por-dia"
 import { RegistroPorDiaFormDialog } from "@/components/content/registros-por-dia-form-dialog"
@@ -26,7 +26,7 @@ interface RegistrosPorDiaPageProps {
   numeroEmpleado: string
 }
 
-/** Ficha de un empleado con sus registros por mes y día; captura individual para dev. */
+/** Ficha de un empleado con sus registros por mes y día; captura individual para quien captura la plantilla. */
 export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaPageProps) {
   const { canCapturePlantilla } = useRole()
   const { loading, saving, error, fetchByEmpleado, reloadByEmpleado, saveForEmpleadoDia } = useRegistrosPorDia(config)
@@ -36,6 +36,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
   const [formDate, setFormDate] = useState(today)
   const [formCount, setFormCount] = useState("1")
   const [formMinutes, setFormMinutes] = useState("0")
+  const [formTipos, setFormTipos] = useState<string[]>([])
   const [formError, setFormError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const newRecordRef = useRef<HTMLButtonElement>(null)
@@ -79,11 +80,15 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
   const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
   const pageRows = records.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
-  const columns = config.conMinutos ? 3 : 2
+  const columns = 2 + (config.conMinutos ? 1 : 0) + (config.tipos ? 1 : 0)
 
   const findByDate = (date: string) => records.find(record => recordDate(record) === date)
-  const describe = ({ cantidad, minutos }: ValoresDia) =>
-    config.conMinutos ? `${formatCount(cantidad, config)} (${formatMinutes(minutos)})` : formatCount(cantidad, config)
+  const describe = ({ cantidad, minutos, tipos }: ValoresDia) => {
+    const detalle = config.conMinutos ? formatMinutes(minutos) : tipoLabels(config, tipos).join(", ")
+    return detalle ? `${formatCount(cantidad, config)} (${detalle})` : formatCount(cantidad, config)
+  }
+  /** Tipos en el orden del catálogo, para comparar y guardar siempre igual. */
+  const sortTipos = (tipos: readonly string[]) => (config.tipos ?? []).map(tipo => tipo.value).filter(value => tipos.includes(value))
   const existingDateRecord = findByDate(formDate)
 
   const selectDate = (date: string) => {
@@ -91,6 +96,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
     const existing = findByDate(date)
     setFormCount(String(existing?.cantidad ?? 1))
     setFormMinutes(String(existing?.minutos ?? 0))
+    setFormTipos(existing?.tipos ?? [])
     setFormError(null)
   }
 
@@ -105,7 +111,13 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
       return
     }
 
-    const cantidad = Number(formCount)
+    const tipos = sortTipos(formTipos)
+    if (config.tipos && tipos.length === 0) {
+      setFormError("Marca al menos un tipo.")
+      return
+    }
+
+    const cantidad = config.tipos ? tipos.length : Number(formCount)
     if (!Number.isSafeInteger(cantidad) || cantidad < 1 || cantidad > MAX_CANTIDAD) {
       setFormError("La cantidad debe ser un entero mayor que cero.")
       return
@@ -118,16 +130,19 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
     }
 
     const existing = findByDate(formDate)
-    const anterior: ValoresDia | null = existing ? { cantidad: existing.cantidad, minutos: existing.minutos ?? 0 } : null
-    if (anterior && anterior.cantidad === cantidad && anterior.minutos === minutos) {
-      setFormError(`Ya hay ${describe(anterior)} para esta fecha. Si hubo reincidencia, captura el nuevo total.`)
+    const anterior: ValoresDia | null = existing
+      ? { cantidad: existing.cantidad, minutos: existing.minutos ?? 0, tipos: existing.tipos ?? [] }
+      : null
+    const mismosTipos = sortTipos(anterior?.tipos ?? []).join() === tipos.join()
+    if (anterior && anterior.cantidad === cantidad && anterior.minutos === minutos && mismosTipos) {
+      setFormError(`Ya hay ${describe(anterior)} para esta fecha. ${config.tipos ? "Marca todos los tipos del día." : "Si hubo reincidencia, captura el nuevo total."}`)
       return
     }
 
     if (anterior) {
       const confirmed = await notify.confirm({
         title: "Actualizar registro del día",
-        description: `Ya hay ${describe(anterior)} el ${formDate}. Confirma que el nuevo total sea ${describe({ cantidad, minutos })}.`,
+        description: `Ya hay ${describe(anterior)} el ${formDate}. Confirma que el nuevo total sea ${describe({ cantidad, minutos, tipos })}.`,
         confirmLabel: "Actualizar",
         tone: "warning",
       })
@@ -135,7 +150,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
     }
 
     setFormError(null)
-    const result = await saveForEmpleadoDia(numeroEmpleado, formDate, { cantidad, minutos }, anterior)
+    const result = await saveForEmpleadoDia(numeroEmpleado, formDate, { cantidad, minutos, tipos }, anterior)
     if (!result.success) {
       setFormError(result.error)
       void load()
@@ -145,7 +160,11 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
     const [year, month, day] = formDate.split("-")
     setRecords(current => sortRecords([
       ...current.filter(record => recordDate(record) !== formDate),
-      { numero_empleado: numeroEmpleado, mes: `${year}-${month}`, dia: Number(day), cantidad, ...(config.conMinutos ? { minutos } : {}) },
+      {
+        numero_empleado: numeroEmpleado, mes: `${year}-${month}`, dia: Number(day), cantidad,
+        ...(config.conMinutos ? { minutos } : {}),
+        ...(config.tipos ? { tipos } : {}),
+      },
     ]))
     setShowForm(false)
     notify.success(anterior ? "Registro actualizado." : `${capitalize(config.singular)} capturado.`)
@@ -192,6 +211,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
                 <TableHead scope="col" className={HEAD}>Día</TableHead>
                 <TableHead scope="col" className={cn(HEAD, "w-32 text-right")}>Cantidad</TableHead>
                 {config.conMinutos && <TableHead scope="col" className={cn(HEAD, "w-32 text-right")}>Minutos</TableHead>}
+                {config.tipos && <TableHead scope="col" className={HEAD}>Tipos</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -216,6 +236,11 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
                       </TableCell>
                       <TableCell className="text-right text-body-sm tabular-nums text-muted-foreground">{record.cantidad}</TableCell>
                       {config.conMinutos && <TableCell className="text-right text-body-sm tabular-nums text-muted-foreground">{record.minutos ?? 0}</TableCell>}
+                      {config.tipos && (
+                        <TableCell className="text-body-sm text-muted-foreground">
+                          {tipoLabels(config, record.tipos).join(", ") || "Sin tipo"}
+                        </TableCell>
+                      )}
                     </TableRow>
                   </Fragment>
                 )
@@ -237,13 +262,17 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
           date={formDate}
           count={formCount}
           minutes={formMinutes}
-          existing={existingDateRecord ? { cantidad: existingDateRecord.cantidad, minutos: existingDateRecord.minutos ?? 0 } : null}
+          tipos={formTipos}
+          existing={existingDateRecord
+            ? { cantidad: existingDateRecord.cantidad, minutos: existingDateRecord.minutos ?? 0, tipos: existingDateRecord.tipos ?? [] }
+            : null}
           employeeName={nombreEmpleado ?? "Empleado"}
           employeeNumber={numeroEmpleado}
           error={formError}
           onDateChange={selectDate}
           onCountChange={setFormCount}
           onMinutesChange={setFormMinutes}
+          onTiposChange={setFormTipos}
           onSave={handleSave}
           onReturnFocus={() => newRecordRef.current?.focus()}
         />

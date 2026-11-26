@@ -81,18 +81,19 @@ export function useTrainingHours(): TrainingHoursStats {
       while (hasMore) {
         const { data, error: rowsError } = await supabase
           .from("employee_courses")
-          .select("employee_id, course_id, fecha_aplicacion")
+          .select("employee_id, numero_empleado, course_id, fecha_aplicacion")
           .in("course_id", courseIds)
           .not("fecha_aplicacion", "is", null)
           .gte("fecha_aplicacion", `${currentYear - 2}-01-01`)
           .lt("fecha_aplicacion", `${currentYear + 1}-01-01`)
           .range(from, from + PAGE_SIZE - 1)
         if (rowsError) throw rowsError
-        const rows = (data ?? []) as { employee_id: string; course_id: string | null; fecha_aplicacion: string | null }[]
+        const rows = (data ?? []) as { employee_id: string | null; numero_empleado: string | null; course_id: string | null; fecha_aplicacion: string | null }[]
         allRows = allRows.concat(
           rows
             .filter(r => r.course_id && r.fecha_aplicacion)
-            .map(r => ({ employee_id: r.employee_id, course_id: r.course_id as string, fecha_aplicacion: r.fecha_aplicacion as string })),
+            // Un empleado borrado ya no tiene employee_id: se identifica por el número guardado en el curso.
+            .map(r => ({ employee_id: r.employee_id ?? `numero:${r.numero_empleado ?? ""}`, course_id: r.course_id as string, fecha_aplicacion: r.fecha_aplicacion as string })),
         )
         hasMore = rows.length === PAGE_SIZE
         from += PAGE_SIZE

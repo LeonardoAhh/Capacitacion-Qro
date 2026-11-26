@@ -18,6 +18,7 @@ import {
   buildThemeBootstrapScript,
   APP_THEME_COLORS,
 } from "@/lib/theme/constants"
+import { SIDEBAR_BOOTSTRAP_SCRIPT } from "@/lib/navigation"
 
 export const viewport: Viewport = {
   themeColor: [
@@ -73,6 +74,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP_SCRIPT }} />
+        <script dangerouslySetInnerHTML={{ __html: SIDEBAR_BOOTSTRAP_SCRIPT }} />
       </head>
       <body
         suppressHydrationWarning

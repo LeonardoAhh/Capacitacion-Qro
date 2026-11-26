@@ -10,8 +10,10 @@ import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
   Cake,
+  CalendarDays,
   ClipboardList,
   ClipboardPenLine,
+  FileSearch,
   FolderOpen,
   Handshake,
   HeartPulse,
@@ -57,6 +59,13 @@ export const LOGIN_PATH = "/login"
 export const ASSIGNMENTS_PATH = "/asignaciones"
 export const MOBILE_NAV_ID = "workspace-mobile-navigation"
 export const DESKTOP_NAV_ID = "workspace-desktop-navigation"
+export const MAIN_CONTENT_ID = "main-content"
+
+export const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
+/** Atributo de <html> con la barra oculta: el CSS lo usa mientras React no ha leído la preferencia. */
+export const SIDEBAR_COLLAPSED_ATTR = "data-sidebar-collapsed"
+/** Se ejecuta antes de hidratar para que la barra no aparezca abierta y luego se cierre. */
+export const SIDEBAR_BOOTSTRAP_SCRIPT = `try{if(localStorage.getItem(${JSON.stringify(SIDEBAR_COLLAPSED_KEY)})==="true")document.documentElement.setAttribute(${JSON.stringify(SIDEBAR_COLLAPSED_ATTR)},"true")}catch(e){}`
 
 // El menú respeta el orden de las secciones; dentro de cada grupo colapsable las
 // rutas se ordenan alfabéticamente al mostrarse. Cada rol ve las rutas que puede
@@ -91,6 +100,8 @@ export const NAV_SECTIONS: NavSection[] = [
       { label: "Categorías", href: "/promociones", icon: Tags },
       { label: "Recontratación", href: "/recontratacion", icon: UserRoundCog },
       { label: "Exámenes", href: "/examenes", icon: ClipboardPenLine },
+      { label: "DNC", href: "/dnc", icon: FileSearch },
+      { label: "Plan Anual", href: "/plan-anual", icon: CalendarDays },
     ],
   },
   {
@@ -126,6 +137,7 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
+  "/plantilla/cargar-cursos": "Cargar cursos",
   [IDEAS_PATH]: "Ideas de mejora",
   "/promociones": "Categorías",
   "/promociones/reglas": "Reglas de promoción",
@@ -151,6 +163,7 @@ const EXTRA_ROUTE_LABELS: Record<string, string> = {
 const ROUTE_PREFIX_LABELS = [
   { prefix: "/plantilla/actas/", label: "Actas administrativas" },
   { prefix: "/plantilla/incidencias/", label: "Incidencias" },
+  { prefix: "/plantilla/omisiones/", label: "Omisión de marcajes" },
   { prefix: "/plantilla/matriz/", label: "Matriz de capacitación" },
   { prefix: "/plantilla/incumplimientos/", label: "Incumplimientos" },
   { prefix: "/plantilla/retardos/", label: "Retardos" },

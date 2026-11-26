@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import Link from "next/link"
-import { BadgeCheck, CalendarDays, ClipboardList, Clock, GraduationCap, ShieldCheck, TrendingUp } from "lucide-react"
+import { BadgeCheck, Clock, Fingerprint, GraduationCap, ShieldCheck, Timer, TrendingUp } from "lucide-react"
 import { GreetingBar } from "@/components/greeting-bar"
-import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { cn } from "@/lib/utils"
 import { CumplimientoProvider } from "@/components/dashboard-cumplimiento-context"
@@ -13,6 +11,11 @@ import DashboardYearlyCompliance from "@/components/dashboard-yearly-compliance"
 import RgCumplimientoChart from "@/components/rg-cumplimiento-chart"
 import CapacitacionChart from "@/components/capacitacion-chart"
 import TrainingHoursKPI from "@/components/training-hours-kpi"
+import RegistrosSemanaChart from "@/components/registros-semana-chart"
+import { OMISIONES_MARCAJE_CONFIG, RETARDOS_CONFIG } from "@/lib/plantilla/registros-por-dia"
+
+const RetardosChart = () => <RegistrosSemanaChart config={RETARDOS_CONFIG} label="Retardos" />
+const OmisionesMarcajeChart = () => <RegistrosSemanaChart config={OMISIONES_MARCAJE_CONFIG} label="Omisión de marcajes" />
 
 /** Apartados de Inicio: uno a la vez, elegidos en la barra lateral interna. */
 const SECCIONES = [
@@ -21,6 +24,8 @@ const SECCIONES = [
     { id: "cumplimiento", label: "Cumplimiento general", icon: BadgeCheck, Panel: DashboardCumplimiento },
     { id: "rg", label: "RG-REC-048", icon: ShieldCheck, Panel: RgCumplimientoChart },
     { id: "ingreso", label: "Por año de ingreso", icon: TrendingUp, Panel: DashboardYearlyCompliance },
+    { id: "retardos", label: "Retardos", icon: Timer, Panel: RetardosChart },
+    { id: "omisiones", label: "Omisión de marcajes", icon: Fingerprint, Panel: OmisionesMarcajeChart },
 ] as const
 
 type SeccionId = (typeof SECCIONES)[number]["id"]
@@ -32,14 +37,7 @@ function DashboardContent() {
 
     return (
         <div className="space-y-6 dense:space-y-4">
-            <GreetingBar actions={<>
-                <Button asChild variant="outline">
-                    <Link href="/dnc"><ClipboardList aria-hidden="true" />DNC</Link>
-                </Button>
-                <Button asChild variant="outline">
-                    <Link href="/plan-anual"><CalendarDays aria-hidden="true" />Plan Anual</Link>
-                </Button>
-            </>} />
+            <GreetingBar />
 
             <div className="grid items-start gap-6 dense:gap-4 lg:grid-cols-[14rem_minmax(0,1fr)]">
                 <aside className="min-w-0 lg:sticky lg:top-0">

@@ -9,7 +9,6 @@ import { notify } from "@/lib/notify"
 
 import { CapEditEmployeeDialog, type EditEmployeeForm } from "@/components/content/cap-edit-employee-dialog"
 import { CapNewEmployeeDialog } from "@/components/redesign/cap-new-employee-dialog"
-import { CapAddCoursesDialog } from "@/components/content/cap-add-courses-dialog"
 import { CapNewPositionDialog } from "@/components/content/cap-new-position-dialog"
 import { CapNewCourseDialog } from "@/components/content/cap-new-course-dialog"
 import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog"
@@ -39,7 +38,7 @@ export default function CapacitacionContent() {
     fetchAllPositionCourses, fetchAllEmployeeCourses,
     fetchEmployees,
     deleteEmployee, createEmployeeManual, updateEmployee,
-    addCoursesToEmployee,
+
     createPosition, createCourse, updateCourse,
   } = useCapacitacion()
 
@@ -76,10 +75,6 @@ export default function CapacitacionContent() {
   const [newEmpSaving, setNewEmpSaving] = useState(false)
   const [newEmpSuccess, setNewEmpSuccess] = useState(false)
 
-  const [addCoursesDlgOpen, setAddCoursesDlgOpen] = useState(false)
-  const [addCoursesDlgEmp, setAddCoursesDlgEmp] = useState<Employee | null>(null)
-  const [addCoursesSaving, setAddCoursesSaving] = useState(false)
-  const [addCoursesSuccess, setAddCoursesSuccess] = useState(false)
 
   const loadCoursesData = useCallback(async () => {
     setLoadingCourses(true)
@@ -273,22 +268,10 @@ export default function CapacitacionContent() {
     else notify.error(result.error ?? 'Error al crear empleado')
   }, [createEmployeeManual, invalidateCoursesTabData, loadEmployees])
 
-  const handleSaveAddCourses = useCallback(async (rows: { course_id: string; course_name: string; fecha_aplicacion: string | null; calificacion: number | null }[]) => {
-    if (!addCoursesDlgEmp || rows.length === 0) return
-    setAddCoursesSaving(true)
-    const result = await addCoursesToEmployee(
-      addCoursesDlgEmp.id,
-      rows.map(r => ({ course_id: r.course_id, course_name: r.course_name, fecha_aplicacion: r.fecha_aplicacion, calificacion: r.calificacion }))
-    )
-    setAddCoursesSaving(false)
-    if (result.success) { invalidateCoursesTabData(); setAddCoursesDlgOpen(false); setAddCoursesSuccess(true) }
-    else notify.error(result.error ?? 'Error al guardar')
-  }, [addCoursesDlgEmp, addCoursesToEmployee, invalidateCoursesTabData])
-
   const handleDeleteEmployee = useCallback(async (emp: Employee) => {
     const ok = await notify.confirm({
       title: "Eliminar empleado",
-      description: `Se eliminará a ${emp.nombre} y su historial. Esta acción no se puede deshacer.`,
+      description: `Se eliminará a ${emp.nombre} de la plantilla. Sus cursos tomados se conservan en los indicadores de capacitación. Esta acción no se puede deshacer.`,
       confirmLabel: "Eliminar",
       tone: "destructive",
       requireInputText: "ELIMINAR",
@@ -341,25 +324,13 @@ export default function CapacitacionContent() {
             loadingEmployees={loadingEmployees}
             canEdit={canEdit}
             newEmpSuccess={newEmpSuccess}
-            addCoursesSuccess={addCoursesSuccess}
             onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
             onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
-            onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
             onDeleteEmployee={handleDeleteEmployee}
           />
         )}
       </SectionNavLayout>
 
-      <CapAddCoursesDialog
-        employee={addCoursesDlgEmp}
-        open={addCoursesDlgOpen}
-        saving={addCoursesSaving}
-        isReadOnly={isReadOnly}
-        courses={courses}
-        loadingCourses={loadingCourses}
-        onClose={() => setAddCoursesDlgOpen(false)}
-        onSave={handleSaveAddCourses}
-      />
 
       <CapNewEmployeeDialog
         open={newEmpOpen}

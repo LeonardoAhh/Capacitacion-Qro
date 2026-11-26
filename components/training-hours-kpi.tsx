@@ -1,21 +1,19 @@
 "use client"
 
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, LabelList,
-} from "recharts"
-import { AlertTriangle, BookOpen, Clock, Info, TrendingDown, TrendingUp, Users } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { LabelList, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { AlertTriangle, BookOpen, Clock, TrendingDown, TrendingUp, Users } from "lucide-react"
+import { CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { Tooltip as TooltipUI, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip"
-import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader } from "@/components/dashboard-panel"
+import {
+  CHART_LINE_CURSOR, CHART_TOOLTIP_CLASS, chartActiveDot, chartDot, ExpandablePanel, PanelEmpty, PanelError, PanelHeader,
+  panelBodyClass, panelChartClass,
+} from "@/components/dashboard-panel"
 import { useTheme } from "@/components/theme-context"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { cn } from "@/lib/utils"
 import { useTrainingHours, type TrainingHoursYearStat } from "@/lib/hooks/useTrainingHours"
 
-const HORAS_HOMBRE = "Duración de cada curso multiplicada por los empleados que lo tomaron."
 const formatNumber = (value: number) => value.toLocaleString("es-MX", { maximumFractionDigits: 2 })
 const monthLabel = (month: number) => new Date(2000, month - 1).toLocaleString("es-MX", { month: "short" }).replace(".", "")
 
@@ -40,43 +38,6 @@ function HoursTooltip({ active, payload, label }: { active?: boolean; payload?: 
         </p>
       ))}
     </div>
-  )
-}
-
-function Summary({ items }: { items: { label: string; value: string; hint?: string; testId: string }[] }) {
-  return (
-    <dl className="grid grid-cols-2 overflow-hidden rounded-xl border">
-      {items.map(({ label, value, hint, testId }, index) => (
-        <div
-          key={label}
-          data-testid={testId}
-          className={cn(
-            "min-w-0 space-y-1 p-4 sm:p-(--card-padding)",
-            index % 2 === 1 && "border-l",
-            index >= 2 && "border-t",
-          )}
-        >
-          <dt className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
-            <span className="truncate">{label}</span>
-            {hint && (
-              <TooltipUI delayDuration={300}>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`Qué incluye: ${label}`}
-                    className="relative touch-target shrink-0 rounded-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                  >
-                    <Info className="size-3.5" aria-hidden="true" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-64">{hint}</TooltipContent>
-              </TooltipUI>
-            )}
-          </dt>
-          <dd className="text-heading-lg tabular-nums text-foreground sm:text-heading-xl">{value}</dd>
-        </div>
-      ))}
-    </dl>
   )
 }
 
@@ -122,7 +83,7 @@ function YearRow({ year, previous }: { year: TrainingHoursYearStat; previous: Tr
   )
 }
 
-/** Horas de capacitación: resumen, gráfica por año y detalle mensual de cada año. */
+/** Horas de capacitación: gráfica por año y detalle mensual de cada año. */
 export default function TrainingHoursKPI() {
   const { loading, error, years, coursesWithDurationCount, refresh } = useTrainingHours()
   const prefersReduced = useMediaQuery("(prefers-reduced-motion: reduce)")
@@ -130,70 +91,65 @@ export default function TrainingHoursKPI() {
   const skip = prefersReduced || reducedMotion
 
   const grandTotal = years.reduce((s, y) => s + y.totalHours, 0)
-  const totalTakings = years.reduce((s, y) => s + y.coursesWithDuration, 0)
-  const globalAvg = years.length > 0
-    ? Math.round((years.reduce((s, y) => s + y.avgHoursPerEmployee, 0) / years.length) * 100) / 100
-    : 0
   const hasNoDuration = coursesWithDurationCount === 0
-  const currentYear = String(new Date().getFullYear())
-  const currentYearData = years.find(y => y.year === currentYear)
   const periodo = `${years.length} ${years.length === 1 ? "año" : "años"}`
 
   return (
-    <Card data-testid="training-hours-kpi-card">
-      <PanelHeader description="Horas-hombre por año" />
-      <CardContent className="space-y-4 p-(--card-padding) pt-0">
-        {loading ? (
-          <div role="status" aria-label="Cargando horas de capacitación" className="space-y-4">
-            <span className="sr-only">Cargando horas de capacitación…</span>
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-56 w-full rounded-xl" />
-          </div>
-        ) : error ? (
-          <PanelError message={error} onRetry={refresh} />
-        ) : hasNoDuration || years.length === 0 ? (
-          <PanelEmpty
-            icon={hasNoDuration
-              ? <AlertTriangle className="size-6 text-warning-deep" aria-hidden="true" />
-              : <Clock className="size-6 text-muted-foreground" aria-hidden="true" />}
-            title={hasNoDuration ? "Falta capturar la duración de los cursos." : "Sin historial reciente."}
-          />
-        ) : (
-          <TooltipProvider>
-            <div className="grid items-center gap-4 lg:grid-cols-2">
-              <Summary items={[
-                { testId: "hours-kpi-current", label: currentYearData ? `Horas ${currentYear}` : "Año actual", value: formatNumber(currentYearData?.totalHours ?? 0), hint: HORAS_HOMBRE },
-                { testId: "hours-kpi-total", label: `Total (${periodo})`, value: formatNumber(grandTotal) },
-                { testId: "hours-kpi-avg", label: "Promedio / empleado", value: `${formatNumber(globalAvg)} h` },
-                { testId: "hours-kpi-takings", label: "Cursos", value: totalTakings.toLocaleString("es-MX") },
-              ]} />
+    <ExpandablePanel label="Horas de capacitación" testId="training-hours-kpi-card">
+      {({ expanded, expandButton }) => (
+        <>
+            <PanelHeader actions={expandButton} />
+            <CardContent className={cn("space-y-4", panelBodyClass(expanded))}>
+              {loading ? (
+                <div role="status" aria-label="Cargando horas de capacitación" className="space-y-4">
+                  <span className="sr-only">Cargando horas de capacitación…</span>
+                  <Skeleton className="h-56 w-full rounded-xl" />
+                </div>
+              ) : error ? (
+                <PanelError message={error} onRetry={refresh} />
+              ) : hasNoDuration || years.length === 0 ? (
+                <PanelEmpty
+                  icon={hasNoDuration
+                    ? <AlertTriangle className="size-6 text-warning-deep" aria-hidden="true" />
+                    : <Clock className="size-6 text-muted-foreground" aria-hidden="true" />}
+                  title={hasNoDuration ? "Falta capturar la duración de los cursos." : "Sin historial reciente."}
+                />
+              ) : (
+                <>
+                  <div
+                    data-testid="hours-kpi-chart"
+                    role="img"
+                    aria-label={`Horas de capacitación en los últimos ${periodo}: ${formatNumber(grandTotal)} horas totales`}
+                    className={cn("text-muted-foreground", panelChartClass(expanded, "h-56"))}
+                  >
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={years} margin={{ top: 24, right: 8, left: -8, bottom: 0 }}>
+                        <XAxis dataKey="year" tick={{ fill: "currentColor", className: "text-body-sm" }} tickLine={false} axisLine={false} padding={{ left: 24, right: 24 }} />
+                        <YAxis tick={{ fill: "currentColor", className: "text-body-sm" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
+                        <Tooltip content={<HoursTooltip />} cursor={CHART_LINE_CURSOR} />
+                        <Line
+                          type="monotone"
+                          dataKey="totalHours"
+                          stroke="hsl(var(--chart-1))"
+                          strokeWidth={2}
+                          dot={chartDot("hsl(var(--chart-1))")}
+                          activeDot={chartActiveDot("hsl(var(--chart-1))")}
+                          isAnimationActive={!skip}
+                        >
+                          <LabelList dataKey="totalHours" position="top" offset={10} className="fill-foreground text-label-sm" formatter={(v: unknown) => `${v} h`} />
+                        </Line>
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
 
-              <div
-                data-testid="hours-kpi-chart"
-                role="img"
-                aria-label={`Horas de capacitación en los últimos ${periodo}: ${formatNumber(grandTotal)} horas totales`}
-                className="text-muted-foreground"
-              >
-                <ResponsiveContainer width="100%" height={Math.max(200, years.length * 56)}>
-                  <BarChart data={years} layout="vertical" margin={{ top: 4, right: 64, left: 0, bottom: 4 }} barSize={28}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
-                    <XAxis type="number" tick={{ fill: "currentColor", className: "text-body-sm" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
-                    <YAxis type="category" dataKey="year" tick={{ fill: "hsl(var(--foreground))", className: "text-label-sm" }} tickLine={false} axisLine={false} width={56} />
-                    <Tooltip content={<HoursTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-                    <Bar dataKey="totalHours" radius={[0, 6, 6, 0]} fill="hsl(var(--chart-1))" isAnimationActive={!skip}>
-                      <LabelList dataKey="totalHours" position="right" className="text-label-sm" fill="hsl(var(--foreground))" formatter={(v: unknown) => `${v} h`} />
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <Accordion type="single" collapsible data-testid="hours-kpi-year-list" className="@container divide-y overflow-hidden rounded-xl border">
-              {years.map((year, index) => <YearRow key={year.year} year={year} previous={index > 0 ? years[index - 1] : null} />)}
-            </Accordion>
-          </TooltipProvider>
-        )}
-      </CardContent>
-    </Card>
+                  <Accordion type="single" collapsible data-testid="hours-kpi-year-list" className="@container divide-y overflow-hidden rounded-xl border">
+                    {years.map((year, index) => <YearRow key={year.year} year={year} previous={index > 0 ? years[index - 1] : null} />)}
+                  </Accordion>
+                </>
+              )}
+            </CardContent>
+        </>
+      )}
+    </ExpandablePanel>
   )
 }

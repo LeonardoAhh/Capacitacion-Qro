@@ -1,13 +1,15 @@
 "use client"
 
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, Legend,
+  LineChart, Line, XAxis, YAxis,
+  Tooltip, ResponsiveContainer,
 } from "recharts"
 import { TrendingUp } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader } from "@/components/dashboard-panel"
+import {
+  CHART_LINE_CURSOR, CHART_TOOLTIP_CLASS, chartActiveDot, chartDot, ExpandablePanel, PanelEmpty, PanelError, PanelHeader, PanelLegend, panelBodyClass, panelChartClass,
+} from "@/components/dashboard-panel"
 import { useTheme } from "@/components/theme-context"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import {
@@ -64,6 +66,12 @@ function SkeletonContent() {
   )
 }
 
+const SERIES = [
+  { key: "aprobados", label: "Aprobados", color: COLORS.aprobado },
+  { key: "reprobados", label: "Reprobados", color: COLORS.reprobado },
+  { key: "pendientes", label: "Pendientes", color: COLORS.pendiente },
+] as const
+
 export default function DashboardYearlyCompliance() {
   const { loading, error, yearStats, cargar } = useYearlyCompliance()
 
@@ -84,75 +92,80 @@ export default function DashboardYearlyCompliance() {
   ]
 
   return (
-    <Card>
-      <PanelHeader
-        description="Avance en cursos por año de ingreso"
-        stats={!loading && !error && !isEmpty ? kpiBadges : undefined}
-      />
+    <ExpandablePanel label="Por año de ingreso">
+      {({ expanded, expandButton }) => (
+        <>
+            <PanelHeader
+              stats={!loading && !error && !isEmpty ? kpiBadges : undefined}
+              actions={expandButton}
+            />
 
-      <CardContent className="p-(--card-padding) pt-0">
-        {loading ? (
-          <SkeletonContent />
-        ) : error ? (
-          <PanelError message={error} onRetry={() => void cargar()} />
-        ) : isEmpty ? (
-          <PanelEmpty
-            icon={<TrendingUp className="size-6 text-muted-foreground" aria-hidden="true" />}
-            title="Sin datos por año de ingreso."
-          />
-        ) : (
-          <div className="space-y-5">
-            <div role="img" aria-label={`Cumplimiento por año de ingreso: ${pctGlobal}% global`}>
-              <ResponsiveContainer className="text-body-sm" width="100%" height={220}>
-                <BarChart data={yearStats} layout="vertical" margin={{ top: 0, right: 16, left: 10, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/15" horizontal={false} />
-                  <XAxis type="number" className="text-muted-foreground" axisLine={false} tickLine={false} />
-                  <YAxis type="category" dataKey="year" tick={{ fontWeight: 700 }} className="text-muted-foreground" axisLine={false} tickLine={false} width={55} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.4)" }} />
-                  <Legend
-                    wrapperStyle={{ paddingTop: 8 }}
-                    formatter={(v: string) => (
-                      <span className="text-muted-foreground">
-                        {v === "aprobados" ? "Aprobados" : v === "reprobados" ? "Reprobados" : "Pendientes"}
-                      </span>
-                    )}
-                  />
-                  <Bar dataKey="aprobados" stackId="a" fill={COLORS.aprobado} isAnimationActive={!skip} animationDuration={skip ? 0 : 600} />
-                  <Bar dataKey="reprobados" stackId="a" fill={COLORS.reprobado} isAnimationActive={!skip} animationDuration={skip ? 0 : 600} />
-                  <Bar dataKey="pendientes" stackId="a" fill={COLORS.pendiente} radius={[0, 4, 4, 0]} isAnimationActive={!skip} animationDuration={skip ? 0 : 600} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="space-y-3">
-              {yearStats.map((s) => (
-                <div key={s.year} className="space-y-1">
-                  <div className="flex items-center justify-between gap-2 text-body-sm tabular-nums">
-                    <span className="text-label-sm text-foreground">{s.year}</span>
-                    <span className="text-muted-foreground">
-                      {s.aprobados}/{s.asignados} cursos
-                      <span className="ml-2 font-bold text-chart-1-deep">{s.pct}%</span>
-                    </span>
+            <CardContent className={panelBodyClass(expanded)}>
+              {loading ? (
+                <SkeletonContent />
+              ) : error ? (
+                <PanelError message={error} onRetry={() => void cargar()} />
+              ) : isEmpty ? (
+                <PanelEmpty
+                  icon={<TrendingUp className="size-6 text-muted-foreground" aria-hidden="true" />}
+                  title="Sin datos por año de ingreso."
+                />
+              ) : (
+                <div className={cn("space-y-5", expanded && "flex flex-1 flex-col")}>
+                  <div role="img" aria-label={`Cumplimiento por año de ingreso: ${pctGlobal}% global`} className={cn("flex flex-col", panelChartClass(expanded, "h-55"))}>
+                    <ResponsiveContainer className="min-h-0 flex-1 text-body-sm" width="100%" height="100%">
+                      <LineChart data={yearStats} margin={{ top: 8, right: 8, left: -8, bottom: 0 }}>
+                        <XAxis dataKey="year" tick={{ fill: "currentColor" }} className="text-muted-foreground" axisLine={false} tickLine={false} padding={{ left: 24, right: 24 }} />
+                        <YAxis tick={{ fill: "currentColor" }} className="text-muted-foreground" axisLine={false} tickLine={false} allowDecimals={false} />
+                        <Tooltip content={<CustomTooltip />} cursor={CHART_LINE_CURSOR} />
+                        {SERIES.map(({ key, color }) => (
+                          <Line
+                            key={key}
+                            type="monotone"
+                            dataKey={key}
+                            stroke={color}
+                            strokeWidth={2}
+                            dot={chartDot(color)}
+                            activeDot={chartActiveDot(color)}
+                            isAnimationActive={!skip}
+                            animationDuration={skip ? 0 : 600}
+                          />
+                        ))}
+                      </LineChart>
+                    </ResponsiveContainer>
+                    <PanelLegend className="pt-2" items={SERIES} />
                   </div>
-                  <div
-                    role="progressbar"
-                    aria-label={`Cumplimiento ${s.year}`}
-                    aria-valuenow={s.pct}
-                    aria-valuemin={0}
-                    aria-valuemax={100}
-                    className="h-2 overflow-hidden rounded-sm bg-muted"
-                  >
-                    <div
-                      className="h-full rounded-sm transition-[width] duration-300 motion-reduce:transition-none"
-                      style={{ width: `${s.pct}%`, background: COLORS.aprobado }}
-                    />
+
+                  {/* Año, barra y cifras en una fila; la rejilla alinea las columnas de todos los años. */}
+                  <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-3 text-body-sm tabular-nums">
+                    {yearStats.map((s) => (
+                      <div key={s.year} className="contents">
+                        <span className="text-label-sm text-foreground">{s.year}</span>
+                        <div
+                          role="progressbar"
+                          aria-label={`Cumplimiento ${s.year}`}
+                          aria-valuenow={s.pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          className="h-2 overflow-hidden rounded-sm bg-muted"
+                        >
+                          <div
+                            className="h-full rounded-sm transition-[width] duration-300 motion-reduce:transition-none"
+                            style={{ width: `${s.pct}%`, background: COLORS.aprobado }}
+                          />
+                        </div>
+                        <span className="text-right text-muted-foreground">
+                          {s.aprobados}/{s.asignados} cursos
+                          <span className="ml-2 font-medium text-chart-1-deep">{s.pct}%</span>
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              )}
+            </CardContent>
+        </>
+      )}
+    </ExpandablePanel>
   )
 }

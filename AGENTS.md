@@ -12,7 +12,7 @@ App autenticada (workspace): panel elevado con sidebar, header sticky, data grid
 
 Marketing conserva la estética ink-on-white: casi todo es neutro, un solo gradiente decorativo, tipografía apretada y bordes de 1px. El workspace ofrece las paletas clara y oscura definidas abajo; conserva sus colores semánticos para acciones y estados.
 
-Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es #475569 en claro y #cbd5e1 en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
+Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es azul: #0070f3 en claro y #3d9bff en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
 La preferencia de tema admite claro, oscuro y sistema. Sistema sigue la preferencia de color del dispositivo y se aplica antes de hidratar; si cambia mientras está seleccionado, la interfaz se actualiza sin reemplazar esa preferencia.
 
 2. Stack esperado
@@ -42,7 +42,7 @@ css
 --foreground:        #14171c;
 --card:              #ffffff;
 --popover:           #ffffff;
---primary:           #475569;
+--primary:           #0070f3;
 --primary-foreground:#ffffff;
 --secondary:         #e4e7ec;
 --muted:             #eceef1;
@@ -52,20 +52,20 @@ css
 --destructive:       #8f1d1d;
 --border:            #c9ced6;
 --input:             #7a8494;
---ring:              #475569;
+--ring:              #0070f3;
 --sidebar:           var(--background);
---chart-1:           #475569;
---chart-2:           #3b82f6;
---chart-3:           #475569;
---chart-4:           #0e7490;
---chart-5:           #64748b;
+--chart-1:           #2a9d90;
+--chart-2:           #0070f3;
+--chart-3:           #f5a524;
+--chart-4:           #7c51c8;
+--chart-5:           #d4356a;
 --sidebar-foreground:var(--foreground);
---sidebar-primary:   #475569;
+--sidebar-primary:   #0070f3;
 --sidebar-primary-foreground: #ffffff;
 --sidebar-accent:    #e4e7ec;
 --sidebar-accent-foreground: #14171c;
 --sidebar-border:    #c9ced6;
---sidebar-ring:      #475569;
+--sidebar-ring:      #0070f3;
 --success:           #0070f3;
 --warning:           #f5a623;
 
@@ -74,8 +74,8 @@ css
 --foreground:        #eceff3;
 --card:              #1a1d23;
 --popover:           #1a1d23;
---primary:           #cbd5e1;
---primary-foreground:#0a1228;
+--primary:           #3d9bff;
+--primary-foreground:#131313;
 --secondary:         #262b33;
 --muted:             #20242b;
 --muted-foreground:  #b8c0cc;
@@ -84,20 +84,20 @@ css
 --destructive:       #ff9b9b;
 --border:            #363c46;
 --input:             #7d8798;
---ring:              #cbd5e1;
+--ring:              #3d9bff;
 --sidebar:           var(--background);
---chart-1:           #cbd5e1;
---chart-2:           #60a5fa;
---chart-3:           #94a3b8;
---chart-4:           #22d3ee;
---chart-5:           #cbd5e1;
+--chart-1:           #39c6b3;
+--chart-2:           #3d9bff;
+--chart-3:           #f6ae31;
+--chart-4:           #ac86ea;
+--chart-5:           #eb7099;
 --sidebar-foreground:var(--foreground);
---sidebar-primary:   #cbd5e1;
---sidebar-primary-foreground: #0a1228;
+--sidebar-primary:   #3d9bff;
+--sidebar-primary-foreground: #131313;
 --sidebar-accent:    #262b33;
 --sidebar-accent-foreground: #eceff3;
 --sidebar-border:    #363c46;
---sidebar-ring:      #cbd5e1;
+--sidebar-ring:      #3d9bff;
 
 /* Links / acento */
 --link:              #0070f3;

@@ -12,7 +12,7 @@ import { useChartPalette } from "@/components/use-chart-palette"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
-import { HOME_PATH, LOGIN_PATH, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
+import { HOME_PATH, LOGIN_PATH, MAIN_CONTENT_ID, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { useSignOut } from "@/components/signout-overlay"
 import { useWorkspaceSwitch } from "@/components/workspace-switch-overlay"
 import { HeaderSearchSlot } from "@/components/ui/header-search"
@@ -34,6 +34,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     openMobileSidebar,
     isSidebarCollapsed,
     toggleSidebar,
+    isSidebarReady,
   } = useSidebar()
 
   const pathname = usePathname()
@@ -86,7 +87,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     <div className="workspace-shell bg-card" data-layout="app" data-desktop-header={isEvaluador ? "none" : undefined}>
       {/* Skip link accesible */}
       <a
-        href="#main-content"
+        href={`#${MAIN_CONTENT_ID}`}
         className="sr-only transition-colors focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100]
                    focus:rounded-md focus:border focus:border-border focus:bg-card focus:px-4 focus:py-3
                    focus:text-body-md focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-ring"
@@ -100,6 +101,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           setShowMobileSidebar={setShowMobileSidebar}
           // El evaluador no tiene header en escritorio (sin control para mostrarla): su barra siempre se ve.
           isCollapsed={isSidebarCollapsed && !isEvaluador}
+          isReady={isSidebarReady}
           workspace={workspace}
           onWorkspaceChange={handleWorkspaceChange}
           showStatus={isEvaluador}
@@ -129,7 +131,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
             />
             <main
               ref={mainRef}
-              id="main-content"
+              id={MAIN_CONTENT_ID}
               tabIndex={-1}
               className="workspace-main min-w-0 flex-1 safe-left safe-right focus:outline-none"
             >

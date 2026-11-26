@@ -211,7 +211,7 @@ export function diceCoefficient(a: string, b: string): number {
   return (2 * intersection) / (ba.size + bb.size)
 }
 
-function matchCourse(rawName: string, catalog: Course[], aliases: CourseAlias[]): CourseMatch {
+export function matchCourse(rawName: string, catalog: Course[], aliases: CourseAlias[]): CourseMatch {
   const norm = normalizeCourseName(rawName)
   const isCode = isCodeLike(norm)
 
@@ -349,6 +349,8 @@ export function useCapacitacion() {
       (from, to) => supabase
         .from('employee_courses')
         .select('id, employee_id, course_id, raw_course_name, fecha_aplicacion, calificacion, created_at, course:courses(name, tipo)')
+        // Solo la plantilla actual: los cursos de empleados borrados se conservan para los indicadores.
+        .not('employee_id', 'is', null)
         .order('id')
         .range(from, to),
     )
@@ -666,7 +668,7 @@ export function useCapacitacion() {
         if (niErr) throw new Error(niErr.message)
       }
 
-      // 3. employees (cascades: employee_courses, evaluaciones_desempeño)
+      // 3. employees: sus cursos se conservan sin vínculo (employee_id en NULL) para los indicadores
       const { error: empErr } = await supabase
         .from('employees')
         .delete()
@@ -689,34 +691,6 @@ export function useCapacitacion() {
       return { success: true }
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : 'Error' }
-    }
-  }
-
-  const addCoursesToEmployee = async (employeeId: string, employeeCourses: { course_id: string; course_name: string; fecha_aplicacion: string | null; calificacion: number | null }[]): Promise<{ success: boolean; error?: string }> => {
-    setImporting(true)
-    setImportError(null)
-    try {
-      const records = employeeCourses
-        .filter(c => c.course_id)
-        .map(c => ({
-          employee_id: employeeId,
-          course_id: c.course_id,
-          raw_course_name: c.course_name,
-          fecha_aplicacion: c.fecha_aplicacion,
-          calificacion: c.calificacion,
-        }))
-      if (records.length === 0) return { success: true }
-      const { error } = await supabase
-        .from('employee_courses')
-        .upsert(records, { onConflict: 'employee_id,raw_course_name', ignoreDuplicates: false })
-      if (error) throw new Error(error.message)
-      return { success: true }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al agregar cursos'
-      setImportError(msg)
-      return { success: false, error: msg }
-    } finally {
-      setImporting(false)
     }
   }
 
@@ -918,7 +892,6 @@ export function useCapacitacion() {
     deleteEmployee,
     createEmployeeManual,
     updateEmployee,
-    addCoursesToEmployee,
     createPosition,
     createCourse,
     updateCourse,

@@ -6,7 +6,7 @@ import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from "@/components/ui/drawer"
 import { cn } from "@/lib/utils"
-import { DESKTOP_NAV_ID, MOBILE_NAV_ID, type WorkspaceId } from "@/lib/navigation"
+import { DESKTOP_NAV_ID, MAIN_CONTENT_ID, MOBILE_NAV_ID, SIDEBAR_COLLAPSED_ATTR, SIDEBAR_COLLAPSED_KEY, type WorkspaceId } from "@/lib/navigation"
 import { WorkspaceBrand } from "@/components/workspace-switcher"
 import { AccountMenu } from "@/components/account-menu"
 import { IdeaCapture } from "@/components/idea-capture"
@@ -17,14 +17,45 @@ import { SIDEBAR_ICON, SIDEBAR_ICON_BOX, SIDEBAR_ROW, SIDEBAR_ROW_BASE, SIDEBAR_
 // Mismo límite que `md`; la visibilidad del panel sigue en CSS.
 import { DESKTOP_QUERY } from "@/lib/hooks/useMediaQuery"
 
-const SIDEBAR_COLLAPSED_KEY = "workspace-sidebar-collapsed"
-
 
 export interface SidebarApi {
   showMobileSidebar: boolean
   openMobileSidebar: () => void
   isSidebarCollapsed: boolean
+  /** Ya se leyó la preferencia guardada: desde aquí abrir y cerrar se anima. */
+  isSidebarReady: boolean
   toggleSidebar: () => void
+}
+
+/** Margen por si `transitionend` no llega (pestaña en segundo plano, transición cancelada). */
+const FREEZE_FALLBACK_MS = 600
+
+/**
+ * Mientras la barra cambia de ancho, el contenido del main toma de una vez su ancho final
+ * y el panel solo se recorta: se reacomoda una vez y no en cada cuadro de la animación.
+ */
+function freezeMainDuringToggle() {
+  const main = document.getElementById(MAIN_CONTENT_ID)
+  const sidebar = document.getElementById(DESKTOP_NAV_ID)
+  const inner = sidebar?.firstElementChild
+  const root = document.documentElement
+  if (!main || !sidebar || !(inner instanceof HTMLElement) || !sidebar.offsetParent) return
+  if (root.classList.contains("reduce-motion") || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+  const opening = sidebar.dataset.collapsed === "true"
+  const finalWidth = main.clientWidth + (opening ? -inner.offsetWidth : inner.offsetWidth)
+  main.style.setProperty("--main-frozen-width", `${finalWidth}px`)
+  main.dataset.frozen = "true"
+
+  const release = (event?: TransitionEvent) => {
+    if (event && (event.target !== sidebar || event.propertyName !== "width")) return
+    sidebar.removeEventListener("transitionend", release)
+    window.clearTimeout(timer)
+    delete main.dataset.frozen
+    main.style.removeProperty("--main-frozen-width")
+  }
+  sidebar.addEventListener("transitionend", release)
+  const timer = window.setTimeout(release, FREEZE_FALLBACK_MS)
 }
 
 export function useSidebar(): SidebarApi & {
@@ -35,7 +66,10 @@ export function useSidebar(): SidebarApi & {
   const [preferenceLoaded, setPreferenceLoaded] = useState(false)
 
   const openMobileSidebar = useCallback(() => setShowMobileSidebar(true), [])
-  const toggleSidebar = useCallback(() => setIsSidebarCollapsed((collapsed) => !collapsed), [])
+  const toggleSidebar = useCallback(() => {
+    freezeMainDuringToggle()
+    setIsSidebarCollapsed((collapsed) => !collapsed)
+  }, [])
 
   useEffect(() => {
     try {
@@ -50,6 +84,7 @@ export function useSidebar(): SidebarApi & {
   useEffect(() => {
     if (!preferenceLoaded) return
 
+    document.documentElement.toggleAttribute(SIDEBAR_COLLAPSED_ATTR, isSidebarCollapsed)
     try {
       window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(isSidebarCollapsed))
     } catch (error) {
@@ -72,6 +107,7 @@ export function useSidebar(): SidebarApi & {
     setShowMobileSidebar,
     openMobileSidebar,
     isSidebarCollapsed,
+    isSidebarReady: preferenceLoaded,
     toggleSidebar,
   }
 }
@@ -117,6 +153,8 @@ interface SidebarProps {
   setShowMobileSidebar: (v: boolean) => void
   /** Escritorio: la barra se oculta por completo; se abre y cierra desde el header. */
   isCollapsed: boolean
+  /** Hasta que se lee la preferencia, el estado inicial sale del atributo de <html> y no se anima. */
+  isReady: boolean
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
   /** Hora y avisos en la barra, para la vista sin encabezado. */
@@ -127,6 +165,7 @@ export default function Sidebar({
   showMobileSidebar,
   setShowMobileSidebar,
   isCollapsed,
+  isReady,
   workspace,
   onWorkspaceChange,
   showStatus = false,
@@ -170,6 +209,7 @@ export default function Sidebar({
         id={DESKTOP_NAV_ID}
         aria-label="Menú principal"
         data-collapsed={isCollapsed}
+        data-ready={isReady || undefined}
         inert={isCollapsed}
         className="workspace-sidebar hidden flex-col bg-sidebar text-sidebar-foreground md:flex"
       >

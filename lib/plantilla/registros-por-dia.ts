@@ -1,8 +1,14 @@
 /**
- * Registros por empleado y día (incumplimientos, retardos): misma tabla
- * (numero_empleado, mes, dia, cantidad) y misma RPC de captura individual.
+ * Registros por empleado y día (incumplimientos, retardos, omisiones de marcaje):
+ * misma tabla (numero_empleado, mes, dia, cantidad) y misma RPC de captura individual.
  * Cada tipo solo aporta su tabla, su RPC y sus textos.
  */
+
+export interface TipoRegistro {
+  /** Valor guardado en la base. */
+  value: string
+  label: string
+}
 
 export interface RegistroPorDiaConfig {
   /** Tabla con columnas numero_empleado, mes (YYYY-MM), dia y cantidad. */
@@ -13,6 +19,11 @@ export interface RegistroPorDiaConfig {
   plural: string
   /** Registra minutos por día (RPC con p_minutos / p_minutos_anterior). */
   conMinutos?: boolean
+  /**
+   * Un tipo por registro: la captura marca tipos y la cantidad del día es cuántos se marcaron
+   * (RPC con p_tipos / p_tipos_anteriores, sin p_cantidad).
+   */
+  tipos?: readonly TipoRegistro[]
 }
 
 export const INCUMPLIMIENTOS_CONFIG: RegistroPorDiaConfig = {
@@ -30,18 +41,42 @@ export const RETARDOS_CONFIG: RegistroPorDiaConfig = {
   conMinutos: true,
 }
 
+export const TIPOS_OMISION_MARCAJE: readonly TipoRegistro[] = [
+  { value: "entrada", label: "Entrada" },
+  { value: "salida", label: "Salida" },
+  { value: "salida_comida", label: "Salida a comer" },
+  { value: "regreso_comida", label: "Regreso de comer" },
+]
+
+export const OMISIONES_MARCAJE_CONFIG: RegistroPorDiaConfig = {
+  tabla: "omisiones_marcaje",
+  rpcRegistrar: "registrar_omision_marcaje",
+  singular: "omisión",
+  plural: "omisiones",
+  tipos: TIPOS_OMISION_MARCAJE,
+}
+
 export interface RegistroPorDia {
   numero_empleado: string
   mes: string
   dia: number
   cantidad: number
   minutos?: number
+  /** Solo con config.tipos: un tipo por registro del día. */
+  tipos?: string[]
+}
+
+/** Etiquetas de los tipos en el orden del catálogo. */
+export function tipoLabels(config: RegistroPorDiaConfig, tipos: readonly string[] | undefined): string[] {
+  return (config.tipos ?? []).filter(tipo => tipos?.includes(tipo.value)).map(tipo => tipo.label)
 }
 
 /** Valores capturables de un día. */
 export interface ValoresDia {
   cantidad: number
   minutos: number
+  /** Solo con config.tipos. */
+  tipos?: string[]
 }
 
 /** Límite de integer en Postgres. */

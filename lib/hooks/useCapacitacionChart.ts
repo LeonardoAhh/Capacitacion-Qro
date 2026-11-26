@@ -1,8 +1,10 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
+import { fetchAllRows } from "@/lib/supabase/fetchAll"
+import { ALL_DEPARTMENTS } from "@/lib/constants/filters"
 
 export interface MonthlyPoint {
   month: string
@@ -36,146 +38,101 @@ function linearTrend(values: number[]): number[] {
   return xs.map(x => Math.max(0, Math.round((slope * x + intercept) * 10) / 10))
 }
 
-function buildEmpty(): MonthlyPoint[] {
-  return MONTHS.map(m => ({
-    month: m,
-    "2024": 0, "2024_trend": 0,
-    "2025": 0, "2025_trend": 0,
-    "2026": 0, "2026_trend": 0,
-  }))
+/** Cada curso guarda el departamento del empleado: cuenta aunque el empleado ya se haya borrado. */
+interface CourseRow { course_id: string | null; raw_course_name: string; fecha_aplicacion: string | null; departamento_empleado: string | null }
+
+const normalizeDept = (value: string | null | undefined) => (value ?? "").trim().toLocaleLowerCase("es-MX")
+
+/** Cursos únicos por mes y año, con su tendencia lineal. */
+function buildChart(rows: CourseRow[]): { points: MonthlyPoint[]; totals: { year: string; total: number }[] } {
+  const grid: Record<string, Record<number, Set<string>>> = {}
+  for (const y of YEARS) {
+    grid[y] = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i, new Set<string>()]))
+  }
+
+  for (const r of rows) {
+    if (!r.fecha_aplicacion) continue
+    const parts = r.fecha_aplicacion.split("-")
+    if (parts.length !== 3) continue
+    const year = parts[0]
+    const month = parseInt(parts[1], 10) - 1
+    if (!grid[year] || month < 0 || month > 11) continue
+    grid[year][month].add(r.course_id ?? r.raw_course_name.trim().toUpperCase())
+  }
+
+  const rawValues: Record<string, number[]> = {}
+  for (const y of YEARS) rawValues[y] = MONTHS.map((_, i) => grid[y][i].size)
+
+  const trends: Record<string, number[]> = {}
+  for (const y of YEARS) trends[y] = linearTrend(rawValues[y])
+
+  return {
+    points: MONTHS.map((label, i) => ({
+      month: label,
+      "2024": rawValues["2024"][i], "2024_trend": trends["2024"][i],
+      "2025": rawValues["2025"][i], "2025_trend": trends["2025"][i],
+      "2026": rawValues["2026"][i], "2026_trend": trends["2026"][i],
+    })),
+    totals: YEARS.map(y => ({ year: y, total: rawValues[y].reduce((s, v) => s + v, 0) })),
+  }
 }
 
+/**
+ * Carga una vez los cursos del periodo (con el departamento de quien lo tomó);
+ * cambiar de departamento filtra en memoria, sin volver a consultar.
+ */
 export function useCapacitacionChart() {
-  const [departmentState, setDepartmentState] = useState({ items: [] as Department[], loaded: false })
-  const { items: departments, loaded: departmentsLoaded } = departmentState
-  const [selectedDept, setSelectedDept] = useState<string>("all")
-  const [chartData, setChartData] = useState<MonthlyPoint[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [selectedDept, setSelectedDept] = useState<string>(ALL_DEPARTMENTS)
+  const [rows, setRows] = useState<CourseRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [yearTotals, setYearTotals] = useState<{ year: string; total: number }[]>([])
   const requestIdRef = useRef(0)
-  const mountedRef = useRef(true)
 
-  useEffect(() => {
-    mountedRef.current = true
-    return () => { mountedRef.current = false }
-  }, [])
-
-  useEffect(() => {
-    let active = true
-    const loadDepartments = async () => {
-      try {
-        const { data, error: deptError } = await supabase
-          .from("departments")
-          .select("id, name")
-          .order("name")
-        if (deptError) throw deptError
-        if (active) setDepartmentState({ items: data ?? [], loaded: true })
-      } catch (err) {
-        console.error("Department load error:", err instanceof Error ? err.message : JSON.stringify(err))
-        if (active) setDepartmentState({ items: [], loaded: true })
-      }
-    }
-    void loadDepartments()
-    return () => { active = false }
-  }, [])
-
-  const loadData = useCallback(async (deptId: string) => {
+  const loadData = useCallback(async () => {
     const currentRequest = ++requestIdRef.current
     setLoading(true)
     setError(null)
     try {
-      let employeeIds: string[] | null = null
-
-      if (deptId !== "all") {
-        const deptName = departments.find(d => d.id === deptId)?.name ?? ""
-        const { data: empData, error: empError } = await supabase
-          .from("employees").select("id").ilike("departamento", deptName)
-        if (empError) throw empError
-        employeeIds = (empData ?? []).map(e => e.id)
-        if (employeeIds.length === 0) {
-          if (!mountedRef.current || currentRequest !== requestIdRef.current) return
-          setChartData(buildEmpty())
-          setYearTotals(YEARS.map(y => ({ year: y, total: 0 })))
-          return
-        }
-      }
-
-      const PAGE_SIZE = 1000
-      let allRows: { employee_id: string; course_id: string | null; raw_course_name: string; fecha_aplicacion: string | null }[] = []
-      let from = 0
-      let hasMore = true
-
-      while (hasMore) {
-        let query = supabase
-          .from("employee_courses")
-          .select("employee_id, course_id, raw_course_name, fecha_aplicacion")
-          .not("fecha_aplicacion", "is", null)
-          .gte("fecha_aplicacion", CHART_START_DATE)
-          .lt("fecha_aplicacion", CHART_END_DATE)
-          .range(from, from + PAGE_SIZE - 1)
-
-        if (employeeIds) {
-          query = query.in("employee_id", employeeIds)
-        }
-
-        const { data, error: rowsError } = await query
-        if (rowsError) throw rowsError
-        allRows = allRows.concat(data ?? [])
-        hasMore = (data?.length ?? 0) === PAGE_SIZE
-        from += PAGE_SIZE
-      }
-
-      const grid: Record<string, Record<number, Set<string>>> = {}
-      for (const y of YEARS) {
-        grid[y] = Object.fromEntries(Array.from({ length: 12 }, (_, i) => [i, new Set<string>()]))
-      }
-
-      for (const r of allRows) {
-        if (!r.fecha_aplicacion) continue
-        const parts = r.fecha_aplicacion.split("-")
-        if (parts.length !== 3) continue
-        const year = parts[0]
-        const month = parseInt(parts[1], 10) - 1
-        if (!grid[year] || month < 0 || month > 11) continue
-        const key = r.course_id ?? r.raw_course_name.trim().toUpperCase()
-        grid[year][month].add(key)
-      }
-
-      const rawValues: Record<string, number[]> = {}
-      for (const y of YEARS) rawValues[y] = MONTHS.map((_, i) => grid[y][i].size)
-
-      const trends: Record<string, number[]> = {}
-      for (const y of YEARS) trends[y] = linearTrend(rawValues[y])
-
-      const points: MonthlyPoint[] = MONTHS.map((label, i) => ({
-        month: label,
-        "2024": rawValues["2024"][i], "2024_trend": trends["2024"][i],
-        "2025": rawValues["2025"][i], "2025_trend": trends["2025"][i],
-        "2026": rawValues["2026"][i], "2026_trend": trends["2026"][i],
-      }))
-
-      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
-      setChartData(points)
-      setYearTotals(YEARS.map(y => ({ year: y, total: rawValues[y].reduce((s, v) => s + v, 0) })))
+      const [deptResult, courseRows] = await Promise.all([
+        supabase.from("departments").select("id, name").order("name"),
+        fetchAllRows<CourseRow>((from, to) =>
+          supabase
+            .from("employee_courses")
+            .select("course_id, raw_course_name, fecha_aplicacion, departamento_empleado")
+            .not("fecha_aplicacion", "is", null)
+            .gte("fecha_aplicacion", CHART_START_DATE)
+            .lt("fecha_aplicacion", CHART_END_DATE)
+            .range(from, to),
+        ),
+      ])
+      if (deptResult.error) throw deptResult.error
+      if (currentRequest !== requestIdRef.current) return
+      setDepartments(deptResult.data ?? [])
+      setRows(courseRows)
     } catch (err) {
-      if (!mountedRef.current || currentRequest !== requestIdRef.current) return
+      if (currentRequest !== requestIdRef.current) return
       console.error("Chart error:", err instanceof Error ? err.message : JSON.stringify(err))
       setError(describeSupabaseError(err, "No se pudieron cargar los cursos impartidos"))
     } finally {
-      if (mountedRef.current && currentRequest === requestIdRef.current) {
-        setLoading(false)
-      }
+      if (currentRequest === requestIdRef.current) setLoading(false)
     }
-  }, [departments])
+  }, [])
 
   useEffect(() => {
-    if (departmentsLoaded) void loadData(selectedDept)
-  }, [departmentsLoaded, selectedDept, loadData])
+    void loadData()
+    return () => { requestIdRef.current++ }
+  }, [loadData])
+
+  const { points: chartData, totals: yearTotals } = useMemo(() => {
+    if (selectedDept === ALL_DEPARTMENTS) return buildChart(rows)
+    const deptName = normalizeDept(departments.find(d => d.id === selectedDept)?.name)
+    return buildChart(rows.filter(r => normalizeDept(r.departamento_empleado) === deptName))
+  }, [rows, departments, selectedDept])
 
   return {
     loading, error, departments, selectedDept, setSelectedDept,
     chartData, yearTotals,
-    refresh: () => void loadData(selectedDept),
+    refresh: () => void loadData(),
   }
 }

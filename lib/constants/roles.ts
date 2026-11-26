@@ -64,7 +64,7 @@ export const ROLE_POLICIES: Record<AppRole, RolePolicy> = {
   },
   auxiliar: {
     label: "Auxiliar", workspaces: TRAINING, home: "/plantilla",
-    routes: ["/plantilla", "/plantilla/incidencias/*", "/plantilla/actas/*", "/plantilla/incumplimientos/*", "/plantilla/retardos/*"],
+    routes: ["/plantilla", "/plantilla/incidencias/*", "/plantilla/actas/*", "/plantilla/incumplimientos/*", "/plantilla/retardos/*", "/plantilla/omisiones/*"],
     canEdit: false, readOnly: true, canEvaluate: false, canCapturePlantilla: true,
     canManageSafety: false, supervisesEvaluations: false, employeesOnly: true, canReviewIdeas: false,
   },

@@ -1,16 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, Cell, LabelList, ReferenceLine,
-} from "recharts"
 import { GraduationCap } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
+import { CardContent } from "@/components/ui/card"
+import { DeptPctLineChart } from "@/components/dept-pct-line-chart"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader, PanelStats } from "@/components/dashboard-panel"
+import { CHART_TOOLTIP_CLASS, DepartmentPager, ExpandablePanel, PanelEmpty, PanelError, PanelHeader, PanelStats, panelBodyClass } from "@/components/dashboard-panel"
+import { ALL_DEPARTMENTS } from "@/lib/constants/filters"
 import { useCumplimientoShared } from "@/components/dashboard-cumplimiento-context"
 import { useTheme } from "@/components/theme-context"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
@@ -69,27 +66,26 @@ export default function DashboardCumplimiento() {
   const {
     loading, error, departments, deptData,
     totalAsignados, totalAprobados, totalReprobados, totalPendientes,
-    totalEmpleados, totalEmpleadosConPuesto, cargar,
+    cargar,
   } = useCumplimientoShared()
 
   const prefersReduced = useMediaQuery("(prefers-reduced-motion: reduce)")
   const { reducedMotion } = useTheme()
   const skip = prefersReduced || reducedMotion
 
-  const [deptFilter, setDeptFilter] = useState<string>("all")
+  const [deptFilter, setDeptFilter] = useState<string>(ALL_DEPARTMENTS)
 
-  const filteredDeptData = deptFilter === "all"
+  const filteredDeptData = deptFilter === ALL_DEPARTMENTS
     ? deptData
     : deptData.filter(d => d.departamento.toLowerCase() === deptFilter.toLowerCase())
 
-  const fAsignados = deptFilter === "all" ? totalAsignados : filteredDeptData.reduce((s, d) => s + d.asignados, 0)
-  const fAprobados = deptFilter === "all" ? totalAprobados : filteredDeptData.reduce((s, d) => s + d.aprobados, 0)
-  const fReprobados = deptFilter === "all" ? totalReprobados : filteredDeptData.reduce((s, d) => s + d.reprobados, 0)
-  const fPendientes = deptFilter === "all" ? totalPendientes : filteredDeptData.reduce((s, d) => s + d.pendientes, 0)
+  const fAsignados = deptFilter === ALL_DEPARTMENTS ? totalAsignados : filteredDeptData.reduce((s, d) => s + d.asignados, 0)
+  const fAprobados = deptFilter === ALL_DEPARTMENTS ? totalAprobados : filteredDeptData.reduce((s, d) => s + d.aprobados, 0)
+  const fReprobados = deptFilter === ALL_DEPARTMENTS ? totalReprobados : filteredDeptData.reduce((s, d) => s + d.reprobados, 0)
+  const fPendientes = deptFilter === ALL_DEPARTMENTS ? totalPendientes : filteredDeptData.reduce((s, d) => s + d.pendientes, 0)
   const pctGeneral = fAsignados > 0 ? Math.round((fAprobados / fAsignados) * 100) : 0
 
   const isEmpty = fAsignados === 0
-  const abrevDept = (n: string) => n.length <= 14 ? n : n.substring(0, 13) + "…"
 
   const stats = [
     { color: colorPct(pctGeneral), label: "Cumplimiento", value: `${pctGeneral}%` },
@@ -97,96 +93,53 @@ export default function DashboardCumplimiento() {
     { color: COLORS.reprobado, label: "Reprobados", value: fReprobados },
     { color: COLORS.pendiente, label: "Pendientes", value: fPendientes },
   ]
-  const descripcion = deptFilter === "all"
-    ? `Avance por puesto (${totalEmpleadosConPuesto} de ${totalEmpleados} empleados)`
-    : "Avance por puesto"
 
   return (
-    <Card>
-      <PanelHeader
-        description={descripcion}
-        actions={
-          <Select value={deptFilter} onValueChange={setDeptFilter}>
-            <SelectTrigger aria-label="Filtrar por departamento" className="w-full sm:w-auto">
-              <SelectValue placeholder="Todos los departamentos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los departamentos</SelectItem>
-              {departments.map(d => (
-                <SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      >
-        {!loading && !error && !isEmpty && (
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <PanelStats items={stats} />
-            <Badge variant={pctGeneral >= META ? "success" : "destructive"} size="sm">
-              {pctGeneral >= META ? "Cumple" : "Bajo meta"} · {META}%
-            </Badge>
-          </div>
-        )}
-      </PanelHeader>
+    <ExpandablePanel label="Cumplimiento general">
+      {({ expanded, expandButton }) => (
+        <>
+            <PanelHeader
+              actions={<>
+                <DepartmentPager departments={departments} value={deptFilter} onChange={setDeptFilter} getValue={d => d.name} />
+                {expandButton}
+              </>}
+            >
+              {!loading && !error && !isEmpty && (
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                  <PanelStats items={stats} />
+                  <Badge variant={pctGeneral >= META ? "success" : "destructive"} size="sm">
+                    {pctGeneral >= META ? "Cumple" : "Bajo meta"} · {META}%
+                  </Badge>
+                </div>
+              )}
+            </PanelHeader>
 
-      <CardContent className="p-(--card-padding) pt-0">
-        {loading ? (
-          <SkeletonContent />
-        ) : error ? (
-          <PanelError message={error} onRetry={() => void cargar()} />
-        ) : isEmpty ? (
-          <PanelEmpty
-            icon={<GraduationCap className="size-6 text-muted-foreground" aria-hidden="true" />}
-            title="Sin datos de capacitación."
-            hint="Configura puestos y cursos requeridos en Capacitación."
-          />
-        ) : filteredDeptData.length > 0 && (
-          <div
-            className="w-full overflow-x-auto"
-            role="img"
-            aria-label={`Cumplimiento por departamento: ${pctGeneral}% en ${filteredDeptData.length} departamentos`}
-          >
-            <ResponsiveContainer className="text-body-sm" width="100%" height={filteredDeptData.length * 48 + 40} minHeight={160}>
-              <BarChart data={filteredDeptData} layout="vertical" margin={{ top: 0, right: 48, left: 0, bottom: 0 }} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted-foreground/15" />
-                <XAxis
-                  type="number"
-                  domain={[0, 100]}
-                  tickFormatter={v => `${v}%`}
-                  tick={{ fill: "currentColor" }}
-                  className="text-muted-foreground"
-                  tickLine={false}
-                  axisLine={false}
+            <CardContent className={panelBodyClass(expanded)}>
+              {loading ? (
+                <SkeletonContent />
+              ) : error ? (
+                <PanelError message={error} onRetry={() => void cargar()} />
+              ) : isEmpty ? (
+                <PanelEmpty
+                  icon={<GraduationCap className="size-6 text-muted-foreground" aria-hidden="true" />}
+                  title="Sin datos de capacitación."
+                  hint="Configura puestos y cursos requeridos en Capacitación."
+                />
+              ) : filteredDeptData.length > 0 && (
+                <DeptPctLineChart
+                  data={filteredDeptData}
+                  meta={META}
                   ticks={[0, 25, 50, 80, 100]}
+                  colorOf={colorPct}
+                  tooltip={<BarTooltip />}
+                  ariaLabel={`Cumplimiento por departamento: ${pctGeneral}% en ${filteredDeptData.length} departamentos`}
+                  expanded={expanded}
+                  animate={!skip}
                 />
-                <YAxis
-                  type="category"
-                  dataKey="departamento"
-                  width={120}
-                  tick={{ fill: "currentColor" }}
-                  className="text-muted-foreground"
-                  tickLine={false}
-                  axisLine={false}
-                  tickFormatter={abrevDept}
-                />
-                <ReferenceLine x={META} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
-                <Tooltip content={<BarTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
-                <Bar
-                  dataKey="pct"
-                  radius={[0, 4, 4, 0]}
-                  background={{ fill: "hsl(var(--muted) / 0.2)", radius: 4 }}
-                  isAnimationActive={!skip}
-                  animationDuration={skip ? 0 : 600}
-                  animationEasing="ease-out"
-                >
-                  {filteredDeptData.map((e, i) => <Cell key={i} fill={colorPct(e.pct)} />)}
-                  <LabelList dataKey="pct" position="right" formatter={(v: unknown) => `${v}%`} style={{ fontWeight: 700 }} />
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              )}
+            </CardContent>
+        </>
+      )}
+    </ExpandablePanel>
   )
 }

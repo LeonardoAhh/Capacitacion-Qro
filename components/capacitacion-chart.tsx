@@ -1,16 +1,16 @@
 "use client"
 
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, Legend, ResponsiveContainer,
-} from "recharts"
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"
 import { GraduationCap } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { CHART_TOOLTIP_CLASS, PanelEmpty, PanelError, PanelHeader } from "@/components/dashboard-panel"
+import {
+  CHART_LINE_CURSOR, CHART_TOOLTIP_CLASS, chartActiveDot, chartDot, DepartmentPager, ExpandablePanel, PanelEmpty, PanelError, PanelHeader,
+  PanelLegend, panelBodyClass, panelChartClass,
+} from "@/components/dashboard-panel"
 import { useTheme } from "@/components/theme-context"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
+import { cn } from "@/lib/utils"
 import {
   useCapacitacionChart,
   YEARS,
@@ -46,11 +46,11 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
   )
 }
 
-function SkeletonContent() {
+function SkeletonContent({ className }: { className: string }) {
   return (
-    <div role="status" aria-label="Cargando cursos impartidos" className="space-y-3">
+    <div role="status" aria-label="Cargando cursos impartidos" className={className}>
       <span className="sr-only">Cargando cursos impartidos…</span>
-      <Skeleton className="h-64 w-full rounded-xl" />
+      <Skeleton className="h-full w-full rounded-xl" />
     </div>
   )
 }
@@ -69,99 +69,83 @@ export default function CapacitacionChart() {
     p => p["2024"] === 0 && p["2025"] === 0 && p["2026"] === 0
   )
 
+  const legend = [
+    ...YEARS.map(year => ({ label: year, color: COLORS[year] })),
+    { label: "Tendencia", color: "hsl(var(--muted-foreground))", outline: true },
+  ]
+
   return (
-    <Card>
-      <PanelHeader
-        description="Cursos únicos por mes"
-        stats={!loading && !error && !isEmpty ? yearTotals.map(({ year, total }) => ({ color: COLORS[year], label: year, value: total })) : undefined}
-        actions={
-          <Select value={selectedDept} onValueChange={setSelectedDept}>
-            <SelectTrigger aria-label="Filtrar por departamento" className="w-full sm:w-auto">
-              <SelectValue placeholder="Todos los departamentos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los departamentos</SelectItem>
-              {departments.map(d => (
-                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        }
-      />
-
-      <CardContent className="p-(--card-padding) pt-0">
-        {loading ? (
-          <SkeletonContent />
-        ) : error ? (
-          <PanelError message={error} onRetry={refresh} />
-        ) : isEmpty ? (
-          <PanelEmpty
-            icon={<GraduationCap className="size-6 text-muted-foreground" aria-hidden="true" />}
-            title="Sin historial de cursos."
+    <ExpandablePanel label="Cursos impartidos">
+      {({ expanded, expandButton }) => (
+        <>
+          <PanelHeader
+            stats={!loading && !error && !isEmpty ? yearTotals.map(({ year, total }) => ({ color: COLORS[year], label: year, value: total })) : undefined}
+            actions={<>
+              <DepartmentPager departments={departments} value={selectedDept} onChange={setSelectedDept} />
+              {expandButton}
+            </>}
           />
-        ) : (
-          <div role="img" aria-label="Cursos únicos impartidos por mes y año" className="h-75 dense:h-56">
-            <ResponsiveContainer className="text-body-sm" width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted-foreground/15" vertical={false} />
-                <XAxis dataKey="month" className="text-muted-foreground" axisLine={false} tickLine={false} />
-                <YAxis className="text-muted-foreground" axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend
-                  wrapperStyle={{ paddingTop: 8 }}
-                  content={() => (
-                    <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 pt-2 text-body-sm text-muted-foreground">
+
+          <CardContent className={cn("space-y-4", panelBodyClass(expanded))}>
+            {loading ? (
+              <SkeletonContent className={panelChartClass(expanded, "h-64")} />
+            ) : error ? (
+              <PanelError message={error} onRetry={refresh} />
+            ) : isEmpty ? (
+              <PanelEmpty
+                icon={<GraduationCap className="size-6 text-muted-foreground" aria-hidden="true" />}
+                title="Sin historial de cursos."
+              />
+            ) : (
+              <>
+                <div role="img" aria-label="Cursos únicos impartidos por mes y año" className={cn("text-muted-foreground", panelChartClass(expanded, "h-75 dense:h-56"))}>
+                  <ResponsiveContainer className="text-body-sm" width="100%" height="100%">
+                    <LineChart data={chartData} margin={{ top: 10, right: 8, left: -10, bottom: 0 }}>
+                      <XAxis dataKey="month" tick={{ fill: "currentColor" }} axisLine={false} tickLine={false} padding={{ left: 16, right: 16 }} />
+                      <YAxis tick={{ fill: "currentColor" }} axisLine={false} tickLine={false} allowDecimals={false} />
+                      <Tooltip content={<CustomTooltip />} cursor={CHART_LINE_CURSOR} />
+
                       {YEARS.map(year => (
-                        <span key={year} className="flex items-center gap-1.5 tabular-nums">
-                          <span className="h-0.5 w-3 shrink-0" style={{ background: COLORS[year] }} aria-hidden="true" />
-                          {year}
-                        </span>
+                        <Line
+                          key={year}
+                          type="monotone"
+                          dataKey={year}
+                          stroke={COLORS[year]}
+                          strokeWidth={2}
+                          dot={chartDot(COLORS[year])}
+                          activeDot={chartActiveDot(COLORS[year])}
+                          connectNulls
+                          isAnimationActive={!skip}
+                          animationDuration={skip ? 0 : 700}
+                          animationEasing="ease-in-out"
+                        />
                       ))}
-                      <span className="flex items-center gap-1.5">
-                        <span className="w-3 shrink-0 border-t border-dashed border-muted-foreground" aria-hidden="true" />
-                        Tendencia
-                      </span>
-                    </div>
-                  )}
-                />
 
-                {YEARS.map(year => (
-                  <Line
-                    key={year}
-                    type="monotone"
-                    dataKey={year}
-                    stroke={COLORS[year]}
-                    strokeWidth={2}
-                    dot={{ r: 3.5, fill: COLORS[year], strokeWidth: 0 }}
-                    activeDot={{ r: 6, strokeWidth: 2, stroke: "hsl(var(--background))" }}
-                    connectNulls
-                    isAnimationActive={!skip}
-                    animationDuration={skip ? 0 : 700}
-                    animationEasing="ease-in-out"
-                  />
-                ))}
-
-                {YEARS.map(year => (
-                  <Line
-                    key={`${year}_trend`}
-                    type="linear"
-                    dataKey={`${year}_trend`}
-                    stroke={COLORS[year]}
-                    strokeWidth={1.5}
-                    strokeDasharray="5 4"
-                    dot={false}
-                    activeDot={false}
-                    legendType="none"
-                    isAnimationActive={!skip}
-                    animationDuration={skip ? 0 : 900}
-                    animationEasing="ease-in-out"
-                  />
-                ))}
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                      {YEARS.map(year => (
+                        <Line
+                          key={`${year}_trend`}
+                          type="linear"
+                          dataKey={`${year}_trend`}
+                          stroke={COLORS[year]}
+                          strokeWidth={1.5}
+                          strokeDasharray="5 4"
+                          dot={false}
+                          activeDot={false}
+                          legendType="none"
+                          isAnimationActive={!skip}
+                          animationDuration={skip ? 0 : 900}
+                          animationEasing="ease-in-out"
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <PanelLegend items={legend} />
+              </>
+            )}
+          </CardContent>
+        </>
+      )}
+    </ExpandablePanel>
   )
 }

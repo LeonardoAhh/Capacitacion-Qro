@@ -15,7 +15,7 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
     try {
       const { data, error: dbError } = await supabase
         .from(config.tabla)
-        .select(config.conMinutos ? "numero_empleado, mes, dia, cantidad, minutos" : "numero_empleado, mes, dia, cantidad")
+        .select(["numero_empleado, mes, dia, cantidad", config.conMinutos && "minutos", config.tipos && "tipos"].filter(Boolean).join(", "))
         .eq("numero_empleado", numeroEmpleado)
         .order("mes", { ascending: false })
         .order("dia", { ascending: true })
@@ -43,11 +43,14 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
   ) => {
     setSaving(true)
     try {
+      // Con tipos, la cantidad la calcula la base a partir de los tipos marcados.
       const { error: dbError } = await supabase.rpc(config.rpcRegistrar, {
         p_numero_empleado: numeroEmpleado,
         p_fecha: fecha,
-        p_cantidad: valores.cantidad,
         p_cantidad_anterior: anterior?.cantidad ?? null,
+        ...(config.tipos
+          ? { p_tipos: valores.tipos ?? [], p_tipos_anteriores: anterior ? anterior.tipos ?? [] : null }
+          : { p_cantidad: valores.cantidad }),
         ...(config.conMinutos ? { p_minutos: valores.minutos, p_minutos_anterior: anterior?.minutos ?? null } : {}),
       })
       if (dbError) throw dbError

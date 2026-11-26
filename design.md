@@ -140,7 +140,7 @@ Whitespace is structural. The near-white canvas and generous section padding do 
 Marketing pill CTAs (`{components.button-primary}`) and nav buttons clear the 44px WCAG-AAA target via line-height-driven height. Functional icon buttons keep a 44px hit area and 6px radius.
 
 #### Collapsing Strategy
-The workspace sidebar collapses to a 72px icon rail on desktop and remains expanded inside the mobile drawer. The marketing nav row collapses behind a menu trigger; multi-column hairline-card grids reflow to a single column; code-editor and node-graph illustrations scale or scroll rather than shrink illegibly; the pricing tier grid stacks vertically.
+On desktop the workspace sidebar hides completely (no icon rail) and remains expanded inside the mobile drawer. The marketing nav row collapses behind a menu trigger; multi-column hairline-card grids reflow to a single column; code-editor and node-graph illustrations scale or scroll rather than shrink illegibly; the pricing tier grid stacks vertically.
 
 #### Image Behavior
 The hero mesh gradient is a CSS/SVG composition that scales fluidly. Feature illustrations (node graphs, code editors) are vector/HTML, ink-on-white, scaling crisply. Customer logos sit in a greyscale strip. No heavy raster photography.

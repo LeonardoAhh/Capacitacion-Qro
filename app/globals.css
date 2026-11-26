@@ -128,7 +128,7 @@
         --popover: 0 0% 98.2%;
         --popover-foreground: 0 0% 11%;
 
-        --primary: 212 100% 45%;
+        --primary: 212 100% 47.6%;
         --primary-foreground: 0 0% 100%;
         --brand-accent: var(--primary);
         --brand-accent-text: var(--primary);
@@ -154,7 +154,7 @@
            1 = verde azulado de aprobado / cumple, 2 = azul de la marca (primary)
            y 3 = ámbar de aviso (pendiente / parcial). */
         --chart-1: 173 58% 39%;
-        --chart-2: 212 100% 45%;
+        --chart-2: 212 100% 47.6%;
         --chart-3: 37 91% 55%;
         --chart-4: 262 52% 55%;
         --chart-5: 340 65% 52%;
@@ -172,7 +172,7 @@
         --sidebar-active: var(--card);
         --sidebar-active-shadow: 0 1px 2px hsl(0 0% 0% / 0.07), 0 1px 1px hsl(0 0% 0% / 0.04);
 
-        --success: 212 100% 45%;
+        --success: 212 100% 47.6%;
         --success-foreground: 0 0% 98%;
         --warning: 37.43 91.78% 54.9%;
         --warning-foreground: 0 0% 11%;
@@ -491,6 +491,16 @@ body {
         background-color: hsl(var(--background));
     }
 
+    /* Durante la animación de la barra el contenido ya tiene su ancho final (sidebar.tsx). */
+    .workspace-main[data-frozen] {
+        overflow-x: hidden;
+    }
+
+    .workspace-main[data-frozen] > * {
+        width: var(--main-frozen-width);
+        flex: none;
+    }
+
     .workspace-stage > .workspace-main {
         min-height: 0;
         overflow-y: auto;
@@ -503,11 +513,26 @@ body {
         min-height: 0;
         flex: none;
         overflow: hidden;
-        /* Abrir y cerrar se desliza: el ancho va a 0 con la curva de la app y el contenido se desvanece. */
-        transition: width var(--motion-layout-duration) var(--motion-ease-out), opacity 200ms var(--motion-ease-out);
+        /* Abrir: el ancho se desliza y el contenido aparece cuando ya hay espacio para él. */
+        transition: width var(--motion-layout-duration) var(--motion-ease-out),
+            opacity 180ms var(--motion-ease-out) 100ms;
     }
 
+    /* Cerrar: el contenido se desvanece primero y rápido, sin esperar al ancho. */
     .workspace-sidebar[data-collapsed="true"] {
+        width: 0;
+        opacity: 0;
+        transition: width var(--motion-layout-duration) var(--motion-ease-out),
+            opacity 120ms var(--motion-ease-out);
+    }
+
+    /* Antes de leer la preferencia no se anima; el estado inicial sale del script previo a hidratar.
+       Las vistas sin header (evaluador) siempre muestran la barra. */
+    .workspace-sidebar:not([data-ready]) {
+        transition: none;
+    }
+
+    html[data-sidebar-collapsed] .workspace-shell:not([data-desktop-header="none"]) .workspace-sidebar:not([data-ready]) {
         width: 0;
         opacity: 0;
     }
