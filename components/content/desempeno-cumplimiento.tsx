@@ -171,7 +171,7 @@ export default function DesempenoCumplimientoContent() {
                   return (
                     <li key={group.departamento}>
                       <button type="button" aria-current={current || undefined} onClick={() => setDepartamento(group.departamento)}
-                        className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-body-md transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                        className={cn("flex min-h-(--control-height-sm) w-full items-center gap-2 rounded-md px-2 text-left text-body-md transition-colors",
                           current ? "bg-muted text-label-sm text-foreground" : "text-muted-foreground hover:bg-muted/60 hover:text-foreground")}>
                         <span className="min-w-0 flex-1 truncate">{group.departamento}</span>
                         <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">{group.porcentajeEntregadas}%</span>

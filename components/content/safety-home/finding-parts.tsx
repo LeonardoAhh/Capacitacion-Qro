@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { isoATexto } from "@/lib/fechas"
 import { cn } from "@/lib/utils"
 import type { FindingPreview } from "./finding-card"
-import type { FindingDeadline, FindingStatus } from "./finding-constraints"
+import { findingDueDate, isFindingOverdue, type FindingDeadline, type FindingStatus } from "./finding-constraints"
 
 const STATUS_META: Record<FindingStatus, { icon: LucideIcon; className: string }> = {
   Abierto: { icon: CircleAlert, className: "border-destructive/20 bg-destructive/10 text-destructive" },
@@ -25,20 +26,31 @@ const DEADLINE_CLASS: Record<FindingDeadline, string> = {
   "15 días": "border-urgency-low/30 bg-urgency-low/10 text-urgency-low",
 }
 
+const OVERDUE_CLASS = "border-destructive bg-destructive text-destructive-foreground"
+
 const BADGE = "max-w-full gap-1 font-normal [&_svg]:size-3 [&_svg]:shrink-0"
 
 /** Estatus y plazo del hallazgo. `nowrap`: en una línea, recortados si no caben (tablas). */
 export function FindingBadges({ finding, nowrap = false, className }: { finding: FindingPreview; nowrap?: boolean; className?: string }) {
   const status = STATUS_META[finding.status]
   const StatusIcon = status.icon
+  const overdue = isFindingOverdue(finding)
+  const due = findingDueDate(finding)
+  const dueText = due ? isoATexto(due) : ""
   const badge = cn(BADGE, nowrap ? "whitespace-nowrap [&>span:last-child]:min-w-0 [&>span:last-child]:truncate" : "whitespace-normal")
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
       <Badge variant="outline" size="sm" className={cn(badge, status.className)} title={finding.status}>
         <StatusIcon aria-hidden="true" /><span>{finding.status}</span>
       </Badge>
-      {finding.deadline && (
-        <Badge variant="outline" size="sm" className={cn(badge, DEADLINE_CLASS[finding.deadline])} title={`Plazo: ${finding.deadline}`}>
+      {/* Vencido reemplaza al plazo: lo que importa es que ya se pasó, no cuánto tenía. */}
+      {overdue ? (
+        <Badge variant="outline" size="sm" className={cn(badge, OVERDUE_CLASS)} title={`Venció el ${dueText}`}>
+          <Hourglass aria-hidden="true" /><span>Vencido<span className="sr-only"> el {dueText}</span></span>
+        </Badge>
+      ) : finding.deadline && (
+        <Badge variant="outline" size="sm" className={cn(badge, DEADLINE_CLASS[finding.deadline])}
+          title={dueText && finding.status !== "Cerrado" ? `Plazo: ${finding.deadline} · vence el ${dueText}` : `Plazo: ${finding.deadline}`}>
           <Hourglass aria-hidden="true" /><span><span className="sr-only">Plazo: </span>{finding.deadline}</span>
         </Badge>
       )}

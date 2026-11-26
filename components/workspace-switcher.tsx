@@ -34,9 +34,9 @@ interface WorkspaceBrandProps {
  * Desempeño") van en dos renglones en lugar de recortarse. Se cambia desde el menú de cuenta.
  */
 export function WorkspaceBrand({ workspace, mobile = false }: WorkspaceBrandProps) {
-  // Sin espacio de trabajo (evaluador): su área es Evaluación de Desempeño.
+  // Sin espacio de trabajo (evaluador): su área es Desempeño, nombre corto que cabe en un renglón.
   const { workspaces } = useRole()
-  const label = workspaces.length === 0 ? DESEMPENO.title : workspaceLabel(workspace)
+  const label = workspaces.length === 0 ? DESEMPENO.shortTitle : workspaceLabel(workspace)
 
   return (
     <div className={cn("flex min-h-(--control-height) min-w-0 flex-1 items-center gap-2 px-2", mobile && "mr-11")}>

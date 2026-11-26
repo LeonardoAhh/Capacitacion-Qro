@@ -187,16 +187,13 @@ export default function Sidebar({
 
             <SidebarBrand onClose={closeMobile} workspace={workspace} />
             <SidebarNav pathname={pathname} onNavigate={closeMobile} mobile workspace={workspace} />
-            <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
-              <div className="min-w-0 flex-1">
-                <IdeaCapture workspace={workspace} side="top" onNavigate={closeMobile}
+            <div className="shrink-0 px-3 pb-2">
+              <IdeaCapture workspace={workspace} aside={showStatus ? <KanbanAvisos /> : undefined}
+                triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
+              {showNovedades && (
+                <ChangelogButton onOpen={closeMobile}
                   triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
-                {showNovedades && (
-                  <ChangelogButton onOpen={closeMobile}
-                    triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
-                )}
-              </div>
-              {showStatus && <KanbanAvisos />}
+              )}
             </div>
             <div className="safe-bottom-content mx-3 shrink-0 border-t border-sidebar-border pt-2">
               <AccountMenu onNavigate={closeMobile} workspace={workspace} onWorkspaceChange={onWorkspaceChange} />
@@ -222,13 +219,10 @@ export default function Sidebar({
           <WorkspaceBrand workspace={workspace} />
         </div>
         <SidebarNav pathname={pathname} workspace={workspace} />
-        {/* Ideas de mejora (alterna con Novedades) y, sin encabezado, la campana: una fila antes de la cuenta. */}
-        <div className="flex shrink-0 items-center gap-2 px-3 pb-2">
-          <div className="min-w-0 flex-1">
-            <SidebarAcciones workspace={workspace} showNovedades={showNovedades}
-              triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
-          </div>
-          {showStatus && <KanbanAvisos />}
+        {/* Ideas de mejora (alterna con Novedades) y, sin encabezado, la campana en su misma fila. */}
+        <div className="shrink-0 px-3 pb-2">
+          <SidebarAcciones workspace={workspace} showNovedades={showNovedades} aside={showStatus ? <KanbanAvisos /> : undefined}
+            triggerClassName={cn(SIDEBAR_ROW_BASE, SIDEBAR_ROW, SIDEBAR_ROW_IDLE)} iconBoxClassName={SIDEBAR_ICON_BOX} iconClassName={SIDEBAR_ICON} />
         </div>
         {/* Cuenta separada de la navegación con la misma línea que la marca; termina a la altura del panel. */}
         <div className="mx-3 shrink-0 border-t border-sidebar-border pt-2">

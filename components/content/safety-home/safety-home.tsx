@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, ClipboardCheck, LayoutGrid, List, Plus, RotateCw } from "lucide-react"
+import { AlertCircle, ClipboardCheck, Hourglass, LayoutGrid, List, Plus, RotateCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -24,13 +24,14 @@ import { textoAISO } from "@/lib/fechas"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { useRole } from "@/lib/hooks/useRole"
 import { describeSupabaseError } from "@/lib/supabase/errors"
+import { cn } from "@/lib/utils"
 import { PanelEmpty } from "@/components/dashboard-panel"
 import { CompletionEvidenceDialog } from "./completion-evidence-dialog"
 import { CompletionEvidenceViewer } from "./completion-evidence-viewer"
 import { CreateFindingDialog } from "./create-finding-dialog"
 import { EditFindingDialog } from "./edit-finding-dialog"
 import { FindingCard, type FindingPreview } from "./finding-card"
-import { FINDING_PREVIEW_RATIO, isoWeek, sortWeekKeysDesc } from "./finding-constraints"
+import { FINDING_PREVIEW_RATIO, findingDueDate, isFindingOverdue, isoWeek, sortWeekKeysDesc } from "./finding-constraints"
 import { FINDING_DETAIL_SIDE_QUERY, FindingDetailPanel } from "./finding-detail"
 import { FindingList, FindingListSkeleton } from "./finding-list"
 import { deleteFinding, loadFindings } from "./findings-data"
@@ -94,6 +95,8 @@ export function SafetyHome() {
     [findingPreviews],
   )
   const [selectedWeek, setSelectedWeek] = useState("")
+  /** Solo vencidos, de todas las semanas: los atrasados casi nunca son de la semana actual. */
+  const [onlyOverdue, setOnlyOverdue] = useState(false)
   const [page, setPage] = useState(1)
   const [view, setView] = useState<FindingsView>("lista")
   const [selectedId, setSelectedId] = useState<string | null>(null)
@@ -132,9 +135,16 @@ export function SafetyHome() {
     return () => { active = false }
   }, [])
 
+  const overdueFindings = useMemo(
+    () => findingPreviews
+      .filter((finding) => isFindingOverdue(finding))
+      .sort((a, b) => (findingDueDate(a) ?? "").localeCompare(findingDueDate(b) ?? "")),
+    [findingPreviews],
+  )
+  const showingOverdue = onlyOverdue && overdueFindings.length > 0
   const filteredFindings = useMemo(
-    () => findingPreviews.filter((finding) => weekKeyOf(finding) === selectedWeek),
-    [findingPreviews, selectedWeek],
+    () => showingOverdue ? overdueFindings : findingPreviews.filter((finding) => weekKeyOf(finding) === selectedWeek),
+    [showingOverdue, overdueFindings, findingPreviews, selectedWeek],
   )
   const totalPages = Math.ceil(filteredFindings.length / FINDINGS_PER_PAGE)
   const currentPage = Math.min(page, Math.max(1, totalPages))
@@ -161,7 +171,15 @@ export function SafetyHome() {
           </TabsList>
 
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-            <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length}>
+            {/* Filtro de vencidos (todas las semanas); solo aparece si hay alguno. */}
+            {overdueFindings.length > 0 && (
+              <Button type="button" variant="outline" aria-pressed={showingOverdue}
+                className={cn("tabular-nums", showingOverdue && "border-destructive text-destructive hover:text-destructive")}
+                onClick={() => { setOnlyOverdue(!showingOverdue); setPage(1); setSelectedId(null) }}>
+                <Hourglass aria-hidden="true" />Vencidos {overdueFindings.length}
+              </Button>
+            )}
+            <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length || showingOverdue}>
               <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium max-sm:min-w-0 max-sm:flex-1 max-sm:justify-between">
                 <SelectValue placeholder="Sin semanas" />
               </SelectTrigger>

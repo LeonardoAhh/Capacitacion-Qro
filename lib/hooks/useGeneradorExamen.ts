@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
 import type { PreguntaExamen } from "./useExamenes"
+import { invalidarHistorialExamenesCache } from "./useHistorialExamenes"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -197,6 +198,7 @@ export function useGeneradorExamen() {
           console.error("Error al guardar el examen:", insertErr)
           notify.error("Error al guardar historial del examen")
         } else {
+          invalidarHistorialExamenesCache()
           notify.success("Examen guardado correctamente")
         }
 

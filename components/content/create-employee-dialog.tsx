@@ -1,7 +1,8 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
-import { AlertCircle, UserPlus } from "lucide-react"
+import { useState, useEffect, type ReactNode } from "react"
+import { AlertCircle } from "lucide-react"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -17,14 +18,15 @@ interface FormFieldProps {
   id: string
   label: string
   required?: boolean
-  children: React.ReactNode
+  children: ReactNode
 }
 
 function FormField({ id, label, required = false, children }: FormFieldProps) {
   return (
-    <div className="min-w-0 space-y-1.5">
-      <Label htmlFor={id} className="text-body-md font-medium">
-        {label}{required && <span className="text-destructive ml-0.5">*</span>}
+    <div className="min-w-0 space-y-2">
+      <Label htmlFor={id}>
+        {label}
+        {required && <><span aria-hidden="true" className="text-destructive"> *</span><span className="sr-only"> (obligatorio)</span></>}
       </Label>
       {children}
     </div>
@@ -124,16 +126,13 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
       open={open}
       onClose={onClose}
       size="sm"
-      title="Nuevo Empleado"
+      title="Nuevo empleado"
       description="Formulario para registrar a un nuevo trabajador en el sistema."
     >
-      <ModalHeader
-        title="Nuevo Empleado"
-        onClose={onClose}
-      />
+      <ModalHeader title="Nuevo empleado" onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-3 px-4 py-5">
+        <div className="space-y-4 p-(--card-padding)">
           {formError && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
@@ -141,93 +140,66 @@ export function CreateEmployeeDialog({ open, saving, onClose, onCreate }: Create
             </Alert>
           )}
 
-          {/* Identificación */}
-          <fieldset className="space-y-2">
-            <legend className="text-body-sm font-bold uppercase tracking-wider text-muted-foreground">Identificación</legend>
-            <div className="grid grid-cols-[80px_1fr] gap-3">
-              <FormField id="numero" label="N.N">
-                <Input id="numero" value={form.numero}
-                  onChange={e => set('numero', e.target.value)}
-                  placeholder="001"  />
-              </FormField>
-              <FormField id="nombre" label="Nombre completo" required>
-                <Input id="nombre" value={form.nombre}
-                  onChange={e => set('nombre', e.target.value)}
-                  placeholder="PÉREZ GARCÍA JUAN"  />
-              </FormField>
-            </div>
-          </fieldset>
+          {/* Mismo orden y rejilla que Nuevo empleado de /plantilla. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <FormField id="numero" label="Número de empleado">
+              <Input id="numero" inputMode="numeric" value={form.numero} onChange={e => set('numero', e.target.value)} />
+            </FormField>
+            <FormField id="fecha_ingreso" label="Fecha de ingreso" required>
+              <DateTextInput id="fecha_ingreso" value={form.fecha_ingreso} onValueChange={fecha => set('fecha_ingreso', fecha)} />
+            </FormField>
 
-          {/* Organización */}
-          <fieldset className="space-y-2">
-            <legend className="text-body-sm font-bold uppercase tracking-wider text-muted-foreground">Organización</legend>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField id="departamento" label="Departamento" required>
-                <Select value={form.departamento} onValueChange={setDepartamento}>
-                  <SelectTrigger id="departamento">
-                    <SelectValue placeholder="Selecciona..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card max-h-56">
-                    {departamentos.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </FormField>
-              <FormField id="area" label="Área" required>
-                <Select value={form.area} onValueChange={v => set('area', v)} disabled={!form.departamento}>
-                  <SelectTrigger id="area">
-                    <SelectValue placeholder={form.departamento ? "Selecciona..." : "Elige depto"} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card max-h-56">
-                    {areasDisponibles.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+            <div className="min-w-0 sm:col-span-2">
+              <FormField id="nombre" label="Nombre completo" required>
+                <Input id="nombre" value={form.nombre} onChange={e => set('nombre', e.target.value)} />
               </FormField>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField id="puesto" label="Puesto" required>
-                <Select value={form.puesto} onValueChange={v => set('puesto', v)} disabled={!form.departamento}>
-                  <SelectTrigger id="puesto">
-                    <SelectValue placeholder={form.departamento ? "Selecciona..." : "Elige depto"} />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card max-h-56">
-                    {puestosDisponibles.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </FormField>
-              <FormField id="turno" label="Turno" required>
-                <Select value={form.turno} onValueChange={v => set('turno', v)}>
-                  <SelectTrigger id="turno">
-                    <SelectValue placeholder="Selecciona..." />
-                  </SelectTrigger>
-                  <SelectContent className="bg-card max-h-56">
-                    {TURNOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </FormField>
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <FormField id="fecha_ingreso" label="Fecha de ingreso" required>
-                <Input id="fecha_ingreso" type="date"
-                  value={form.fecha_ingreso}
-                  onChange={e => set('fecha_ingreso', e.target.value)}
-                   />
-              </FormField>
-              <FormField id="jefe_area" label="Jefe de área">
-                <div className="flex h-(--control-height) min-w-0 items-center overflow-hidden rounded-md border bg-muted/50 px-3 text-body-md text-muted-foreground" title={form.jefe_area || undefined}>
-                  <span className={`min-w-0 truncate ${form.jefe_area ? '' : 'italic opacity-50'}`}>
-                    {form.jefe_area || 'Se asigna por departamento'}
-                  </span>
-                </div>
-              </FormField>
-            </div>
-          </fieldset>
+
+            <FormField id="departamento" label="Departamento" required>
+              <Select value={form.departamento} onValueChange={setDepartamento}>
+                <SelectTrigger id="departamento"><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {departamentos.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </FormField>
+            <FormField id="area" label="Área" required>
+              <Select value={form.area} onValueChange={v => set('area', v)} disabled={!form.departamento}>
+                <SelectTrigger id="area"><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {areasDisponibles.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            <FormField id="puesto" label="Puesto" required>
+              <Select value={form.puesto} onValueChange={v => set('puesto', v)} disabled={!form.departamento}>
+                <SelectTrigger id="puesto"><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {puestosDisponibles.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </FormField>
+            <FormField id="turno" label="Turno" required>
+              <Select value={form.turno} onValueChange={v => set('turno', v)}>
+                <SelectTrigger id="turno"><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                <SelectContent className="max-h-56">
+                  {TURNOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </FormField>
+
+            {/* Se llena solo con el departamento. */}
+            <FormField id="jefe_area" label="Jefe de área">
+              <Input id="jefe_area" readOnly value={form.jefe_area} placeholder="Según el departamento" title={form.jefe_area || undefined} />
+            </FormField>
+          </div>
         </div>
       </div>
       <ModalFooter
         onCancel={onClose}
         onConfirm={handleCreate}
         saving={saving}
-        confirmIcon={<UserPlus className="h-4 w-4" />}
         confirmDisabled={!form.nombre.trim()}
       />
     </ResponsiveShell>

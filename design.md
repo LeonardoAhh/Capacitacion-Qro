@@ -26,7 +26,8 @@ Surfaces barely lift. Marketing cards are white (`{colors.canvas-elevated}`) on 
 | Background | `#f4f5f7` | `#121418` |
 | Foreground | `#14171c` | `#eceff3` |
 | Card / popover | `#ffffff` | `#1a1d23` |
-| Primary / ring | `#0070f3` | `#3d9bff` |
+| Primary | `#0070f3` | `#3d9bff` |
+| Ring (focus) | muted-foreground (`hsl(0 0% 35%)`) | muted-foreground (`hsl(0 0% 68%)`) |
 | Secondary | `#e4e7ec` | `#262b33` |
 | Muted | `#eceef1` | `#20242b` |
 | Accent | `#e4e7ec` | `#262b33` |
@@ -41,7 +42,7 @@ Chart and sidebar semantic colors are defined as theme tokens in `app/globals.cs
 
 ### Brand & Accent
 - **Ink** (`{colors.primary}` / `{colors.ink}` — #171717): the brand's defining near-black. Headings, primary CTA fill, logo, and the darkest text tier. Paired with `{colors.on-primary}` (white).
-- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links and pricing highlights. It is also the workspace `--primary`: actions, selected states and focus rings. Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
+- **Vercel Blue** (`{colors.link}` — #0070f3): the link and accent blue — inline links and pricing highlights. It is also the workspace `--primary`: actions and selected states (focus rings use the neutral `--ring`, muted-foreground). Darker press tone `{colors.link-deep}` (#0761d1), pale wash `{colors.link-soft}` (#d3e5ff).
 - **Violet** (`{colors.violet}` — #7928ca), **Cyan** (`{colors.cyan}` — #50e3c2), **Pink** (`{colors.pink}` — #ff0080), **Magenta** (`{colors.magenta}` — #eb367f): the chromatic accent family, used sparingly for illustration accents and as mesh-gradient stops, never as chrome fills.
 
 ### Surface

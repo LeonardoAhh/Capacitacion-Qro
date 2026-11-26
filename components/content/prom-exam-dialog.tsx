@@ -3,6 +3,7 @@
 import { useRef, useState } from "react"
 import { ClipboardCheck, Trash2, TriangleAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
@@ -137,14 +138,12 @@ export function PromExamDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="prom-exam-date">{EXAM_DIALOG_COPY.dateLabel}</Label>
-              <Input
+              <DateTextInput
                 ref={dateRef}
                 id="prom-exam-date"
-                type="date"
-                min={empleado.fechaIngresoPuesto}
                 value={fechaExamen}
-                onChange={event => {
-                  setFechaExamen(event.target.value)
+                onValueChange={fecha => {
+                  setFechaExamen(fecha)
                   clearError()
                 }}
                 aria-invalid={errorField === "date" || undefined}

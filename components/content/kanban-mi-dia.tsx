@@ -32,7 +32,7 @@ export function KanbanMiDia({ tarjetas }: { tarjetas: KanbanTarjeta[] }) {
               <button type="button" onClick={() => ver(tarjeta)}
                 className={cn(
                   "min-w-0 flex-1 truncate rounded-sm text-left text-body-md",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                  "",
                   concluida ? "text-muted-foreground line-through" : "text-foreground",
                 )}>
                 {tarjeta.titulo}

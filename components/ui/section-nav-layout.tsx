@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { cn } from "@/lib/utils"
 
 /** Fila de apartado; también la usan las pestañas verticales de Configuración. */
-export const SECTION_NAV_ITEM = "flex min-h-(--control-height) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+export const SECTION_NAV_ITEM = "flex min-h-(--control-height) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-inset"
 export const SECTION_NAV_ACTIVE = "border-sidebar-border bg-sidebar-active text-label-sm text-foreground shadow-(--sidebar-active-shadow)"
 export const SECTION_NAV_IDLE = "text-muted-foreground hover:bg-card hover:text-foreground"
 export const SECTION_NAV_ICON = "size-4 shrink-0"

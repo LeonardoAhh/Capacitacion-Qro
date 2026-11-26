@@ -171,7 +171,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
 
       <div className="space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
         <p className="text-body-md text-muted-foreground">
-          Genera un Excel con el intento más reciente de cada empleado en el curso seleccionado.
+          Último intento por empleado del curso seleccionado.
         </p>
 
         <div className="space-y-2">
@@ -257,20 +257,15 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
         </div>
 
         {selectedCourseId && (
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-            <div className="flex min-w-0 items-center gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3">
+            <span className="flex min-w-0 items-center gap-2 text-label-sm text-foreground">
               <Users className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-              <div className="min-w-0">
-                <p className="truncate text-label-sm text-foreground">{selectedCourseName}</p>
-                <p className="text-body-sm text-muted-foreground">
-                  {auditData.length === 0
-                    ? "Sin registros para exportar"
-                    : "Registros únicos listos para exportar"}
-                </p>
-              </div>
-            </div>
-            <span className="shrink-0 rounded-md border border-border bg-card px-2.5 py-1 text-label-sm tabular-nums text-foreground">
-              {auditData.length.toLocaleString("es-MX")}
+              <span className="truncate">{selectedCourseName}</span>
+            </span>
+            <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">
+              {auditData.length === 0
+                ? "Sin registros"
+                : `${auditData.length.toLocaleString("es-MX")} registro${auditData.length !== 1 ? "s" : ""}`}
             </span>
           </div>
         )}

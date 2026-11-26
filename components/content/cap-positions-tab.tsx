@@ -121,7 +121,7 @@ export function CapPositionsTab({
                   <TableRow key={pos.id} className="cursor-pointer" onClick={() => router.push(href)}>
                     <TableCell>
                       <Link href={href} onClick={event => event.stopPropagation()} aria-label={`Ver cursos de ${pos.name}`}
-                        className="block truncate rounded-sm text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                        className="block truncate rounded-sm text-label-sm text-foreground">
                         {pos.name}
                       </Link>
                       {dept && <span className="block truncate text-body-sm text-muted-foreground sm:hidden">{dept}</span>}

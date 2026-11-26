@@ -60,8 +60,34 @@ export default function HistorialExamenesContent() {
       </TabsToolbar>
 
       {loading ? (
-        <div className="space-y-2" aria-label="Cargando exámenes">
-          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+        <div className="overflow-hidden rounded-xl border bg-card">
+          <Table aria-label="Cargando exámenes" aria-busy="true" className="table-fixed">
+            <TableHeader className="bg-muted/50">
+              <TableRow className="hover:bg-transparent">
+                <TableHead scope="col" className={HEAD}>Empleado</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 md:table-cell")}>Folio</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "w-28")}>Categoría</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 lg:table-cell")}>Fecha</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-24 text-right sm:table-cell")}>Preguntas</TableHead>
+                <TableHead scope="col" className="w-14 px-1"><span className="sr-only">Eliminar</span></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: PAGE_SIZE }, (_, index) => (
+                <TableRow key={index} aria-hidden="true" className="hover:bg-transparent">
+                  <TableCell>
+                    <Skeleton className="h-4 w-48 max-w-full" />
+                    <Skeleton className="mt-1.5 h-3.5 w-36 max-w-full" />
+                  </TableCell>
+                  <TableCell className="hidden w-44 md:table-cell"><Skeleton className="h-3.5 w-32" /></TableCell>
+                  <TableCell className="w-28"><Skeleton className="h-3.5 w-20" /></TableCell>
+                  <TableCell className="hidden w-44 lg:table-cell"><Skeleton className="h-3.5 w-32" /></TableCell>
+                  <TableCell className="hidden w-24 sm:table-cell"><Skeleton className="ml-auto h-3.5 w-8" /></TableCell>
+                  <TableCell className="w-14 px-1 text-center"><Skeleton className="mx-auto size-4 rounded-sm" /></TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ) : error ? (
         <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-(--card-padding) text-body-md text-destructive">{error}</p>
@@ -95,7 +121,7 @@ export default function HistorialExamenesContent() {
                     <TableCell>
                       {/* El enlace da acceso con teclado; toda la fila también abre la hoja. */}
                       <Link href={href} onClick={event => event.stopPropagation()}
-                        className="block truncate rounded-sm text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                        className="block truncate rounded-sm text-label-sm text-foreground">
                         {nombre}
                       </Link>
                       <span className="block truncate text-body-sm text-muted-foreground md:hidden">{folio}</span>

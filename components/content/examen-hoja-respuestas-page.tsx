@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { Check } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dato } from "@/components/content/recontratacion-ui"
 import {
-  folioExamen, formatFechaExamen, obtenerExamenHistorial, type ExamenHistorial,
+  folioExamen,
+  formatFechaExamen,
+  obtenerExamenHistorial,
+  obtenerExamenHistorialCache,
+  type ExamenHistorial,
 } from "@/lib/hooks/useHistorialExamenes"
 import type { PreguntaExamen } from "@/lib/hooks/useExamenes"
 import { EXAMENES_HISTORIAL_HREF } from "@/components/content/examenes-tabs"
@@ -16,7 +20,7 @@ import { cn } from "@/lib/utils"
 
 type Estado =
   | { status: "loading" }
-  | { status: "missing"; message: string }
+  | { status: "missing"; message: string; retryable?: boolean }
   | { status: "ready"; examen: ExamenHistorial }
 
 const OPCIONES = ["a", "b", "c"] as const
@@ -24,13 +28,46 @@ const SECTION_TITLE = "text-eyebrow uppercase text-muted-foreground"
 
 function HojaSkeleton() {
   return (
-    <div role="status" aria-label="Cargando hoja de respuestas" className="grid gap-6">
-      <div className="grid gap-2">
-        <Skeleton className="h-4 w-32" />
+    <div role="status" aria-label="Cargando hoja de respuestas" className="grid gap-6 dense:gap-4">
+      <div className="grid gap-1.5">
+        <Skeleton className="h-3.5 w-36" />
         <Skeleton className="h-6 w-72 max-w-full" />
+        <Skeleton className="h-4 w-44" />
       </div>
-      <Skeleton aria-hidden="true" className="h-20 rounded-xl" />
-      {[0, 1, 2].map(item => <Skeleton key={item} aria-hidden="true" className="h-32 rounded-xl" />)}
+
+      <div aria-hidden="true" className="grid gap-3">
+        <span className={SECTION_TITLE}>Datos del examen</span>
+        <div className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-4 dense:gap-y-3 dense:p-3 sm:grid-cols-4">
+          {["w-12", "w-12", "w-32", "w-10"].map((width, index) => (
+            <div key={index} className="grid gap-1.5">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className={cn("h-4", width)} />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div aria-hidden="true" className="grid gap-3">
+        <div className="flex items-center justify-between gap-3">
+          <span className={SECTION_TITLE}>Hoja de respuestas</span>
+          <Skeleton className="h-6 w-32 rounded-md" />
+        </div>
+        <div className="grid gap-3 xl:grid-cols-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div key={index} className="grid gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
+              <Skeleton className="h-4 w-4/5" />
+              <div className="grid gap-2">
+                {OPCIONES.map(opcion => (
+                  <div key={opcion} className="flex items-center gap-3 rounded-md border border-border px-3 py-2">
+                    <Skeleton className="size-6 shrink-0 rounded-md" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
@@ -68,16 +105,30 @@ function Pregunta({ pregunta, numero }: { pregunta: PreguntaExamen; numero: numb
 
 /** Hoja de respuestas de un examen generado: datos del examen y cada pregunta con su respuesta correcta. */
 export function ExamenHojaRespuestasPage({ id }: { id: string }) {
-  const [estado, setEstado] = useState<Estado>({ status: "loading" })
+  const [estado, setEstado] = useState<Estado>(() => {
+    const cached = obtenerExamenHistorialCache(id)
+    return cached ? { status: "ready", examen: cached } : { status: "loading" }
+  })
+
+  const cargar = useCallback(async (force = false) => {
+    if (force) setEstado({ status: "loading" })
+    const examen = await obtenerExamenHistorial(id, force)
+    setEstado(examen ? { status: "ready", examen } : { status: "missing", message: "No se encontró el examen." })
+  }, [id])
 
   useEffect(() => {
     let active = true
+    const cached = obtenerExamenHistorialCache(id)
+    if (cached) {
+      setEstado({ status: "ready", examen: cached })
+      return
+    }
     obtenerExamenHistorial(id)
       .then(examen => {
         if (active) setEstado(examen ? { status: "ready", examen } : { status: "missing", message: "No se encontró el examen." })
       })
       .catch(() => {
-        if (active) setEstado({ status: "missing", message: "No se pudo cargar el examen." })
+        if (active) setEstado({ status: "missing", message: "No se pudo cargar el examen.", retryable: true })
       })
     return () => { active = false }
   }, [id])
@@ -88,7 +139,23 @@ export function ExamenHojaRespuestasPage({ id }: { id: string }) {
     return (
       <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
         <p className="text-body-md text-foreground">{estado.message}</p>
-        <Button asChild variant="outline" size="sm"><Link href={EXAMENES_HISTORIAL_HREF}>Volver al historial</Link></Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {estado.retryable && (
+            <Button
+              type="button"
+              size="sm"
+              className="touch-target"
+              onClick={() => {
+                void cargar(true).catch(() => {
+                  setEstado({ status: "missing", message: "No se pudo cargar el examen.", retryable: true })
+                })
+              }}
+            >
+              Reintentar
+            </Button>
+          )}
+          <Button asChild variant="outline" size="sm" className="touch-target"><Link href={EXAMENES_HISTORIAL_HREF}>Volver al historial</Link></Button>
+        </div>
       </div>
     )
   }
@@ -107,8 +174,8 @@ export function ExamenHojaRespuestasPage({ id }: { id: string }) {
       <section aria-labelledby="hoja-datos" className="grid gap-3">
         <h3 id="hoja-datos" className={SECTION_TITLE}>Datos del examen</h3>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-4 dense:gap-y-3 dense:p-3 sm:grid-cols-4">
-          <Dato label="Categoría actual" value={examen.categoria_actual || "—"} />
-          <Dato label="Categoría destino" value={examen.categoria_destino || "—"} />
+          <Dato label="Categoría actual" value={examen.categoria_actual || "-"} />
+          <Dato label="Categoría destino" value={examen.categoria_destino || "-"} />
           <Dato label="Fecha" value={formatFechaExamen(examen.created_at)} />
           <Dato label="Preguntas" value={String(examen.preguntas.length)} />
         </dl>

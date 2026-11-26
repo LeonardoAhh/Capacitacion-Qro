@@ -56,23 +56,18 @@ export function CapReportPreviewDialog({
         onClose={handleClose}
       />
 
-      <div className="space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
+      <div className="space-y-3 bg-card px-4 py-4 sm:px-6">
         <p className="text-body-md text-muted-foreground">
-          Genera un Excel de una sola hoja con una fila por empleado y curso, conservando únicamente el intento más reciente.
+          Una fila por empleado y curso, solo el último intento.
         </p>
 
-        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
-          <div className="flex min-w-0 items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-muted/30 px-4 py-3">
+          <span className="flex items-center gap-2 text-label-sm text-foreground">
             <FileSpreadsheet className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-            <div className="min-w-0">
-              <p className="truncate text-label-sm text-foreground">Capacitación completa</p>
-              <p className="text-body-sm text-muted-foreground">
-                {isEmpty ? "Sin datos disponibles para exportar" : "Cursos requeridos y adicionales por empleado"}
-              </p>
-            </div>
-          </div>
-          <span className="shrink-0 rounded-md border border-border bg-card px-2.5 py-1 text-body-sm font-medium tabular-nums text-foreground">
-            {employeeCount.toLocaleString("es-MX")} emp · {courseCount.toLocaleString("es-MX")} cursos
+            {isEmpty ? "Sin datos" : "Capacitación"}
+          </span>
+          <span className="text-body-sm tabular-nums text-muted-foreground">
+            {employeeCount.toLocaleString("es-MX")} empleados · {courseCount.toLocaleString("es-MX")} cursos
           </span>
         </div>
       </div>

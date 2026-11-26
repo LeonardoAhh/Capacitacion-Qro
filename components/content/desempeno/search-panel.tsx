@@ -56,7 +56,7 @@ export function SearchPanel({
               setNumeroBuscado("");
               setSuggestions([]);
               inputRef.current?.focus();
-            }} className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50" aria-label="Limpiar búsqueda">
+            }} className="absolute right-0 top-1/2 flex size-(--control-height) -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:text-foreground focus-inset disabled:cursor-not-allowed disabled:opacity-50" aria-label="Limpiar búsqueda">
               <X className="size-4" aria-hidden="true" />
             </button>}
 
@@ -87,7 +87,7 @@ export function SearchPanel({
               {suggestions.length === 0 ? <div className="px-3 py-2 text-body-md text-muted-foreground">Sin coincidencias</div> : suggestions.map((s, idx) => <button key={s.numero} type="button" id={`${listId}-${idx}`} role="option" tabIndex={-1} aria-selected={idx === activeIdx} onMouseDown={e => e.preventDefault()} onClick={() => {
                 setNumeroBuscado(s.numero);
                 doBuscar(s.numero);
-              }} onMouseEnter={() => setActiveIdx(idx)} className={`flex min-h-(--control-height) w-full items-center gap-2 px-3 py-2 text-left transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring ${idx === activeIdx ? "bg-accent" : "hover:bg-accent"}`}>
+              }} onMouseEnter={() => setActiveIdx(idx)} className={`flex min-h-(--control-height) w-full items-center gap-2 px-3 py-2 text-left transition-colors focus-inset ${idx === activeIdx ? "bg-accent" : "hover:bg-accent"}`}>
                   <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">{s.numero}</span>
                   <span className="min-w-0 truncate text-label-sm text-foreground">{s.nombre || "Sin nombre"}</span>
                   {s.puesto && <span className="ml-auto max-w-[40%] truncate text-body-sm text-muted-foreground">{s.puesto}</span>}

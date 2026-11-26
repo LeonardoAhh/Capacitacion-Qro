@@ -23,7 +23,7 @@ function FindingDetail({ finding, onExpand, onViewCompletion }: FindingDetailPro
       {finding.src ? (
         <button type="button" aria-label={`Ampliar evidencia de ${finding.title}`} onClick={() => onExpand(finding)}
           style={{ "--preview-ratio": FINDING_DETAIL_IMAGE_RATIO } as CSSProperties}
-          className="group relative block aspect-(--preview-ratio) w-full overflow-hidden bg-muted focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+          className="group relative block aspect-(--preview-ratio) w-full overflow-hidden bg-muted focus-inset">
           <FindingImage src={finding.src} alt={finding.alt} sizes="(min-width: 1024px) 32rem, 100vw" />
           <span
             aria-hidden="true"

@@ -23,7 +23,7 @@ import { DESEMPENO } from "@/lib/desempeno/presentation"
 import { TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
 
 const SECCION = "px-3 pb-1 pt-3 text-eyebrow text-muted-foreground"
-const ITEM = "flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+const ITEM = "flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-inset"
 const DESCRIPCION = "Evaluaciones, tarjetas por vencer y avisos del Kanban"
 
 /**

@@ -32,6 +32,20 @@ function toIsoDate(value: string): string {
   return textoAISO(value) ?? value
 }
 
+/** Lo necesario para contar hallazgos (indicadores): sin imágenes ni URLs firmadas. */
+export type FindingSummary = Pick<FindingPreview, "area" | "status" | "deadline" | "date">
+
+export async function loadFindingSummaries(): Promise<FindingSummary[]> {
+  const { data, error } = await supabase.from("safety_findings").select("department,status,deadline,finding_date")
+  if (error) throw error
+  return (data ?? []).map(row => ({
+    area: row.department as string,
+    status: row.status as FindingPreview["status"],
+    deadline: row.deadline as FindingPreview["deadline"],
+    date: isoATexto(row.finding_date as string),
+  }))
+}
+
 export async function loadFindings(): Promise<FindingPreview[]> {
   const { data, error } = await supabase.from("safety_findings")
     .select("id,title,description,department,responsible,status,deadline,finding_date,evidence_paths,completion_evidence_paths")

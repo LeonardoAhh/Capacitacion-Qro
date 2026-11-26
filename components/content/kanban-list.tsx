@@ -49,7 +49,7 @@ export function KanbanList({ tarjetas, miembros }: KanbanListProps) {
                     <button type="button" onClick={() => ver(tarjeta)}
                       className={cn(
                         "line-clamp-1 min-w-0 break-words rounded-sm text-left text-label-sm",
-                        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                        "",
                         tarjeta.estado === "concluido" ? "text-muted-foreground" : "text-foreground",
                       )}>
                       {tarjeta.titulo}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react"
 import Link from "next/link"
+import { registrosEmpleadoHref } from "@/components/content/plantilla-paths"
 import {
   Search,
   CalendarDays,
@@ -415,7 +416,7 @@ export default function IngresosSemanalesContent() {
                                 className="h-11 w-11 shrink-0 text-muted-foreground hover:text-foreground"
                                 aria-label={`Ver incidencias de ${r.nombre}`}
                               >
-                                <Link href={`/plantilla/incidencias/${encodeURIComponent(r.numero)}?origen=ingresos-semanales`}>
+                                <Link href={registrosEmpleadoHref(r.numero, "incidencias", "ingresos-semanales")}>
                                   <CalendarDays className="h-4 w-4" />
                                 </Link>
                               </Button>
@@ -510,7 +511,7 @@ export default function IngresosSemanalesContent() {
                                     aria-label={`Ver incidencias de ${r.nombre}`}
                                     title="Ver incidencias"
                                   >
-                                    <Link href={`/plantilla/incidencias/${encodeURIComponent(r.numero)}?origen=ingresos-semanales`}>
+                                    <Link href={registrosEmpleadoHref(r.numero, "incidencias", "ingresos-semanales")}>
                                       <CalendarDays className="h-4 w-4" />
                                     </Link>
                                   </Button>

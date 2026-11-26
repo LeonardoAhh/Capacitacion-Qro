@@ -25,7 +25,7 @@ export const workspaceStyles = {
   subtitle: "mt-2 text-body-md text-muted-foreground sm:mt-3",
   grid: "mx-auto mt-6 grid max-w-60 grid-cols-1 gap-4 sm:mt-8 sm:max-w-xl sm:grid-cols-2 sm:gap-6",
   optionButton:
-    "group relative grid min-h-11 gap-2 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-not-allowed sm:gap-3",
+    "group relative grid min-h-11 gap-2 rounded-xl text-left disabled:cursor-not-allowed sm:gap-3",
   optionLabel: "text-balance text-center text-label-sm text-foreground",
   optionNote: "-mt-2 text-balance text-center text-body-sm text-muted-foreground",
 } as const

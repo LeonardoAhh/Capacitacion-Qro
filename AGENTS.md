@@ -12,7 +12,7 @@ App autenticada (workspace): panel elevado con sidebar, header sticky, data grid
 
 Marketing conserva la estética ink-on-white: casi todo es neutro, un solo gradiente decorativo, tipografía apretada y bordes de 1px. El workspace ofrece las paletas clara y oscura definidas abajo; conserva sus colores semánticos para acciones y estados.
 
-Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es azul: #0070f3 en claro y #3d9bff en oscuro; acciones, focus rings y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
+Override aplicado en ViñoPlastic: la aplicación tiene paletas de tema claro y oscuro. El --primary es azul: #0070f3 en claro y #3d9bff en oscuro; acciones y estados seleccionados usan el token del tema. Los botones de marketing tipo pill conservan el color de tinta neutra del tema.
 La preferencia de tema admite claro, oscuro y sistema. Sistema sigue la preferencia de color del dispositivo y se aplica antes de hidratar; si cambia mientras está seleccionado, la interfaz se actualiza sin reemplazar esa preferencia.
 
 2. Stack esperado
@@ -52,7 +52,7 @@ css
 --destructive:       #8f1d1d;
 --border:            #c9ced6;
 --input:             #7a8494;
---ring:              #0070f3;
+--ring:              var(--muted-foreground);
 --sidebar:           var(--background);
 --chart-1:           #2a9d90;
 --chart-2:           #0070f3;
@@ -65,7 +65,7 @@ css
 --sidebar-accent:    #e4e7ec;
 --sidebar-accent-foreground: #14171c;
 --sidebar-border:    #c9ced6;
---sidebar-ring:      #0070f3;
+--sidebar-ring:      var(--ring);
 --success:           #0070f3;
 --warning:           #f5a623;
 
@@ -84,7 +84,7 @@ css
 --destructive:       #ff9b9b;
 --border:            #363c46;
 --input:             #7d8798;
---ring:              #3d9bff;
+--ring:              var(--muted-foreground);
 --sidebar:           var(--background);
 --chart-1:           #39c6b3;
 --chart-2:           #3d9bff;
@@ -97,7 +97,7 @@ css
 --sidebar-accent:    #262b33;
 --sidebar-accent-foreground: #eceff3;
 --sidebar-border:    #363c46;
---sidebar-ring:      #3d9bff;
+--sidebar-ring:      var(--ring);
 
 /* Links / acento */
 --link:              #0070f3;
@@ -186,7 +186,7 @@ Gutters del workspace: 16px móvil → 24px tablet → 32px laptop+.
 
 Frame del workspace: en login, panel canvas-elevated con hairline de 1px y radio 12px. En el workspace autenticado, sidebar y header van directo sobre el lienzo (canvas-elevated), sin divisor entre ellos; el main es un panel hundido a su derecha y bajo el header, con el fondo del tema (canvas), hairline de 1px y radio 12px, y es el que hace scroll. Margen exterior de 16px en tablet y 24px en laptop/desktop, sin sombra. En móvil todo es full-bleed sin borde ni radio y el header conserva su línea inferior.
 
-Sidebar: 44px mínimo de hit area; ruta activa con fondo blanco y borde visible. Sin divisores. Orden fijo definido en lib/navigation.ts: rutas sueltas arriba (Inicio, Kanban) y después grupos colapsables (Desempeño, Capacitación, Motivacional) con título en eyebrow uppercase y chevron, y rutas en orden alfabético dentro de cada grupo; cada grupo recuerda si quedó abierto o cerrado, el de la ruta activa se abre al entrar y un grupo sin rutas visibles para el rol no se muestra. En desktop, viewport-bound con scroll en el main; se oculta por completo con un botón de ícono en el header, antes del título, y la preferencia persiste entre rutas; las vistas sin header en escritorio (evaluador) siempre la muestran. Arriba muestra el ícono del sistema y el espacio de trabajo actual (Capacitación, Seguridad e Higiene o, para el evaluador, Evaluación de Desempeño); los nombres largos pasan a dos renglones, no se recortan. El drawer móvil conserva su marca y permanece expandido. Usa radio de 6px en links y controles; no uses rounded-full.
+Sidebar: 44px mínimo de hit area; ruta activa con fondo blanco y borde visible. Sin divisores. Orden fijo definido en lib/navigation.ts: rutas sueltas arriba (Inicio, Kanban) y después grupos colapsables (Desempeño, Capacitación, Motivacional) con título en eyebrow uppercase y chevron, y rutas en orden alfabético dentro de cada grupo; cada grupo recuerda si quedó abierto o cerrado, el de la ruta activa se abre al entrar y un grupo sin rutas visibles para el rol no se muestra. En desktop, viewport-bound con scroll en el main; se oculta por completo con un botón de ícono en el header, antes del título, y la preferencia persiste entre rutas; las vistas sin header en escritorio (evaluador) siempre la muestran. Arriba muestra el ícono del sistema y el espacio de trabajo actual (Capacitación, Seguridad e Higiene o, para el evaluador, Desempeño); los nombres largos pasan a dos renglones, no se recortan. El drawer móvil conserva su marca y permanece expandido. Usa radio de 6px en links y controles; no uses rounded-full.
 
 Header: altura de 48px; comparte grid y gutters con el main; título a la izquierda, cuenta a la derecha. Controles con 44px mínimo.
 
@@ -214,7 +214,7 @@ Regla dura: marketing = pill neutro de tinta. Nav/app = cuadrado 6px grafito (--
 Inputs
 TextInput: fondo canvas-elevated, texto ink, 1px solid var(--hairline), radius: 6px, padding 8px 12px, body-md.
 
-Focus: outline: 2px solid var(--primary); outline-offset: 2px; — nunca box-shadow de glow.
+Focus: outline: 2px solid var(--ring) (muted-foreground); outline-offset: 2px; — nunca box-shadow de glow. Es una sola regla en app/globals.css; los componentes no declaran su foco, solo usan .focus-inset cuando su contenedor recorta el contorno.
 
 Cards
 FeatureCard: canvas-elevated, hairline, radius: 12px, padding 24px, body-md.
@@ -281,7 +281,7 @@ No uses --primary para texto largo ni para fills decorativos. Solo acciones prim
 6. Accesibilidad
 Hit area mínimo 44×44px en todo control interactivo (botones, nav, icon buttons). En pills y 6px se consigue vía line-height + min-height, nunca con padding vertical que rompa la regla de "padding solo horizontal".
 
-Focus visible siempre: outline: 2px solid var(--primary); outline-offset: 2px;. No elimines el outline sin reemplazo equivalente.
+Focus visible siempre: outline: 2px solid var(--ring); outline-offset: 2px; definido una sola vez en app/globals.css. No elimines el outline ni agregues clases de foco por componente.
 
 Contraste: usa los tokens foreground/muted-foreground del tema activo y verifica AA en cada superficie. muted-foreground se reserva para texto secundario.
 
@@ -334,7 +334,7 @@ Checklist rápida — el agente debe verificarla:
 □ ¿Los textos, etiquetas y código usan Ubuntu?
 □ ¿Marketing reserva el color para el hero y las ilustraciones, y el workspace usa solo la paleta activa?
 □ ¿Los controles interactivos tienen ≥44px de hit area?
-□ ¿El focus es visible y usa --primary del tema activo?
+□ ¿El focus es visible y sale de la regla única de globals.css (--ring, sin clases propias)?
 □ ¿Los colores salen de var(--token), no de hex hardcodeado?
 □ ¿Compila (pnpm build / npm run build) y pasa lint?
 9. Cuándo preguntar en vez de asumir

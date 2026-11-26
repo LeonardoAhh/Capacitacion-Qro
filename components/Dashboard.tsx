@@ -104,7 +104,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
         href={`#${MAIN_CONTENT_ID}`}
         className="sr-only transition-colors focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[100]
                    focus:rounded-md focus:border focus:border-border focus:bg-card focus:px-4 focus:py-3
-                   focus:text-body-md focus:font-medium focus:outline-2 focus:outline-offset-2 focus:outline-ring"
+                   focus:text-body-md focus:font-medium"
       >
         Saltar al contenido
       </a>
@@ -153,7 +153,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
               ref={mainRef}
               id={MAIN_CONTENT_ID}
               tabIndex={-1}
-              className="workspace-main min-w-0 flex-1 safe-left safe-right focus:outline-none"
+              className="workspace-main min-w-0 flex-1 safe-left safe-right"
             >
               {/* Un solo margen inferior: el del contenido, o el área segura del teléfono si es mayor. */}
               <WorkspaceContainer

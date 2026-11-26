@@ -86,7 +86,7 @@ export function PendingSummary({ context }: { context: EvaluationSearchContext }
         onMouseEnter={() => setHighlightedStatus(status)} onMouseLeave={() => setHighlightedStatus(null)}
         onFocus={() => setHighlightedStatus(status)} onBlur={() => setHighlightedStatus(null)}
         aria-haspopup="dialog" aria-label={`${label}: ${plural(value, "evaluación", "evaluaciones")}. Ver detalle`}
-        className="flex min-h-(--control-height) min-w-0 items-center gap-3 px-(--card-padding) py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+        className="flex min-h-(--control-height) min-w-0 items-center gap-3 px-(--card-padding) py-3 text-left transition-colors hover:bg-muted/40 focus-inset">
         <span className="min-w-0 flex-1">
           <span className="block truncate text-label-sm text-foreground">{label}</span>
           <span className="block truncate text-body-sm text-muted-foreground">{hint}</span>

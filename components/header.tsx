@@ -92,7 +92,7 @@ export default function Header({
                   event.preventDefault()
                   void confirmUnsavedChanges().then(confirmed => { if (confirmed) router.push(titleHref) })
                 }}
-                aria-label={titleHrefLabel ? `${pageLabel}. ${titleHrefLabel}` : pageLabel} className="inline-flex min-h-(--control-height) max-w-full items-center gap-2 rounded-md pr-2 transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                aria-label={titleHrefLabel ? `${pageLabel}. ${titleHrefLabel}` : pageLabel} className="inline-flex min-h-(--control-height) max-w-full items-center gap-2 rounded-md pr-2 transition-colors hover:text-primary">
                 <ArrowLeft className="size-4 shrink-0" aria-hidden="true" />
                 <span className="truncate">{pageLabel}</span>
               </Link> : <span className="block truncate">{pageLabel}</span>}

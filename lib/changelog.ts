@@ -9,11 +9,13 @@
 export type SeccionNovedad =
   | "Inicio"
   | "Categorías"
+  | "Exámenes"
   | "Nuevos Empleados"
   | "Plantilla"
   | "Búsqueda"
   | "Safe Walk"
   | "Occupational Health"
+  | "Indicators"
   | "Menú"
   | "General"
 
@@ -28,18 +30,34 @@ export interface Novedad {
 
 export const CHANGELOG: readonly Novedad[] = [
   {
+    id: "2026-11-27",
+    fecha: "2026-11-27",
+    titulo: "Registros de cada empleado y nuevos indicadores de seguridad",
+    cambios: [
+      { seccion: "Plantilla", texto: "Las incidencias, actas administrativas, incumplimientos, retardos y omisiones de marcaje de cada empleado ahora están en una sola página: Registros." },
+      { seccion: "Plantilla", texto: "Ábrela con la opción Registros del menú de cada empleado y elige el apartado que necesitas." },
+      { seccion: "Plantilla", texto: "La matriz de capacitación de cada empleado y la lista de cursos abren más rápido." },
+      { seccion: "Exámenes", texto: "Al abrir el examen de un empleado desde el historial, se muestra al instante." },
+      { seccion: "Safe Walk", texto: "Los hallazgos que pasaron su plazo sin cerrarse se marcan como Vencido." },
+      { seccion: "Safe Walk", texto: "Con el botón Vencidos ves juntos todos los atrasados, de cualquier semana." },
+      { seccion: "Indicators", texto: "Nueva página con los hallazgos de cada departamento y los accidentes de cada mes comparados con la meta." },
+      { seccion: "General", texto: "En Apariencia, el espacio entre elementos ahora tiene dos opciones: Automática o Compacta." },
+      { seccion: "General", texto: "Al restablecer Apariencia, el tema vuelve a Sistema." },
+    ],
+  },
+  {
     id: "2026-11-26-2",
     fecha: "2026-11-26",
     titulo: "Mejoras en Categorías, Nuevos Empleados y reportes",
     cambios: [
-      { seccion: "Categorías", texto: "La lista carga mucho más rápido y ya no vuelve a cargar al entrar y salir del detalle de cada persona." },
-      { seccion: "Categorías", texto: "Al ver el detalle de una persona, ahora puedes cambiar entre Criterios, Evaluaciones y Cursos, con sus cursos ordenados por nombre, fecha y calificación." },
-      { seccion: "Categorías", texto: "En Criterios ahora también se ve el examen y, si hay espera entre intentos, la fecha en que podrá presentarlo de nuevo." },
-      { seccion: "Categorías", texto: "Ya no hace falta anotar el desempeño a mano porque se toma de las evaluaciones realizadas." },
-      { seccion: "Nuevos Empleados", texto: "Cada persona tiene ahora un botón al final de su fila para editar sus datos o borrarla con confirmación." },
-      { seccion: "Nuevos Empleados", texto: "Al editar a una persona ya no aparecen las calificaciones de los primeros tres meses porque se llenan solas." },
-      { seccion: "Plantilla", texto: "Antes de descargar la Auditoría de curso o el Reporte general, ahora ves cuánta información incluye el archivo y recibes aviso al terminar." },
-      { seccion: "Menú", texto: "Al cambiar entre Capacitación y Seguridad e Higiene, se te avisa si dejaste algo sin guardar." },
+      { seccion: "Categorías", texto: "La lista abre más rápido, también al regresar del detalle de una persona." },
+      { seccion: "Categorías", texto: "En el detalle de una persona ves sus Criterios, Evaluaciones y Cursos por separado." },
+      { seccion: "Categorías", texto: "En Criterios ves el examen y, si debe esperar para presentarlo otra vez, desde qué fecha puede hacerlo." },
+      { seccion: "Categorías", texto: "El desempeño ya no se anota a mano: se toma de las evaluaciones." },
+      { seccion: "Nuevos Empleados", texto: "Cada persona tiene un botón al final de su fila para editarla o borrarla." },
+      { seccion: "Nuevos Empleados", texto: "Las calificaciones de los primeros tres meses se llenan solas, ya no se editan a mano." },
+      { seccion: "Plantilla", texto: "Antes de descargar la Auditoría de curso o el Reporte general ves cuántos registros trae, y te avisamos cuando está listo." },
+      { seccion: "Menú", texto: "Si cambias entre Capacitación y Seguridad e Higiene con algo sin guardar, te avisamos antes." },
     ],
   },
   {
@@ -47,21 +65,21 @@ export const CHANGELOG: readonly Novedad[] = [
     fecha: "2026-11-26",
     titulo: "Mejoras en Inicio y Plantilla",
     cambios: [
-      { seccion: "Inicio", texto: "Ya puedes ver los retardos y las omisiones de marcaje de cada semana, por departamento y por persona." },
+      { seccion: "Inicio", texto: "Ahora ves los retardos y las omisiones de marcaje de cada semana, por departamento y por persona." },
       { seccion: "Inicio", texto: "Las gráficas se pueden ver en pantalla completa." },
-      { seccion: "Plantilla", texto: "Puedes registrar varios cursos a la vez copiando y pegando la información." },
+      { seccion: "Plantilla", texto: "Puedes registrar varios cursos a la vez copiando y pegando la lista." },
       { seccion: "Plantilla", texto: "Ahora puedes registrar las omisiones de marcaje de cada empleado." },
-      { seccion: "Plantilla", texto: "Los cursos de quien ya no está en la empresa siguen contando en los reportes." },
+      { seccion: "Plantilla", texto: "Los cursos de las personas que ya no trabajan aquí siguen contando en los reportes." },
       { seccion: "Menú", texto: "DNC y Plan Anual ahora están dentro de Capacitación." },
     ],
   },
   {
     id: "2026-11-25",
     fecha: "2026-11-25",
-    titulo: "Buscador rápido en la barra superior",
+    titulo: "Buscador en la barra superior",
     cambios: [
-      { seccion: "Búsqueda", texto: "Ahora puedes buscar desde la lupa en la barra superior para encontrar personas, cursos o registros sin ocupar espacio sobre las tablas." },
-      { seccion: "Búsqueda", texto: "Disponible en Plantilla, Categorías, Nuevos Empleados, Recontratación, Exámenes, Cumpleaños y Desempeño." },
+      { seccion: "Búsqueda", texto: "Busca personas, cursos o registros con la lupa de la barra superior." },
+      { seccion: "Búsqueda", texto: "Está en Plantilla, Categorías, Nuevos Empleados, Recontratación, Exámenes, Cumpleaños y Desempeño." },
     ],
   },
   {
@@ -69,20 +87,20 @@ export const CHANGELOG: readonly Novedad[] = [
     fecha: "2026-11-24",
     titulo: "Nuevo espacio de Seguridad e Higiene",
     cambios: [
-      { seccion: "Safe Walk", texto: "Ahora puedes registrar, editar y dar seguimiento a hallazgos de seguridad con fotografía, área, responsable y fecha límite." },
-      { seccion: "Safe Walk", texto: "Consulta los hallazgos en tarjetas o en lista, abre las fotos en grande y cierra cada caso subiendo la evidencia de solución." },
-      { seccion: "Occupational Health", texto: "Registra accidentes e incidentes laborales con los datos de la persona, atención médica, clasificación y seguimiento." },
-      { seccion: "Occupational Health", texto: "Revisa los casos por día en el calendario mensual, consulta indicadores de accidentes y da seguimiento a los pendientes." },
-      { seccion: "Menú", texto: "Si tienes acceso a ambos espacios, puedes elegir entre Capacitación y Seguridad e Higiene al entrar o cambiar desde el menú de tu cuenta." },
+      { seccion: "Safe Walk", texto: "Registra hallazgos de seguridad con foto, área, responsable y fecha límite, y dales seguimiento." },
+      { seccion: "Safe Walk", texto: "Ve los hallazgos en tarjetas o en lista, amplía las fotos y cierra cada caso con la foto de la solución." },
+      { seccion: "Occupational Health", texto: "Registra accidentes e incidentes con los datos de la persona, la atención médica y su seguimiento." },
+      { seccion: "Occupational Health", texto: "Revisa los casos día por día en el calendario y consulta los indicadores de accidentes." },
+      { seccion: "Menú", texto: "Si tienes acceso a los dos espacios, elige Capacitación o Seguridad e Higiene al entrar o desde el menú de tu cuenta." },
     ],
   },
   {
     id: "2026-11-23",
     fecha: "2026-11-23",
-    titulo: "Optimización para computadora y tablet",
+    titulo: "Pensado para computadora y tablet",
     cambios: [
-      { seccion: "General", texto: "El sistema se optimizó para usarse en computadora y tablet." },
-      { seccion: "General", texto: "Al abrirlo desde celular pueden presentarse algunos errores o pantallas ajustadas de forma distinta mientras seguimos mejorando esa versión." },
+      { seccion: "General", texto: "El sistema está pensado para usarse en computadora y tablet." },
+      { seccion: "General", texto: "En celular algunas pantallas todavía pueden verse distintas o fallar; seguimos mejorándolas." },
     ],
   },
 ]

@@ -50,7 +50,7 @@ export function HeroPreview() {
                 <button type="button" aria-current={active ? "step" : undefined}
                   onClick={() => { setIndex(stepIndex); setPlaying(false) }}
                   className={cn("relative flex h-(--control-height) w-full min-w-0 items-center justify-center gap-1.5 px-2 text-body-sm transition-colors",
-                    "focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                    " focus-inset",
                     active ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
                   <span className={cn("text-label-sm tabular-nums", active && "text-primary")}>{stepNumber(stepIndex)}</span>
                   <span className="hidden truncate md:inline">{step.label}</span>

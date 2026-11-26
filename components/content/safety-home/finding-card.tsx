@@ -82,7 +82,7 @@ export function FindingCard({ finding, onExpand, onExpandCompletion, onManageCom
           aria-label={`Ampliar evidencia de ${finding.title}`}
           onClick={() => onExpand(finding)}
           style={{ "--preview-ratio": FINDING_PREVIEW_RATIO } as CSSProperties}
-          className="group relative block aspect-(--preview-ratio) w-full min-w-0 overflow-hidden rounded-xl border border-border bg-muted text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring lg:aspect-auto lg:h-full"
+          className="group relative block aspect-(--preview-ratio) w-full min-w-0 overflow-hidden rounded-xl border border-border bg-muted text-left lg:aspect-auto lg:h-full"
         >
           <FindingImage src={finding.src} alt={finding.alt} sizes="(min-width: 1024px) 50vw, 100vw" />
           <span

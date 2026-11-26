@@ -62,7 +62,7 @@ export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, o
                 <TableCell>
                   {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
                   <button type="button" aria-current={selected || undefined}
-                    className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    className="block w-full min-w-0 rounded-sm text-left"
                     onClick={(event) => { event.stopPropagation(); onSelect(finding) }}>
                     <span className="block truncate text-label-sm text-foreground">{finding.title}</span>
                     <span className="block truncate text-body-sm text-muted-foreground">{finding.description}</span>

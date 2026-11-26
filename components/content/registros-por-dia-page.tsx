@@ -13,7 +13,7 @@ import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { useRegistrosPorDia } from "@/lib/hooks/useRegistrosPorDia"
 import {
-  capitalize, formatCount, formatMinutes, formatMonth, isValidDate, MAX_CANTIDAD, recordDate, sortRecords, tipoLabels, today,
+  capitalize, formatCount, formatMinutes, formatMonth, isValidDate, MAX_CANTIDAD, recordDate, sortRecords, textosRegistro, tipoLabels, today,
   type RegistroPorDia, type RegistroPorDiaConfig, type ValoresDia,
 } from "@/lib/plantilla/registros-por-dia"
 import { RegistroPorDiaFormDialog } from "@/components/content/registros-por-dia-form-dialog"
@@ -167,7 +167,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
       },
     ]))
     setShowForm(false)
-    notify.success(anterior ? "Registro actualizado." : `${capitalize(config.singular)} capturado.`)
+    notify.success(anterior ? "Registro actualizado." : textosRegistro(config).capturado)
   }
 
   return (
@@ -182,7 +182,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
           {canCapturePlantilla && (
             <Button ref={newRecordRef} type="button" size="sm" className="touch-target" onClick={openForm}>
               <Plus aria-hidden="true" />
-              Nuevo {config.singular}
+              {textosRegistro(config).nuevo}
             </Button>
           )}
           <CompactPager label={`Paginación de ${config.plural}`} page={currentPage} totalPages={totalPages} onPageChange={setPage} />

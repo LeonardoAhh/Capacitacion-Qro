@@ -37,7 +37,7 @@ export function KanbanCard({ tarjeta, miembros }: KanbanCardProps) {
       <button type="button" onClick={() => ver(tarjeta)}
         className={cn(
           "line-clamp-2 break-words rounded-sm text-left text-label-sm",
-          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+          "",
           concluida ? "text-muted-foreground" : "text-foreground",
         )}>
         {tarjeta.titulo}

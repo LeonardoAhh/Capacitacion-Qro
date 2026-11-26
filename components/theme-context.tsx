@@ -108,7 +108,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [initialized, reducedMotion])
 
   const resetTheme = useCallback(() => {
-    setThemeMode("light")
+    setThemeMode("system")
     setFontSize("medium")
     setDensity("auto")
     setReducedMotion(false)

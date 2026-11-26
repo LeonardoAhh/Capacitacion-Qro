@@ -5,11 +5,12 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, SAFETY_INDICATORS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
   Cake,
+  ChartColumn,
   CalendarDays,
   ClipboardList,
   ClipboardPenLine,
@@ -119,6 +120,7 @@ export const SAFETY_NAV_SECTIONS: NavSection[] = [
     items: [
       { label: "Safe Walk", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
       { label: "Occupational Health", href: OCCUPATIONAL_HEALTH_PATH, icon: HeartPulse },
+      { label: "Indicators", href: SAFETY_INDICATORS_PATH, icon: ChartColumn },
     ],
   },
 ]
@@ -134,6 +136,7 @@ export function getWorkspaceNavSections(workspace: WorkspaceId): NavSection[] {
 const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   [SAFETY_HOME_PATH]: "Safe Walk",
   [OCCUPATIONAL_HEALTH_PATH]: "Occupational Health",
+  [SAFETY_INDICATORS_PATH]: "Indicators",
   "/ingresos/compartir-pendientes": "Compartir pendientes",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
@@ -161,12 +164,8 @@ const EXTRA_ROUTE_LABELS: Record<string, string> = {
 }
 
 const ROUTE_PREFIX_LABELS = [
-  { prefix: "/plantilla/actas/", label: "Actas administrativas" },
-  { prefix: "/plantilla/incidencias/", label: "Incidencias" },
-  { prefix: "/plantilla/omisiones/", label: "Omisión de marcajes" },
+  { prefix: "/plantilla/empleado/", label: "Registros del empleado" },
   { prefix: "/plantilla/matriz/", label: "Matriz de capacitación" },
-  { prefix: "/plantilla/incumplimientos/", label: "Incumplimientos" },
-  { prefix: "/plantilla/retardos/", label: "Retardos" },
   { prefix: "/recontratacion/", label: "Revisión de contrato" },
   { prefix: "/plan-anual/cursos-fijos/", label: "Cursos fijos" },
   { prefix: "/plan-anual/importar-dnc/", label: "Importar DNC" },

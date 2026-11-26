@@ -15,10 +15,12 @@ import type { Course, Position, PositionCourse, Employee, EmployeeCourse } from 
 
 const PAGE_SIZE = 12
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
+const SKELETON_COURSE_WIDTHS = ["w-64", "w-48", "w-72", "w-52", "w-40", "w-56"] as const
 
 interface CapCoursesTabProps {
   courses: Course[]
   loadingCourses: boolean
+  loadingDetails?: boolean
   isReadOnly: boolean
   positions: Position[]
   positionCourses: PositionCourse[]
@@ -28,8 +30,40 @@ interface CapCoursesTabProps {
   onEditCourse: (course: Course) => void
 }
 
+function CoursesTableSkeleton({ rows = PAGE_SIZE }: { rows?: number }) {
+  return (
+    <div className="overflow-hidden rounded-xl border bg-card">
+      <Table aria-label="Cargando cursos" aria-busy="true" className="table-fixed">
+        <TableHeader className="bg-muted/50">
+          <TableRow className="hover:bg-transparent">
+            <TableHead scope="col" className={HEAD}>Curso</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-40 sm:table-cell")}>Tipo</TableHead>
+            <TableHead scope="col" className={cn(HEAD, "hidden w-24 text-right md:table-cell")}>Duración</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: rows }, (_, index) => (
+            <TableRow key={index} aria-hidden="true" className="hover:bg-transparent">
+              <TableCell>
+                <Skeleton className={cn("h-4 max-w-full", SKELETON_COURSE_WIDTHS[index % SKELETON_COURSE_WIDTHS.length])} />
+                <Skeleton className="mt-1.5 h-3.5 w-24 sm:hidden" />
+              </TableCell>
+              <TableCell className="hidden w-40 sm:table-cell">
+                <Skeleton className="h-3.5 w-20" />
+              </TableCell>
+              <TableCell className="hidden w-24 md:table-cell">
+                <Skeleton className="ml-auto h-3.5 w-10" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  )
+}
+
 export function CapCoursesTab({
-  courses, loadingCourses, isReadOnly, positions, positionCourses, employees, empCourses, onNewCourse, onEditCourse,
+  courses, loadingCourses, loadingDetails = false, isReadOnly, positions, positionCourses, employees, empCourses, onNewCourse, onEditCourse,
 }: CapCoursesTabProps) {
   const [courseSearch, setCourseSearch] = useState("")
   const [coursePage, setCoursePage] = useState(1)
@@ -63,11 +97,11 @@ export function CapCoursesTab({
             onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
           />
           <div className="@container flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="touch-target" onClick={() => setAuditOpen(true)}>
+            <Button variant="outline" size="sm" className="touch-target" disabled={loadingCourses || loadingDetails} onClick={() => setAuditOpen(true)}>
               <FileSpreadsheet aria-hidden="true" />
               <span>Auditoría</span>
             </Button>
-            <Button variant="outline" size="sm" className="touch-target" onClick={() => setPreviewOpen(true)}>
+            <Button variant="outline" size="sm" className="touch-target" disabled={loadingCourses || loadingDetails} onClick={() => setPreviewOpen(true)}>
               <Download aria-hidden="true" />
               <span>Reporte</span>
             </Button>
@@ -78,16 +112,16 @@ export function CapCoursesTab({
                   <span className="hidden @3xl:inline">Nuevo curso</span>
                 </Button>
               )}
-              <CompactPager label="Paginación de cursos" page={safePage} totalPages={totalPages} onPageChange={setCoursePage} />
+              {!loadingCourses && (
+                <CompactPager label="Paginación de cursos" page={safePage} totalPages={totalPages} onPageChange={setCoursePage} />
+              )}
             </div>
           </div>
         </>
       )}
 
       {loadingCourses ? (
-        <div className="space-y-2" role="status" aria-label="Cargando cursos">
-          {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
-        </div>
+        <CoursesTableSkeleton rows={PAGE_SIZE} />
       ) : (
         <div key={selectedCourse ? "detail" : "list"} className="step-enter">
           {selectedCourse ? (
@@ -97,6 +131,7 @@ export function CapCoursesTab({
               positions={positions}
               positionCourses={positionCourses}
               empCourses={empCourses}
+              loadingDetails={loadingDetails}
               onBack={() => setSelectedCourseId(null)}
               onEdit={onEditCourse}
               isReadOnly={isReadOnly}
@@ -123,7 +158,7 @@ export function CapCoursesTab({
                     <TableRow key={course.id} className="cursor-pointer" onClick={() => setSelectedCourseId(course.id)}>
                       <TableCell>
                         <button type="button" onClick={event => { event.stopPropagation(); setSelectedCourseId(course.id) }}
-                          className="block w-full truncate rounded-sm text-left text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                          className="block w-full truncate rounded-sm text-left text-label-sm text-foreground">
                           {course.name}
                         </button>
                         {course.tipo && <span className="block truncate text-body-sm text-muted-foreground sm:hidden">{course.tipo}</span>}

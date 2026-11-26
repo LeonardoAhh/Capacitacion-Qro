@@ -24,7 +24,7 @@ Para actas administrativas, cada cantidad positiva crea esa cantidad de actas co
 
 ## Importación de incumplimientos
 
-La ruta `/plantilla/incumplimientos/[numeroEmpleado]` muestra solo días con conteo mayor que cero del empleado seleccionado.
+El apartado **Incumplimiento** de `/plantilla/empleado/[numeroEmpleado]?seccion=incumplimientos` muestra solo días con conteo mayor que cero del empleado seleccionado.
 
 La importación se inicia desde el botón **Cargar incumplimientos** en la barra superior de la tabla de empleados de `/plantilla`. La ficha individual es de consulta.
 
@@ -42,7 +42,7 @@ La migración `202611091300_multi_month_employee_day_imports.sql` agrega las RPC
 
 ## Retardos
 
-La ruta `/plantilla/retardos/[numeroEmpleado]` muestra los retardos del empleado por mes y día. Se abre desde la opción **Retardos** del menú de acciones de cada empleado en `/plantilla`.
+El apartado **Retardos** de `/plantilla/empleado/[numeroEmpleado]?seccion=retardos` muestra los retardos del empleado por mes y día. Se abre desde la opción **Retardos** del menú de acciones de cada empleado en `/plantilla`.
 
 Cada día guarda la cantidad de retardos y los minutos totales. El rol `dev` captura desde la ficha con las mismas reglas que los incumplimientos: un registro por empleado y fecha, confirmación antes de actualizar el total y rechazo si el registro cambió mientras se confirmaba.
 

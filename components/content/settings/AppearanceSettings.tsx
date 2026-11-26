@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { useTheme } from "@/components/theme-context"
-import { isDensity, isThemeMode, THEME_MODE_LABELS, type FontSize } from "@/lib/theme/constants"
+import { isDensity, isThemeMode, THEME_MODE_LABELS, type Density, type FontSize } from "@/lib/theme/constants"
 import { SettingsGroup, SettingsRow } from "./SettingsPrimitives"
 
 const FONT_SIZES: Record<FontSize, string> = { small: "Pequeño", medium: "Normal", large: "Grande" }
-const DENSITIES = { auto: "Automática", comfortable: "Amplia", compact: "Compacta" } as const
+const DENSITIES: Record<Density, string> = { auto: "Automática", compact: "Compacta" }
 const CONTROL = "w-full sm:w-40"
 
 export function AppearanceSettings() {

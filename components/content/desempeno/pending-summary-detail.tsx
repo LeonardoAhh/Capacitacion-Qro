@@ -60,7 +60,7 @@ export function PendingSummaryDetail({ status, groups, onOpenChange }: {
           const when = disponible ? "Disponible" : relativeDays(entry.diasDiff);
           return <li key={`${employee.dbId}:${entry.periodo}:${entry.fecha}`} className="min-w-0">
             <PendingCard asChild interactive>
-              <button type="button" onClick={() => setSelected(employee)} aria-label={`Ver detalle de ${employee.nombre}, ${entry.periodo}, ${when}`} className="h-full w-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              <button type="button" onClick={() => setSelected(employee)} aria-label={`Ver detalle de ${employee.nombre}, ${entry.periodo}, ${when}`} className="h-full w-full">
                 <PendingCardFields
                   number={employee.numero}
                   name={employee.nombre}

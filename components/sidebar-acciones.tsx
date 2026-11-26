@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Lightbulb, Megaphone } from "lucide"
 import { MorphIcon } from "morphicons/react"
@@ -28,10 +28,12 @@ type Accion = keyof typeof ACCIONES
  * enfocarlo o con algo abierto; con novedades sin ver se queda en Novedades. Con
  * movimiento reducido no alterna y muestra los dos renglones.
  */
-export function SidebarAcciones({ workspace, showNovedades, triggerClassName, iconBoxClassName, iconClassName }: {
+export function SidebarAcciones({ workspace, showNovedades, aside, triggerClassName, iconBoxClassName, iconClassName }: {
   workspace: WorkspaceId
   /** Sin Novedades (evaluador) queda solo Ideas de mejora, sin alternar. */
   showNovedades: boolean
+  /** Junto al renglón de Ideas, en su misma fila (campana del evaluador). */
+  aside?: ReactNode
   triggerClassName: string
   iconBoxClassName: string
   iconClassName: string
@@ -52,13 +54,13 @@ export function SidebarAcciones({ workspace, showNovedades, triggerClassName, ic
   }, [pausada])
 
   if (!showNovedades) {
-    return <IdeaCapture workspace={workspace} side="right" triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
+    return <IdeaCapture workspace={workspace} aside={aside} triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
   }
 
   if (reduced) {
     return (
       <>
-        <IdeaCapture workspace={workspace} side="right" triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
+        <IdeaCapture workspace={workspace} aside={aside} triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
         <ChangelogButton triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
       </>
     )
@@ -68,11 +70,11 @@ export function SidebarAcciones({ workspace, showNovedades, triggerClassName, ic
   return (
     <IdeaCapture
       workspace={workspace}
-      side="right"
       triggerClassName={triggerClassName}
       iconBoxClassName={iconBoxClassName}
       iconClassName={iconClassName}
       onOpenChange={setIdeasAbiertas}
+      aside={aside}
       trigger={
         <button
           type="button"

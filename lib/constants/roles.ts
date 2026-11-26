@@ -37,6 +37,8 @@ export interface RolePolicy {
   employeesOnly: boolean
   /** Abre la lista de ideas de mejora y cambia su estado. Enviar ideas lo puede hacer cualquiera. */
   canReviewIdeas: boolean
+  /** Ve, sin editar, los accidentes de cada empleado en sus Registros (datos médicos). */
+  canViewEmployeeAccidents: boolean
 }
 
 const TRAINING = ["training"] as const
@@ -47,37 +49,37 @@ export const ROLE_POLICIES: Record<AppRole, RolePolicy> = {
   dev: {
     label: "Desarrollador", workspaces: ["training", "safety"],
     canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
-    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: true,
+    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: true, canViewEmployeeAccidents: true,
   },
   // Igual que dev en Capacitación; las herramientas de desarrollador siguen
   // ligadas a la cuenta privada (lib/auth/private-developer).
   analista: {
     label: "Analista", workspaces: TRAINING,
     canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
-    canManageSafety: false, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false,
+    canManageSafety: false, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false, canViewEmployeeAccidents: true,
   },
   // Los mismos poderes que dev (ambos espacios y edición completa), sin la revisión de ideas.
   admin: {
     label: "Administrador", workspaces: ["training", "safety"],
     canEdit: true, readOnly: false, canEvaluate: true, canCapturePlantilla: true,
-    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false,
+    canManageSafety: true, supervisesEvaluations: true, employeesOnly: false, canReviewIdeas: false, canViewEmployeeAccidents: true,
   },
   auxiliar: {
     label: "Auxiliar", workspaces: TRAINING, home: "/plantilla",
-    routes: ["/plantilla", "/plantilla/incidencias/*", "/plantilla/actas/*", "/plantilla/incumplimientos/*", "/plantilla/retardos/*", "/plantilla/omisiones/*"],
+    routes: ["/plantilla", "/plantilla/empleado/*"],
     canEdit: false, readOnly: true, canEvaluate: false, canCapturePlantilla: true,
-    canManageSafety: false, supervisesEvaluations: false, employeesOnly: true, canReviewIdeas: false,
+    canManageSafety: false, supervisesEvaluations: false, employeesOnly: true, canReviewIdeas: false, canViewEmployeeAccidents: false,
   },
   ehs: {
     label: "EHS", workspaces: SAFETY,
     canEdit: false, readOnly: false, canEvaluate: false, canCapturePlantilla: false,
-    canManageSafety: true, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false,
+    canManageSafety: true, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false, canViewEmployeeAccidents: false,
   },
   evaluador: {
     label: "Evaluador", workspaces: [], home: "/desempeno",
     routes: [DESEMPENO.routes.home, `${DESEMPENO.routes.pending}/*`, "/cursos/*"],
     canEdit: false, readOnly: true, canEvaluate: true, canCapturePlantilla: false,
-    canManageSafety: false, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false,
+    canManageSafety: false, supervisesEvaluations: false, employeesOnly: false, canReviewIdeas: false, canViewEmployeeAccidents: false,
   },
 }
 

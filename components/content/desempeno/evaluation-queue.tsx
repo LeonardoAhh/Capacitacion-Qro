@@ -37,7 +37,7 @@ export function EvaluationQueue({ items, loading, overdue, onStart }: {
         <ClipboardList className="size-4 text-primary" aria-hidden="true" />
         {items.length ? `Te ${items.length === 1 ? "toca" : "tocan"} ${plural(items.length, "evaluación", "evaluaciones")}` : "Sin evaluaciones pendientes"}
       </h2>
-      {items.length > QUEUE_PREVIEW && <Link href={DESEMPENO.routes.pending} className="rounded-sm text-body-sm text-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+      {items.length > QUEUE_PREVIEW && <Link href={DESEMPENO.routes.pending} className="rounded-sm text-body-sm text-primary underline-offset-4 hover:underline">
         Ver las {items.length} en {DESEMPENO.pages.pending.title}
       </Link>}
     </div>
@@ -49,7 +49,7 @@ export function EvaluationQueue({ items, loading, overdue, onStart }: {
     {items.length > 0 && <ul className="divide-y overflow-hidden rounded-xl border bg-card">
       {items.slice(0, QUEUE_PREVIEW).map(item => <li key={item.numero}>
         <button type="button" onClick={() => onStart(item)}
-          className="flex min-h-(--control-height) w-full items-center gap-3 px-(--card-padding) py-3 text-left transition-colors hover:bg-muted/40 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring">
+          className="flex min-h-(--control-height) w-full items-center gap-3 px-(--card-padding) py-3 text-left transition-colors hover:bg-muted/40 focus-inset">
           <span className="min-w-0 flex-1">
             <span className="block truncate text-label-sm text-foreground">{item.nombre}</span>
             <span className="block truncate text-body-sm text-muted-foreground">#{item.numero} · {item.tipo}{item.detalle ? ` · ${item.detalle}` : ""}</span>

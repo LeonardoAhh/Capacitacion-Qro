@@ -20,6 +20,7 @@ export type RoleContextType = {
   supervisesEvaluations: boolean
   employeesOnly: boolean
   canReviewIdeas: boolean
+  canViewEmployeeAccidents: boolean
   workspaces: readonly WorkspaceId[]
   /** ¿El rol puede abrir esta ruta? (lib/constants/roles) */
   canAccess: (path: string) => boolean
@@ -41,6 +42,7 @@ function permissions(role: AppRole, signedIn: boolean) {
     supervisesEvaluations: signedIn && policy.supervisesEvaluations,
     employeesOnly: policy.employeesOnly,
     canReviewIdeas: signedIn && policy.canReviewIdeas,
+    canViewEmployeeAccidents: signedIn && policy.canViewEmployeeAccidents,
     workspaces: policy.workspaces,
   }
 }

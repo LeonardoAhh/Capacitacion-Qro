@@ -8,9 +8,10 @@ import {
   DialogHeader, DialogTitle,
 } from "@/components/ui/dialog"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { formatCount, formatMinutes, MAX_CANTIDAD, tipoLabels, type RegistroPorDiaConfig, type ValoresDia } from "@/lib/plantilla/registros-por-dia"
+import { formatCount, formatMinutes, MAX_CANTIDAD, textosRegistro, tipoLabels, type RegistroPorDiaConfig, type ValoresDia } from "@/lib/plantilla/registros-por-dia"
 
 interface RegistroPorDiaFormDialogProps {
   config: RegistroPorDiaConfig
@@ -98,7 +99,7 @@ export function RegistroPorDiaFormDialog({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Nuevo {config.singular}</DialogTitle>
+          <DialogTitle>{textosRegistro(config).nuevo}</DialogTitle>
           <DialogDescription>{employeeName} · Núm. {employeeNumber}</DialogDescription>
         </DialogHeader>
 
@@ -113,13 +114,12 @@ export function RegistroPorDiaFormDialog({
           <div className="grid gap-4 sm:grid-cols-2">
             <div className={config.conMinutos || config.tipos ? "min-w-0 space-y-2 sm:col-span-2" : "min-w-0 space-y-2"}>
               <Label htmlFor={`${formId}-fecha`}>Fecha</Label>
-              <Input
+              <DateTextInput
                 ref={dateInputRef}
                 id={`${formId}-fecha`}
-                type="date"
                 required
                 value={date}
-                onChange={event => onDateChange(event.target.value)}
+                onValueChange={onDateChange}
                 disabled={saving}
               />
             </div>

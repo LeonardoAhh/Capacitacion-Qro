@@ -50,11 +50,13 @@ export default function CapacitacionContent() {
   const [positionCourses, setPositionCourses] = useState<PositionCourse[]>([])
   const [loadingPositions, setLoadingPositions] = useState(false)
   const [loadingCourses, setLoadingCourses] = useState(false)
+  const [loadingCourseDetails, setLoadingCourseDetails] = useState(false)
   const [loadingEmployees, setLoadingEmployees] = useState(false)
   const employeesLoaded = useRef(false)
   const employeesLoadPromise = useRef<Promise<void> | null>(null)
   const positionsLoaded = useRef(false)
   const positionsLoadPromise = useRef<Promise<void> | null>(null)
+  const coursesLoaded = useRef(false)
   const coursesTabDataLoaded = useRef(false)
   const coursesTabDataVersion = useRef(0)
   const coursesTabLoadPromise = useRef<Promise<void> | null>(null)
@@ -139,28 +141,31 @@ export default function CapacitacionContent() {
 
     const requestVersion = coursesTabDataVersion.current
     const loadPromise = (async () => {
-      setLoadingCourses(true)
-      setLoadingEmployees(true)
+      if (!coursesLoaded.current) setLoadingCourses(true)
+      setLoadingCourseDetails(true)
       try {
-        const [
-          ,
-          ,
-          courseData,
-          positionCourseData,
-          employeeCourseData,
-        ] = await Promise.all([
-          loadEmployees(),
-          loadPositionData(),
-          fetchCourses(),
-          fetchAllPositionCourses(),
-          fetchAllEmployeeCourses(),
+        // 1. Catálogo de cursos primero (~200 filas): la tabla se muestra al instante.
+        const employeesTask = loadEmployees()
+        const positionsTask = loadPositionData()
+        const courseData = await fetchCourses()
+        if (requestVersion !== coursesTabDataVersion.current) return
+
+        setCourses(courseData)
+        coursesLoaded.current = true
+        setLoadingCourses(false)
+
+        // 2. Relación puestos-cursos e historial en paralelo sin bloquear la lista de cursos.
+        const [, , positionCourseData, employeeCourseData] = await Promise.all([
+          employeesTask,
+          positionsTask,
+          fetchAllPositionCourses(courseData),
+          fetchAllEmployeeCourses(courseData),
         ])
         if (
           requestVersion !== coursesTabDataVersion.current ||
           !employeesLoaded.current ||
           !positionsLoaded.current
         ) return
-        setCourses(courseData)
         setPositionCourses(positionCourseData)
         setEmpCourses(employeeCourseData)
         coursesTabDataLoaded.current = true
@@ -169,7 +174,7 @@ export default function CapacitacionContent() {
         notify.error("Error al cargar los datos de cursos")
       } finally {
         setLoadingCourses(false)
-        setLoadingEmployees(false)
+        setLoadingCourseDetails(false)
         coursesTabLoadPromise.current = null
       }
     })()
@@ -309,7 +314,8 @@ export default function CapacitacionContent() {
         ) : currentTab === "cursos" ? (
           <CapCoursesTab
             courses={courses}
-            loadingCourses={loadingCourses}
+            loadingCourses={loadingCourses || !coursesLoaded.current}
+            loadingDetails={loadingCourseDetails}
             isReadOnly={isReadOnly}
             positions={positions}
             positionCourses={positionCourses}

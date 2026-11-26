@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useId } from "react"
 import { AlertTriangle, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
@@ -280,7 +280,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
                   <TableRow key={acta.id} className="cursor-pointer" onClick={() => setSelectedId(acta.id)}>
                     <TableCell>
                       <button type="button" onClick={event => { event.stopPropagation(); setSelectedId(acta.id) }}
-                        className="block w-full truncate rounded-sm text-left text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
+                        className="block w-full truncate rounded-sm text-left text-label-sm text-foreground">
                         {acta.descripcion || "Sin descripción"}
                       </button>
                       <span className="block truncate text-body-sm tabular-nums text-muted-foreground sm:hidden">
@@ -318,13 +318,13 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor={`${formId}-fecha`}>Fecha <span aria-hidden="true">*</span><span className="sr-only"> (obligatoria)</span></Label>
-              <Input id={`${formId}-fecha`} type="date" required value={form.fecha}
-                onChange={e => setForm(f => ({ ...f, fecha: e.target.value }))} />
+              <DateTextInput id={`${formId}-fecha`} required value={form.fecha}
+                onValueChange={fecha => setForm(f => ({ ...f, fecha }))} />
             </div>
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor={`${formId}-fecha-seguimiento`}>Fecha de revisión</Label>
-              <Input id={`${formId}-fecha-seguimiento`} type="date" value={form.fecha_seguimiento}
-                onChange={e => setForm(f => ({ ...f, fecha_seguimiento: e.target.value }))} />
+              <DateTextInput id={`${formId}-fecha-seguimiento`} value={form.fecha_seguimiento}
+                onValueChange={fecha_seguimiento => setForm(f => ({ ...f, fecha_seguimiento }))} />
             </div>
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor={`${formId}-estatus`}>Estatus</Label>

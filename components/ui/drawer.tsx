@@ -94,7 +94,7 @@ const DrawerContent = React.forwardRef<
           // Altura máxima: nunca sube más allá del safe-area-top
           // Cuando el teclado está visible, usa visualViewport height
           "flex flex-col",
-          "rounded-t-xl border bg-card text-card-foreground focus:outline-none",
+          "rounded-t-xl border bg-card text-card-foreground",
           // mt-24 original mantenido para el snap inicial
           "mt-24",
           className

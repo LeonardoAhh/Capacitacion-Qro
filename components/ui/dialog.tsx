@@ -44,7 +44,7 @@ const DialogContent = React.forwardRef<
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
           "data-[state=closed]:slide-out-to-bottom-4 data-[state=open]:slide-in-from-bottom-4",
           "sm:data-[state=closed]:zoom-out-95 sm:data-[state=open]:zoom-in-95",
-          "duration-200 focus:outline-none motion-reduce:animate-none",
+          "duration-200 motion-reduce:animate-none",
           className,
         )}
         {...props}
@@ -66,7 +66,7 @@ const DialogContent = React.forwardRef<
 
             {/* Botón cerrar */}
             {!hideClose && (
-              <DialogPrimitive.Close className="absolute right-2 top-2 z-50 touch-target flex size-(--control-height) items-center justify-center rounded-md bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none">
+              <DialogPrimitive.Close className="absolute right-2 top-2 z-50 touch-target flex size-(--control-height) items-center justify-center rounded-md bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:pointer-events-none">
                 <X className="size-4" aria-hidden="true" />
                 <span className="sr-only">Cerrar</span>
               </DialogPrimitive.Close>

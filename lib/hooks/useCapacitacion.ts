@@ -3,6 +3,111 @@ import { supabase } from '@/lib/supabase/client'
 import { isPassingCourseGrade } from '@/lib/capacitacion/utils'
 import { fetchAllRows } from '@/lib/supabase/fetchAll'
 
+interface PositionCourseSummary {
+  courseId: string
+  courseName: string
+  course: { name: string; tipo: string | null } | null
+  orderIndex: number
+}
+
+interface PositionRequiredCacheEntry {
+  positionFound: boolean
+  positionName: string | null
+  requiredCourses: PositionCourseSummary[]
+}
+
+type PositionNestedRow = {
+  id: string
+  name: string
+  department: { id: string; name: string } | { id: string; name: string }[] | null
+  position_courses: Array<{
+    course_id: string
+    order_index: number
+    course: { id: string; name: string; tipo: string | null } | { id: string; name: string; tipo: string | null }[] | null
+  }> | null
+}
+
+const POSITION_COURSES_TTL_MS = 60_000
+const positionCoursesCache = new Map<string, { value: PositionRequiredCacheEntry; at: number }>()
+const positionCoursesInflight = new Map<string, Promise<PositionRequiredCacheEntry>>()
+let positionCacheAuthRegistered = false
+
+function ensurePositionCacheAuthReset() {
+  if (positionCacheAuthRegistered || typeof window === 'undefined') return
+  positionCacheAuthRegistered = true
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      positionCoursesCache.clear()
+      positionCoursesInflight.clear()
+    }
+  })
+}
+
+async function getPositionRequiredCourses(
+  positionName: string,
+  deptKey: string,
+  cacheKey: string,
+): Promise<PositionRequiredCacheEntry> {
+  ensurePositionCacheAuthReset()
+  const cached = positionCoursesCache.get(cacheKey)
+  if (cached && Date.now() - cached.at < POSITION_COURSES_TTL_MS) {
+    return cached.value
+  }
+  const inflight = positionCoursesInflight.get(cacheKey)
+  if (inflight) return inflight
+
+  const request = (async (): Promise<PositionRequiredCacheEntry> => {
+    const { data, error } = await supabase
+      .from('positions')
+      .select('id, name, department:departments(id, name), position_courses(course_id, order_index, course:courses(id, name, tipo))')
+      .ilike('name', positionName)
+    if (error) throw new Error(error.message)
+
+    const rows = (data ?? []) as unknown as PositionNestedRow[]
+    if (rows.length === 0) {
+      return { positionFound: false, positionName: null, requiredCourses: [] }
+    }
+
+    let matched = deptKey
+      ? rows.find(row => {
+          const dept = Array.isArray(row.department) ? row.department[0] : row.department
+          return dept?.name?.trim().toLocaleLowerCase('es-MX') === deptKey
+        })
+      : rows[0]
+
+    if (!matched) {
+      matched = rows.reduce((best, row) =>
+        (row.position_courses?.length ?? 0) > (best.position_courses?.length ?? 0) ? row : best
+      )
+    }
+
+    const requiredCourses: PositionCourseSummary[] = [...(matched.position_courses ?? [])]
+      .sort((a, b) => a.order_index - b.order_index)
+      .map(rc => {
+        const courseObj = Array.isArray(rc.course) ? (rc.course[0] ?? null) : rc.course
+        return {
+          courseId: rc.course_id,
+          courseName: courseObj?.name ?? '—',
+          course: courseObj ? { name: courseObj.name, tipo: courseObj.tipo } : null,
+          orderIndex: rc.order_index,
+        }
+      })
+
+    const value: PositionRequiredCacheEntry = {
+      positionFound: true,
+      positionName: matched.name,
+      requiredCourses,
+    }
+    positionCoursesCache.set(cacheKey, { value, at: Date.now() })
+    return value
+  })().finally(() => {
+    positionCoursesInflight.delete(cacheKey)
+  })
+
+  positionCoursesInflight.set(cacheKey, request)
+  return request
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Interfaces – catálogo
 // ─────────────────────────────────────────────────────────────────────────────
@@ -334,21 +439,56 @@ export function useCapacitacion() {
     )
   }
 
-  const fetchAllPositionCourses = async (): Promise<PositionCourse[]> => {
+  const fetchAllPositionCourses = async (coursesCatalog?: Course[]): Promise<PositionCourse[]> => {
+    if (coursesCatalog && coursesCatalog.length > 0) {
+      const courseMap = new Map(coursesCatalog.map(c => [c.id, { name: c.name, tipo: c.tipo }]))
+      const rows = await fetchAllRows<{
+        id: string
+        position_id: string
+        course_id: string
+        order_index: number
+      }>((from, to, withCount) =>
+        supabase
+          .from('position_courses')
+          .select('id, position_id, course_id, order_index', withCount ? { count: 'exact' } : undefined)
+          .order('id')
+          .range(from, to),
+      )
+      return rows.map(row => ({
+        ...row,
+        course: courseMap.get(row.course_id) ?? { name: '', tipo: null },
+      }))
+    }
     return fetchAllRows<PositionCourse>(
-      (from, to) => supabase
+      (from, to, withCount) => supabase
         .from('position_courses')
-        .select('id, position_id, course_id, order_index, course:courses(name, tipo)')
+        .select('id, position_id, course_id, order_index, course:courses(name, tipo)', withCount ? { count: 'exact' } : undefined)
         .order('id')
         .range(from, to),
     )
   }
 
-  const fetchAllEmployeeCourses = async (): Promise<EmployeeCourse[]> => {
+  const fetchAllEmployeeCourses = async (coursesCatalog?: Course[]): Promise<EmployeeCourse[]> => {
+    if (coursesCatalog && coursesCatalog.length > 0) {
+      const courseMap = new Map(coursesCatalog.map(c => [c.id, { name: c.name, tipo: c.tipo }]))
+      const rows = await fetchAllRows<Omit<EmployeeCourse, 'course'>>((from, to, withCount) =>
+        supabase
+          .from('employee_courses')
+          .select('id, employee_id, course_id, raw_course_name, fecha_aplicacion, calificacion, created_at', withCount ? { count: 'exact' } : undefined)
+          // Solo la plantilla actual: los cursos de empleados borrados se conservan para los indicadores.
+          .not('employee_id', 'is', null)
+          .order('id')
+          .range(from, to),
+      )
+      return rows.map(row => ({
+        ...row,
+        course: row.course_id ? (courseMap.get(row.course_id) ?? null) : null,
+      }))
+    }
     return fetchAllRows<EmployeeCourse>(
-      (from, to) => supabase
+      (from, to, withCount) => supabase
         .from('employee_courses')
-        .select('id, employee_id, course_id, raw_course_name, fecha_aplicacion, calificacion, created_at, course:courses(name, tipo)')
+        .select('id, employee_id, course_id, raw_course_name, fecha_aplicacion, calificacion, created_at, course:courses(name, tipo)', withCount ? { count: 'exact' } : undefined)
         // Solo la plantilla actual: los cursos de empleados borrados se conservan para los indicadores.
         .not('employee_id', 'is', null)
         .order('id')
@@ -537,41 +677,18 @@ export function useCapacitacion() {
     }
     if (!employee.puesto) return empty
 
-    // Busca departamento (case-insensitive via ilike)
-    const [deptResult, courseHistory] = await Promise.all([
-      supabase
-        .from('departments')
-        .select('id, name')
-        .ilike('name', employee.departamento?.trim() ?? '')
-        .limit(1)
-        .maybeSingle(),
+    const positionName = employee.puesto.trim()
+    const deptKey = employee.departamento?.trim().toLocaleLowerCase("es-MX") ?? ""
+    const cacheKey = `${positionName.toLocaleLowerCase("es-MX")}|${deptKey}`
+
+    const [positionEntry, courseHistory] = await Promise.all([
+      getPositionRequiredCourses(positionName, deptKey, cacheKey),
       courseHistoryPromise ?? fetchEmployeeCourses(employee.id),
     ])
-    if (deptResult.error) throw new Error(deptResult.error.message)
-    const deptData = deptResult.data
 
-    // Busca puesto (ilike para tolerar mayúsculas/espacios)
-    const posQuery = supabase
-      .from('positions')
-      .select('id, name')
-      .ilike('name', employee.puesto.trim())
-      .limit(1)
-
-    if (deptData?.id) posQuery.eq('department_id', deptData.id)
-
-    const { data: posData } = await posQuery.maybeSingle()
-    if (!posData) return empty
-
-    // Cursos requeridos del puesto
-    const { data: reqData, error: reqError } = await supabase
-      .from('position_courses')
-      .select('course_id, order_index, course:courses(id, name, tipo)')
-      .eq('position_id', posData.id)
-      .order('order_index')
-    if (reqError) throw new Error(reqError.message)
-
-    if (!reqData || reqData.length === 0) {
-      return { ...empty, positionFound: true, positionName: posData.name }
+    if (!positionEntry.positionFound) return empty
+    if (positionEntry.requiredCourses.length === 0) {
+      return { ...empty, positionFound: true, positionName: positionEntry.positionName }
     }
 
     // La consulta viene de la fecha más nueva a la más antigua. Conservamos
@@ -584,8 +701,8 @@ export function useCapacitacion() {
       }
     }
 
-    const courses: CourseProgress[] = reqData.map(rc => {
-      const taken = takenMap.get(rc.course_id)
+    const courses: CourseProgress[] = positionEntry.requiredCourses.map(rc => {
+      const taken = takenMap.get(rc.courseId)
       const cal = taken?.calificacion ?? null
       let status: CourseProgress['status']
       if (taken == null) status = 'pendiente'
@@ -593,10 +710,10 @@ export function useCapacitacion() {
       else status = 'reprobado'
 
       return {
-        courseId: rc.course_id,
-        courseName: (rc.course as { name?: string; tipo?: string | null } | null)?.name ?? '—',
-        course: rc.course?.[0] as { name: string; tipo: string | null } | null,
-        orderIndex: rc.order_index,
+        courseId: rc.courseId,
+        courseName: rc.courseName,
+        course: rc.course,
+        orderIndex: rc.orderIndex,
         status,
         calificacion: cal,
         fechaAplicacion: taken?.fecha_aplicacion ?? null,
@@ -609,7 +726,7 @@ export function useCapacitacion() {
 
     return {
       positionFound: true,
-      positionName: posData.name,
+      positionName: positionEntry.positionName,
       totalRequired: courses.length,
       aprobados, reprobados, pendientes,
       courses,

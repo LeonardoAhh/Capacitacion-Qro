@@ -54,7 +54,7 @@ export function KanbanCalendar({ tarjetas, inicio, hoy }: {
                       <button type="button" onClick={() => ver(tarjeta)}
                         className={cn(
                           "flex w-full min-w-0 items-start gap-1.5 rounded-md border border-border px-2 py-2 text-left text-body-sm transition-colors hover:bg-muted max-lg:min-h-(--control-height) max-lg:items-center",
-                          "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                          "",
                           tarjeta.estado === "concluido" ? "text-muted-foreground line-through" : "text-foreground",
                         )}>
                         <Flag className={cn("mt-0.5 size-3 shrink-0 fill-current max-lg:mt-0", COLOR_PRIORIDAD[tarjeta.prioridad])} aria-hidden="true" />

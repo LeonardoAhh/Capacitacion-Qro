@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Label } from "@/components/ui/label"
@@ -276,14 +277,14 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
             <div className="grid gap-4 sm:grid-cols-2">
               <div className={FIELD}>
                 <Label htmlFor="kanban-inicio">Inicio <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-                <Input id="kanban-inicio" type="date" value={form.fecha_inicio ?? ""}
-                  onChange={event => update("fecha_inicio", event.target.value || null)} />
+                <DateTextInput id="kanban-inicio" value={form.fecha_inicio ?? ""}
+                  onValueChange={fecha => update("fecha_inicio", fecha || null)} />
               </div>
               <div className={FIELD}>
                 <Label htmlFor="kanban-limite">Fecha límite <span className="font-normal text-muted-foreground">(opcional)</span></Label>
-                <Input id="kanban-limite" type="date" value={form.fecha_limite ?? ""} min={form.fecha_inicio ?? undefined}
+                <DateTextInput id="kanban-limite" value={form.fecha_limite ?? ""}
                   aria-invalid={Boolean(error) && step === 2}
-                  onChange={event => update("fecha_limite", event.target.value || null)} />
+                  onValueChange={fecha => update("fecha_limite", fecha || null)} />
               </div>
             </div>
 

@@ -176,7 +176,7 @@ export function ImageExpansion({ src, alt, ratio, evidences, label = "Imágenes 
                   aria-current={isActive ? "true" : undefined}
                   onClick={() => setActiveEvidence(evidence)}
                   className={cn(
-                    "min-w-0 w-full max-w-24 shrink overflow-hidden rounded-md border bg-muted transition-opacity focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                    "min-w-0 w-full max-w-24 shrink overflow-hidden rounded-md border bg-muted transition-opacity",
                     isActive ? "border-primary ring-2 ring-primary opacity-100" : "border-border opacity-70 hover:opacity-100",
                   )}
                 >

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { ChevronRight, ChevronsUpDown, LogOut } from "lucide-react"
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import { SettingsDialog } from "@/components/settings-dialog"
 import { WorkspaceMenuSub } from "@/components/workspace-switcher"
 import { ROLE_LABELS } from "@/lib/constants/roles"
 import { cn } from "@/lib/utils"
+import { IDEAS_PATH } from "@/lib/workspace-paths"
 import { useLogout } from "@/components/use-logout"
 import { useTheme } from "@/components/theme-context"
 import { SIDEBAR_MENU_ROW } from "@/components/sidebar-density"
@@ -33,7 +35,7 @@ const ITEM = cn(SIDEBAR_MENU_ROW, "gap-2 px-2 text-body-md focus:bg-transparent 
 const SEPARADOR = "mx-2 my-0"
 const OPCION = cn(SIDEBAR_MENU_ROW, "text-body-md")
 // Anillo de foco por dentro: la barra lateral recorta lo que sale de ella (overflow por la animación).
-const TRIGGER = "flex min-h-(--control-height) w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring"
+const TRIGGER = "flex min-h-(--control-height) w-full min-w-0 items-center gap-2 rounded-md px-2.5 text-foreground transition-colors duration-150 hover:bg-muted/60 data-[state=open]:bg-muted/60 motion-reduce:transition-none focus-inset"
 
 type AccountMenuProps = {
   onNavigate?: () => void
@@ -44,7 +46,7 @@ type AccountMenuProps = {
 export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: AccountMenuProps) {
   const { user } = useUser()
   const { profile } = useProfile(user?.id)
-  const { role, isEvaluador, loading: roleLoading } = useRole()
+  const { role, isEvaluador, canReviewIdeas, loading: roleLoading } = useRole()
   const { signingOut, logout } = useLogout()
   const { themeMode, setThemeMode } = useTheme()
   const [settingsOpen, setSettingsOpen] = useState(false)
@@ -88,6 +90,7 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
           workspace={workspace}
           onWorkspaceChange={next => { onWorkspaceChange(next); setSheetOpen(false); onNavigate?.() }}
           showSettings={showSettings} showTheme={showTheme} onSettings={() => { setSheetOpen(false); setSettingsOpen(true) }}
+          onNavigate={() => { setSheetOpen(false); onNavigate?.() }}
           signingOut={signingOut} onLogout={() => { setSheetOpen(false); onNavigate?.(); void logout() }} />
         <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       </>
@@ -123,6 +126,19 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
             </>
           )}
 
+          {/* La lista de ideas solo la revisa quien tiene canReviewIdeas (dev). */}
+          {canReviewIdeas && (
+            <>
+              <DropdownMenuItem asChild className={ITEM}>
+                <Link href={IDEAS_PATH}>
+                  <span className="flex-1">Ideas de mejora</span>
+                  <ChevronRight className="text-muted-foreground" aria-hidden="true" />
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className={SEPARADOR} />
+            </>
+          )}
+
           <WorkspaceMenuSub workspace={workspace} onWorkspaceChange={onWorkspaceChange} onChanged={onNavigate}
             triggerClassName={ITEM} itemClassName={OPCION} separatorClassName={SEPARADOR} />
 
@@ -142,9 +158,9 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
                       }
                     }}
                   >
+                    <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="light" className={OPCION}>Claro</DropdownMenuRadioItem>
                     <DropdownMenuRadioItem value="dark" className={OPCION}>Oscuro</DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
                   </DropdownMenuRadioGroup>
                 </DropdownMenuSubContent>
               </DropdownMenuSub>

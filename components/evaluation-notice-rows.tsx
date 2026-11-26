@@ -4,7 +4,7 @@ import { ChevronRight, CircleAlert, Clock3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 
-const ITEM = "flex min-h-(--menu-item-height) w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
+const ITEM = "flex min-h-(--menu-item-height) w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-inset"
 
 /**
  * Resumen de evaluaciones en una sola fila: vencidas (en rojo) y próximas.

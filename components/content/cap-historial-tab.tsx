@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  AlarmClock, BadgeCheck, BookUp, Fingerprint, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, X, type LucideIcon,
+  BadgeCheck, BookUp, EllipsisVertical, FolderOpen, LayoutGrid, Trash2, UserPlus, UserRoundPen, X, type LucideIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { CARGAR_CURSOS_PATH } from "@/components/content/plantilla-paths"
+import { CARGAR_CURSOS_PATH, REGISTROS_SECCIONES, registrosEmpleadoHref } from "@/components/content/plantilla-paths"
 import { FILTER_ALL } from "@/components/ui/filter-menu"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
@@ -24,15 +24,11 @@ const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
 /** Pantallas de cada empleado, en el orden del menú. Las que piden número se omiten sin él. */
 function employeeLinks(emp: Employee): { href: string; label: string; icon: LucideIcon }[] {
-  const numero = emp.numero ? encodeURIComponent(emp.numero) : null
   return [
     { href: `/plantilla/matriz/${encodeURIComponent(emp.id)}`, label: "Matriz de capacitación", icon: LayoutGrid },
-    ...(numero ? [
-      { href: `/plantilla/incidencias/${numero}`, label: "Incidencias", icon: CalendarClock },
-      { href: `/plantilla/actas/${numero}`, label: "Actas administrativas", icon: FilePenLine },
-      { href: `/plantilla/incumplimientos/${numero}`, label: "Incumplimiento", icon: ShieldAlert },
-      { href: `/plantilla/retardos/${numero}`, label: "Retardos", icon: AlarmClock },
-      { href: `/plantilla/omisiones/${numero}`, label: "Omisión de marcajes", icon: Fingerprint },
+    // Incidencias, actas, incumplimientos, retardos y omisiones: una página con apartados internos.
+    ...(emp.numero ? [
+      { href: registrosEmpleadoHref(emp.numero, REGISTROS_SECCIONES[0]), label: "Registros", icon: FolderOpen },
     ] : []),
   ]
 }

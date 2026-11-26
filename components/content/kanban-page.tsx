@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { AlertCircle, CalendarRange, ChevronLeft, ChevronRight, LayoutTemplate, List, Plus, RotateCw, SquareKanban, Users } from "lucide-react"
+import { AlertCircle, CalendarRange, ChevronLeft, ChevronRight, LayoutTemplate, List, Plus, RotateCw, SquareKanban } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -16,7 +16,6 @@ import { KanbanAccionesProvider, type KanbanAcciones, type ResumenTarjeta } from
 import { KanbanMiDia } from "@/components/content/kanban-mi-dia"
 import { KanbanNotaDialog, type KanbanNotaConfig } from "@/components/content/kanban-nota-dialog"
 import { KanbanPlantillasDialog } from "@/components/content/kanban-plantillas-dialog"
-import { KanbanTeam } from "@/components/content/kanban-team"
 import { useKanban, type CambiosTarjeta } from "@/lib/hooks/useKanban"
 import { useUser } from "@/lib/hooks/useUser"
 import { notify } from "@/lib/notify"
@@ -26,13 +25,12 @@ import {
   type DatosTarjeta, type KanbanEstado, type KanbanPlantilla, type KanbanTarjeta, type TarjetaDesde,
 } from "@/lib/kanban"
 
-type Vista = "tablero" | "lista" | "calendario" | "equipo"
+type Vista = "tablero" | "lista" | "calendario"
 
 const VISTAS: { value: Vista; label: string; icon: typeof List }[] = [
   { value: "tablero", label: "Tablero", icon: SquareKanban },
   { value: "lista", label: "Lista", icon: List },
   { value: "calendario", label: "Semana", icon: CalendarRange },
-  { value: "equipo", label: "Equipo", icon: Users },
 ]
 
 const esVista = (value: string | null): value is Vista => VISTAS.some(item => item.value === value)
@@ -395,10 +393,8 @@ export default function KanbanPage() {
           </div>
         ) : (
           <>
-            {vista !== "equipo" && <KanbanMiDia tarjetas={deMiDia} />}
-            {vista === "equipo" ? (
-              <KanbanTeam tarjetas={tarjetas} miembros={miembros} />
-            ) : vista === "calendario" ? (
+            <KanbanMiDia tarjetas={deMiDia} />
+            {vista === "calendario" ? (
               <KanbanCalendar tarjetas={tarjetas} inicio={semanaInicio} hoy={hoy} />
             ) : vista === "lista" ? (
               <div className="grid gap-2">

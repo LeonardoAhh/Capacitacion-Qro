@@ -1,13 +1,11 @@
 "use client"
 
-import { useState, type FormEvent, type ReactElement } from "react"
-import Link from "next/link"
+import { cloneElement, useId, useRef, useState, type ButtonHTMLAttributes, type FormEvent, type KeyboardEvent, type MouseEvent, type ReactElement, type ReactNode } from "react"
 import { usePathname } from "next/navigation"
-import { AlertCircle, Lightbulb, Loader2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ChevronLeft, ChevronRight, Lightbulb, Loader2, SendHorizontal } from "lucide-react"
+import { AutoHeight } from "@/components/ui/auto-height"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useRole } from "@/lib/hooks"
@@ -16,38 +14,40 @@ import { findActiveLeaf, getWorkspaceNavSections, isActiveRoute, type WorkspaceI
 import { notify } from "@/lib/notify"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { cn } from "@/lib/utils"
-import { IDEAS_PATH } from "@/lib/workspace-paths"
 
 const EXTRA_TRAINING_SECTIONS: readonly { label: string; href: string }[] = [
   { label: "DNC", href: "/dnc" },
   { label: "Plan Anual", href: "/plan-anual" },
 ]
 
+type TriggerProps = ButtonHTMLAttributes<HTMLButtonElement>
+
 /**
- * "Ideas de mejora" en la barra lateral: un renglón que abre una captura mínima junto a él
- * (qué mejorarías y dónde). Cualquiera puede enviar; la lista la revisa quien
- * tiene canReviewIdeas.
+ * "Ideas de mejora" en la barra lateral: el renglón abre, dentro de la propia barra, una
+ * captura en dos pasos (qué mejorarías y dónde) con navegación ‹ ›. Cualquiera puede enviar;
+ * la lista la revisa quien tiene canReviewIdeas desde el menú de su cuenta.
  */
-export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassName, iconClassName, onNavigate, trigger, onOpenChange }: {
+export function IdeaCapture({ workspace, triggerClassName, iconBoxClassName, iconClassName, trigger, onOpenChange, aside }: {
   workspace: WorkspaceId
-  /** Escritorio: a la derecha de la barra; menú móvil: hacia arriba. */
-  side: "right" | "top"
   /** Mismo estilo que los renglones de la navegación. */
   triggerClassName: string
   iconBoxClassName: string
   iconClassName: string
-  /** Al ir a la lista (cierra el menú móvil). */
-  onNavigate?: () => void
   /**
    * Disparador propio (renglón que alterna con Novedades). Si su onClick llama
    * preventDefault, la captura no se abre: el clic era para otra acción.
    */
-  trigger?: ReactElement
+  trigger?: ReactElement<TriggerProps>
   /** Avisa al abrir y cerrar (p. ej. para pausar la alternancia del renglón). */
   onOpenChange?: (open: boolean) => void
+  /** Junto al renglón, en su misma fila (campana del evaluador): el panel abierto usa todo el ancho. */
+  aside?: ReactNode
 }) {
   const pathname = usePathname()
-  const { canAccess, canReviewIdeas } = useRole()
+  const { canAccess } = useRole()
+  const panelId = useId()
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const [paso, setPaso] = useState<1 | 2>(1)
   const [open, setOpen] = useState(false)
   const [texto, setTexto] = useState("")
   const [seccion, setSeccion] = useState("")
@@ -77,13 +77,14 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       const propuesta = seccionActual(pathname ?? "")
       setSeccion(secciones.includes(propuesta) ? propuesta : SECCION_GENERAL)
       setError(null)
+      setPaso(1)
     }
     setOpen(next)
     onOpenChange?.(next)
   }
 
-  async function enviar(event: FormEvent) {
-    event.preventDefault()
+  async function enviar(event?: FormEvent) {
+    event?.preventDefault()
     if (saving) return
     if (!texto.trim() || !seccion) {
       setError(!texto.trim() ? "Escribe tu idea." : "Elige dónde aplica la idea.")
@@ -103,61 +104,99 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
     }
   }
 
+  function siguiente() {
+    if (!texto.trim()) {
+      setError("Escribe tu idea.")
+      return
+    }
+    setError(null)
+    setPaso(2)
+  }
+
+  /** Esc cierra la captura y devuelve el foco al renglón que la abrió. */
+  function onKeyDown(event: KeyboardEvent<HTMLFormElement>) {
+    if (event.key !== "Escape" || saving) return
+    event.stopPropagation()
+    abrir(false)
+    wrapperRef.current?.querySelector<HTMLButtonElement>(`[aria-controls="${panelId}"]`)?.focus()
+  }
+
+  const triggerProps = { "aria-expanded": open, "aria-controls": panelId }
+  const toggle = (event: MouseEvent<HTMLButtonElement>) => {
+    if (!event.defaultPrevented) abrir(!open)
+  }
+  const triggerEl = trigger
+    ? cloneElement(trigger, {
+      ...triggerProps,
+      onClick: (event: MouseEvent<HTMLButtonElement>) => {
+        trigger.props.onClick?.(event)
+        toggle(event)
+      },
+    })
+    : (
+      <button type="button" className={triggerClassName} onClick={toggle} {...triggerProps}>
+        <span className={cn("grid shrink-0 place-items-center rounded-md text-muted-foreground", iconBoxClassName)}>
+          <Lightbulb className={iconClassName} aria-hidden="true" />
+        </span>
+        <span className="truncate">Ideas de mejora</span>
+      </button>
+    )
+
   return (
-    <Popover open={open} onOpenChange={abrir}>
-      <PopoverTrigger asChild>
-        {trigger ?? (
-          <button type="button" className={triggerClassName}>
-            <span className={cn("grid shrink-0 place-items-center rounded-md text-muted-foreground", iconBoxClassName)}>
-              <Lightbulb className={iconClassName} aria-hidden="true" />
-            </span>
-            <span className="truncate">Ideas de mejora</span>
-          </button>
-        )}
-      </PopoverTrigger>
-      {/* collisionPadding: separado de los bordes de la pantalla. El margen va en el formulario: una
-          regla global (globals.css) quita el padding inferior a todo [role="dialog"], y el panel lo es. */}
-      <PopoverContent side={side} align="end" sideOffset={8} collisionPadding={16} className="w-80 max-w-[calc(100vw-2rem)] p-0">
-        <form className="grid gap-3.5 p-4" onSubmit={event => void enviar(event)} noValidate>
-          <div className="grid gap-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <Label htmlFor="idea-texto">¿Qué mejorarías?</Label>
-              <span className="text-body-sm tabular-nums text-muted-foreground">{texto.length}/{IDEA_MAX}</span>
-            </div>
-            <Textarea id="idea-texto" autoFocus rows={3} maxLength={IDEA_MAX} value={texto} disabled={saving}
-              className="min-h-20 resize-none field-sizing-content"
-              aria-invalid={(Boolean(error) && !texto.trim()) || undefined} aria-describedby={error ? "idea-error" : undefined}
-              onChange={event => { setTexto(event.target.value); setError(null) }} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="idea-seccion">¿Dónde?</Label>
-            <Select value={seccion} onValueChange={value => { setSeccion(value); setError(null) }} disabled={saving}>
-              <SelectTrigger id="idea-seccion" aria-invalid={(Boolean(error) && !seccion) || undefined}><SelectValue placeholder="Selecciona una sección" /></SelectTrigger>
-              <SelectContent matchTriggerWidth className="max-h-60">
-                {secciones.map(nombre => <SelectItem key={nombre} value={nombre}>{nombre}</SelectItem>)}
-              </SelectContent>
-            </Select>
-          </div>
-          {error && (
-            <Alert variant="destructive" id="idea-error" className="bg-destructive/10 p-3 [&>svg]:left-3 [&>svg]:top-3">
-              <AlertCircle className="size-4" aria-hidden="true" />
-              <AlertDescription className="text-body-sm">{error}</AlertDescription>
-            </Alert>
-          )}
-          <div className="flex items-center gap-2 pt-0.5">
-            {canReviewIdeas && (
-              <Button asChild variant="ghost" size="sm" className="touch-target -ml-2 text-muted-foreground hover:text-foreground">
-                <Link href={IDEAS_PATH} onClick={() => { abrir(false); onNavigate?.() }}>
-                  Ver todas
-                </Link>
+    <div ref={wrapperRef} className="min-w-0">
+      {/* Captura dentro de la barra, al ancho disponible; mismo cambio de paso que los asistentes de los modales. */}
+      {open && (
+        <form id={panelId} aria-label="Nueva idea de mejora" noValidate onKeyDown={onKeyDown}
+          onSubmit={event => void enviar(event)} className="mb-2 rounded-xl border bg-card p-3">
+          {/* Título del paso y navegación ‹ › en la misma fila; en el último paso, › se vuelve Enviar. */}
+          <div className="mb-2 flex items-center gap-1">
+            <Label htmlFor={paso === 1 ? "idea-texto" : "idea-seccion"} className="min-w-0 flex-1 truncate">
+              {paso === 1 ? "Tu idea" : "¿Dónde?"}
+            </Label>
+            <Button type="button" variant="ghost" size="xs" className="size-8 shrink-0 px-0 text-muted-foreground" aria-label="Paso anterior"
+              disabled={paso === 1 || saving} onClick={() => { setError(null); setPaso(1) }}>
+              <ChevronLeft aria-hidden="true" />
+            </Button>
+            {paso === 1 ? (
+              // key distinta: al avanzar se monta otro botón, así el mismo clic no envía el formulario.
+              <Button key="siguiente" type="button" variant="ghost" size="xs" className="size-8 shrink-0 px-0 text-muted-foreground" aria-label="Siguiente paso" onClick={siguiente}>
+                <ChevronRight aria-hidden="true" />
+              </Button>
+            ) : (
+              <Button key="enviar" type="button" variant="ghost" size="xs" className="size-8 shrink-0 px-0 text-primary" aria-label="Enviar idea"
+                disabled={saving} aria-busy={saving || undefined} onClick={() => void enviar()}>
+                {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <SendHorizontal aria-hidden="true" />}
               </Button>
             )}
-            <Button type="submit" size="sm" className="touch-target ml-auto" disabled={saving} aria-busy={saving || undefined}>
-              {saving && <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}Enviar
-            </Button>
           </div>
+          <AutoHeight>
+            {paso === 1 ? (
+              <div key="paso-1" className="step-enter">
+                <Textarea id="idea-texto" autoFocus rows={3} maxLength={IDEA_MAX} value={texto} disabled={saving}
+                  className="min-h-20 resize-none"
+                  aria-invalid={(Boolean(error) && !texto.trim()) || undefined} aria-describedby={error ? "idea-error" : undefined}
+                  onChange={event => { setTexto(event.target.value); setError(null) }} />
+              </div>
+            ) : (
+              <div key="paso-2" className="step-enter">
+                <Select value={seccion} onValueChange={value => { setSeccion(value); setError(null) }} disabled={saving}>
+                  <SelectTrigger id="idea-seccion" aria-invalid={(Boolean(error) && !seccion) || undefined}><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                  <SelectContent matchTriggerWidth className="max-h-60">
+                    {secciones.map(nombre => <SelectItem key={nombre} value={nombre}>{nombre}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </AutoHeight>
+          {error && <p id="idea-error" role="alert" className="mt-2 text-body-sm text-destructive">{error}</p>}
         </form>
-      </PopoverContent>
-    </Popover>
+      )}
+      {aside ? (
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1">{triggerEl}</div>
+          {aside}
+        </div>
+      ) : triggerEl}
+    </div>
   )
 }

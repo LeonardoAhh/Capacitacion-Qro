@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Megaphone as MegaphoneIcon } from "lucide"
-import { HardHat, HeartPulse, LayoutDashboard, Megaphone, Monitor, PanelLeft, Search, Tags, UserPlus, UsersRound, X, type LucideIcon } from "lucide-react"
+import { ChartColumn, ClipboardPenLine, HardHat, HeartPulse, LayoutDashboard, Megaphone, Monitor, PanelLeft, Search, Tags, UserPlus, UsersRound, X, type LucideIcon } from "lucide-react"
 import { useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
@@ -23,11 +23,13 @@ const AVISO_DESPUES_MS = 2_000
 const ICONO_SECCION: Record<SeccionNovedad, LucideIcon> = {
   Inicio: LayoutDashboard,
   Categorías: Tags,
+  Exámenes: ClipboardPenLine,
   "Nuevos Empleados": UserPlus,
   Plantilla: UsersRound,
   Búsqueda: Search,
   "Safe Walk": HardHat,
   "Occupational Health": HeartPulse,
+  Indicators: ChartColumn,
   Menú: PanelLeft,
   General: Monitor,
 }

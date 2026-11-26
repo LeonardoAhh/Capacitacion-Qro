@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from "react"
 import { Pencil, Plus, Printer } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { notify } from "@/lib/notify"
@@ -126,8 +126,9 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
               </div>
               <div className="grid w-full min-w-0 gap-2 sm:w-48">
                 <Label htmlFor="dnc-fecha">Fecha de elaboración</Label>
-                <Input id="dnc-fecha" type="date" value={fecha} onChange={event => setFecha(event.target.value)}
-                  onBlur={event => void saveField("fecha_elaboracion", event.target.value)}
+                {/* Al salir se guarda la fecha ya convertida (AAAA-MM-DD), no el texto del campo. */}
+                <DateTextInput id="dnc-fecha" value={fecha} onValueChange={setFecha}
+                  onBlur={() => void saveField("fecha_elaboracion", fecha)}
                   aria-busy={savingField === "fecha_elaboracion" || undefined} />
               </div>
               {headerComplete && (

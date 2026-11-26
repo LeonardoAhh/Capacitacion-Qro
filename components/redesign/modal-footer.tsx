@@ -77,7 +77,7 @@ export function RedesignModalFooter({
             <Tooltip delayDuration={100}>
               <TooltipTrigger asChild>
                 {/* Un botón deshabilitado no recibe eventos; el contenedor enfocable expone el motivo. */}
-                <span tabIndex={saving || confirmDisabled ? 0 : undefined} aria-label={saving || confirmDisabled ? confirmTooltip : undefined} className="inline-flex cursor-not-allowed rounded-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                <span tabIndex={saving || confirmDisabled ? 0 : undefined} aria-label={saving || confirmDisabled ? confirmTooltip : undefined} className="inline-flex cursor-not-allowed rounded-md">
                   {confirmButton}
                 </span>
               </TooltipTrigger>

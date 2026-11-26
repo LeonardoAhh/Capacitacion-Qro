@@ -87,7 +87,7 @@ const TabsTrigger = React.forwardRef<
     ref={ref}
     className={cn(
       // Estilo "line": texto sobre la línea base; el subrayado activo lo dibuja TabsList.
-      "inline-flex min-h-(--control-height) items-center justify-center whitespace-nowrap rounded-t-md px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
+      "inline-flex min-h-(--control-height) items-center justify-center whitespace-nowrap rounded-t-md px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-inset disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
       className
     )}
     {...props}
@@ -103,7 +103,7 @@ const TabsContent = React.forwardRef<
     ref={ref}
     className={cn(
       // La pestaña que entra aparece con un fundido corto (globals.css, .tabs-content-enter).
-      "tabs-content-enter mt-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+      "tabs-content-enter mt-2",
       className
     )}
     {...props}

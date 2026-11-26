@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import type { RegistroPorDia, RegistroPorDiaConfig, ValoresDia } from "@/lib/plantilla/registros-por-dia"
+import { textosRegistro, type RegistroPorDia, type RegistroPorDiaConfig, type ValoresDia } from "@/lib/plantilla/registros-por-dia"
 
 /** Lectura y captura individual de registros por día. */
 export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
@@ -56,7 +56,7 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
       if (dbError) throw dbError
       return { success: true as const }
     } catch (caught) {
-      return { success: false as const, error: describeSupabaseError(caught, `Error al guardar el ${config.singular}`) }
+      return { success: false as const, error: describeSupabaseError(caught, `Error al guardar ${textosRegistro(config).elSingular}`) }
     } finally {
       setSaving(false)
     }

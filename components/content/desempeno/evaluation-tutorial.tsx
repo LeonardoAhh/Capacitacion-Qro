@@ -167,7 +167,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
         </div>
         <Progress value={((step + 1) / TUTORIAL_STEPS.length) * 100} aria-label="Progreso del tutorial" />
         <div className="space-y-1">
-          <h3 ref={headingRef} tabIndex={-1} className="rounded-md text-heading-md text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">{TUTORIAL_STEPS[step]}</h3>
+          <h3 ref={headingRef} tabIndex={-1} className="rounded-md text-heading-md text-foreground">{TUTORIAL_STEPS[step]}</h3>
         </div>
       </div>
 
@@ -182,7 +182,7 @@ export function EvaluationTutorial({ onFinish }: { onFinish: () => void }) {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
           <Input id="tutorial-search" value={query} onChange={event => { setQuery(event.target.value); setSelected(false); resetSimulation(); }} placeholder="Escribe 0000" className="pl-9" />
         </div>
-        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-(--control-height) w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left text-body-md transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+        {matchesDemo && <button type="button" data-tutorial-result onClick={() => { setSelected(true); resetSimulation(); }} aria-pressed={selected} className="flex min-h-(--control-height) w-full items-center justify-between gap-3 rounded-md border border-border bg-card px-3 py-2 text-left text-body-md transition-colors hover:bg-muted">
           <span className="min-w-0"><span className="block font-medium">{DEMO.name}</span><span className="block text-body-sm text-muted-foreground">#{DEMO.number} · {DEMO.position}</span></span>
           {selected && <CheckCircle2 className="size-4 shrink-0" aria-hidden="true" />}
         </button>}

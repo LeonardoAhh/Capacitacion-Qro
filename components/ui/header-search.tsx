@@ -5,27 +5,26 @@ import { createPortal } from "react-dom"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Popover, PopoverAnchor, PopoverContent } from "@/components/ui/popover"
 import { SearchInput } from "@/components/ui/search-input"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 
 /**
- * Aviso de "aquí puedes buscar" para quien aún no ha usado la lupa: aparece solo de vez en
- * cuando (un intervalo de días y un máximo de veces) y deja de salir en cuanto la abre.
+ * Aviso de "la búsqueda está aquí": un globo anclado a la lupa, con un pulso en su contorno,
+ * que no se va solo. Sale en cada página con búsqueda hasta que la persona usa la lupa o
+ * responde "Entendido"; cerrarlo de otra forma solo lo oculta en esa visita.
  * Se guarda por navegador; si el almacenamiento no está disponible, no se muestra.
  */
 const HINT_KEY = "header-search-hint"
 const HINT_DELAY_MS = 1200
-const HINT_VISIBLE_MS = 6000
-const HINT_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000
-const HINT_MAX = 5
 
-type HintState = { usada: boolean; veces: number; ultima: number }
+type HintState = { usada: boolean; entendido: boolean }
 
 function readHint(): HintState | null {
   try {
     const raw = window.localStorage.getItem(HINT_KEY)
-    return raw ? { usada: false, veces: 0, ultima: 0, ...JSON.parse(raw) } : { usada: false, veces: 0, ultima: 0 }
+    return { usada: false, entendido: false, ...(raw ? JSON.parse(raw) : {}) }
   } catch {
     return null
   }
@@ -56,17 +55,19 @@ export function HeaderSearch({ label, value, onValueChange, ...props }: Componen
   // Solo en tablet y escritorio la barra se queda abierta en el header.
   const expanded = desktop && (open || value !== "")
 
-  // Aviso ocasional: tras un momento en la página, si toca según el intervalo y el máximo.
+  // Aviso tras un momento en la página, mientras no se haya usado la lupa ni respondido "Entendido".
   useEffect(() => {
     const state = readHint()
-    if (!state || state.usada || state.veces >= HINT_MAX || Date.now() - state.ultima < HINT_INTERVAL_MS) return
-    const show = window.setTimeout(() => {
-      writeHint({ ...state, veces: state.veces + 1, ultima: Date.now() })
-      setHint(true)
-    }, HINT_DELAY_MS)
-    const hide = window.setTimeout(() => setHint(false), HINT_DELAY_MS + HINT_VISIBLE_MS)
-    return () => { window.clearTimeout(show); window.clearTimeout(hide) }
+    if (!state || state.usada || state.entendido) return
+    const show = window.setTimeout(() => setHint(true), HINT_DELAY_MS)
+    return () => window.clearTimeout(show)
   }, [])
+
+  function entendido() {
+    setHint(false)
+    const state = readHint()
+    if (state) writeHint({ ...state, entendido: true })
+  }
 
   function openSearch() {
     setHint(false)
@@ -85,18 +86,33 @@ export function HeaderSearch({ label, value, onValueChange, ...props }: Componen
 
   const active = value !== ""
   const toggle = (
-    <TooltipProvider delayDuration={300}>
-      <Tooltip open={hint || hover} onOpenChange={next => { setHover(next); if (!next) setHint(false) }}>
-        <TooltipTrigger asChild>
-          <Button ref={toggleRef} type="button" variant="ghost" size="icon" className="relative shrink-0 text-muted-foreground"
-            aria-label={active ? `${label}. Filtrando por: ${value}` : label} aria-expanded={open} onClick={openSearch}>
-            <Search aria-hidden="true" />
-            {active && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-sm bg-primary ring-2 ring-card" />}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" align="end">{hint ? "Ahora la búsqueda está aquí" : "Buscar"}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Popover open={hint} onOpenChange={next => { if (!next) setHint(false) }}>
+      <TooltipProvider delayDuration={300}>
+        <Tooltip open={hover && !hint} onOpenChange={setHover}>
+          <TooltipTrigger asChild>
+            <PopoverAnchor asChild>
+              <Button ref={toggleRef} type="button" variant="ghost" size="icon" className="relative shrink-0 text-muted-foreground"
+                aria-label={active ? `${label}. Filtrando por: ${value}` : label} aria-expanded={open} onClick={openSearch}>
+                <Search aria-hidden="true" />
+                {active && <span aria-hidden="true" className="absolute right-2 top-2 size-2 rounded-sm bg-primary ring-2 ring-card" />}
+                {/* Pulso del contorno mientras el aviso está abierto; sin animación con movimiento reducido. */}
+                {hint && <span aria-hidden="true" className="pointer-events-none absolute inset-0 animate-ping rounded-md border-2 border-primary motion-reduce:animate-none" />}
+              </Button>
+            </PopoverAnchor>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="end">Buscar</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      {/* No roba el foco: quien está trabajando sigue donde estaba. */}
+      <PopoverContent side="bottom" align="end" sideOffset={8} aria-label="La búsqueda está aquí" className="w-auto"
+        onOpenAutoFocus={event => event.preventDefault()}>
+        <p className="text-label-sm text-foreground">La búsqueda está aquí</p>
+        <div className="mt-3 flex justify-end gap-2">
+          <Button type="button" variant="ghost" size="sm" onClick={entendido}>Entendido</Button>
+          <Button type="button" size="sm" onClick={openSearch}>Probar</Button>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 
   if (!desktop) {
@@ -108,11 +124,11 @@ export function HeaderSearch({ label, value, onValueChange, ...props }: Componen
             <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-background/40 backdrop-blur-sm data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none" />
             {/* data-dialog-layout="standard": anula el relleno inferior global de los diálogos (globals.css). */}
             <DialogPrimitive.Content data-dialog-layout="standard" aria-describedby={undefined}
-              className="ui-floating-surface fixed inset-x-3 top-[max(0.75rem,env(safe-area-inset-top,0px))] z-50 overflow-hidden rounded-xl focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none">
+              className="ui-floating-surface fixed inset-x-3 top-[max(0.75rem,env(safe-area-inset-top,0px))] z-50 overflow-hidden rounded-xl data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-top-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 motion-reduce:animate-none">
               <DialogPrimitive.Title className="sr-only">{label}</DialogPrimitive.Title>
               <div className="flex items-center gap-2 p-2">
                 <SearchInput {...props} label={label} value={value} onValueChange={onValueChange} autoFocus
-                  className="flex-1 [&_input]:border-0 [&_input]:shadow-none [&_input]:focus-visible:ring-0"
+                  className="flex-1 [&_input]:border-0 [&_input]:shadow-none"
                   onKeyDown={event => { if (event.key === "Enter") setOpen(false) }} />
                 <DialogPrimitive.Close asChild>
                   <Button type="button" variant="ghost" size="sm" className="shrink-0 text-muted-foreground hover:text-foreground">

@@ -82,7 +82,7 @@ function PercentageControl({ id, label, value, noAplica, helpId, showError, onCh
 
 function StepHeading({ context, title, description }: { context: EvaluationFormContext; title: string; description: string }) {
   return <div className="space-y-1 xl:flex xl:items-baseline xl:justify-between xl:gap-6 xl:space-y-0">
-    <h2 id={context.headingId} tabIndex={-1} className="rounded-md text-heading-md text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring xl:shrink-0">{title}</h2>
+    <h2 id={context.headingId} tabIndex={-1} className="rounded-md text-heading-md text-foreground xl:shrink-0">{title}</h2>
     <p className={cn(evaluationStyles.description, "xl:min-w-0 xl:text-right")}>{description}</p>
   </div>;
 }

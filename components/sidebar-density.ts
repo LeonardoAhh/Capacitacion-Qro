@@ -10,7 +10,7 @@ export const SIDEBAR_ICON = "size-4 md:size-3.5"
 export const SIDEBAR_GROUP_TRIGGER = "min-h-11 gap-3 px-3 text-eyebrow uppercase md:min-h-8 md:gap-2 md:px-2"
 
 /** Estados de fila compartidos por la navegación y los accesos al pie de la barra. */
-export const SIDEBAR_ROW_BASE = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-sidebar-ring"
+export const SIDEBAR_ROW_BASE = "flex w-full items-center rounded-md border border-transparent transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-inset"
 export const SIDEBAR_ROW_IDLE = "text-muted-foreground hover:bg-muted/60 hover:text-foreground"
 export const SIDEBAR_ROW_ACTIVE = "border-sidebar-border bg-sidebar-active font-medium text-foreground shadow-(--sidebar-active-shadow)"
 /** Opciones de los menús desplegables de la barra lateral. */

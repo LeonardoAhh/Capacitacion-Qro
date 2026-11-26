@@ -25,7 +25,7 @@ export function MaintenancePreview({ seconds }: { seconds: number | null }) {
         </Button>
       </DialogPrimitive.Trigger>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Content className="fixed inset-0 z-[300] overflow-y-auto bg-background focus:outline-none" aria-describedby={undefined}>
+        <DialogPrimitive.Content className="fixed inset-0 z-[300] overflow-y-auto bg-background" aria-describedby={undefined}>
           <DialogPrimitive.Title className="sr-only">Vista previa de la pantalla de mantenimiento</DialogPrimitive.Title>
           <MaintenanceScreen endsAt={endsAt} />
           <DialogPrimitive.Close asChild>

@@ -17,6 +17,8 @@ export interface RegistroPorDiaConfig {
   rpcRegistrar: string
   singular: string
   plural: string
+  /** Sustantivo femenino ("omisión"): concuerdan "Nueva", "capturada", "la", "las". */
+  femenino?: boolean
   /** Registra minutos por día (RPC con p_minutos / p_minutos_anterior). */
   conMinutos?: boolean
   /**
@@ -53,6 +55,7 @@ export const OMISIONES_MARCAJE_CONFIG: RegistroPorDiaConfig = {
   rpcRegistrar: "registrar_omision_marcaje",
   singular: "omisión",
   plural: "omisiones",
+  femenino: true,
   tipos: TIPOS_OMISION_MARCAJE,
 }
 
@@ -84,6 +87,21 @@ export const MAX_CANTIDAD = 2_147_483_647
 
 export function capitalize(value: string): string {
   return value.charAt(0).toLocaleUpperCase("es-MX") + value.slice(1)
+}
+
+/** Frases que concuerdan en género con el tipo de registro. */
+export function textosRegistro(config: RegistroPorDiaConfig) {
+  const f = config.femenino === true
+  return {
+    /** "Nuevo retardo" / "Nueva omisión" */
+    nuevo: `${f ? "Nueva" : "Nuevo"} ${config.singular}`,
+    /** "Retardo capturado." / "Omisión capturada." */
+    capturado: `${capitalize(config.singular)} ${f ? "capturada" : "capturado"}.`,
+    /** "el retardo" / "la omisión" */
+    elSingular: `${f ? "la" : "el"} ${config.singular}`,
+    /** "los retardos" / "las omisiones" */
+    losPlural: `${f ? "las" : "los"} ${config.plural}`,
+  }
 }
 
 export function formatCount(count: number, config: RegistroPorDiaConfig): string {

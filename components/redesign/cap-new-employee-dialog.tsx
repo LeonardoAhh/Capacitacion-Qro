@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useId, useState } from "react"
-import { AlertCircle, UserPlus } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -100,29 +101,31 @@ export function CapNewEmployeeDialog({
             </Alert>
           )}
 
-          <div className="grid grid-cols-1 gap-x-4 gap-y-4 sm:grid-cols-2">
-            <div className="min-w-0 space-y-1.5">
-              <Label htmlFor={`${fieldId}-number`}>N.N</Label>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor={`${fieldId}-number`}>Número de empleado</Label>
               <Input
                 id={`${fieldId}-number`}
+                inputMode="numeric"
                 value={form.numero}
                 onChange={event => updateForm("numero", event.target.value)}
               />
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-date`}>Fecha de ingreso</Label>
-              <Input
+              <DateTextInput
                 id={`${fieldId}-date`}
-                type="date"
                 className="min-w-0"
                 value={form.fecha_ingreso}
-                onChange={event => updateForm("fecha_ingreso", event.target.value)}
+                onValueChange={fecha => updateForm("fecha_ingreso", fecha)}
               />
             </div>
 
-            <div className="min-w-0 space-y-1.5 sm:col-span-2">
-              <Label htmlFor={`${fieldId}-name`}>Nombre completo <span className="text-destructive">*</span></Label>
+            <div className="min-w-0 space-y-2 sm:col-span-2">
+              <Label htmlFor={`${fieldId}-name`}>
+                Nombre completo <span aria-hidden="true" className="text-destructive">*</span><span className="sr-only"> (obligatorio)</span>
+              </Label>
               <Input
                 id={`${fieldId}-name`}
                 value={form.nombre}
@@ -132,10 +135,10 @@ export function CapNewEmployeeDialog({
               />
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-department`}>Departamento</Label>
               <Select value={form.departamento} onValueChange={handleDepartmentChange}>
-                <SelectTrigger id={`${fieldId}-department`}><SelectValue placeholder="Selecciona departamento" /></SelectTrigger>
+                <SelectTrigger id={`${fieldId}-department`}><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent matchTriggerWidth className="max-h-60">
                   {Object.keys(CATALOGO_ORGANIZACIONAL).map(department => (
                     <SelectItem key={department} value={department}>{department}</SelectItem>
@@ -144,60 +147,59 @@ export function CapNewEmployeeDialog({
               </Select>
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-area`}>Área</Label>
               <Select value={form.area} onValueChange={value => updateForm("area", value)} disabled={areas.length === 0}>
-                <SelectTrigger id={`${fieldId}-area`}><SelectValue placeholder="Selecciona área" /></SelectTrigger>
+                <SelectTrigger id={`${fieldId}-area`}><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent matchTriggerWidth className="max-h-60">
                   {areas.map(area => <SelectItem key={area} value={area}>{area}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-position`}>Puesto</Label>
               <Select value={form.puesto} onValueChange={value => updateForm("puesto", value)} disabled={positions.length === 0}>
-                <SelectTrigger id={`${fieldId}-position`}><SelectValue placeholder="Selecciona puesto" /></SelectTrigger>
+                <SelectTrigger id={`${fieldId}-position`}><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent matchTriggerWidth className="max-h-60">
                   {positions.map(position => <SelectItem key={position} value={position}>{position}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="min-w-0 space-y-1.5">
+            <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-shift`}>Turno</Label>
               <Select value={form.turno} onValueChange={value => updateForm("turno", value)}>
-                <SelectTrigger id={`${fieldId}-shift`}><SelectValue placeholder="Selecciona turno" /></SelectTrigger>
+                <SelectTrigger id={`${fieldId}-shift`}><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent matchTriggerWidth>
                   {TURNOS.map(shift => <SelectItem key={shift} value={shift}>{shift}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
 
-            <div className="grid min-w-0 gap-x-4 gap-y-4 sm:col-span-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-              <div className="min-w-0 space-y-1.5">
-                <Label htmlFor={`${fieldId}-manager`}>Jefe directo</Label>
-                <Select value={form.jefe_directo} onValueChange={value => updateForm("jefe_directo", value)}>
-                  <SelectTrigger id={`${fieldId}-manager`}><SelectValue placeholder="Selecciona jefe" /></SelectTrigger>
-                  <SelectContent matchTriggerWidth className="max-h-60">
-                    {JEFES_DE_AREA.map(manager => <SelectItem key={manager} value={manager}>{manager}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor={`${fieldId}-manager`}>Jefe directo</Label>
+              <Select value={form.jefe_directo} onValueChange={value => updateForm("jefe_directo", value)}>
+                <SelectTrigger id={`${fieldId}-manager`}><SelectValue placeholder="Selecciona" /></SelectTrigger>
+                <SelectContent matchTriggerWidth className="max-h-60">
+                  {JEFES_DE_AREA.map(manager => <SelectItem key={manager} value={manager}>{manager}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
 
-              <div className="min-w-0 space-y-1.5 sm:w-24">
-                <Label htmlFor={`${fieldId}-evaluation`}>Eval. desemp.</Label>
-                <Input
-                  id={`${fieldId}-evaluation`}
-                  type="number"
-                  min={0}
-                  max={99}
-                  className="text-center"
-                  placeholder="00"
-                  value={form.evaluacion_desempeno}
-                  onChange={event => updateForm("evaluacion_desempeno", event.target.value.slice(0, 2))}
-                />
-              </div>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor={`${fieldId}-evaluation`}>Evaluación de desempeño</Label>
+              <Input
+                id={`${fieldId}-evaluation`}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={99}
+                className="tabular-nums"
+                placeholder="0 a 99"
+                value={form.evaluacion_desempeno}
+                onChange={event => updateForm("evaluacion_desempeno", event.target.value.slice(0, 2))}
+              />
             </div>
           </div>
         </div>
@@ -208,8 +210,6 @@ export function CapNewEmployeeDialog({
         onConfirm={handleConfirm}
         saving={saving}
         confirmDisabled={isReadOnly}
-        confirmLabel="Guardar"
-        confirmIcon={<UserPlus aria-hidden="true" />}
       />
     </ResponsiveShell>
   )

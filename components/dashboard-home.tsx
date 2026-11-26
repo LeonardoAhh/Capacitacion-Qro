@@ -54,7 +54,7 @@ function DashboardContent() {
                                 return (
                                     <li key={id}>
                                         <button type="button" aria-current={current || undefined} onClick={() => setActiva(id)}
-                                            className={cn("flex min-h-(--control-height) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                                            className={cn("flex min-h-(--control-height) w-full items-center gap-2 rounded-md border border-transparent px-2 text-left text-body-md transition-[background-color,border-color,box-shadow,color] duration-150 motion-reduce:transition-none focus-inset",
                                                 current ? "border-sidebar-border bg-sidebar-active text-label-sm text-foreground shadow-(--sidebar-active-shadow)" : "text-muted-foreground hover:bg-card hover:text-foreground")}>
                                             <Icon className={cn("size-4 shrink-0", current && "text-primary")} aria-hidden="true" />
                                             <span className="min-w-0 truncate">{label}</span>

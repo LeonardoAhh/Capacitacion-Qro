@@ -9,25 +9,24 @@
 
 export type FontSize = "small" | "medium" | "large"
 /** auto: compacta solo en escritorio con poca altura (globals.css, variante `dense`). */
-export type Density = "auto" | "comfortable" | "compact"
+export type Density = "auto" | "compact"
 
 export function isDensity(value: string | null): value is Density {
-  return value === "auto" || value === "comfortable" || value === "compact"
+  return value === "auto" || value === "compact"
 }
 
 /** Clase en <html> de cada densidad; "auto" no lleva clase y lo decide la pantalla. */
 export const DENSITY_CLASSES: Record<Density, string | null> = {
   auto: null,
-  comfortable: "density-comfortable",
   compact: "density-compact",
 }
 export type ResolvedThemeMode = "light" | "dark"
 export type ThemeMode = ResolvedThemeMode | "system"
 
 export const THEME_MODE_LABELS: Record<ThemeMode, string> = {
+  system: "Sistema",
   light: "Claro",
   dark: "Oscuro",
-  system: "Sistema",
 }
 
 export function isThemeMode(value: string | null): value is ThemeMode {

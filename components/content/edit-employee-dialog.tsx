@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
@@ -55,10 +56,6 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
   const set = (key: keyof NuevoIngresoUpdate, value: unknown) =>
     setForm(prev => ({ ...prev, [key]: value === "" ? null : value }))
 
-  const meta = [
-    record.numero && `#${record.numero}`,
-    record.fecha_ingreso && `Ingreso ${formatDate(record.fecha_ingreso)}`,
-  ].filter(Boolean).join(" · ")
 
   return (
     <ResponsiveShell
@@ -68,24 +65,32 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
       title={record.nombre}
       description={`${record.puesto} · ${record.departamento}`}
     >
-      <ModalHeader
-        title={record.nombre}
-        subtitle={`${record.puesto} · ${record.departamento}`}
-        onClose={handleClose}
-      />
+      <ModalHeader title={record.nombre} onClose={handleClose} />
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-card px-4 py-4 sm:px-6">
-        <div className="space-y-4">
-          {meta && (
-            <p className="text-body-sm tabular-nums text-muted-foreground">{meta}</p>
-          )}
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-card">
+        <div className="space-y-4 p-(--card-padding)">
+          {/* Datos que no se editan aquí: dentro de la rejilla como campos de solo lectura. */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="edit-numero">Número</Label>
+              <Input id="edit-numero" readOnly value={record.numero ?? ""} className="tabular-nums" />
+            </div>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="edit-ingreso">Fecha de ingreso</Label>
+              <Input id="edit-ingreso" readOnly value={record.fecha_ingreso ? formatDate(record.fecha_ingreso) : ""} className="tabular-nums" />
+            </div>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor="edit-vence-rg">Vence RG-REC-048</Label>
+              <Input id="edit-vence-rg" readOnly value={record.fecha_vencimiento_rg ? formatDate(record.fecha_vencimiento_rg) : ""} className="tabular-nums" />
+            </div>
+          </div>
 
           {/* Departamento y Área */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 space-y-2">
               <Label htmlFor="edit-departamento">Departamento</Label>
               <Select value={departamento} onValueChange={setDepartamento} disabled={saving}>
-                <SelectTrigger id="edit-departamento"><SelectValue placeholder="Selecciona…" /></SelectTrigger>
+                <SelectTrigger id="edit-departamento"><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent className="max-h-56">
                   {Object.keys(CATALOGO_ORGANIZACIONAL).map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
                   {departamento && !catalogoDepartamento && <SelectItem value={departamento}>{departamento}</SelectItem>}
@@ -95,7 +100,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
             <div className="min-w-0 space-y-2">
               <Label htmlFor="edit-area">Área</Label>
               <Select value={form.area ?? ""} onValueChange={v => set("area", v)} disabled={saving || !departamento}>
-                <SelectTrigger id="edit-area"><SelectValue placeholder="Selecciona…" /></SelectTrigger>
+                <SelectTrigger id="edit-area"><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent className="max-h-56">
                   {areasDisponibles.map(a => <SelectItem key={a} value={a}>{a}</SelectItem>)}
                   {form.area && !areasDisponibles.includes(form.area) && <SelectItem value={form.area}>{form.area}</SelectItem>}
@@ -109,7 +114,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
             <div className="min-w-0 space-y-2">
               <Label htmlFor="edit-puesto">Puesto</Label>
               <Select value={form.puesto ?? ""} onValueChange={v => set("puesto", v)} disabled={saving}>
-                <SelectTrigger id="edit-puesto"><SelectValue placeholder="Selecciona…" /></SelectTrigger>
+                <SelectTrigger id="edit-puesto"><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent className="max-h-56">
                   {puestosDisponibles.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                   {form.puesto && !puestosDisponibles.includes(form.puesto) && <SelectItem value={form.puesto}>{form.puesto}</SelectItem>}
@@ -119,7 +124,7 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
             <div className="min-w-0 space-y-2">
               <Label htmlFor="edit-turno">Turno</Label>
               <Select value={form.turno ?? ""} onValueChange={v => set("turno", v)} disabled={saving}>
-                <SelectTrigger id="edit-turno"><SelectValue placeholder="Selecciona…" /></SelectTrigger>
+                <SelectTrigger id="edit-turno"><SelectValue placeholder="Selecciona" /></SelectTrigger>
                 <SelectContent>
                   {TURNOS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                 </SelectContent>
@@ -148,11 +153,6 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave }: Ed
                   <SelectItem value="Entregado">Entregado</SelectItem>
                 </SelectContent>
               </Select>
-              {record.fecha_vencimiento_rg && (
-                <p className="text-body-sm tabular-nums text-muted-foreground">
-                  Vence {formatDate(record.fecha_vencimiento_rg)}
-                </p>
-              )}
             </div>
           </div>
         </div>

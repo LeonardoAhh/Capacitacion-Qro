@@ -28,7 +28,7 @@ export function KanbanPushControl({ state, onActivate }: {
       <Button
         type="button"
         variant="ghost"
-        className="w-full justify-start rounded-none px-3 text-body-sm text-foreground focus-visible:-outline-offset-2"
+        className="w-full justify-start rounded-none px-3 text-body-sm text-foreground focus-inset"
         disabled={activating}
         aria-busy={activating || undefined}
         onClick={onActivate}

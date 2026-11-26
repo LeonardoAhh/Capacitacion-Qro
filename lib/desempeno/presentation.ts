@@ -1,6 +1,8 @@
 /** Shared vocabulary and routes for the evaluation workflow. */
 export const DESEMPENO = {
   title: "Evaluación de Desempeño",
+  /** Para espacios angostos (marca de la barra lateral del evaluador). */
+  shortTitle: "Desempeño",
   pages: {
     evaluation: { title: "Evaluar", description: "Busca un empleado, revisa el periodo asignado y completa su evaluación." },
     pending: { title: "Por evaluar", description: "Consulta las evaluaciones pendientes por departamento y tipo de periodo." },

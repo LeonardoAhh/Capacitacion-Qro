@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { fetchAllRows } from "@/lib/supabase/fetchAll"
-import type { RegistroPorDiaConfig } from "@/lib/plantilla/registros-por-dia"
+import { textosRegistro, type RegistroPorDiaConfig } from "@/lib/plantilla/registros-por-dia"
 
 export const SIN_DEPARTAMENTO = "Sin departamento"
 /** Departamentos en la gráfica y personas en la tabla. */
@@ -149,7 +149,7 @@ export function useRegistrosSemana(config: RegistroPorDiaConfig, lunes: string) 
       setData(agrupar(fechas, rows, empleados))
     } catch (err) {
       if (request !== requestIdRef.current) return
-      setError(describeSupabaseError(err, `No se pudieron cargar los ${config.plural}`))
+      setError(describeSupabaseError(err, `No se pudieron cargar ${textosRegistro(config).losPlural}`))
     } finally {
       if (request === requestIdRef.current) setLoading(false)
     }

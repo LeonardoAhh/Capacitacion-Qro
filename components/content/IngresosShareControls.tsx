@@ -31,7 +31,7 @@ export function SegmentControl<T extends string>({ label, value, onValueChange, 
             <button key={option.value} type="button" aria-pressed={active} onClick={() => onValueChange(option.value)}
               className={cn(
                 "min-h-10 min-w-0 truncate rounded-md border px-3 text-label-sm transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+                "",
                 active ? "border-border bg-card text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
               )}>
               {option.label}

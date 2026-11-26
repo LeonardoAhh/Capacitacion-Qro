@@ -170,7 +170,7 @@ export function SidebarNav({
               <AccordionTrigger
                 className={cn(
                   SIDEBAR_GROUP_TRIGGER,
-                  "rounded-md py-0 text-muted-foreground hover:text-foreground hover:no-underline focus-visible:outline-sidebar-ring",
+                  "rounded-md py-0 text-muted-foreground hover:text-foreground hover:no-underline",
                 )}
               >
                 {group.label}

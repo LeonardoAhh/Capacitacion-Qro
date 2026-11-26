@@ -1,4 +1,4 @@
-import { aISO, formatFechaCorta, hoyISO, inicioSemana, sumarDias } from "@/lib/fechas"
+import { formatFechaCorta, hoyISO, inicioSemana, sumarDias } from "@/lib/fechas"
 
 // Fechas compartidas con los calendarios; se reexportan para quien ya las importa de aquí.
 export { formatFechaCorta, hoyISO, inicioSemana, sumarDias }
@@ -109,8 +109,6 @@ export const MAX_NOTA = 200
 export const MAX_COLABORADORES = 10
 /** Tarjetas en progreso por persona antes de sugerir cerrar algo. */
 export const LIMITE_EN_PROGRESO = 3
-/** Ventana de los indicadores del equipo. */
-export const DIAS_INDICADORES = 30
 
 export function etiquetaEstado(estado: KanbanEstado): string {
   return KANBAN_COLUMNAS.find(columna => columna.estado === estado)?.label ?? estado
@@ -243,60 +241,6 @@ export function participa(tarjeta: Pick<KanbanTarjeta, "responsable_id" | "colab
 export function enProgresoDe(tarjetas: KanbanTarjeta[], userId: string, excluirId?: string): number {
   return tarjetas.filter(tarjeta =>
     tarjeta.id !== excluirId && tarjeta.estado === "en_progreso" && tarjeta.responsable_id === userId).length
-}
-
-export interface CargaMiembro {
-  miembro: KanbanMiembro
-  activas: number
-  enProgreso: number
-  vencidas: number
-  bloqueadas: number
-}
-
-/** Carga por persona: tarjetas no concluidas donde participa. Ordenado de mayor a menor carga. */
-export function cargaDelEquipo(tarjetas: KanbanTarjeta[], miembros: KanbanMiembro[], hoy = hoyISO()): CargaMiembro[] {
-  const abiertas = tarjetas.filter(tarjeta => tarjeta.estado !== "concluido")
-  return miembros.map(miembro => {
-    const suyas = abiertas.filter(tarjeta => participa(tarjeta, miembro.user_id))
-    return {
-      miembro,
-      activas: suyas.length,
-      enProgreso: enProgresoDe(abiertas, miembro.user_id),
-      vencidas: suyas.filter(tarjeta => estaVencida(tarjeta, hoy)).length,
-      bloqueadas: suyas.filter(tarjeta => tarjeta.bloqueo_motivo).length,
-    }
-  }).sort((left, right) => right.activas - left.activas || left.miembro.nombre.localeCompare(right.miembro.nombre, "es"))
-}
-
-export interface IndicadoresEquipo {
-  concluidas: number
-  /** Con fecha límite: concluidas ese día o antes. */
-  aTiempo: number
-  conFecha: number
-  /** Días promedio de la creación a la conclusión; null sin datos. */
-  diasPromedio: number | null
-}
-
-/** Indicadores de las tarjetas concluidas en los últimos DIAS_INDICADORES días. */
-export function indicadoresEquipo(tarjetas: KanbanTarjeta[], ahora = Date.now()): IndicadoresEquipo {
-  const desde = ahora - DIAS_INDICADORES * 86_400_000
-  const concluidas = tarjetas.filter(tarjeta =>
-    tarjeta.estado === "concluido" && tarjeta.concluido_at && new Date(tarjeta.concluido_at).getTime() >= desde)
-  const conFecha = concluidas.filter(tarjeta => tarjeta.fecha_limite)
-  const aTiempo = conFecha.filter(tarjeta => fechaLocal(tarjeta.concluido_at as string) <= (tarjeta.fecha_limite as string))
-  const duraciones = concluidas.map(tarjeta =>
-    (new Date(tarjeta.concluido_at as string).getTime() - new Date(tarjeta.created_at).getTime()) / 86_400_000)
-  return {
-    concluidas: concluidas.length,
-    aTiempo: aTiempo.length,
-    conFecha: conFecha.length,
-    diasPromedio: duraciones.length ? duraciones.reduce((sum, value) => sum + value, 0) / duraciones.length : null,
-  }
-}
-
-/** Marca de tiempo a fecha local YYYY-MM-DD. */
-export function fechaLocal(iso: string): string {
-  return aISO(new Date(iso))
 }
 
 const DIA_SEMANA = new Intl.DateTimeFormat("es-MX", { weekday: "short" })

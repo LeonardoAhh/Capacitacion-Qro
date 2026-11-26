@@ -28,7 +28,7 @@ export function EmployeeCard({
   return <Card className="@container">
       <CardHeader className="space-y-3 p-(--card-padding)">
         <details className="group text-body-sm text-muted-foreground">
-          <summary className="w-fit cursor-pointer rounded-sm font-medium text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Instrucciones</summary>
+          <summary className="w-fit cursor-pointer rounded-sm font-medium text-foreground">Instrucciones</summary>
           <p className="mt-1">{DESEMPENO.instructions}</p>
         </details>
 

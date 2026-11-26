@@ -93,7 +93,7 @@ export default function WhatsAppDashboard() {
           disabled={loading}
           title="Actualizar"
           aria-label="Actualizar consultas"
-          className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring"
+          className="shrink-0"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
         </Button>
@@ -165,7 +165,7 @@ export default function WhatsAppDashboard() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-9 w-9 text-muted-foreground hover:text-destructive focus-visible:ring-2 focus-visible:ring-ring"
+                      className="h-9 w-9 text-muted-foreground hover:text-destructive"
                       disabled={isPending}
                       onClick={() => handleReset(c.numero)}
                       aria-label={`Resetear consulta del empleado #${c.numero}`}

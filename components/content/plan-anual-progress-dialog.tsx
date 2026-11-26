@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
@@ -99,8 +99,8 @@ export function PlanAnualProgressDialog({ curso, canEdit, onClose, onSave }: Pla
             <>
               <div className="grid gap-2">
                 <Label htmlFor="plan-fecha-reprogramada">Nueva fecha programada</Label>
-                <Input id="plan-fecha-reprogramada" type="date" value={fechaReprogramada}
-                  onChange={event => setFechaReprogramada(event.target.value)} />
+                <DateTextInput id="plan-fecha-reprogramada" value={fechaReprogramada}
+                  onValueChange={setFechaReprogramada} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="plan-motivo">Motivo de reprogramación</Label>
@@ -121,8 +121,8 @@ export function PlanAnualProgressDialog({ curso, canEdit, onClose, onSave }: Pla
               {fechasImparticion.map((fecha, index) => (
                 <div key={index} className="flex items-center gap-2">
                   <Label htmlFor={`plan-fecha-imparticion-${index}`} className="sr-only">Fecha de impartición {index + 1}</Label>
-                  <Input id={`plan-fecha-imparticion-${index}`} type="date" value={fecha}
-                    onChange={event => setFechasImparticion(current => current.map((value, position) => position === index ? event.target.value : value))} />
+                  <DateTextInput id={`plan-fecha-imparticion-${index}`} value={fecha}
+                    onValueChange={next => setFechasImparticion(current => current.map((value, position) => position === index ? next : value))} />
                   <Button type="button" variant="ghost" size="icon"
                     aria-label={`Quitar fecha de impartición ${index + 1}`}
                     onClick={() => setFechasImparticion(current => current.filter((_, position) => position !== index))}>

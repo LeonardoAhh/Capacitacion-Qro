@@ -22,7 +22,7 @@ export function EvaluationStepper({ activeView, onSelect }: { activeView: number
         return <li key={label} className="min-w-0">
           <button type="button" disabled={!done} onClick={() => onSelect(view)} aria-current={current ? "step" : undefined}
             aria-label={done ? `Volver a ${label}` : label}
-            className={cn("flex min-h-(--control-height) w-full min-w-0 flex-col justify-center gap-1.5 rounded-md text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            className={cn("flex min-h-(--control-height) w-full min-w-0 flex-col justify-center gap-1.5 rounded-md text-left transition-colors",
               done ? "cursor-pointer text-foreground hover:text-primary" : "cursor-default",
               current ? "text-foreground" : !done && "text-muted-foreground")}>
             <span aria-hidden="true" className={cn("h-1 w-full rounded-sm transition-colors duration-200 motion-reduce:transition-none", done || current ? "bg-primary" : "bg-muted")} />

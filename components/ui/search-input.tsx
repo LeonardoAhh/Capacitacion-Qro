@@ -64,7 +64,7 @@ export function SearchInput({
       />
       {value && (
         <button type="button" aria-label="Limpiar búsqueda"
-          className="absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="absolute right-1 top-1/2 grid size-8 -translate-y-1/2 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           onClick={() => {
             onValueChange("")
             searchNow("")

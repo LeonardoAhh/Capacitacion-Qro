@@ -1,7 +1,7 @@
 "use client"
 
-import React, { useId, useState, useEffect } from "react"
-import { AlertCircle, Clock } from "lucide-react"
+import { useId, useState, useEffect } from "react"
+import { AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -22,6 +22,7 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
   const nameId = useId()
   const typeId = useId()
   const durationId = useId()
+  const durationHintId = useId()
   const [name, setName] = useState('')
   const [tipo, setTipo] = useState<string>('INDUCCIÓN')
   const [duration, setDuration] = useState('')
@@ -59,15 +60,11 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
       size="xs"
       title="Editar curso"
     >
-      <ModalHeader
-        title="Editar curso"
-        subtitle="Actualiza nombre, tipo y duración del curso"
-        onClose={onClose}
-      />
+      <ModalHeader title="Editar curso" onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="space-y-4 p-(--card-padding)">
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             <Label htmlFor={nameId}>Nombre del curso</Label>
             <Input
               id={nameId}
@@ -78,8 +75,9 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
+          {/* Tipo y duración en una fila. */}
+          <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
+            <div className="min-w-0 space-y-2">
               <Label id={typeId}>Tipo de curso</Label>
               <Select value={tipo} onValueChange={setTipo}>
                 <SelectTrigger data-testid="edit-course-tipo-select" aria-labelledby={typeId}>
@@ -93,11 +91,8 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label htmlFor={durationId} className="flex items-center gap-1.5">
-                <Clock className="size-3.5 text-muted-foreground" aria-hidden="true" />
-                Duración (horas)
-              </Label>
+            <div className="min-w-0 space-y-2">
+              <Label htmlFor={durationId}>Duración (horas)</Label>
               <Input
                 id={durationId}
                 data-testid="edit-course-duration-input"
@@ -105,17 +100,18 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
                 inputMode="decimal"
                 step="0.25"
                 min="0"
-                placeholder="Ej. 1.5"
+                placeholder="Opcional"
                 value={duration}
+                aria-describedby={durationHintId}
                 onChange={e => setDuration(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
               />
+              {/* El texto de ejemplo desaparece al escribir: la explicación queda para lectores de pantalla. */}
+              <p id={durationHintId} className="sr-only">
+                Déjala vacía si el curso no cuenta en las horas de capacitación.
+              </p>
             </div>
           </div>
-
-          <p className="text-body-sm text-muted-foreground mt-1">
-            Deja vacío para no contar este curso en el KPI de horas.
-          </p>
 
           {error && (
             <Alert variant="destructive" className="py-2 border-destructive/30 bg-destructive/10 text-destructive" data-testid="edit-course-error">

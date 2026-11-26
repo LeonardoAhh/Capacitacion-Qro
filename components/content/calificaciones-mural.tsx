@@ -204,7 +204,7 @@ function EmpleadoCard({ emp }: { emp: EmpleadoCalificaciones }) {
             <Button
               variant="ghost"
               size="icon"
-              className="w-9 h-9 mt-2 text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              className="w-9 h-9 mt-2 text-muted-foreground"
               onClick={() => setExpanded((v) => !v)}
               aria-expanded={expanded}
               aria-label={expanded ? `Ocultar ${restCourses.length} cursos adicionales de ${emp.nombre}` : `Mostrar ${restCourses.length} cursos adicionales de ${emp.nombre}`}
@@ -348,7 +348,7 @@ export default function CalificacionesMural() {
               disabled={loading}
               title="Actualizar"
               aria-label="Actualizar calificaciones"
-              className="shrink-0 focus-visible:ring-2 focus-visible:ring-ring"
+              className="shrink-0"
             >
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
             </Button>

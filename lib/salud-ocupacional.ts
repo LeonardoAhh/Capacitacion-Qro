@@ -159,6 +159,16 @@ function aFila(datos: DatosAccidente) {
   }
 }
 
+/** Accidentes de un empleado, del más reciente al más antiguo (Registros del empleado). */
+export async function cargarAccidentesDeEmpleado(numeroEmpleado: string): Promise<Accidente[]> {
+  const { data, error } = await supabase.from(TABLA).select(COLUMNAS)
+    .eq("employee_number", numeroEmpleado)
+    .order("accident_date", { ascending: false })
+    .order("created_at", { ascending: false })
+  if (error) throw error
+  return ((data ?? []) as AccidenteRow[]).map(deFila)
+}
+
 /** Todos los accidentes, del más reciente al más antiguo (la racha necesita el historial). */
 export async function cargarAccidentes(): Promise<Accidente[]> {
   const { data, error } = await supabase.from(TABLA).select(COLUMNAS)

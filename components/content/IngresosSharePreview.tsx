@@ -59,7 +59,7 @@ export function IngresosSharePreview({
 
       {/* El mensaje se desplaza aquí y las acciones quedan a la vista; en escritorio toma el alto del formulario. */}
       <div role="region" aria-label="Mensaje generado" tabIndex={0}
-        className="max-h-[70dvh] min-h-64 flex-1 overflow-y-auto p-4 scrollbar-thin lg:max-h-none lg:min-h-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring">
+        className="max-h-[70dvh] min-h-64 flex-1 overflow-y-auto p-4 scrollbar-thin lg:max-h-none lg:min-h-0 focus-inset">
         {loading ? (
           <div role="status" aria-label="Cargando pendientes" className="grid gap-2">
             <Skeleton className="h-4 w-3/4" />

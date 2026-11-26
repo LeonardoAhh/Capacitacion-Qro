@@ -17,6 +17,13 @@ interface DateTextInputProps extends Omit<ComponentProps<typeof Input>, "value" 
  */
 export function DateTextInput({ value, onValueChange, ...props }: DateTextInputProps) {
   const [texto, setTexto] = useState(() => isoATexto(value))
+  const [valorPrevio, setValorPrevio] = useState(value)
+  // Si la fecha cambia desde fuera (reinicio del formulario, lista que se reordena), el texto la sigue;
+  // mientras se escribe, el valor vacío de una fecha incompleta no borra lo tecleado.
+  if (value !== valorPrevio) {
+    setValorPrevio(value)
+    if (value !== (textoAISO(texto) ?? "")) setTexto(isoATexto(value))
+  }
   return (
     <Input {...props} inputMode="numeric" autoComplete="off" maxLength={10} placeholder="DD/MM/AAAA" value={texto}
       onChange={event => {

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect, useId } from "react"
-import { Pencil, AlertCircle } from "lucide-react"
+import { AlertCircle } from "lucide-react"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -64,14 +65,10 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
 
   return (
     <ResponsiveShell open={open} onClose={onClose} title="Editar empleado" description={`Modifica los datos de ${employee.nombre}`}>
-      <ModalHeader
-        title="Editar empleado"
-        subtitle={employee.nombre}
-        onClose={onClose}
-      />
+      <ModalHeader title="Editar empleado" onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-3 p-(--card-padding)">
+        <div className="space-y-4 p-(--card-padding)">
           {error && (
             <Alert variant="destructive" className="py-2">
               <AlertCircle className="h-4 w-4" />
@@ -79,18 +76,20 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
             </Alert>
           )}
 
-          <div className="grid grid-cols-1 gap-x-4 gap-y-5 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 space-y-2">
-              <Label htmlFor={`${fieldId}-numero`}>N.N</Label>
-              <Input id={`${fieldId}-numero`} value={employee.numero ?? ""} readOnly className="bg-muted/50 text-muted-foreground" />
+              <Label htmlFor={`${fieldId}-numero`}>Número de empleado</Label>
+              <Input id={`${fieldId}-numero`} value={employee.numero ?? ""} readOnly />
             </div>
             <div className="min-w-0 space-y-2">
               <Label htmlFor={`${fieldId}-fecha`}>Fecha de ingreso</Label>
-              <Input id={`${fieldId}-fecha`} type="date" value={form.fecha_ingreso} onChange={e => setForm(f => ({ ...f, fecha_ingreso: e.target.value }))} className="min-w-0" />
+              <DateTextInput id={`${fieldId}-fecha`} value={form.fecha_ingreso} onValueChange={fecha_ingreso => setForm(f => ({ ...f, fecha_ingreso }))} className="min-w-0" />
             </div>
 
             <div className="min-w-0 space-y-2 sm:col-span-2">
-              <Label htmlFor={`${fieldId}-nombre`}>Nombre completo <span className="text-destructive">*</span></Label>
+              <Label htmlFor={`${fieldId}-nombre`}>
+                Nombre completo <span aria-hidden="true" className="text-destructive">*</span><span className="sr-only"> (obligatorio)</span>
+              </Label>
               <Input id={`${fieldId}-nombre`} value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required />
             </div>
 
@@ -142,11 +141,11 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
               </Select>
             </div>
             <div className="min-w-0 space-y-2">
-              <Label htmlFor={`${fieldId}-evaluacion`}>Eval. desemp.</Label>
+              <Label htmlFor={`${fieldId}-evaluacion`}>Evaluación de desempeño</Label>
               <Input
                 id={`${fieldId}-evaluacion`}
-                type="number" min={0} max={99} maxLength={2}
-                className="max-w-24 text-center" placeholder="00"
+                type="number" inputMode="numeric" min={0} max={99}
+                className="tabular-nums" placeholder="0 a 99"
                 value={form.evaluacion_desempeno}
                 onChange={e => { const v = e.target.value.slice(0, 2); setForm(f => ({ ...f, evaluacion_desempeno: v })) }}
               />
@@ -158,7 +157,6 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
         onCancel={onClose}
         onConfirm={handleConfirm}
         saving={saving}
-        confirmIcon={<Pencil className="h-4 w-4" />}
         confirmDisabled={isReadOnly}
       />
     </ResponsiveShell>

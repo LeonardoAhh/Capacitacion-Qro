@@ -41,7 +41,7 @@ export function SystemInfoFooter({ variant = "sidebar", className }: {
   const credit = <TooltipProvider>
     <Tooltip>
       <TooltipTrigger asChild>
-        <button type="button" aria-label={`${CREDIT_PREFIX}${CREDIT_NAME}`} className="flex min-h-11 items-center gap-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+        <button type="button" aria-label={`${CREDIT_PREFIX}${CREDIT_NAME}`} className="flex min-h-11 items-center gap-2 rounded-md text-left">
           <Code2 className="size-3.5 shrink-0" aria-hidden="true" />
           <span className="relative inline-block whitespace-nowrap">
             <span aria-hidden="true" className="invisible">{CREDIT_PREFIX}<span className="font-medium">{CREDIT_NAME}</span></span>

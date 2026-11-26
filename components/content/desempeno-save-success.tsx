@@ -35,7 +35,7 @@ export function DesempenoSaveSuccess({ visible, nombre, calificacion, onPrint, o
         <div className="min-w-0">
           <h2 className="text-heading-md text-foreground">Evaluación guardada</h2>
           <p className="break-words text-body-md text-muted-foreground">{nombre ? `${nombre} · ` : ""}{calificacion !== undefined ? `${calificacion}% · ${approved ? "Resultado aprobatorio" : "Requiere seguimiento"}` : "Lista para imprimir"}</p>
-          {onEdit && <button type="button" onClick={onEdit} className="mt-2 rounded-sm text-label-sm text-foreground underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">Corregir datos</button>}
+          {onEdit && <button type="button" onClick={onEdit} className="mt-2 rounded-sm text-label-sm text-foreground underline-offset-4 hover:underline">Corregir datos</button>}
         </div>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:flex sm:shrink-0">

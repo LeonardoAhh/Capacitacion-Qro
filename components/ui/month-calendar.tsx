@@ -152,7 +152,7 @@ export function MonthCalendar({ month, onMonthChange, selected, onSelect, onActi
                       // Solo marcadores: alto fijo y compacto, número a la izquierda y marcadores a la derecha.
                       markersOnly ? "md:h-20 xl:h-24 md:flex-row md:items-start md:justify-between" : "md:h-full md:items-stretch",
                       fueraDeMes ? "bg-muted" : dayClassName?.(date),
-                      "hover:bg-muted/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
+                      "hover:bg-muted/60 focus-inset",
                       elegido && "bg-primary/5 ring-1 ring-inset ring-primary/40",
                     )}>
                     <span className={cn(

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { ArrowUpRight, TriangleAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
+import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { PROMOTION_DIALOG_COPY, PROMOTION_DIALOG_TYPE, todayAsLocalDate } from "@/lib/promociones/dialog-config"
@@ -83,11 +83,10 @@ function PromPromoverDialogContent({
           <Label htmlFor="fecha-inicio" className={PROMOTION_DIALOG_TYPE.sectionTitle}>
             {PROMOTION_DIALOG_COPY.dateLabel}
           </Label>
-          <Input
+          <DateTextInput
             id="fecha-inicio"
-            type="date"
             value={fechaInicio}
-            onChange={event => setFechaInicio(event.target.value)}
+            onValueChange={setFechaInicio}
             disabled={guardando || isReadOnly}
           />
         </div>

@@ -104,7 +104,7 @@ export function VistaMensual({ loading, deptGroups, totalEmployees, activeTab, d
               {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
               <button type="button" aria-haspopup="dialog" aria-label={`Ver evaluaciones de ${item.nombre}`}
                 onClick={event => { event.stopPropagation(); onSelectId(item.dbId); }}
-                className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+                className="block w-full min-w-0 rounded-sm text-left">
                 <PendingName name={item.nombre} detail={numeroLabel(item.numero)} />
               </button>
             </TableCell>

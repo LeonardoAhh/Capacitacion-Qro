@@ -1,7 +1,8 @@
 "use client"
 
 import { useId } from "react"
-import { Check, ChevronRight, LogOut, Monitor, Moon, Settings, Sun, type LucideIcon } from "lucide-react"
+import Link from "next/link"
+import { Check, ChevronRight, Lightbulb, LogOut, Monitor, Moon, Settings, Sun, type LucideIcon } from "lucide-react"
 import { ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { useTheme } from "@/components/theme-context"
 import { WORKSPACE_ICON } from "@/components/workspace-switcher"
@@ -9,12 +10,13 @@ import { useRole } from "@/lib/hooks/useRole"
 import { WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { THEME_MODE_LABELS, type ThemeMode } from "@/lib/theme/constants"
 import { cn } from "@/lib/utils"
+import { IDEAS_PATH } from "@/lib/workspace-paths"
 
 const THEME_ICON: Record<ThemeMode, LucideIcon> = { light: Sun, dark: Moon, system: Monitor }
 const THEME_OPTIONS = (Object.keys(THEME_MODE_LABELS) as ThemeMode[])
   .map(value => ({ value, label: THEME_MODE_LABELS[value], icon: THEME_ICON[value] }))
 // Mismas filas que el menú de cuenta en escritorio: ícono, texto y palomita en la elegida.
-const ROW = "flex min-h-(--control-height) w-full items-center gap-3 rounded-md px-3 text-left text-body-md text-foreground transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50"
+const ROW = "flex min-h-(--control-height) w-full items-center gap-3 rounded-md px-3 text-left text-body-md text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
 const ICON = "size-4 shrink-0 text-muted-foreground"
 
 /** Grupo de opciones como filas; la elegida lleva palomita. */
@@ -48,7 +50,7 @@ function Opciones<T extends string>({ label, value, options, onChange }: {
  * configuración y salir), en lugar de un desplegable con submenús que tapa la navegación.
  * El tema vive en Configuración; solo quien no tiene Configuración (evaluador) lo ve aquí.
  */
-export function AccountSheet({ open, onClose, displayName, roleLabel, workspace, onWorkspaceChange, showSettings, showTheme, onSettings, signingOut, onLogout }: {
+export function AccountSheet({ open, onClose, displayName, roleLabel, workspace, onWorkspaceChange, showSettings, showTheme, onSettings, onNavigate, signingOut, onLogout }: {
   open: boolean
   onClose: () => void
   displayName: string
@@ -58,10 +60,12 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
   showSettings: boolean
   showTheme: boolean
   onSettings: () => void
+  /** Al ir a otra página (cierra la hoja y el menú móvil). */
+  onNavigate: () => void
   signingOut: boolean
   onLogout: () => void
 }) {
-  const { workspaces } = useRole()
+  const { workspaces, canReviewIdeas } = useRole()
   const { themeMode, setThemeMode } = useTheme()
 
   return (
@@ -82,6 +86,13 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
               <span className="flex-1">Configuración</span>
               <ChevronRight className={ICON} aria-hidden="true" />
             </button>
+          )}
+          {canReviewIdeas && (
+            <Link href={IDEAS_PATH} className={ROW} onClick={onNavigate}>
+              <Lightbulb className={ICON} aria-hidden="true" />
+              <span className="flex-1">Ideas de mejora</span>
+              <ChevronRight className={ICON} aria-hidden="true" />
+            </Link>
           )}
           <button type="button" className={cn(ROW, "text-destructive hover:bg-destructive/10")} disabled={signingOut} onClick={onLogout}>
             <LogOut className="size-4 shrink-0" aria-hidden="true" />
