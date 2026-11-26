@@ -98,8 +98,9 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
       </a>
 
       {/* Solo dentro del workspace: en el login no se invita a instalar ni se anuncian novedades. */}
-      <InstallPrompt />
-      <Changelog />
+      <InstallPrompt waitForChangelog={!isEvaluador} />
+      {/* El evaluador no ve las novedades del sistema. */}
+      {!isEvaluador && <Changelog />}
 
       <div className="workspace-panel">
         <Sidebar
@@ -111,6 +112,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
           workspace={workspace}
           onWorkspaceChange={handleWorkspaceChange}
           showStatus={isEvaluador}
+          showNovedades={!isEvaluador}
         />
 
         <div className="workspace-frame">

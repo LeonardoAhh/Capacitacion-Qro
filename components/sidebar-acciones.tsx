@@ -28,8 +28,10 @@ type Accion = keyof typeof ACCIONES
  * enfocarlo o con algo abierto; con novedades sin ver se queda en Novedades. Con
  * movimiento reducido no alterna y muestra los dos renglones.
  */
-export function SidebarAcciones({ workspace, triggerClassName, iconBoxClassName, iconClassName }: {
+export function SidebarAcciones({ workspace, showNovedades, triggerClassName, iconBoxClassName, iconClassName }: {
   workspace: WorkspaceId
+  /** Sin Novedades (evaluador) queda solo Ideas de mejora, sin alternar. */
+  showNovedades: boolean
   triggerClassName: string
   iconBoxClassName: string
   iconClassName: string
@@ -40,14 +42,18 @@ export function SidebarAcciones({ workspace, triggerClassName, iconBoxClassName,
   const [ideasAbiertas, setIdeasAbiertas] = useState(false)
   const [enUso, setEnUso] = useState(false)
 
-  const actual: Accion = nuevo ? "novedades" : rotada
-  const pausada = reduced || nuevo || enUso || ideasAbiertas || novedadesAbiertas
+  const actual: Accion = !showNovedades ? "ideas" : nuevo ? "novedades" : rotada
+  const pausada = !showNovedades || reduced || nuevo || enUso || ideasAbiertas || novedadesAbiertas
 
   useEffect(() => {
     if (pausada) return
     const timer = setInterval(() => setRotada(current => current === "ideas" ? "novedades" : "ideas"), ALTERNAR_CADA_MS)
     return () => clearInterval(timer)
   }, [pausada])
+
+  if (!showNovedades) {
+    return <IdeaCapture workspace={workspace} side="right" triggerClassName={triggerClassName} iconBoxClassName={iconBoxClassName} iconClassName={iconClassName} />
+  }
 
   if (reduced) {
     return (

@@ -50,7 +50,10 @@ function recentlyDismissed(): boolean {
  * iOS: Safari no permite instalar desde la página, así que se muestran los pasos.
  * No aparece si ya está instalada; al cerrarla vuelve a ofrecerse en 7 días.
  */
-export function InstallPrompt() {
+export function InstallPrompt({ waitForChangelog = true }: {
+  /** Espera a que se vean las novedades (comparten lugar); sin novedades para el rol, no espera. */
+  waitForChangelog?: boolean
+}) {
   const [prompt, setPrompt] = useState<BeforeInstallPromptEvent | null>(null)
   const [visible, setVisible] = useState(false)
   const [isIos, setIsIos] = useState(false)
@@ -110,7 +113,7 @@ export function InstallPrompt() {
 
   // Sin diálogo del navegador ni iOS no hay forma de instalar: no se muestra.
   // Comparte lugar con el aviso de novedades: espera a que se vean para no encimarse.
-  const canShow = visible && (prompt !== null || isIos) && !hayNovedades
+  const canShow = visible && (prompt !== null || isIos) && !(waitForChangelog && hayNovedades)
 
   return (
     <>
