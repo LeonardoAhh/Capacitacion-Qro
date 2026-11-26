@@ -2,17 +2,17 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import {
-  AlarmClock, BadgeCheck, BookPlus, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, type LucideIcon,
+  AlarmClock, BadgeCheck, BookPlus, CalendarClock, EllipsisVertical, FilePenLine, LayoutGrid, ShieldAlert, Trash2, UserPlus, UserRoundPen, X, type LucideIcon,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { HeaderSearch } from "@/components/ui/header-search"
-import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
+import { FILTER_ALL } from "@/components/ui/filter-menu"
 import { CATALOGO_ORGANIZACIONAL, TURNOS } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
 import { useRole } from "@/lib/hooks/useRole"
@@ -76,6 +76,13 @@ export function CapHistorialTab({
 
   useEffect(() => { setEmpPage(1) }, [empSearch, empFilterDept, empFilterTurno])
 
+  const hasFilters = empSearch.trim() !== "" || empFilterDept !== FILTER_ALL || empFilterTurno !== FILTER_ALL
+  const clearFilters = () => {
+    setEmpSearch("")
+    setEmpFilterDept(FILTER_ALL)
+    setEmpFilterTurno(FILTER_ALL)
+  }
+
   return (
     <div className="space-y-4">
       {(newEmpSuccess || addCoursesSuccess) && (
@@ -87,33 +94,52 @@ export function CapHistorialTab({
         </Alert>
       )}
 
-      {/* Búsqueda, filtros, acciones y página en la línea de las pestañas. Sin pestañas (rol que solo
-          consulta empleados), la búsqueda va a la izquierda y lo demás se queda a la derecha. */}
-      <TabsToolbar>
-        <HeaderSearch
-          label="Buscar empleado"
-          placeholder="Buscar empleado…"
-          value={empSearch}
-          onValueChange={setEmpSearch}
-        />
-        <FilterMenu
-          facets={[
-            { id: "departamento", label: "Departamento", value: empFilterDept, onChange: setEmpFilterDept,
-              options: Object.keys(CATALOGO_ORGANIZACIONAL).map(d => ({ value: d, label: d })) },
-            { id: "turno", label: "Turno", value: empFilterTurno, onChange: setEmpFilterTurno,
-              options: TURNOS.map(t => ({ value: t, label: t })) },
-          ]}
-          onClear={() => { setEmpFilterDept(FILTER_ALL); setEmpFilterTurno(FILTER_ALL) }}
-        />
-        {/* Crear empleados: solo quien edita Capacitación. */}
-        {canEdit && (
-          <Button size="sm" onClick={onNewEmployee} aria-label="Nuevo empleado">
-            <UserPlus aria-hidden="true" />
-            <span className="hidden @4xl:inline">Nuevo empleado</span>
+      <HeaderSearch
+        label="Buscar empleado"
+        placeholder="Buscar empleado…"
+        value={empSearch}
+        onValueChange={setEmpSearch}
+      />
+      {/* Filtros independientes a la izquierda; Nuevo empleado y paginación a la derecha. */}
+      <div className="@container flex flex-wrap items-center gap-2">
+        <Select value={empFilterDept} onValueChange={setEmpFilterDept}>
+          <SelectTrigger className="min-w-0 flex-1 sm:w-52 sm:flex-none" aria-label="Filtrar por departamento">
+            <SelectValue placeholder="Departamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTER_ALL}>Departamentos</SelectItem>
+            {Object.keys(CATALOGO_ORGANIZACIONAL).map(d => (
+              <SelectItem key={d} value={d}>{d}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={empFilterTurno} onValueChange={setEmpFilterTurno}>
+          <SelectTrigger className="w-32 shrink-0 sm:w-36" aria-label="Filtrar por turno">
+            <SelectValue placeholder="Turno" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTER_ALL}>Turnos</SelectItem>
+            {TURNOS.map(t => (
+              <SelectItem key={t} value={t}>{t}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" className="touch-target" onClick={clearFilters} aria-label="Limpiar todos los filtros">
+            <X aria-hidden="true" />
+            Limpiar
           </Button>
         )}
-        <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setEmpPage} />
-      </TabsToolbar>
+        <div className="ml-auto flex items-center gap-2">
+          {canEdit && (
+            <Button size="sm" className="touch-target" onClick={onNewEmployee} aria-label="Nuevo empleado">
+              <UserPlus aria-hidden="true" />
+              <span className="hidden @3xl:inline">Nuevo empleado</span>
+            </Button>
+          )}
+          <CompactPager label="Paginación de empleados" page={safePage} totalPages={totalPages} onPageChange={setEmpPage} />
+        </div>
+      </div>
 
       {loadingEmployees ? (
         <div className="space-y-2" role="status" aria-label="Cargando empleados">
@@ -142,12 +168,12 @@ export function CapHistorialTab({
                 <TableRow key={emp.id}>
                   <TableCell>
                     <span className="block truncate text-label-sm text-foreground">{emp.nombre}</span>
-                    <span className="block truncate text-body-sm text-muted-foreground">
-                      #{emp.numero ?? "—"}{emp.puesto && <span className="md:hidden"> · {emp.puesto}</span>}
+                    <span className="block truncate text-body-sm tabular-nums text-muted-foreground">
+                      #{emp.numero ?? "-"}{emp.puesto && <span className="font-normal md:hidden"> · {emp.puesto}</span>}
                     </span>
                   </TableCell>
-                  <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{emp.puesto ?? "—"}</TableCell>
-                  <TableCell className="hidden truncate text-body-sm text-muted-foreground lg:table-cell">{emp.departamento ?? "—"}</TableCell>
+                  <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{emp.puesto ?? "-"}</TableCell>
+                  <TableCell className="hidden truncate text-body-sm text-muted-foreground lg:table-cell">{emp.departamento ?? "-"}</TableCell>
                   <TableCell className="px-1 py-0 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

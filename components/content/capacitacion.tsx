@@ -2,14 +2,11 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import { Briefcase, BookOpen, ClipboardList } from "lucide-react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { TabsBar, TabsToolbarProvider } from "@/components/ui/tabs-toolbar"
-import { motion } from "framer-motion"
+import { SectionNavLayout, type SectionNavItem } from "@/components/ui/section-nav-layout"
 import { useCapacitacion, useRole } from "@/lib/hooks"
 import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 
-// Existing dialogs
 import { CapEditEmployeeDialog, type EditEmployeeForm } from "@/components/content/cap-edit-employee-dialog"
 import { CapNewEmployeeDialog } from "@/components/redesign/cap-new-employee-dialog"
 import { CapAddCoursesDialog } from "@/components/content/cap-add-courses-dialog"
@@ -17,27 +14,35 @@ import { CapNewPositionDialog } from "@/components/content/cap-new-position-dial
 import { CapNewCourseDialog } from "@/components/content/cap-new-course-dialog"
 import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog"
 
-// Tab components
 import { CapPositionsTab } from "@/components/content/cap-positions-tab"
 import { CapCoursesTab } from "@/components/content/cap-courses-tab"
 import { CapHistorialTab } from "@/components/content/cap-historial-tab"
 
-// Pestañas a su ancho natural desde sm; en celular se reparten la línea.
-const TAB_TRIGGER = "flex-1 gap-2 sm:flex-none"
+const TAB_STORAGE_KEY = "plantilla:tab"
+type PlantillaTab = "historial" | "cursos" | "puestos"
+
+const SECCIONES: readonly SectionNavItem<PlantillaTab>[] = [
+  { id: "historial", label: "Empleados", icon: ClipboardList },
+  { id: "cursos", label: "Cursos", icon: BookOpen },
+  { id: "puestos", label: "Puestos", icon: Briefcase },
+]
+
+function isPlantillaTab(value: string | null): value is PlantillaTab {
+  return value === "historial" || value === "cursos" || value === "puestos"
+}
 
 export default function CapacitacionContent() {
   const { canEdit, isReadOnly, employeesOnly } = useRole()
-  const [toolbarSlot, setToolbarSlot] = useState<HTMLDivElement | null>(null)
+  const [activeTab, setActiveTab] = useState<PlantillaTab>("historial")
   const {
     fetchDepartments, fetchPositions, fetchCourses,
     fetchAllPositionCourses, fetchAllEmployeeCourses,
     fetchEmployees,
-    clearHistorial, deleteEmployee, createEmployeeManual, updateEmployee,
+    deleteEmployee, createEmployeeManual, updateEmployee,
     addCoursesToEmployee,
     createPosition, createCourse, updateCourse,
   } = useCapacitacion()
 
-  // ── Shared data ───────────────────────────────────────────────────────────
   const [departments, setDepartments] = useState<Department[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [courses, setCourses] = useState<Course[]>([])
@@ -55,7 +60,6 @@ export default function CapacitacionContent() {
   const coursesTabDataVersion = useRef(0)
   const coursesTabLoadPromise = useRef<Promise<void> | null>(null)
 
-  // ── New position / new course dialogs ────────────────────────────────────
   const [newPosOpen, setNewPosOpen] = useState(false)
   const [newPosSaving, setNewPosSaving] = useState(false)
   const [newCourseOpen, setNewCourseOpen] = useState(false)
@@ -63,10 +67,6 @@ export default function CapacitacionContent() {
   const [editCourseOpen, setEditCourseOpen] = useState(false)
   const [editCourseTarget, setEditCourseTarget] = useState<Course | null>(null)
   const [editCourseSaving, setEditCourseSaving] = useState(false)
-
-
-  // ── Employee CRUD dialogs ─────────────────────────────────────────────────
-  const [confirmClearOpen, setConfirmClearOpen] = useState(false)
 
   const [editEmpOpen, setEditEmpOpen] = useState(false)
   const [editEmpTarget, setEditEmpTarget] = useState<Employee | null>(null)
@@ -81,7 +81,6 @@ export default function CapacitacionContent() {
   const [addCoursesSaving, setAddCoursesSaving] = useState(false)
   const [addCoursesSuccess, setAddCoursesSuccess] = useState(false)
 
-  // ── Data loaders ──────────────────────────────────────────────────────────
   const loadCoursesData = useCallback(async () => {
     setLoadingCourses(true)
     try { setCourses(await fetchCourses()) }
@@ -187,16 +186,25 @@ export default function CapacitacionContent() {
   useEffect(() => {
     loadPositionData()
     loadEmployees()
-  }, [loadEmployees, loadPositionData])
+    try {
+      const saved = sessionStorage.getItem(TAB_STORAGE_KEY)
+      if (isPlantillaTab(saved)) {
+        setActiveTab(saved)
+        if (saved === "cursos") void loadCoursesTabData()
+      }
+    } catch {
+      // sessionStorage puede no estar disponible en contextos restringidos.
+    }
+  }, [loadCoursesTabData, loadEmployees, loadPositionData])
 
-  // ── Tab change ────────────────────────────────────────────────────────────
-  const handleTabChange = useCallback(async (v: string) => {
-    if (v === "cursos") {
+  const handleTabChange = useCallback(async (next: PlantillaTab) => {
+    setActiveTab(next)
+    try { sessionStorage.setItem(TAB_STORAGE_KEY, next) } catch { /* ignore */ }
+    if (next === "cursos") {
       await loadCoursesTabData()
     }
   }, [loadCoursesTabData])
 
-  // ── Position handlers ─────────────────────────────────────────────────────
   const handleSaveNewPos = useCallback(async (name: string, departmentId: string) => {
     setNewPosSaving(true)
     const result = await createPosition(name, departmentId)
@@ -225,8 +233,6 @@ export default function CapacitacionContent() {
       notify.error(result.error ?? 'Error al actualizar curso')
     }
   }, [invalidateCoursesTabData, updateCourse, loadCoursesData])
-
-  // ── Employee handlers ─────────────────────────────────────────────────────
 
   const handleSaveEditEmp = useCallback(async (form: EditEmployeeForm) => {
     if (!editEmpTarget) return
@@ -279,23 +285,10 @@ export default function CapacitacionContent() {
     else notify.error(result.error ?? 'Error al guardar')
   }, [addCoursesDlgEmp, addCoursesToEmployee, invalidateCoursesTabData])
 
-  const handleClearHistorial = useCallback(async () => {
-    const ok = await notify.confirm({
-      title: "Borrar historial",
-      description: `Se eliminarán ${employees.length} empleados y sus registros. No se puede deshacer.`,
-      confirmLabel: "Borrar",
-      tone: "destructive",
-    })
-    if (!ok) return
-    const result = await clearHistorial()
-    if (result.success) { invalidateCoursesTabData(); setConfirmClearOpen(false); setEmployees([]); notify.success(`Historial eliminado`) }
-    else notify.error(result.error ?? 'Error al eliminar historial')
-  }, [clearHistorial, employees.length, invalidateCoursesTabData])
-
   const handleDeleteEmployee = useCallback(async (emp: Employee) => {
     const ok = await notify.confirm({
       title: "Eliminar empleado",
-      description: "Esta acción no se puede deshacer.",
+      description: `Se eliminará a ${emp.nombre} y su historial. Esta acción no se puede deshacer.`,
       confirmLabel: "Eliminar",
       tone: "destructive",
       requireInputText: "ELIMINAR",
@@ -311,81 +304,52 @@ export default function CapacitacionContent() {
     }
   }, [deleteEmployee, invalidateCoursesTabData])
 
-  // ── Render ────────────────────────────────────────────────────────────────
+  const currentTab: PlantillaTab = employeesOnly ? "historial" : activeTab
+
   return (
     <>
-      <TabsToolbarProvider value={toolbarSlot}>
-        <Tabs defaultValue="historial" onValueChange={handleTabChange}>
-          {/* Pestañas a la izquierda; búsqueda, filtros y acciones de cada pestaña a la derecha.
-              Puestos y cursos no aplican a roles que solo consultan empleados: sin pestañas. */}
-          <TabsBar slotRef={setToolbarSlot}>
-            {!employeesOnly && (
-              <TabsList className="w-full sm:w-auto">
-                <TabsTrigger value="historial" className={TAB_TRIGGER}>
-                  <ClipboardList className="size-4" aria-hidden="true" /><span>Empleados</span>
-                </TabsTrigger>
-                <TabsTrigger value="cursos" className={TAB_TRIGGER}>
-                  <BookOpen className="size-4" aria-hidden="true" /><span>Cursos</span>
-                </TabsTrigger>
-                <TabsTrigger value="puestos" className={TAB_TRIGGER}>
-                  <Briefcase className="size-4" aria-hidden="true" /><span>Puestos</span>
-                </TabsTrigger>
-              </TabsList>
-            )}
-          </TabsBar>
+      <SectionNavLayout
+        label="Apartados de plantilla"
+        items={SECCIONES}
+        value={currentTab}
+        onValueChange={value => void handleTabChange(value)}
+        showNav={!employeesOnly}
+      >
+        {currentTab === "puestos" ? (
+          <CapPositionsTab
+            departments={departments}
+            positions={positions}
+            loadingPositions={loadingPositions}
+            isReadOnly={isReadOnly}
+            onNewPosition={() => setNewPosOpen(true)}
+          />
+        ) : currentTab === "cursos" ? (
+          <CapCoursesTab
+            courses={courses}
+            loadingCourses={loadingCourses}
+            isReadOnly={isReadOnly}
+            positions={positions}
+            positionCourses={positionCourses}
+            employees={employees}
+            empCourses={empCourses}
+            onNewCourse={() => setNewCourseOpen(true)}
+            onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
+          />
+        ) : (
+          <CapHistorialTab
+            employees={employees}
+            loadingEmployees={loadingEmployees}
+            canEdit={canEdit}
+            newEmpSuccess={newEmpSuccess}
+            addCoursesSuccess={addCoursesSuccess}
+            onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
+            onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
+            onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
+            onDeleteEmployee={handleDeleteEmployee}
+          />
+        )}
+      </SectionNavLayout>
 
-          {!employeesOnly && (
-            <>
-              <TabsContent value="puestos" className="mt-0 outline-none">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-                  <CapPositionsTab
-                    departments={departments}
-                    positions={positions}
-                    loadingPositions={loadingPositions}
-                    isReadOnly={isReadOnly}
-                    onNewPosition={() => setNewPosOpen(true)}
-                  />
-                </motion.div>
-              </TabsContent>
-
-              <TabsContent value="cursos" className="mt-0 outline-none">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-                  <CapCoursesTab
-                    courses={courses}
-                    loadingCourses={loadingCourses}
-                    isReadOnly={isReadOnly}
-                    positions={positions}
-                    positionCourses={positionCourses}
-                    employees={employees}
-                    empCourses={empCourses}
-                    onNewCourse={() => setNewCourseOpen(true)}
-                    onEditCourse={(c) => { setEditCourseTarget(c); setEditCourseOpen(true) }}
-                  />
-                </motion.div>
-              </TabsContent>
-            </>
-          )}
-
-          <TabsContent value="historial" className="mt-0 outline-none">
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-              <CapHistorialTab
-                employees={employees}
-                loadingEmployees={loadingEmployees}
-                canEdit={canEdit}
-                newEmpSuccess={newEmpSuccess}
-                addCoursesSuccess={addCoursesSuccess}
-                onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
-                onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
-                onAddCourses={(emp) => { setAddCoursesDlgEmp(emp); setAddCoursesDlgOpen(true); if (courses.length === 0) loadCoursesData() }}
-                onDeleteEmployee={handleDeleteEmployee}
-              />
-            </motion.div>
-          </TabsContent>
-
-        </Tabs>
-      </TabsToolbarProvider>
-
-      {/* ── Dialogs ─────────────────────────────────────────────────────── */}
       <CapAddCoursesDialog
         employee={addCoursesDlgEmp}
         open={addCoursesDlgOpen}

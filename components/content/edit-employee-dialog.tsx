@@ -1,7 +1,6 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { motion } from "framer-motion"
 import { Trash2 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -22,7 +21,6 @@ export interface EditEmployeeDialogProps {
 
 export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDelete }: EditEmployeeDialogProps) {
   const [form, setForm] = useState<NuevoIngresoUpdate>({})
-  const [confirmDelete, setConfirmDelete] = useState(false)
 
   useEffect(() => {
     if (record) {
@@ -37,12 +35,8 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
         tipo_contrato: record.tipo_contrato,
         rg_rec_048: record.rg_rec_048,
       })
-      setConfirmDelete(false)
     }
   }, [record])
-
-  // Reset delete-confirm state when the dialog is closed so reopening starts clean.
-  useEffect(() => { if (!open) setConfirmDelete(false) }, [open])
 
   if (!record) return null
 
@@ -182,28 +176,26 @@ export function EditEmployeeDialog({ record, open, saving, onClose, onSave, onDe
         </div>
 
         {/* Delete zone */}
-        <div className="px-4 pb-3 border-t pt-3">
-          <motion.button
+        <div className="border-t px-4 pb-3 pt-3">
+          <button
             type="button"
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.97 }}
             onClick={async () => {
               const { notify } = await import("@/lib/notify")
               const ok = await notify.confirm({
                 title: "Eliminar empleado",
-                description: `${record.nombre}. Esta acción no se puede deshacer.`,
+                description: `Se eliminará a ${record.nombre}. Esta acción no se puede deshacer.`,
                 confirmLabel: "Eliminar",
                 tone: "destructive",
-                requireInputText: "ELIMINAR"
+                requireInputText: "ELIMINAR",
               })
               if (ok) onDelete(record.id)
             }}
             disabled={saving}
-            className="flex min-h-(--control-height) w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-body-md font-medium text-destructive transition-colors hover:border-destructive hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
+            className="flex min-h-(--control-height) w-full items-center justify-center gap-2 rounded-md border border-destructive/30 text-body-md font-medium text-destructive transition-colors hover:border-destructive hover:bg-destructive/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-50"
           >
-            <Trash2 className="h-4 w-4" />
+            <Trash2 className="size-4" aria-hidden="true" />
             Eliminar empleado
-          </motion.button>
+          </button>
         </div>
       </div>
       <ModalFooter

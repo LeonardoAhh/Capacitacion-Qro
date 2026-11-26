@@ -57,6 +57,8 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
   const roleLabel = profile && !roleLoading ? profile.puesto || ROLE_LABELS[role] : null
   const accountLabel = roleLabel ? `Cuenta de ${displayName}, ${roleLabel}` : `Cuenta de ${displayName}`
   const showSettings = !roleLoading && !isEvaluador
+  // El tema vive en Configuración; el evaluador no la tiene y lo cambia desde este menú.
+  const showTheme = !roleLoading && isEvaluador
 
   // Dos renglones fijos: el texto se recorta y nada se mueve al cargar el puesto.
   const triggerContent = <>
@@ -81,8 +83,8 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
         <AccountSheet open={sheetOpen} onClose={() => setSheetOpen(false)} displayName={displayName} roleLabel={roleLabel}
           workspace={workspace}
           onWorkspaceChange={next => { onWorkspaceChange(next); setSheetOpen(false); onNavigate?.() }}
-          showSettings={showSettings} onSettings={() => { setSheetOpen(false); setSettingsOpen(true) }}
-          signingOut={signingOut} onLogout={() => { void logout() }} />
+          showSettings={showSettings} showTheme={showTheme} onSettings={() => { setSheetOpen(false); setSettingsOpen(true) }}
+          signingOut={signingOut} onLogout={() => { setSheetOpen(false); onNavigate?.(); void logout() }} />
         <SettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
       </>
     )
@@ -120,27 +122,31 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
           <WorkspaceMenuSub workspace={workspace} onWorkspaceChange={onWorkspaceChange} onChanged={onNavigate}
             triggerClassName={ITEM} itemClassName={OPCION} separatorClassName={SEPARADOR} />
 
-          <DropdownMenuSub>
-            {/* Solo el nombre y la flecha del submenú; el modo elegido lleva palomita dentro. */}
-            <DropdownMenuSubTrigger className={ITEM}>
-              <span className="flex-1">Tema</span>
-            </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent sideOffset={4}>
-              <DropdownMenuRadioGroup
-                value={themeMode}
-                onValueChange={(value) => {
-                  if (value === "light" || value === "dark" || value === "system") {
-                    setThemeMode(value)
-                  }
-                }}
-              >
-                <DropdownMenuRadioItem value="light" className={OPCION}>Claro</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="dark" className={OPCION}>Oscuro</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
-              </DropdownMenuRadioGroup>
-            </DropdownMenuSubContent>
-          </DropdownMenuSub>
-          <DropdownMenuSeparator className={SEPARADOR} />
+          {showTheme && (
+            <>
+              <DropdownMenuSub>
+                {/* Solo el nombre y la flecha del submenú; el modo elegido lleva palomita dentro. */}
+                <DropdownMenuSubTrigger className={ITEM}>
+                  <span className="flex-1">Tema</span>
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent sideOffset={4}>
+                  <DropdownMenuRadioGroup
+                    value={themeMode}
+                    onValueChange={(value) => {
+                      if (value === "light" || value === "dark" || value === "system") {
+                        setThemeMode(value)
+                      }
+                    }}
+                  >
+                    <DropdownMenuRadioItem value="light" className={OPCION}>Claro</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="dark" className={OPCION}>Oscuro</DropdownMenuRadioItem>
+                    <DropdownMenuRadioItem value="system" className={OPCION}>Sistema</DropdownMenuRadioItem>
+                  </DropdownMenuRadioGroup>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuSeparator className={SEPARADOR} />
+            </>
+          )}
 
           <DropdownMenuItem
             className={cn(ITEM, "text-destructive focus:bg-destructive/10 focus:text-destructive")}

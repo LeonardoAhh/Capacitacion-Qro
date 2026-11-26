@@ -12,15 +12,20 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useRole } from "@/lib/hooks"
 import { enviarIdea, IDEA_MAX, SECCION_GENERAL } from "@/lib/ideas"
-import { getRouteLabel, getWorkspaceNavSections, type WorkspaceId } from "@/lib/navigation"
+import { findActiveLeaf, getWorkspaceNavSections, isActiveRoute, type WorkspaceId } from "@/lib/navigation"
 import { notify } from "@/lib/notify"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { cn } from "@/lib/utils"
 import { IDEAS_PATH } from "@/lib/workspace-paths"
 
+const EXTRA_TRAINING_SECTIONS: readonly { label: string; href: string }[] = [
+  { label: "DNC", href: "/dnc" },
+  { label: "Plan Anual", href: "/plan-anual" },
+]
+
 /**
  * "Ideas de mejora" en la barra lateral: un renglón que abre una captura mínima junto a él
- * (qué mejorarías y, opcional, dónde). Cualquiera puede enviar; la lista la revisa quien
+ * (qué mejorarías y dónde). Cualquiera puede enviar; la lista la revisa quien
  * tiene canReviewIdeas.
  */
 export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassName, iconClassName, onNavigate }: {
@@ -42,15 +47,28 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  // Secciones del espacio actual que la persona puede abrir; propone la página donde está.
-  const secciones = [SECCION_GENERAL, ...new Set(getWorkspaceNavSections(workspace)
-    .flatMap(section => section.items.filter(item => canAccess(item.href)).map(item => item.label)))]
+  const navLeaves = getWorkspaceNavSections(workspace)
+    .flatMap(section => section.items.filter(item => canAccess(item.href)))
+  const extraLeaves = workspace === "training"
+    ? EXTRA_TRAINING_SECTIONS.filter(item => canAccess(item.href))
+    : []
+  const secciones = [
+    SECCION_GENERAL,
+    ...new Set([...navLeaves.map(item => item.label), ...extraLeaves.map(item => item.label)]),
+  ]
+
+  function seccionActual(currentPath: string): string {
+    const extra = extraLeaves.find(item => isActiveRoute(currentPath, item.href))
+    if (extra) return extra.label
+    const activeLeaf = findActiveLeaf(navLeaves, currentPath)
+    if (activeLeaf) return activeLeaf.label
+    return SECCION_GENERAL
+  }
 
   function abrir(next: boolean) {
     if (next) {
-      const actual = getRouteLabel(pathname ?? "")
-      // Propone la página donde está; si no está en la lista, hay que elegirla.
-      setSeccion(secciones.includes(actual) ? actual : "")
+      const propuesta = seccionActual(pathname ?? "")
+      setSeccion(secciones.includes(propuesta) ? propuesta : SECCION_GENERAL)
       setError(null)
     }
     setOpen(next)
@@ -90,8 +108,8 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
       {/* collisionPadding: separado de los bordes de la pantalla. El margen va en el formulario: una
           regla global (globals.css) quita el padding inferior a todo [role="dialog"], y el panel lo es. */}
       <PopoverContent side={side} align="end" sideOffset={8} collisionPadding={16} className="w-80 max-w-[calc(100vw-2rem)] p-0">
-        <form className="grid gap-3 p-4" onSubmit={event => void enviar(event)} noValidate>
-          <div className="grid gap-2">
+        <form className="grid gap-3.5 p-4" onSubmit={event => void enviar(event)} noValidate>
+          <div className="grid gap-2.5">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="idea-texto">¿Qué mejorarías?</Label>
               <span className="text-body-sm tabular-nums text-muted-foreground">{texto.length}/{IDEA_MAX}</span>
@@ -105,7 +123,7 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
             <Label htmlFor="idea-seccion">¿Dónde?</Label>
             <Select value={seccion} onValueChange={value => { setSeccion(value); setError(null) }} disabled={saving}>
               <SelectTrigger id="idea-seccion" aria-invalid={(Boolean(error) && !seccion) || undefined}><SelectValue placeholder="Selecciona una sección" /></SelectTrigger>
-              <SelectContent className="max-h-60">
+              <SelectContent matchTriggerWidth className="max-h-60">
                 {secciones.map(nombre => <SelectItem key={nombre} value={nombre}>{nombre}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -116,14 +134,15 @@ export function IdeaCapture({ workspace, side, triggerClassName, iconBoxClassNam
               <AlertDescription className="text-body-sm">{error}</AlertDescription>
             </Alert>
           )}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pt-0.5">
             {canReviewIdeas && (
-              <Link href={IDEAS_PATH} className="relative touch-target mr-auto inline-flex items-center rounded-sm text-body-sm text-primary hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-                onClick={() => { setOpen(false); onNavigate?.() }}>
-                Ver todas
-              </Link>
+              <Button asChild variant="ghost" size="sm" className="touch-target -ml-2 text-muted-foreground hover:text-foreground">
+                <Link href={IDEAS_PATH} onClick={() => { setOpen(false); onNavigate?.() }}>
+                  Ver todas
+                </Link>
+              </Button>
             )}
-            <Button type="submit" className="ml-auto" disabled={saving} aria-busy={saving || undefined}>
+            <Button type="submit" size="sm" className="touch-target ml-auto" disabled={saving} aria-busy={saving || undefined}>
               {saving && <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}Enviar
             </Button>
           </div>

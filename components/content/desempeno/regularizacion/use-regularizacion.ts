@@ -1,8 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { useRouter } from "next/navigation"
-import { confirm } from "@/components/ui/confirm-dialog"
+import { notify } from "@/lib/notify"
 import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes"
 import { supabase } from "@/lib/supabase/client"
 import {
@@ -15,7 +14,6 @@ import { cargarEvaluacionesVencidas, guardarEvaluacionTardia, type EvaluacionVen
 import { validarEvaluacion, type DesempenoData } from "@/lib/types/desempeno"
 
 export function useRegularizacion(enabled: boolean) {
-  const router = useRouter()
   const [pendientes, setPendientes] = useState<EvaluacionVencida[]>([])
   const [selected, setSelected] = useState<EvaluacionVencida | null>(null)
   const [data, setData] = useState<DesempenoData | null>(null)
@@ -31,7 +29,7 @@ export function useRegularizacion(enabled: boolean) {
 
   const confirmarSalida = useCallback(async () => {
     if (!dirty) return true
-    return confirm({
+    return notify.confirm({
       title: "Cambios sin guardar",
       description: "Si continúas, se perderá la captura tardía en curso.",
       confirmLabel: "Descartar cambios",
@@ -49,22 +47,9 @@ export function useRegularizacion(enabled: boolean) {
   useEffect(() => {
     if (!dirty) return
     const onBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
-    const onDocumentClick = (event: MouseEvent) => {
-      if (event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return
-      const anchor = (event.target as Element | null)?.closest("a[href]") as HTMLAnchorElement | null
-      if (!anchor || anchor.target === "_blank" || anchor.origin !== window.location.origin || anchor.href === window.location.href) return
-      event.preventDefault()
-      void confirmarSalida().then((accepted) => {
-        if (accepted) router.push(`${anchor.pathname}${anchor.search}${anchor.hash}`)
-      })
-    }
     window.addEventListener("beforeunload", onBeforeUnload)
-    document.addEventListener("click", onDocumentClick, true)
-    return () => {
-      window.removeEventListener("beforeunload", onBeforeUnload)
-      document.removeEventListener("click", onDocumentClick, true)
-    }
-  }, [dirty, confirmarSalida, router])
+    return () => window.removeEventListener("beforeunload", onBeforeUnload)
+  }, [dirty])
 
   const reload = useCallback(async () => {
     setLoading(true)

@@ -97,11 +97,11 @@ export function StatusBadge({
         )}
         aria-hidden="true"
       />
-      <span className="truncate">{label}</span>
+      <span className="truncate tabular-nums">{label}</span>
       {diff != null && diff >= 0 && diff <= URGENCY_THRESHOLDS.warning && (
         <span
           className={cn(
-            "shrink-0 rounded-md px-2 py-1 text-body-sm font-medium",
+            "shrink-0 rounded-md px-2 py-1 text-body-sm font-medium tabular-nums",
             urgency === "critical" ? URGENCY_PILL_BG.critical : URGENCY_PILL_BG.warning,
           )}
         >

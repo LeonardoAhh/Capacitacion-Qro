@@ -65,10 +65,10 @@ export function RegistroPorDiaFormDialog({
         className="sm:max-w-md"
         footer={
           <DialogFooter>
-            <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)} disabled={saving}>
+            <Button type="button" variant="outline" size="sm" className="touch-target" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" form={formId} size="sm" disabled={saving} aria-busy={saving || undefined}>
+            <Button type="submit" form={formId} size="sm" className="touch-target" disabled={saving} aria-busy={saving || undefined}>
               {saving ? "Guardando…" : existing ? "Actualizar" : "Guardar"}
             </Button>
           </DialogFooter>

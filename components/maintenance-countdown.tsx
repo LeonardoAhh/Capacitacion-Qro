@@ -69,12 +69,12 @@ export function MaintenanceCountdown({ deadline }: { deadline: number }) {
   return (
     <div className="grid justify-items-center gap-3">
       {/* El lector de pantalla no anuncia cada segundo (aria-live="off"). */}
-      <dl role="timer" aria-live="off" aria-label="Tiempo estimado restante" className="flex gap-2">
+      <dl role="timer" aria-live="off" aria-label="Tiempo estimado restante" className="flex flex-wrap justify-center gap-2">
         {unidades.map(({ label, seconds, modulo }) => {
           const total = restante === null ? null : Math.floor(restante / seconds)
-          const valor = total === null ? "—" : String(modulo === null ? total : total % modulo).padStart(2, "0")
+          const valor = total === null ? "--" : String(modulo === null ? total : total % modulo).padStart(2, "0")
           return (
-            <div key={label} className="flex min-w-16 flex-col items-center gap-1 rounded-lg border bg-card px-3 py-2">
+            <div key={label} className="flex min-w-16 flex-col items-center gap-1 rounded-md border bg-muted/30 px-3 py-2">
               {/* dt antes que dd (orden válido de <dl>); la etiqueta se ve debajo del número. */}
               <dt className="order-last text-eyebrow uppercase text-muted-foreground">{label}</dt>
               <dd className="text-heading-lg tabular-nums text-foreground"><Digitos value={valor} /></dd>
@@ -82,7 +82,7 @@ export function MaintenanceCountdown({ deadline }: { deadline: number }) {
           )
         })}
       </dl>
-      <p className="text-body-sm text-muted-foreground">
+      <p className="text-body-sm tabular-nums text-muted-foreground">
         Fin estimado · <time dateTime={new Date(deadline).toISOString()} className="text-foreground">{FIN.format(deadline)}</time>
       </p>
     </div>

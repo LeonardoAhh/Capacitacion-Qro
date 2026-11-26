@@ -71,7 +71,7 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
       />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-3 px-4 py-5">
+        <div className="space-y-3 p-(--card-padding)">
           {error && (
             <Alert variant="destructive" className="py-2">
               <AlertCircle className="h-4 w-4" />

@@ -33,7 +33,7 @@ function resolveLoginError(err: unknown): string {
   return LOGIN.error
 }
 
-export default function LoginForm() {
+export default function LoginForm({ titleAs = "h1" }: { titleAs?: "h1" | "h2" }) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -124,7 +124,7 @@ export default function LoginForm() {
 
   return (
     <div className={loginStyles.form}>
-      <LoginWelcome />
+      <LoginWelcome as={titleAs} />
       <form
         onSubmit={handleLogin}
         data-status={submitStatus}

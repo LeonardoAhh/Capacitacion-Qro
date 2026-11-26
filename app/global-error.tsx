@@ -24,28 +24,48 @@ export default function GlobalError({
           display: "grid",
           placeItems: "center",
           fontFamily: "var(--font-sans)",
-          background: "#fafafa",
-          color: "#171717",
+          background: "#f1f1f1",
+          color: "#1c1c1c",
           colorScheme: "light",
           padding: "24px",
         }}
       >
-        <div style={{ maxWidth: 420, width: "100%", textAlign: "center" }}>
+        <div
+          style={{
+            maxWidth: 420,
+            width: "100%",
+            textAlign: "center",
+            background: "#fafafa",
+            border: "1px solid #cccccc",
+            borderRadius: 12,
+            padding: 24,
+          }}
+        >
           <p
             style={{
               fontSize: 13,
-              letterSpacing: "0.08em",
+              fontWeight: 500,
+              lineHeight: "18px",
+              letterSpacing: 0,
               textTransform: "uppercase",
-              color: "#666666",
+              color: "#595959",
               margin: 0,
             }}
           >
-            {error.digest ? `Error ${error.digest}` : "Error crítico"}
+            {error.digest ? `Error #${error.digest}` : "Error crítico"}
           </p>
-          <h1 style={{ fontSize: 22, fontWeight: 700, margin: "12px 0 8px" }}>
+          <h1
+            style={{
+              fontSize: 24,
+              fontWeight: 700,
+              lineHeight: "32px",
+              letterSpacing: "-0.24px",
+              margin: "8px 0",
+            }}
+          >
             No pudimos cargar la aplicación
           </h1>
-          <p style={{ fontSize: 15, color: "#4d4d4d", margin: 0 }}>
+          <p style={{ fontSize: 15, lineHeight: "22px", color: "#595959", margin: 0 }}>
             Intenta recargar la página. Si el problema continúa, cierra sesión y vuelve a entrar.
           </p>
           <button
@@ -53,13 +73,15 @@ export default function GlobalError({
             onClick={reset}
             style={{
               marginTop: 20,
-              padding: "10px 18px",
-              borderRadius: 12,
+              minHeight: 44,
+              padding: "0 16px",
+              borderRadius: 6,
               border: "none",
-              background: "#006aff",
-              color: "#fff",
+              background: "#006ae6",
+              color: "#ffffff",
               fontSize: 15,
               fontWeight: 500,
+              lineHeight: "22px",
               cursor: "pointer",
             }}
           >

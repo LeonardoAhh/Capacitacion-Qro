@@ -2,14 +2,14 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus } from "lucide-react"
+import { Plus, X } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { HeaderSearch } from "@/components/ui/header-search"
-import { TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { FILTER_ALL, FilterMenu } from "@/components/ui/filter-menu"
+import { FILTER_ALL } from "@/components/ui/filter-menu"
 import type { Department, Position } from "@/lib/hooks"
 import { puestoCursosHref } from "@/components/content/plantilla-paths"
 import { cn } from "@/lib/utils"
@@ -49,31 +49,49 @@ export function CapPositionsTab({
 
   useEffect(() => { setPosPage(1) }, [posSearch, selectedDept])
 
+  const hasFilters = posSearch.trim() !== "" || selectedDept !== FILTER_ALL
+  const clearFilters = () => {
+    setPosSearch("")
+    setSelectedDept(FILTER_ALL)
+  }
+
   return (
     <div className="space-y-4">
-      {/* Búsqueda, filtro, "Nuevo puesto" y página en la línea de las pestañas. */}
-      <TabsToolbar>
-        <HeaderSearch
-          label="Buscar puesto"
-          placeholder="Buscar puesto…"
-          value={posSearch}
-          onValueChange={setPosSearch}
-        />
-        <FilterMenu
-          facets={[{
-            id: "departamento", label: "Departamento", value: selectedDept, onChange: setSelectedDept,
-            options: departments.map(d => ({ value: d.id, label: d.name })),
-          }]}
-          onClear={() => setSelectedDept(FILTER_ALL)}
-        />
-        {!isReadOnly && (
-          <Button size="sm" onClick={onNewPosition} aria-label="Nuevo puesto">
-            <Plus aria-hidden="true" />
-            <span className="hidden sm:inline">Nuevo puesto</span>
+      <HeaderSearch
+        label="Buscar puesto"
+        placeholder="Buscar puesto…"
+        value={posSearch}
+        onValueChange={setPosSearch}
+      />
+      {/* Filtro de departamento a la izquierda; "Nuevo puesto" y paginación a la derecha. */}
+      <div className="@container flex flex-wrap items-center gap-2">
+        <Select value={selectedDept} onValueChange={setSelectedDept}>
+          <SelectTrigger className="min-w-0 flex-1 sm:w-52 sm:flex-none" aria-label="Filtrar por departamento">
+            <SelectValue placeholder="Departamento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={FILTER_ALL}>Departamentos</SelectItem>
+            {departments.map(d => (
+              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {hasFilters && (
+          <Button variant="ghost" size="sm" className="touch-target" onClick={clearFilters} aria-label="Limpiar filtros">
+            <X aria-hidden="true" />
+            Limpiar
           </Button>
         )}
-        <CompactPager label="Paginación de puestos" page={safePage} totalPages={totalPages} onPageChange={setPosPage} />
-      </TabsToolbar>
+        <div className="ml-auto flex items-center gap-2">
+          {!isReadOnly && (
+            <Button size="sm" className="touch-target" onClick={onNewPosition} aria-label="Nuevo puesto">
+              <Plus aria-hidden="true" />
+              <span className="hidden @3xl:inline">Nuevo puesto</span>
+            </Button>
+          )}
+          <CompactPager label="Paginación de puestos" page={safePage} totalPages={totalPages} onPageChange={setPosPage} />
+        </div>
+      </div>
 
       {loadingPositions ? (
         <div className="space-y-2" role="status" aria-label="Cargando puestos">
@@ -82,7 +100,7 @@ export function CapPositionsTab({
       ) : filtered.length === 0 ? (
         <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
           {positions.length === 0
-            ? "No hay puestos cargados. Usa la pestaña Importar para cargar datos."
+            ? "Aún no hay puestos registrados."
             : "No se encontraron puestos con ese filtro."}
         </p>
       ) : (
@@ -108,7 +126,7 @@ export function CapPositionsTab({
                       </Link>
                       {dept && <span className="block truncate text-body-sm text-muted-foreground sm:hidden">{dept}</span>}
                     </TableCell>
-                    <TableCell className="hidden truncate text-body-sm text-muted-foreground sm:table-cell">{dept ?? "—"}</TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground sm:table-cell">{dept ?? "-"}</TableCell>
                   </TableRow>
                 )
               })}

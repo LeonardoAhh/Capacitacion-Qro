@@ -1,14 +1,9 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Recontratación — lógica pura para el formato de Autorización de Continuidad
-// de Contrato (RG-REC-048).
-//
-// Reglas de negocio:
-//   • Incidencias: solo el periodo [fecha_ingreso, fecha_ingreso + 90 días].
-//   • Evaluación de desempeño: una evaluación por mes (3 periodos mensuales
-//     a partir de la fecha de ingreso).
-//   • Firmas fijas: Recursos Humanos y Gerente de Planta (catálogo).
-//   • Jefe directo: se detecta automáticamente desde el roster (tabla employees).
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Lógica pura para el formato de Autorización de Continuidad de Contrato (RG-REC-048):
+ * - Incidencias: ventana [fecha_ingreso, fecha_ingreso + 90 días].
+ * - Evaluación de desempeño: 3 periodos mensuales desde la fecha de ingreso.
+ * - Firmas fijas: Recursos Humanos y Gerente de Planta.
+ */
 
 import type { IncidenciaCategory } from '@/lib/hooks/useIncidencias'
 
@@ -89,9 +84,9 @@ export function addMonths(iso: string, months: number): string {
   return new Date(Date.UTC(targetYear, targetMonth, day)).toISOString().split('T')[0]
 }
 
-/** YYYY-MM-DD → DD/MM/YYYY (— si vacío). */
+/** Convierte YYYY-MM-DD a DD/MM/YYYY (- si vacío). */
 export function formatDMY(iso: string | null | undefined): string {
-  if (!iso) return '—'
+  if (!iso) return '-'
   const [y, m, d] = iso.split('-')
   return `${d}/${m}/${y}`
 }

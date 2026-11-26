@@ -7,6 +7,7 @@ import { TableCell, TableRow } from "@/components/ui/table"
 import { type SemestralEmployee, type SemestralDeptGroup } from "@/lib/hooks/useSemestralPendientes"
 import { DepartmentPage } from "./desempeno/department-page"
 import { PendingName, PendingTable } from "./desempeno/pending-table"
+import { numeroLabel } from "./desempeno/pending-presentation"
 
 interface Props {
   loading: boolean
@@ -56,11 +57,12 @@ export default function DesempenoSemestralPendientes({ loading, deptGroups, acti
           return (
             <TableRow key={item.dbId}>
               <TableCell>
-                <PendingName name={item.nombre} detail={[`#${item.numero ?? "—"}`, item.puesto].filter(Boolean).join(" · ")} />
+                <PendingName name={item.nombre} detail={[numeroLabel(item.numero), item.puesto].filter(Boolean).join(" · ")} />
               </TableCell>
               <TableCell><Badge variant={estado.variant} size="sm">{estado.label}</Badge></TableCell>
               <TableCell className="hidden text-right text-label-sm tabular-nums text-foreground sm:table-cell">
-                {item.estado === "completado" ? `${item.calificacion}%` : "—"}
+                {/* Sin calificación la celda queda vacía; el estado ya lo explica. */}
+                {item.estado === "completado" ? `${item.calificacion}%` : <span className="sr-only">Sin calificación</span>}
               </TableCell>
             </TableRow>
           )

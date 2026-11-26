@@ -3,27 +3,23 @@
 import { useEffect, useRef, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { WifiOff } from "lucide-react"
+import { useAppReducedMotion } from "@/components/app-transition"
 import { notify } from "@/lib/notify"
 
 /**
- * Global connection indicator.
- *
- *  - Toast "Sin conexión" when the browser drops network (debounced 1.5s so
- *    quick blips don't flicker).
- *  - Toast success "Conexión restablecida" when the network returns.
- *  - Persistent badge pinned top-right while offline so the user knows why a
- *    query might be failing even after the toast auto-dismisses.
- *
- * Mounted once in the root layout.
+ * Indicador global de conexión:
+ * - Toast "Sin conexión" cuando cae la red (con debounce de 1.5s para evitar parpadeos).
+ * - Toast "Conexión restablecida" cuando vuelve.
+ * - Insignia fija arriba al centro mientras no hay red.
  */
 export function ConnectionStatus() {
   const [offline, setOffline] = useState(false)
+  const reducedMotion = useAppReducedMotion()
   const offlineToast = useRef<string | number | null>(null)
   const wasOnline = useRef<boolean>(true)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    // Initial state — SSR would default to online; update after mount.
     wasOnline.current = navigator.onLine
     setOffline(!navigator.onLine)
 
@@ -72,14 +68,14 @@ export function ConnectionStatus() {
         <motion.div
           role="status"
           aria-live="polite"
-          initial={{ opacity: 0, y: -8 }}
+          initial={reducedMotion ? false : { opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
+          exit={reducedMotion ? undefined : { opacity: 0, y: -8 }}
+          transition={{ duration: reducedMotion ? 0 : 0.18 }}
           className="pointer-events-none fixed left-1/2 top-[max(env(safe-area-inset-top),0.75rem)] z-[60] -translate-x-1/2"
         >
-          <div className="pointer-events-auto flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-body-sm font-medium text-foreground shadow-[0_2px_2px_hsl(0_0%_0%/0.04),0_8px_16px_-4px_hsl(0_0%_0%/0.10)]">
-            <WifiOff className="size-3.5 text-warning-deep" aria-hidden />
+          <div className="pointer-events-auto flex items-center gap-2 rounded-md border border-border bg-card px-3 py-1.5 text-body-sm font-medium text-foreground shadow-(--floating-shadow)">
+            <WifiOff className="size-3.5 text-warning-deep" aria-hidden="true" />
             <span>Sin conexión</span>
           </div>
         </motion.div>

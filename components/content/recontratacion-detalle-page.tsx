@@ -26,7 +26,7 @@ const PANEL = "overflow-x-auto rounded-xl border border-border bg-card"
 const TABLE = "[&_td]:px-3 [&_td]:py-2 [&_th]:h-(--table-head-height) [&_th]:px-3 [&_th]:text-body-sm"
 
 function Vacio() {
-  return <span className="text-muted-foreground" aria-label="Sin valor">—</span>
+  return <span className="text-muted-foreground" aria-label="Sin valor">-</span>
 }
 
 function RecomendacionBadge({ data }: { data: RecontratacionPrintData }) {
@@ -77,9 +77,9 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
 
   if (estado.status === "missing") {
     return (
-      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
+      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
         <p className="text-body-md text-foreground">{error ?? "No se encontró el registro."}</p>
-        <Button asChild variant="outline" size="sm"><Link href="/recontratacion">Volver a recontratación</Link></Button>
+        <Button asChild variant="outline" size="sm" className="touch-target"><Link href="/recontratacion">Volver a recontratación</Link></Button>
       </div>
     )
   }
@@ -95,7 +95,7 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
         </div>
         <div className="flex items-center gap-3">
           <RecomendacionBadge data={data} />
-          <Button type="button" size="sm" onClick={() => setImprimiendo(true)}>
+          <Button type="button" size="sm" className="touch-target" onClick={() => setImprimiendo(true)}>
             <Printer aria-hidden="true" />Imprimir formato
           </Button>
         </div>
@@ -103,13 +103,13 @@ export function RecontratacionDetallePage({ numero }: { numero: string }) {
 
       <section aria-labelledby="reco-datos" className="grid gap-3">
         <h3 id="reco-datos" className={SECTION_TITLE}>Datos generales</h3>
-        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-4 dense:gap-y-3 dense:p-3 sm:grid-cols-3">
-          <Dato label="Departamento" value={data.departamento || "—"} />
-          <Dato label="Turno" value={data.turno || "—"} />
-          <Dato label="Jefe directo" value={data.jefeDirecto || "—"} />
+        <dl className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-xl border border-border bg-card p-(--card-padding) dense:gap-y-3 sm:grid-cols-3">
+          <Dato label="Departamento" value={data.departamento || "-"} />
+          <Dato label="Turno" value={data.turno || "-"} />
+          <Dato label="Jefe directo" value={data.jefeDirecto || "-"} />
           <Dato label="Fecha de ingreso" value={formatDate(data.fechaIngresoISO)} />
           <Dato label="Término de contrato" value={formatDate(data.terminoContratoISO)} />
-          <Dato label="RG-REC-048" value={data.rgEntregado || "—"} />
+          <Dato label="RG-REC-048" value={data.rgEntregado || "-"} />
         </dl>
       </section>
 

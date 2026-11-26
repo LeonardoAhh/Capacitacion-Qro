@@ -1,10 +1,15 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import { usePathname } from "next/navigation"
 import { AnimatePresence } from "framer-motion"
 import { AppTransition } from "@/components/app-transition"
 import { LOGIN_PATH } from "@/lib/navigation"
+
+/** Tiempo mínimo en pantalla para evitar un parpadeo cuando el cierre local es instantáneo. */
+const MIN_VISIBLE_MS = 450
+/** Respaldo por si la navegación a /login se interrumpe. */
+const MAX_VISIBLE_MS = 6000
 
 interface SignOutContextValue {
   signingOut: boolean
@@ -14,16 +19,21 @@ interface SignOutContextValue {
 const SignOutContext = createContext<SignOutContextValue | null>(null)
 
 export function SignOutProvider({ children }: { children: ReactNode }) {
-  const [signingOut, setSigningOut] = useState(false)
+  const [desde, setDesde] = useState<number | null>(null)
   const pathname = usePathname()
+  const signingOut = desde !== null
+
+  const setSigningOut = useCallback((next: boolean) => {
+    setDesde(current => (next ? (current ?? Date.now()) : null))
+  }, [])
 
   useEffect(() => {
-    if (pathname === LOGIN_PATH) {
-      // The global transition must remain mounted until navigation reaches login.
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSigningOut(false)
-    }
-  }, [pathname])
+    if (desde === null) return
+    const transcurrido = Date.now() - desde
+    const espera = pathname === LOGIN_PATH ? MIN_VISIBLE_MS - transcurrido : MAX_VISIBLE_MS - transcurrido
+    const timer = window.setTimeout(() => setDesde(null), Math.max(0, espera))
+    return () => window.clearTimeout(timer)
+  }, [desde, pathname])
 
   return (
     <SignOutContext.Provider value={{ signingOut, setSigningOut }}>

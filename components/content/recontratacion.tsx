@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, BarChart3 } from "lucide-react"
+import { AlertCircle } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHeader } from "@/components/ui/table"
@@ -81,7 +81,7 @@ export default function RecontratacionContent() {
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-4 dense:gap-3">
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="size-4" aria-hidden="true" />
@@ -101,13 +101,12 @@ export default function RecontratacionContent() {
       />
 
       {!loading && filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card py-12 text-muted-foreground md:py-16" role="status">
-          <BarChart3 className="size-8 opacity-25" aria-hidden="true" />
+        <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-border bg-card p-(--card-padding) py-10 text-muted-foreground" role="status">
           <p className="text-center text-body-md">
             {hasFilters ? "Sin resultados para los filtros aplicados." : "No hay empleados de nuevo ingreso."}
           </p>
           {hasFilters && (
-            <Button variant="outline" size="sm" onClick={clearFilters}>
+            <Button variant="outline" size="sm" className="touch-target" onClick={clearFilters}>
               Quitar filtros
             </Button>
           )}

@@ -37,8 +37,8 @@ export interface NavLeaf {
 export interface NavSection {
   label: string
   items: NavLeaf[]
-  /** Se muestra al inicio del menú, en el orden declarado (sin ordenar alfabéticamente). */
-  pinned?: boolean
+  /** Con título colapsable; sin él, las rutas van sueltas al inicio del menú. */
+  collapsible?: boolean
 }
 
 export type WorkspaceId = "training" | "safety"
@@ -58,49 +58,46 @@ export const ASSIGNMENTS_PATH = "/asignaciones"
 export const MOBILE_NAV_ID = "workspace-mobile-navigation"
 export const DESKTOP_NAV_ID = "workspace-desktop-navigation"
 
+// El menú respeta el orden de las secciones; dentro de cada grupo colapsable las
+// rutas se ordenan alfabéticamente al mostrarse. Cada rol ve las rutas que puede
+// abrir (lib/constants/roles); un grupo sin rutas visibles no se muestra.
 export const NAV_SECTIONS: NavSection[] = [
   {
     label: "Inicio",
-    pinned: true,
     items: [
       { label: "Inicio", href: HOME_PATH, icon: LayoutDashboard },
       { label: "Kanban", href: TRAINING_WORKSPACE_PATH, icon: SquareKanban },
     ],
   },
   {
-    // Fijas y en orden de flujo: evaluar, lo que falta y lo ya hecho. Cada rol ve
-    // las que puede abrir (lib/constants/roles); el evaluador, las dos primeras.
     label: "Desempeño",
-    pinned: true,
+    collapsible: true,
     items: [
       { label: DESEMPENO.pages.evaluation.title, href: DESEMPENO.routes.home, icon: SquarePen },
       { label: DESEMPENO.pages.pending.title, href: DESEMPENO.routes.pending, icon: ClipboardList },
       { label: DESEMPENO.pages.saved.title, href: DESEMPENO.routes.saved, icon: FolderOpen },
       { label: DESEMPENO.pages.objectives.title, href: DESEMPENO.routes.objectives, icon: Target },
-    ],
-  },
-  {
-    label: "Personal",
-    items: [
-      { label: "Nuevos Empleados", href: "/ingresos", icon: UserPlus },
-      { label: "Recontratación", href: "/recontratacion", icon: UserRoundCog },
-      { label: "Cumpleaños", href: "/cumpleanos", icon: Cake },
+      { label: "Compromisos", href: "/seguimiento", icon: Handshake },
+      { label: "Cumplimiento", href: "/cumplimiento", icon: BadgeCheck },
     ],
   },
   {
     label: "Capacitación",
+    collapsible: true,
     items: [
+      { label: "Nuevos Empleados", href: "/ingresos", icon: UserPlus },
       { label: "Plantilla", href: "/plantilla", icon: UsersRound },
-      { label: "Categorías", href: "/promociones", icon: Tags },
-      { label: "Exámenes", href: "/examenes", icon: ClipboardPenLine },
       { label: "Matriz de Habilidades", href: "/matriz", icon: TableProperties },
+      { label: "Categorías", href: "/promociones", icon: Tags },
+      { label: "Recontratación", href: "/recontratacion", icon: UserRoundCog },
+      { label: "Exámenes", href: "/examenes", icon: ClipboardPenLine },
     ],
   },
   {
-    label: "Seguimiento de desempeño",
+    label: "Motivacional",
+    collapsible: true,
     items: [
-      { label: "Cumplimiento", href: "/cumplimiento", icon: BadgeCheck },
-      { label: "Compromisos", href: "/seguimiento", icon: Handshake },
+      { label: "Cumpleaños", href: "/cumpleanos", icon: Cake },
     ],
   },
 ]
@@ -108,7 +105,6 @@ export const NAV_SECTIONS: NavSection[] = [
 export const SAFETY_NAV_SECTIONS: NavSection[] = [
   {
     label: "Safe Walk",
-    pinned: true,
     items: [
       { label: "Safe Walk", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
       { label: "Occupational Health", href: OCCUPATIONAL_HEALTH_PATH, icon: HeartPulse },

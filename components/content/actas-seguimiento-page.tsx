@@ -30,10 +30,6 @@ import { cn } from "@/lib/utils"
 const PAGE_SIZE = 9
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
 function sentenceCase(value: string): string {
   return value.charAt(0) + value.slice(1).toLocaleLowerCase("es-MX")
 }
@@ -66,8 +62,8 @@ function revision(acta: ActaSeguimiento) {
 
 function RevisionFecha({ acta }: { acta: ActaSeguimiento }) {
   const { tone, label } = revision(acta)
-  if (!acta.fecha_seguimiento) return <span className="text-muted-foreground">—</span>
-  return <span className={tone}>
+  if (!acta.fecha_seguimiento) return <span className="text-muted-foreground">-</span>
+  return <span className={cn("tabular-nums", tone)}>
     <time dateTime={acta.fecha_seguimiento}>{formatDate(acta.fecha_seguimiento)}</time>
     {label && <span className="sr-only"> ({label})</span>}
   </span>
@@ -76,10 +72,6 @@ function RevisionFecha({ acta }: { acta: ActaSeguimiento }) {
 function EstatusBadge({ estatus }: { estatus: ActaEstatus }) {
   return <Badge variant={estatus === "CERRADO" ? "secondary" : "outline"} size="sm" className="whitespace-nowrap">{sentenceCase(estatus)}</Badge>
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Formulario
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface FormState {
   fecha: string
@@ -101,10 +93,6 @@ function EstatusSelect({ id, value, onChange, label }: { id?: string; value: Act
   </Select>
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Detalle
-// ─────────────────────────────────────────────────────────────────────────────
-
 function ActaDetalle({ acta, canEdit, canDelete, onClose, onChangeEstatus, onDelete }: {
   acta: ActaSeguimiento
   canEdit: boolean
@@ -120,7 +108,7 @@ function ActaDetalle({ acta, canEdit, canDelete, onClose, onChangeEstatus, onDel
       <dl className="grid grid-cols-2 gap-4">
         <div>
           <dt className="text-label-sm text-muted-foreground">Fecha</dt>
-          <dd className="text-body-md text-foreground">{formatDate(acta.fecha)}</dd>
+          <dd className="text-body-md tabular-nums text-foreground">{formatDate(acta.fecha)}</dd>
         </div>
         <div>
           <dt className="text-label-sm text-muted-foreground">Revisión</dt>
@@ -148,10 +136,6 @@ function ActaDetalle({ acta, canEdit, canDelete, onClose, onChangeEstatus, onDel
     </div>
   </ResponsiveShell>
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Página
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface ActasSeguimientoPageProps {
   numeroEmpleado: string
@@ -185,8 +169,6 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
       .then(({ data }) => { if (active) setNombreEmpleado(data?.nombre ?? null) })
     return () => { active = false }
   }, [load, numeroEmpleado])
-
-  // ── Handlers ──────────────────────────────────────────────────────────────
 
   const closeForm = () => { setShowForm(false); setFormError(null) }
 
@@ -240,7 +222,6 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
     }
   }
 
-  // ── Derivados ─────────────────────────────────────────────────────────────
   const vencidos = records.filter(r => isVencido(r.fecha_seguimiento) && r.estatus !== "CERRADO").length
   const totalPages = Math.max(1, Math.ceil(records.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -254,12 +235,12 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <div className="min-w-0">
             {nombreEmpleado ? <p className="truncate text-label-sm text-foreground">{nombreEmpleado}</p> : <Skeleton className="mb-1 h-4 w-48" />}
-            <p className="text-body-sm text-muted-foreground">#{numeroEmpleado}</p>
+            <p className="text-body-sm tabular-nums text-muted-foreground">#{numeroEmpleado}</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            {vencidos > 0 && <Badge variant="destructive" size="sm">{vencidos} {vencidos === 1 ? "revisión vencida" : "revisiones vencidas"}</Badge>}
+            {vencidos > 0 && <Badge variant="destructive" size="sm" className="tabular-nums">{vencidos} {vencidos === 1 ? "revisión vencida" : "revisiones vencidas"}</Badge>}
             {canCapturePlantilla && (
-              <Button type="button" size="sm" onClick={() => { setForm(blankForm()); setFormError(null); setShowForm(true) }}>
+              <Button type="button" size="sm" className="touch-target" onClick={() => { setForm(blankForm()); setFormError(null); setShowForm(true) }}>
                 <Plus aria-hidden="true" /> Nuevo registro
               </Button>
             )}
@@ -302,11 +283,11 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
                         className="block w-full truncate rounded-sm text-left text-label-sm text-foreground focus-visible:outline-2 focus-visible:outline-ring">
                         {acta.descripcion || "Sin descripción"}
                       </button>
-                      <span className="block truncate text-body-sm text-muted-foreground sm:hidden">
+                      <span className="block truncate text-body-sm tabular-nums text-muted-foreground sm:hidden">
                         {formatDate(acta.fecha)}{acta.fecha_seguimiento && <> · Revisión <RevisionFecha acta={acta} /></>}
                       </span>
                     </TableCell>
-                    <TableCell className="hidden text-body-sm text-muted-foreground sm:table-cell">
+                    <TableCell className="hidden text-body-sm tabular-nums text-muted-foreground sm:table-cell">
                       <time dateTime={acta.fecha}>{formatDate(acta.fecha)}</time>
                     </TableCell>
                     <TableCell className="hidden text-body-sm sm:table-cell"><RevisionFecha acta={acta} /></TableCell>

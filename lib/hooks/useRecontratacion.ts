@@ -13,14 +13,12 @@ import {
   JEFES_DE_AREA_POR_DEPARTAMENTO,
   normalizeDepartamento,
 } from '@/lib/catalogo'
+import { UMBRAL_CALIFICACION_APROBATORIA } from '@/lib/types/desempeno'
 import type {
   RecontratacionPrintData,
   IncidenciaMesRow,
   EvaluacionRow,
 } from '@/components/content/recontratacion-print'
-
-/** Umbral de calificación aprobatoria; por debajo se asume plan de seguimiento. */
-const APROBATORIA = 7
 
 /**
  * Jefe de área por departamento, con la llave normalizada (sin acentos, minúsculas)
@@ -34,7 +32,7 @@ const JEFE_POR_DEPTO_NORM: Record<string, string> = Object.fromEntries(
 
 /**
  * Detecta el jefe directo de un empleado. Fuente de verdad: catalogo
- * (`JEFES_DE_AREA_POR_DEPARTAMENTO` por departamento) — así actualizar el
+ * (`JEFES_DE_AREA_POR_DEPARTAMENTO` por departamento), así actualizar el
  * catálogo refleja el cambio en todos los formatos sin tocar la base.
  * Si el departamento no está en catalogo, cae a `employees.jefe_directo`
  * (por número), luego a `jefe_area` del registro, y por último "#N/D".
@@ -64,10 +62,10 @@ export async function detectarJefeDirecto(
   return jefeAreaFallback || '#N/D'
 }
 
-/** Deriva el plan de seguimiento a partir de la calificación. */
+/** Deriva el plan de seguimiento a partir de la calificación (escala 0 a 100). */
 function planSeguimiento(calificacion: number | null): string {
   if (calificacion == null) return ''
-  return calificacion < APROBATORIA ? 'SÍ' : 'NO'
+  return calificacion < UMBRAL_CALIFICACION_APROBATORIA ? 'SÍ' : 'NO'
 }
 
 /** Ensambla los datos del formato a partir de un registro de nuevo ingreso. */

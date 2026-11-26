@@ -65,12 +65,12 @@ export function RecontratacionPrintDialog({ numero, nombre, data, onClose }: {
     <>
       <ResponsiveShell open={!documento} onClose={onClose} size="sm" title="Imprimir formato">
         <ModalHeader title="Imprimir formato" subtitle={`${nombre} · No. ${numero}`} onClose={onClose} />
-        <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+        <div className="grid min-h-0 gap-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 dense:gap-4 dense:px-4 dense:py-4">
           <ChoiceToggle id="reco-rg" label="RG-REC-048 requisitado y entregado" value={opciones.rg} options={RESPUESTAS_FORMATO}
             onChange={rg => cambiar({ rg })} />
           <ChoiceToggle id="reco-autoriza" label="¿Autoriza contrato indeterminado?" value={opciones.autoriza} options={RESPUESTAS_FORMATO}
             onChange={autoriza => cambiar({ autoriza })} />
-          <label className="flex min-h-11 cursor-pointer items-center gap-3 text-body-md text-foreground">
+          <label className="flex min-h-(--control-height) cursor-pointer items-center gap-3 text-body-md text-foreground">
             <Checkbox checked={opciones.observacion} onCheckedChange={checked => cambiar({ observacion: checked === true })} />
             Mostrar «El área no entregó» en evaluaciones sin calificación
           </label>

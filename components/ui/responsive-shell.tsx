@@ -89,7 +89,7 @@ export function ModalFooter({
             size="sm"
             onClick={secondaryAction.onClick}
             disabled={saving || secondaryAction.disabled}
-            className="w-full sm:w-auto"
+            className="touch-target w-full sm:w-auto"
           >
             {secondaryAction.icon}
             {secondaryAction.label}
@@ -98,7 +98,7 @@ export function ModalFooter({
       </div>
       <div className="flex items-center gap-2 [&>*]:flex-1 sm:[&>*]:flex-none">
         {onCancel && (
-          <Button type="button" variant="outline" size="sm" onClick={onCancel} disabled={saving || cancelDisabled}>
+          <Button type="button" variant="outline" size="sm" className="touch-target" onClick={onCancel} disabled={saving || cancelDisabled}>
             {cancelLabel}
           </Button>
         )}
@@ -110,7 +110,7 @@ export function ModalFooter({
             onClick={onConfirm}
             disabled={saving || confirmDisabled}
             aria-busy={saving || undefined}
-            className={confirmWarningClasses}
+            className={cn("touch-target", confirmWarningClasses)}
           >
             {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : confirmIcon}
             {confirmLabel}

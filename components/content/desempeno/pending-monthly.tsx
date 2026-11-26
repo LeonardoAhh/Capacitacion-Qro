@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { DepartmentPage } from "./department-page";
 import { DetailModal } from "./pending-detail";
 import { PendingName, PendingTable } from "./pending-table";
+import { numeroLabel } from "./pending-presentation";
 
 interface MensualProps {
   loading: boolean;
@@ -104,7 +105,7 @@ export function VistaMensual({ loading, deptGroups, totalEmployees, activeTab, d
               <button type="button" aria-haspopup="dialog" aria-label={`Ver evaluaciones de ${item.nombre}`}
                 onClick={event => { event.stopPropagation(); onSelectId(item.dbId); }}
                 className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                <PendingName name={item.nombre} detail={`#${item.numero ?? "—"}`} />
+                <PendingName name={item.nombre} detail={numeroLabel(item.numero)} />
               </button>
             </TableCell>
             <TableCell className="text-right">

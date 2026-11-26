@@ -66,7 +66,7 @@ export function CapNewCourseDialog({ open, saving, onClose, onSave }: CapNewCour
       />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-4 px-4 py-5 sm:px-6 sm:py-6">
+        <div className="space-y-4 p-(--card-padding)">
           <div className="space-y-1.5">
             <Label htmlFor={nameId}>Nombre del curso</Label>
             <Input

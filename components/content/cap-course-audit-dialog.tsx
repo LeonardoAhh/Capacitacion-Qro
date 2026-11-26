@@ -1,13 +1,11 @@
 "use client"
 
 import { useState, useMemo } from "react"
-import { Check, ChevronsUpDown, Download, FileSpreadsheet, Search, Users } from "lucide-react"
+import { Check, ChevronsUpDown, Download, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { ResponsiveShell } from "@/components/ui/responsive-shell"
-import { RedesignModalHeader } from "@/components/redesign/modal-header"
-import { RedesignModalFooter } from "@/components/redesign/modal-footer"
+import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import type { Course, Employee, EmployeeCourse } from "@/lib/hooks"
 import { getLatestEmployeeCourseAttempts, normalizeCourseName } from "@/lib/hooks/useCapacitacion"
 
@@ -81,8 +79,8 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
       return {
         empleadoId: record.employee_id,
         nombre: emp?.nombre || "Empleado Desconocido",
-        puesto: emp?.puesto || "—",
-        numero: emp?.numero || "—",
+        puesto: emp?.puesto || "-",
+        numero: emp?.numero || "-",
         calificacion,
         fecha,
         estado: courseStatus(calificacion),
@@ -125,8 +123,8 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
           nombre: row.nombre,
           puesto: row.puesto,
           curso: selectedCourseName,
-          fecha: row.fecha ? row.fecha.split('-').reverse().join('/') : '—',
-          calif: row.calificacion != null ? String(row.calificacion) : '—',
+          fecha: row.fecha ? row.fecha.split('-').reverse().join('/') : '-',
+          calif: row.calificacion != null ? String(row.calificacion) : '-',
           estado: row.estado.toUpperCase()
         })
       })
@@ -150,19 +148,17 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
     <ResponsiveShell
       open={open}
       onClose={() => onOpenChange(false)}
-      maxWidth="sm:max-w-xl"
-      mobileVariant="dialog"
+      size="sm"
       title="Exportar auditoría"
     >
-      <RedesignModalHeader
+      <ModalHeader
         title="Exportar auditoría de curso"
-        icon={<FileSpreadsheet className="h-5 w-5 text-muted-foreground" />}
         onClose={() => onOpenChange(false)}
       />
 
-      <div className="overflow-y-auto p-5 sm:p-(--card-padding) space-y-6 dense:space-y-4 bg-card">
+      <div className="space-y-6 overflow-y-auto bg-card p-(--card-padding) dense:space-y-4">
         <div className="space-y-2">
-          <label className="text-body-md font-medium text-ink">Curso</label>
+          <label className="text-body-md font-medium text-foreground">Curso</label>
           <Popover
             open={coursePickerOpen}
             onOpenChange={nextOpen => {
@@ -231,28 +227,28 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
         </div>
 
         {selectedCourseId !== "all" && (
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-border/60 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
-              <Users className="h-5 w-5 shrink-0 text-muted-foreground" />
+              <Users className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0">
-                <p className="truncate text-body-md font-medium text-ink">{selectedCourseName}</p>
+                <p className="truncate text-body-md font-medium text-foreground">{selectedCourseName}</p>
                 <p className="text-body-sm text-muted-foreground">Registros únicos listos para exportar</p>
               </div>
             </div>
-            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-body-md font-medium text-ink">
+            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-body-md font-medium tabular-nums text-foreground">
               {auditData.length.toLocaleString()}
             </span>
           </div>
         )}
       </div>
 
-      <RedesignModalFooter
+      <ModalFooter
         onCancel={() => onOpenChange(false)}
         cancelLabel="Cerrar"
         onConfirm={handleExport}
         saving={isExporting}
         confirmLabel="Descargar Excel"
-        confirmIcon={<Download className="h-4 w-4" />}
+        confirmIcon={<Download className="size-4" aria-hidden="true" />}
         confirmDisabled={auditData.length === 0}
       />
     </ResponsiveShell>

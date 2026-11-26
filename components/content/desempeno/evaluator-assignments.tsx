@@ -20,7 +20,7 @@ export default function EvaluatorAssignments() {
   const checking = roleLoading || userLoading
   const canManage = !checking && canEdit && hasPrivateDeveloperAccess(user?.email)
   const state = useEvaluatorAssignments(canManage)
-  const { accounts, selectedAccount, selectedUserId, setSelectedUserId, loadingAccounts, busy } = state
+  const { accounts, selectedAccount, selectedUserId, selectAccount, loadingAccounts, busy } = state
 
   if (checking) return <p className={NOTE}>Verificando acceso…</p>
   if (!canManage) return <p role="alert" className={NOTE}>No tienes acceso a las asignaciones.</p>
@@ -31,11 +31,14 @@ export default function EvaluatorAssignments() {
         <p className="text-body-sm text-muted-foreground">Define las áreas y personas que puede evaluar cada cuenta compartida.</p>
         {loadingAccounts ? <Skeleton className="h-(--control-height) w-full sm:w-80" />
           : accounts.length === 0 ? <p className={NOTE}>No hay cuentas con rol evaluador.</p>
-          : <Select value={selectedUserId} onValueChange={setSelectedUserId} disabled={busy}>
+          : <Select value={selectedUserId} onValueChange={value => void selectAccount(value)} disabled={busy}>
               <SelectTrigger aria-label="Cuenta evaluadora" className="w-full sm:w-80"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {accounts.map(account => (
-                  <SelectItem key={account.user_id} value={account.user_id}>{account.display_name || account.email} · {account.email}</SelectItem>
+                  <SelectItem key={account.user_id} value={account.user_id}>
+                    {/* Sin nombre visible, el correo solo una vez. */}
+                    {account.display_name ? `${account.display_name} · ${account.email}` : account.email}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>}

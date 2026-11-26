@@ -105,31 +105,14 @@ export default function DesempenoPendientes() {
           </div>
       </div>
 
-        {/* Contenido por vista */}
-        <AnimatePresence mode="wait">
-          {vista === "semestral" ? <motion.div key="semestral" initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{
-            opacity: 1,
-            y: 0
-          }} exit={{
-            opacity: 0,
-            y: -4
-          }} transition={{
-            duration: 0.2,
-            ease: EASE_OUT
-          }}>
-            <DesempenoSemestralPendientes loading={semestrales.loading} deptGroups={semestrales.deptGroups} activeTab={currentSemestralTab} direction={semestralDirection} />
-        </motion.div> : <motion.div key="mensual" initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{
-            opacity: 1,
-            y: 0
-          }} exit={{
-            opacity: 0,
-            y: -4
-          }} transition={{
-            duration: 0.2,
-            ease: EASE_OUT
-          }}>
-            <VistaMensual loading={loading} deptGroups={deptGroups} totalEmployees={totalEmployees} activeTab={currentTab} direction={monthlyDirection} selectedId={currentSelectedId} onSelectId={setSelectedId} />
-        </motion.div>}
+      {/* Contenido por vista: misma entrada y salida para las dos. */}
+      <AnimatePresence mode="wait">
+        <motion.div key={vista} initial={reducedMotion ? false : { opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.2, ease: EASE_OUT }}>
+          {vista === "semestral"
+            ? <DesempenoSemestralPendientes loading={semestrales.loading} deptGroups={semestrales.deptGroups} activeTab={currentSemestralTab} direction={semestralDirection} />
+            : <VistaMensual loading={loading} deptGroups={deptGroups} totalEmployees={totalEmployees} activeTab={currentTab} direction={monthlyDirection} selectedId={currentSelectedId} onSelectId={setSelectedId} />}
+        </motion.div>
       </AnimatePresence>
   </EvaluationWorkspace>;
 }

@@ -161,7 +161,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
         </div>
         <div className="ml-auto flex items-center gap-2">
           {canCapturePlantilla && (
-            <Button ref={newRecordRef} type="button" size="sm" onClick={openForm}>
+            <Button ref={newRecordRef} type="button" size="sm" className="touch-target" onClick={openForm}>
               <Plus aria-hidden="true" />
               Nuevo {config.singular}
             </Button>
@@ -177,7 +177,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
       ) : error ? (
         <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border px-(--card-padding) py-3">
           <p className="text-body-md text-destructive">{error}</p>
-          <Button type="button" variant="outline" size="sm" onClick={() => void load()}>Reintentar</Button>
+          <Button type="button" variant="outline" size="sm" className="touch-target" onClick={() => void load()}>Reintentar</Button>
         </div>
       ) : records.length === 0 ? (
         <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
@@ -211,7 +211,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
                       </TableRow>
                     )}
                     <TableRow>
-                      <TableCell className="text-label-sm text-foreground">
+                      <TableCell className="text-label-sm tabular-nums text-foreground">
                         <time dateTime={recordDate(record)}>Día {record.dia}</time>
                       </TableCell>
                       <TableCell className="text-right text-body-sm tabular-nums text-muted-foreground">{record.cantidad}</TableCell>

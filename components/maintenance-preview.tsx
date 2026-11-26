@@ -19,7 +19,7 @@ export function MaintenancePreview({ seconds }: { seconds: number | null }) {
     <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
       <DialogPrimitive.Trigger asChild>
         {/* La hora de fin se fija al abrir: la cuenta corre desde ese momento. */}
-        <Button type="button" variant="outline" size="sm"
+        <Button type="button" variant="outline" size="sm" className="touch-target"
           onClick={() => setEndsAt(seconds ? new Date(Date.now() + seconds * 1000).toISOString() : null)}>
           <Eye aria-hidden="true" />Ver
         </Button>
@@ -29,7 +29,7 @@ export function MaintenancePreview({ seconds }: { seconds: number | null }) {
           <DialogPrimitive.Title className="sr-only">Vista previa de la pantalla de mantenimiento</DialogPrimitive.Title>
           <MaintenanceScreen endsAt={endsAt} />
           <DialogPrimitive.Close asChild>
-            <Button type="button" variant="outline" size="sm" className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 md:right-8 md:top-8">
+            <Button type="button" variant="outline" size="sm" className="touch-target fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-10 md:right-8 md:top-8">
               <X aria-hidden="true" />Cerrar vista previa
             </Button>
           </DialogPrimitive.Close>

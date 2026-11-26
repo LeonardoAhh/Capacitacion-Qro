@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import Sidebar, { useSidebar } from "@/components/sidebar"
 import Header from "@/components/header"
-import { useRole } from "@/lib/hooks"
+import { useRole, useUser } from "@/lib/hooks"
 import { homeFor } from "@/lib/constants/roles"
 import { WorkspaceContainer } from "@/components/ui/workspace-container"
 import { RadiantLines } from "@/components/ui/radiant-lines"
@@ -12,7 +12,8 @@ import { useChartPalette } from "@/components/use-chart-palette"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
-import { HOME_PATH, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
+import { HOME_PATH, LOGIN_PATH, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
+import { useSignOut } from "@/components/signout-overlay"
 import { useWorkspaceSwitch } from "@/components/workspace-switch-overlay"
 import { HeaderSearchSlot } from "@/components/ui/header-search"
 import { cn } from "@/lib/utils"
@@ -43,6 +44,8 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
   // Lugar del header para la búsqueda de la página (HeaderSearch).
   const [searchSlot, setSearchSlot] = useState<HTMLDivElement | null>(null)
   const desktop = useMediaQuery(DESKTOP_QUERY)
+  const { user, loading: userLoading } = useUser()
+  const { signingOut } = useSignOut()
   const { role, workspaces, canAccess, isEvaluador, loading: roleLoading } = useRole()
   const [storedWorkspace, setWorkspace] = useActiveWorkspace()
   // Un espacio guardado que el rol ya no tiene se cambia por el primero permitido.
@@ -61,15 +64,21 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
     if (pathname !== targetPath) router.push(targetPath)
   }
 
-  // Cada rol solo abre sus rutas (lib/constants/roles); si escribe otra, va a su inicio.
+  // Cada rol solo abre sus rutas (lib/constants/roles); durante el cierre de sesión no redirige al inicio del rol por defecto.
   useEffect(() => {
-    if (roleLoading || allowed) return
-    router.replace(homeFor(role, workspace ?? undefined))
-  }, [allowed, role, roleLoading, router, workspace])
+    if (roleLoading || userLoading || signingOut) return
+    if (!user) {
+      router.replace(LOGIN_PATH)
+      return
+    }
+    if (!allowed) {
+      router.replace(homeFor(role, workspace ?? undefined))
+    }
+  }, [allowed, role, roleLoading, router, signingOut, user, userLoading, workspace])
 
   // Header y barra lateral se muestran ya con el rol resuelto: no necesitan revisar la carga.
   // El espacio de trabajo solo falta al hidratar; al navegar entre páginas ya está.
-  if (roleLoading || !workspace || !allowed) return <AppTransition message="Cargando espacio de trabajo…" />
+  if (roleLoading || userLoading || !user || !workspace || !allowed) return <AppTransition message="Cargando espacio de trabajo…" />
 
   return (
     // La barra de estado la reserva el header en móvil y el contenedor en escritorio (globals.css).

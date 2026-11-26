@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { CATALOGO_ORGANIZACIONAL } from "@/lib/catalogos/organizacion"
 import {
   addAssignment, byName, loadAssignments, loadEvaluatorAccounts, removeAssignment, saveAccountDepartments, searchEmployees,
   type AssignableEmployee, type EvaluatorAccount,
 } from "@/lib/desempeno/evaluator-assignments"
 import { notify } from "@/lib/notify"
+import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes"
 
 const SEARCH_MIN_LENGTH = 2
 const SEARCH_DELAY_MS = 250
@@ -55,6 +56,33 @@ export function useEvaluatorAssignments(enabled: boolean) {
   useEffect(() => {
     setDepartments(selectedAccount?.departamentos ?? [])
   }, [selectedAccount])
+
+  const confirmDiscard = useCallback(() => notify.confirm({
+    title: "Descartar cambios",
+    description: "Las áreas de esta cuenta no se han guardado.",
+    confirmLabel: "Descartar",
+    tone: "warning",
+    size: "xs",
+  }), [])
+
+  // Con áreas sin guardar: la guardia cubre la barra lateral y el header; el navegador
+  // pide confirmación al recargar o cerrar la pestaña.
+  useEffect(() => {
+    if (!hasDepartmentChanges) return
+    const onBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener("beforeunload", onBeforeUnload)
+    const unregister = registerUnsavedChangesGuard(confirmDiscard)
+    return () => {
+      window.removeEventListener("beforeunload", onBeforeUnload)
+      unregister()
+    }
+  }, [confirmDiscard, hasDepartmentChanges])
+
+  const selectAccount = async (userId: string) => {
+    if (userId === selectedUserId) return
+    if (hasDepartmentChanges && !(await confirmDiscard())) return
+    setSelectedUserId(userId)
+  }
 
   useEffect(() => {
     if (!selectedUserId || !enabled) return
@@ -133,7 +161,7 @@ export function useEvaluatorAssignments(enabled: boolean) {
   }
 
   return {
-    accounts, selectedAccount, selectedUserId, setSelectedUserId, loadingAccounts,
+    accounts, selectedAccount, selectedUserId, selectAccount, loadingAccounts,
     departmentOptions, departments, toggleDepartment, hasDepartmentChanges, saveDepartments, saving,
     query, setQuery, searchActive, searching, results,
     assignedNumbers, assignedEmployees, assignedSet, loadingAssignments, pendingNumber, busy,

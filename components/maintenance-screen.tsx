@@ -26,7 +26,7 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
             className="mx-auto grid h-full min-h-dvh w-full max-w-4xl content-center items-center gap-10 px-6 py-12 md:min-h-0 md:grid-cols-2 md:gap-16"
             initial={reducedMotion ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, ease: APP_TRANSITION_EASE }}
+            transition={{ duration: 0.22, ease: APP_TRANSITION_EASE }}
           >
             <div className="grid justify-items-center gap-4 text-center md:justify-items-start md:text-left">
               <p className="text-eyebrow uppercase text-muted-foreground">Mantenimiento</p>
@@ -37,7 +37,7 @@ export function MaintenanceScreen({ endsAt = null }: { endsAt?: string | null })
                 Volverás automáticamente en cuanto termine.
               </p>
             </div>
-            <section aria-label="Tiempo estimado" className="grid justify-items-center gap-4 rounded-xl border bg-card p-6 text-center">
+            <section aria-label="Tiempo estimado" className="grid justify-items-center gap-4 rounded-xl border bg-card p-(--card-padding) text-center">
               <p className="text-eyebrow uppercase text-muted-foreground">Tiempo estimado</p>
               {Number.isFinite(deadline)
                 ? <MaintenanceCountdown deadline={deadline} />

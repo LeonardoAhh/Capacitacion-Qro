@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import Link from "next/link"
-import { BookOpen, Loader2, Plus, X } from "lucide-react"
+import { Loader2, Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -21,7 +21,7 @@ const SECTION_TITLE = "flex items-baseline gap-2 text-eyebrow uppercase text-mut
 
 function PuestoSkeleton() {
   return (
-    <div role="status" aria-label="Cargando cursos del puesto" className="grid gap-6">
+    <div role="status" aria-label="Cargando cursos del puesto" className="grid gap-6 dense:gap-4">
       <div className="grid gap-2">
         <Skeleton className="h-4 w-32" />
         <Skeleton className="h-6 w-72 max-w-full" />
@@ -68,11 +68,11 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
 
   if (estado.status !== "ready") {
     return (
-      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
+      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
         <p className="text-body-md text-foreground">
           {estado.status === "not-found" ? "No se encontró el puesto." : estado.message}
         </p>
-        <Button asChild variant="outline" size="sm"><Link href={PLANTILLA_PATH}>Volver a plantilla</Link></Button>
+        <Button asChild variant="outline" size="sm" className="touch-target"><Link href={PLANTILLA_PATH}>Volver a plantilla</Link></Button>
       </div>
     )
   }
@@ -108,7 +108,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
   }
 
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 dense:gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="grid min-w-0 gap-1">
           {position.department?.name && <p className="text-body-sm text-muted-foreground">{position.department.name}</p>}
@@ -128,8 +128,8 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" disabled={!assignCourseId || saving} aria-busy={saving} onClick={asignar}>
-              {saving ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" />}
+            <Button type="button" disabled={!assignCourseId || saving} aria-busy={saving || undefined} onClick={asignar}>
+              {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Plus aria-hidden="true" />}
               Asignar
             </Button>
           </div>
@@ -141,13 +141,9 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
           Cursos requeridos <span className="tabular-nums">{positionCourses.length}</span>
         </h3>
         {positionCourses.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border py-12 text-center">
-            <BookOpen className="size-5 text-muted-foreground" aria-hidden="true" />
-            <div className="grid gap-1">
-              <p className="text-label-sm text-foreground">Sin cursos asignados</p>
-              <p className="text-body-sm text-muted-foreground">Este puesto todavía no tiene cursos requeridos.</p>
-            </div>
-          </div>
+          <p className="rounded-xl border border-dashed border-border px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+            Este puesto todavía no tiene cursos requeridos.
+          </p>
         ) : (
           <ol className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-card">
             {positionCourses.map(item => (
@@ -158,7 +154,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
                 {!isReadOnly && (
                   <Button type="button" variant="ghost" size="icon" className="shrink-0 text-muted-foreground hover:text-destructive"
                     disabled={removingId === item.id} aria-label={`Quitar ${item.course.name}`} onClick={() => quitar(item)}>
-                    {removingId === item.id ? <Loader2 className="animate-spin" aria-hidden="true" /> : <X aria-hidden="true" />}
+                    {removingId === item.id ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <X aria-hidden="true" />}
                   </Button>
                 )}
               </li>

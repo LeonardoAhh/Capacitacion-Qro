@@ -92,7 +92,7 @@ export function CapNewEmployeeDialog({
       <ModalHeader title="Nuevo empleado" onClose={onClose} />
 
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-4 px-4 py-5 sm:px-6 sm:py-6">
+        <div className="space-y-4 p-(--card-padding)">
           {error && (
             <Alert variant="destructive">
               <AlertCircle aria-hidden="true" />

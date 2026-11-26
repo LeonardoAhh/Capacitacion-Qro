@@ -1,11 +1,12 @@
 import { daysFromToday, formatDate, type NuevoIngreso } from "@/lib/hooks"
+import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno"
 import type { RecontratacionPrintData } from "@/components/content/recontratacion-print"
 
 export type Recomendacion = "viable" | "revisar" | "no-viable" | "sin-datos"
 export type UrgencyLevel = "critical" | "warning" | "expired" | "normal" | "indefinite"
 
 export const URGENCY_THRESHOLDS = { critical: 7, warning: 15 } as const
-export const EVAL_THRESHOLDS = { minPass: 70, goodAvg: 85, maxFaltas: 3 } as const
+export const EVAL_THRESHOLDS = { minPass: UMBRAL_CALIFICACION_APROBATORIA, goodAvg: 85, maxFaltas: 3 } as const
 export const PAGE_SIZE = 9
 
 export function evaluarRecomendacion(data: RecontratacionPrintData): Recomendacion {

@@ -29,6 +29,8 @@ export const loginStyles = {
   page: "bg-background text-foreground",
   frame: "workspace-frame bg-card md:rounded-xl md:border md:border-border",
   container: "flex min-h-dvh w-full flex-1 flex-col bg-card md:min-h-0",
+  /** Tablet y escritorio: presentación y formulario lado a lado. */
+  split: "h-full md:grid md:grid-cols-2",
   promoRegion:
     "flex min-h-dvh w-full items-center justify-center px-4 py-8 safe-top-content safe-bottom-content text-center sm:px-6 md:h-full md:min-h-0 md:py-12",
   formRegion:

@@ -90,7 +90,7 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
       />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-3 px-4 py-5">
+        <div className="space-y-3 p-(--card-padding)">
           {error && (
             <Alert variant="destructive" className="py-2">
               <AlertCircle className="h-4 w-4" />
@@ -105,8 +105,8 @@ export function CapAddCoursesDialog({ employee, open, saving, isReadOnly, course
           ) : (
             <>
               <div className="flex items-center justify-between gap-3">
-                <p className="text-body-md font-medium text-foreground">Cursos <span className="text-muted-foreground">({rows.length})</span></p>
-                <Button type="button" variant="outline" size="sm" onClick={addRow}>
+                <p className="text-body-md font-medium text-foreground">Cursos <span className="tabular-nums text-muted-foreground">({rows.length})</span></p>
+                <Button type="button" variant="outline" size="sm" className="touch-target" onClick={addRow}>
                   <Plus aria-hidden="true" /> Agregar curso
                 </Button>
               </div>

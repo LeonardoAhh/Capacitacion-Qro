@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { CursosRequeridos, HistorialCursos } from "@/components/content/cap-matriz-cursos"
+import { PLANTILLA_PATH } from "@/components/content/plantilla-paths"
 import { useCapacitacion } from "@/lib/hooks"
 import { getLatestEmployeeCourseAttempts } from "@/lib/hooks/useCapacitacion"
 import type { Employee, EmployeeCourse, EmployeeProgress } from "@/lib/hooks"
@@ -23,21 +24,21 @@ const SECTION_TITLE = "flex items-baseline gap-2 text-eyebrow uppercase text-mut
 function Avance({ progress }: { progress: EmployeeProgress }) {
   const porcentaje = Math.round((progress.aprobados / progress.totalRequired) * 100)
   return (
-    <p className="flex items-baseline gap-2 whitespace-nowrap text-body-sm text-muted-foreground">
+    <p className="flex items-baseline gap-2 whitespace-nowrap text-body-sm tabular-nums text-muted-foreground">
       {progress.aprobados} de {progress.totalRequired} aprobados
-      <span className="tabular-nums text-label-sm text-foreground">{porcentaje}%</span>
+      <span className="text-label-sm text-foreground">{porcentaje}%</span>
     </p>
   )
 }
 
 function MatrizSkeleton() {
   return (
-    <div role="status" aria-label="Cargando matriz" className="grid gap-6">
+    <div role="status" aria-label="Cargando matriz" className="grid gap-6 dense:gap-4">
       <div className="grid gap-2">
         <Skeleton className="h-4 w-24" />
         <Skeleton className="h-6 w-72 max-w-full" />
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 dense:gap-4 lg:grid-cols-2">
         {[0, 1].map(item => <Skeleton key={item} aria-hidden="true" className="h-64 rounded-xl" />)}
       </div>
     </div>
@@ -80,18 +81,18 @@ export function CapMatrizPage({ empleadoId }: { empleadoId: string }) {
 
   if (estado.status !== "ready") {
     return (
-      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-4">
+      <div role="alert" className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-(--card-padding)">
         <p className="text-body-md text-foreground">
           {estado.status === "not-found" ? "No se encontró el empleado." : estado.message}
         </p>
-        <Button asChild variant="outline" size="sm"><Link href="/plantilla">Volver a plantilla</Link></Button>
+        <Button asChild variant="outline" size="sm" className="touch-target"><Link href={PLANTILLA_PATH}>Volver a plantilla</Link></Button>
       </div>
     )
   }
 
   const { employee, courses, progress } = estado
   return (
-    <div className="grid gap-6">
+    <div className="grid gap-6 dense:gap-4">
       <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div className="grid min-w-0 gap-1">
           {employee.numero && <p className="text-body-sm tabular-nums text-muted-foreground">Núm. {employee.numero}</p>}
@@ -100,7 +101,7 @@ export function CapMatrizPage({ empleadoId }: { empleadoId: string }) {
         {progress.positionFound && progress.totalRequired > 0 && <Avance progress={progress} />}
       </header>
 
-      <div className="grid items-start gap-6 lg:grid-cols-2">
+      <div className="grid items-start gap-6 dense:gap-4 lg:grid-cols-2">
         <section aria-labelledby="matriz-requeridos" className="grid gap-3">
           <h3 id="matriz-requeridos" className={SECTION_TITLE}>
             Requeridos <span className="tabular-nums">{progress.totalRequired}</span>

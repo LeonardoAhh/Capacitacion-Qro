@@ -14,15 +14,19 @@ export function RegularizacionContenido() {
   const allowed = !roleLoading && !userLoading && Boolean(user) && supervisesEvaluations
   const flow = useRegularizacion(allowed)
 
-  if (roleLoading || userLoading) return <p role="status" className="text-body-sm text-muted-foreground">Cargando acceso…</p>
+  if (roleLoading || userLoading) {
+    return <div className="space-y-2" role="status" aria-label="Cargando acceso">
+      {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+    </div>
+  }
   if (!allowed) return <Alert variant="destructive"><AlertTitle>Acceso restringido</AlertTitle><AlertDescription>Esta captura está disponible para administración y desarrollo.</AlertDescription></Alert>
 
   return <div className="space-y-4">
     {flow.error && <Alert variant="destructive" role="alert"><AlertTitle>No se pudo completar la operación</AlertTitle><AlertDescription>{flow.error}</AlertDescription></Alert>}
     {flow.success && <Alert role="status"><AlertTitle>Captura guardada</AlertTitle><AlertDescription>{flow.success}</AlertDescription></Alert>}
 
-    {flow.selected ? <section aria-label={`Captura tardía de ${flow.selected.nombre}`} className="space-y-6">
-      {flow.loadingDraft ? <p role="status" className="text-body-sm text-muted-foreground">Preparando evaluación…</p> : flow.data && <DesempenoForm
+    {flow.selected ? <section aria-label={`Captura tardía de ${flow.selected.nombre}`} className="space-y-6 dense:space-y-4">
+      {flow.loadingDraft ? <Skeleton className="h-48 w-full rounded-xl" role="status" aria-label="Preparando evaluación" /> : flow.data && <DesempenoForm
         data={flow.data}
         onUpdate={flow.setData}
         onGuardar={flow.guardar}

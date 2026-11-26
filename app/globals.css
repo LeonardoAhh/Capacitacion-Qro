@@ -65,7 +65,8 @@
     --text-label-sm--letter-spacing: 0;
     --text-label-sm--font-weight: 500;
 
-    --text-eyebrow: 0.8125rem;
+    /* Piso de 13px (AGENTS.md §3.2) aunque se elija texto Pequeño. */
+    --text-eyebrow: max(0.8125rem, 13px);
     --text-eyebrow--line-height: 1.125rem;
     --text-eyebrow--font-weight: 500;
 
@@ -77,7 +78,7 @@
     --text-body-md--line-height: 1.375rem;
     --text-body-md--font-weight: 400;
 
-    --text-body-sm: 0.8125rem;
+    --text-body-sm: max(0.8125rem, 13px);
     --text-body-sm--line-height: 1.125rem;
     --text-body-sm--font-weight: 400;
 }
@@ -104,9 +105,10 @@
          * bajas se compactan abajo sin tocar cada página. Una clase de altura
          * o padding puesta en una página sigue mandando sobre estos valores.
          */
-        --control-height: 2.75rem;
+        /* Piso de 44px de hit area aunque se elija texto Pequeño. */
+        --control-height: max(2.75rem, 44px);
         --control-height-sm: 2.25rem;
-        --menu-item-height: 2.75rem;
+        --menu-item-height: max(2.75rem, 44px);
         --table-head-height: 3rem;
         --table-cell-padding-x: 1rem;
         /* Filas de dos líneas (nombre + detalle) compactas: el texto ya da la altura. */
@@ -218,15 +220,16 @@
 
     /*
      * Densidad compacta (variante `dense`): más contenido sin scroll.
-     * Los controles quedan en 36px, por encima del mínimo de 24px de WCAG.
+     * Un paso por medida (4px en controles): los controles quedan en 40px,
+     * por encima del mínimo de 24px de WCAG.
      */
     :root {
         @variant dense {
             --workspace-inset: 1rem;
-            --control-height: 2.25rem;
+            --control-height: 2.5rem;
             --control-height-sm: 2rem;
-            --menu-item-height: 2.25rem;
-            --table-head-height: 2.5rem;
+            --menu-item-height: 2.5rem;
+            --table-head-height: 2.75rem;
             --table-cell-padding-x: 0.75rem;
             --table-cell-padding-y: 0.5rem;
             --card-padding: 1rem;
@@ -736,83 +739,8 @@ input[type="color"]::-webkit-color-swatch {
     }
 }
 
-/* ─── Density: Compact ────────────────────────────────── */
-.density-compact {
-    line-height: 1.35;
-}
-
-/* space-y gaps (the most common layout utility in this project) */
-.density-compact .space-y-6 > :not([hidden]) ~ :not([hidden]) {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(1rem * (1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(1rem * var(--tw-space-y-reverse));
-}
-
-.density-compact .space-y-4 > :not([hidden]) ~ :not([hidden]) {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(0.75rem * (1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(0.75rem * var(--tw-space-y-reverse));
-}
-
-.density-compact .space-y-3 > :not([hidden]) ~ :not([hidden]) {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(0.5rem * (1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(0.5rem * var(--tw-space-y-reverse));
-}
-
-/* gap utilities */
-.density-compact .gap-6 {
-    gap: 1rem;
-}
-
-.density-compact .gap-5 {
-    gap: 0.75rem;
-}
-
-.density-compact .gap-4 {
-    gap: 0.75rem;
-}
-
-.density-compact .gap-3 {
-    gap: 0.5rem;
-}
-
-/* Table cells */
-.density-compact th,
-.density-compact td {
-    padding-top: 0.375rem;
-    padding-bottom: 0.375rem;
-}
-
-/* Sidebar */
-.density-compact .space-y-1 > :not([hidden]) ~ :not([hidden]) {
-    --tw-space-y-reverse: 0;
-    margin-top: calc(0.125rem * (1 - var(--tw-space-y-reverse)));
-    margin-bottom: calc(0.125rem * var(--tw-space-y-reverse));
-}
-
-/* mb / mt overrides for larger margins */
-.density-compact .mb-5 {
-    margin-bottom: 0.75rem;
-}
-
-.density-compact .mb-4 {
-    margin-bottom: 0.5rem;
-}
-
-.density-compact .mt-3 {
-    margin-top: 0.375rem;
-}
-
-.density-compact .mt-4 {
-    margin-top: 0.5rem;
-}
-
-/* Hero dashboard density handled by component Tailwind classes */
-
-
-
-/* ─── Fin Density: Compact ───────────────────────────── */
+/* Densidad compacta: solo cambia los tokens de :root (variante `dense`), igual
+   que la automática; así las dos se ven iguales y el cambio es de un paso. */
 
 /* Reduced Motion — OS setting (native) */
 @media (prefers-reduced-motion: reduce) {

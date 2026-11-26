@@ -1,10 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Download, FileSpreadsheet } from "lucide-react"
-import { ResponsiveShell } from "@/components/ui/responsive-shell"
-import { RedesignModalHeader } from "@/components/redesign/modal-header"
-import { RedesignModalFooter } from "@/components/redesign/modal-footer"
+import { Download } from "lucide-react"
+import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 
 interface CapReportPreviewDialogProps {
   open: boolean
@@ -31,37 +29,35 @@ export function CapReportPreviewDialog({ open, onClose, onDownload }: CapReportP
     <ResponsiveShell
       open={open}
       onClose={() => { if (!isDownloading) onClose() }}
-      maxWidth="sm:max-w-md"
-      mobileVariant="dialog"
+      size="xs"
       title="Descargar reporte general"
     >
-      <RedesignModalHeader
+      <ModalHeader
         title="Descargar reporte general"
-        icon={<FileSpreadsheet className="h-5 w-5 text-muted-foreground" />}
         onClose={() => { if (!isDownloading) onClose() }}
       />
 
-      <div className="p-5 sm:p-6 bg-card">
-        <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/20 p-4">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/60 bg-background">
-            <Download className="h-4 w-4 text-muted-foreground" />
+      <div className="bg-card p-(--card-padding)">
+        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background">
+            <Download className="size-4 text-muted-foreground" aria-hidden="true" />
           </div>
           <div className="space-y-1">
-            <p className="text-body-md font-medium text-ink">Reporte completo de capacitación</p>
-            <p className="text-body-md leading-relaxed text-muted-foreground">
+            <p className="text-body-md font-medium text-foreground">Reporte completo de capacitación</p>
+            <p className="text-body-md text-muted-foreground">
               Se generará una sola hoja con una fila por empleado y curso, conservando únicamente el intento más reciente.
             </p>
           </div>
         </div>
       </div>
 
-      <RedesignModalFooter
+      <ModalFooter
         onCancel={() => { if (!isDownloading) onClose() }}
         cancelLabel="Cancelar"
         onConfirm={handleDownload}
         saving={isDownloading}
         confirmLabel="Descargar Excel"
-        confirmIcon={<Download className="h-4 w-4" />}
+        confirmIcon={<Download className="size-4" aria-hidden="true" />}
       />
     </ResponsiveShell>
   )

@@ -11,7 +11,7 @@ import { dias } from "@/lib/desempeno/pending-status";
 import { estadoVentanaEvaluacion } from "@/lib/desempeno/hitos-nuevo-ingreso";
 import { pendingEvalStatus } from "@/lib/hooks/usePendingEvals";
 import { cn } from "@/lib/utils";
-import { periodoLabel } from "./pending-presentation";
+import { numeroLabel, periodoLabel } from "./pending-presentation";
 
 const SECTION_TITLE = "text-label-sm text-foreground";
 const DATA_LABEL = "text-body-sm text-muted-foreground";
@@ -48,7 +48,7 @@ export function DetailModal({ item, onBack, onEvaluate }: {
       <ChevronLeft aria-hidden="true" />Volver a la lista
     </Button>}
     <DialogHeader>
-      <DialogDescription className="text-body-sm tabular-nums">#{item.numero ?? "—"}</DialogDescription>
+      <DialogDescription className="text-body-sm tabular-nums">{numeroLabel(item.numero)}</DialogDescription>
       <DialogTitle>{item.nombre}</DialogTitle>
     </DialogHeader>
 

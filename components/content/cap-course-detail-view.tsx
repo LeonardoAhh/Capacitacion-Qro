@@ -1,14 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { motion } from "framer-motion"
 import { ArrowLeft, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge, type BadgeProps } from "@/components/ui/badge"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { SearchInput } from "@/components/ui/search-input"
 import { SummaryStrip } from "@/components/ui/summary-strip"
-import { TOOLBAR_SEARCH, TabsToolbar } from "@/components/ui/tabs-toolbar"
+import { TOOLBAR_SEARCH } from "@/components/ui/tabs-toolbar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { getTipoCursoByName } from "@/lib/catalogo"
 import { empleadosAsignadosAlCurso } from "@/lib/capacitacion/course-metrics"
@@ -71,16 +70,9 @@ export function CapCourseDetailView({
   const duration = course.duration_hours != null ? `${course.duration_hours} h` : "Sin duración"
 
   return (
-    <motion.div
-      key="detail-view"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      transition={{ duration: 0.3, ease: "easeInOut" }}
-      className="space-y-4"
-    >
-      {/* Búsqueda de empleados, edición y página en la línea de las pestañas. */}
-      <TabsToolbar>
+    <div className="space-y-4">
+      {/* Búsqueda de empleados a la izquierda; edición y paginación a la derecha. */}
+      <div className="@container flex flex-wrap items-center gap-2">
         <SearchInput
           label="Buscar empleado del curso"
           placeholder="Buscar empleado…"
@@ -88,14 +80,16 @@ export function CapCourseDetailView({
           value={search}
           onValueChange={(value) => { setSearch(value); setPage(1) }}
         />
-        {!isReadOnly && (
-          <Button variant="outline" size="sm" onClick={() => onEdit(course)}>
-            <Pencil aria-hidden="true" />
-            Editar curso
-          </Button>
-        )}
-        <CompactPager label="Paginación de empleados del curso" page={safePage} totalPages={totalPages} onPageChange={setPage} />
-      </TabsToolbar>
+        <div className="ml-auto flex items-center gap-2">
+          {!isReadOnly && (
+            <Button variant="outline" size="sm" className="touch-target" onClick={() => onEdit(course)} aria-label="Editar curso">
+              <Pencil aria-hidden="true" />
+              <span className="hidden @3xl:inline">Editar curso</span>
+            </Button>
+          )}
+          <CompactPager label="Paginación de empleados del curso" page={safePage} totalPages={totalPages} onPageChange={setPage} />
+        </div>
+      </div>
 
       <header className="flex items-start gap-2">
         <Button variant="ghost" size="icon" onClick={onBack} className="shrink-0 text-muted-foreground" aria-label="Volver a cursos">
@@ -129,17 +123,17 @@ export function CapCourseDetailView({
             <TableBody>
               {paginated.map(row => {
                 const meta = ESTADO_META[row.estado]
-                const calificacion = row.calificacion ?? "—"
+                const calificacion = row.calificacion ?? "-"
                 return (
                   <TableRow key={row.id}>
                     <TableCell>
                       <span className="block truncate text-label-sm text-foreground">{row.nombre}</span>
                       <span className="block truncate text-body-sm text-muted-foreground md:hidden">
-                        {row.puesto ?? "—"}
+                        {row.puesto ?? "-"}
                         <span className="sm:hidden"> · {formatDate(row.fecha)} · {calificacion}</span>
                       </span>
                     </TableCell>
-                    <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{row.puesto ?? "—"}</TableCell>
+                    <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{row.puesto ?? "-"}</TableCell>
                     <TableCell className="hidden text-body-sm tabular-nums text-muted-foreground sm:table-cell">{formatDate(row.fecha)}</TableCell>
                     <TableCell className="hidden text-right text-body-sm tabular-nums text-foreground sm:table-cell">{calificacion}</TableCell>
                     <TableCell><Badge variant={meta.variant} size="sm">{meta.label}</Badge></TableCell>
@@ -150,6 +144,6 @@ export function CapCourseDetailView({
           </Table>
         </div>
       )}
-    </motion.div>
+    </div>
   )
 }

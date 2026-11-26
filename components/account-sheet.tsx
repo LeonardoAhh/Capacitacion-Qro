@@ -45,9 +45,10 @@ function Opciones<T extends string>({ label, value, options, onChange }: {
 
 /**
  * Menú de la cuenta en el celular: hoja inferior con todo a la vista (espacio de trabajo,
- * tema, configuración y salir), en lugar de un desplegable con submenús que tapa la navegación.
+ * configuración y salir), en lugar de un desplegable con submenús que tapa la navegación.
+ * El tema vive en Configuración; solo quien no tiene Configuración (evaluador) lo ve aquí.
  */
-export function AccountSheet({ open, onClose, displayName, roleLabel, workspace, onWorkspaceChange, showSettings, onSettings, signingOut, onLogout }: {
+export function AccountSheet({ open, onClose, displayName, roleLabel, workspace, onWorkspaceChange, showSettings, showTheme, onSettings, signingOut, onLogout }: {
   open: boolean
   onClose: () => void
   displayName: string
@@ -55,6 +56,7 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
   workspace: WorkspaceId
   onWorkspaceChange: (workspace: WorkspaceId) => void
   showSettings: boolean
+  showTheme: boolean
   onSettings: () => void
   signingOut: boolean
   onLogout: () => void
@@ -72,7 +74,7 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
             options={WORKSPACE_OPTIONS.map(option => ({ value: option.id, label: option.label, icon: WORKSPACE_ICON[option.id], disabled: !workspaces.includes(option.id) }))}
             onChange={next => { if (next !== workspace) onWorkspaceChange(next) }} />
         )}
-        <Opciones label="Tema" value={themeMode} options={THEME_OPTIONS} onChange={setThemeMode} />
+        {showTheme && <Opciones label="Tema" value={themeMode} options={THEME_OPTIONS} onChange={setThemeMode} />}
         <div className="grid gap-1 border-t pt-3">
           {showSettings && (
             <button type="button" className={ROW} onClick={onSettings}>

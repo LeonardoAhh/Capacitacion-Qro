@@ -24,7 +24,7 @@ export function EvaluatorAreas({ departmentOptions, departments, toggleDepartmen
         <legend className="sr-only">Áreas completas</legend>
         {departmentOptions.map(department => (
           <label key={department}
-            className="flex min-h-(--control-height-sm) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground transition-colors hover:bg-muted has-focus-visible:bg-muted">
+            className="flex min-h-(--control-height) cursor-pointer items-center gap-2 rounded-md px-2 text-body-md text-foreground transition-colors hover:bg-muted has-focus-visible:bg-muted">
             <Checkbox checked={departments.includes(department)} onCheckedChange={checked => toggleDepartment(department, checked === true)} />
             <span className="truncate">{department}</span>
           </label>

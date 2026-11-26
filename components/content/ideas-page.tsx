@@ -1,9 +1,12 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { HeaderSearch } from "@/components/ui/header-search"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
-import { SearchInput } from "@/components/ui/search-input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { aISO, formatFechaCorta } from "@/lib/fechas"
@@ -11,6 +14,7 @@ import { cambiarEstadoIdea, cargarIdeas, ESTADOS_IDEA, type EstadoIdea, type Ide
 import { notify } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 
+const PAGE_SIZE = 10
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 const TODAS = "todas"
 // Día local en que se envió (no el de UTC).
@@ -27,7 +31,7 @@ function EstadoSelect({ idea, onChange }: { idea: Idea; onChange: (estado: Estad
         {ESTADOS_IDEA.map(estado => (
           <SelectItem key={estado.value} value={estado.value}>
             <span className="flex items-center gap-2">
-              <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-full", estado.dot)} />
+              <span aria-hidden="true" className={cn("size-2 shrink-0 rounded-xs", estado.dot)} />
               {estado.label}
             </span>
           </SelectItem>
@@ -39,13 +43,14 @@ function EstadoSelect({ idea, onChange }: { idea: Idea; onChange: (estado: Estad
 
 /**
  * Ideas de mejora del equipo (solo quien tiene canReviewIdeas): una tabla compacta con
- * filtro por estado y búsqueda; el estado se cambia en la misma fila.
+ * filtro por estado, búsqueda en el header y paginación; el estado se cambia en la misma fila.
  */
 export function IdeasPage() {
   const [ideas, setIdeas] = useState<Idea[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [estado, setEstado] = useState<EstadoIdea | typeof TODAS>(TODAS)
   const [busqueda, setBusqueda] = useState("")
+  const [page, setPage] = useState(1)
 
   useEffect(() => {
     let active = true
@@ -54,6 +59,10 @@ export function IdeasPage() {
       .catch(() => { if (active) setLoadError("No se pudieron cargar las ideas.") })
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    setPage(1)
+  }, [estado, busqueda])
 
   // El cambio se ve al instante y se revierte si la base de datos lo rechaza.
   async function cambiarEstado(idea: Idea, estado: EstadoIdea) {
@@ -70,7 +79,7 @@ export function IdeasPage() {
   if (!ideas) {
     return (
       <div role="status" aria-label="Cargando ideas" className="grid gap-4">
-        <Skeleton className="h-11 w-full max-w-md rounded-md" />
+        <Skeleton className="h-(--control-height) w-40 rounded-md" />
         <Skeleton className="h-48 w-full rounded-xl" />
       </div>
     )
@@ -79,25 +88,41 @@ export function IdeasPage() {
   const termino = normalizar(busqueda.trim())
   const visibles = ideas.filter(idea => (estado === TODAS || idea.estado === estado)
     && (!termino || normalizar(`${idea.texto} ${idea.seccion} ${idea.autor}`).includes(termino)))
+  const totalPages = Math.max(1, Math.ceil(visibles.length / PAGE_SIZE))
+  const safePage = Math.min(page, totalPages)
+  const paginadas = visibles.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
+  const hasFilters = estado !== TODAS || busqueda.trim() !== ""
+  const clearFilters = () => {
+    setEstado(TODAS)
+    setBusqueda("")
+  }
 
   return (
-    <div className="grid gap-4">
-      {/* Filtros en una fila; el valor elegido ya describe el filtro. */}
+    <div className="grid gap-4 dense:gap-3">
+      <HeaderSearch label="Buscar ideas" placeholder="Idea, sección o persona…" value={busqueda} onValueChange={setBusqueda} />
+
+      {/* Filtro a la izquierda; conteo y paginación a la derecha. */}
       <div className="flex flex-wrap items-center gap-2">
         <Label htmlFor="ideas-estado" className="sr-only">Estado</Label>
         <Select value={estado} onValueChange={value => setEstado(value as EstadoIdea | typeof TODAS)}>
-          <SelectTrigger id="ideas-estado" className="w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger id="ideas-estado" className="w-36"><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem value={TODAS}>Todos los estados</SelectItem>
+            <SelectItem value={TODAS}>Estados</SelectItem>
             {ESTADOS_IDEA.map(item => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <div className="min-w-0 flex-1 sm:max-w-80">
-          <SearchInput label="Buscar ideas" placeholder="Buscar idea, sección o persona…" value={busqueda} onValueChange={setBusqueda} />
+        {hasFilters && (
+          <Button variant="ghost" size="sm" className="touch-target" onClick={clearFilters} aria-label="Limpiar filtros">
+            <X aria-hidden="true" />
+            Limpiar
+          </Button>
+        )}
+        <div className="ml-auto flex items-center gap-3">
+          <p className="text-body-sm tabular-nums text-muted-foreground" aria-live="polite">
+            {visibles.length} de {ideas.length} {ideas.length === 1 ? "idea" : "ideas"}
+          </p>
+          <CompactPager label="Paginación de ideas" page={safePage} totalPages={totalPages} onPageChange={setPage} />
         </div>
-        <p className="ml-auto text-body-sm tabular-nums text-muted-foreground" aria-live="polite">
-          {visibles.length} de {ideas.length} {ideas.length === 1 ? "idea" : "ideas"}
-        </p>
       </div>
 
       <div className="overflow-hidden rounded-xl border bg-card">
@@ -118,7 +143,7 @@ export function IdeasPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {visibles.map(idea => (
+              {paginadas.map(idea => (
                 <TableRow key={idea.id}>
                   <TableCell className="align-top">
                     <p className="whitespace-pre-wrap break-words text-body-md text-foreground">{idea.texto}</p>

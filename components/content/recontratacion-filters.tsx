@@ -43,7 +43,7 @@ export function RecontratacionFilters({
       </Select>
 
       {hasFilters && (
-        <Button variant="ghost" size="sm" onClick={onClear} aria-label="Limpiar todos los filtros">
+        <Button variant="ghost" size="sm" className="touch-target" onClick={onClear} aria-label="Limpiar todos los filtros">
           <X aria-hidden="true" />
           Limpiar
         </Button>

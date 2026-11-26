@@ -6,9 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { ResponsiveShell } from "@/components/ui/responsive-shell"
-import { RedesignModalHeader } from "@/components/redesign/modal-header"
-import { RedesignModalFooter } from "@/components/redesign/modal-footer"
+import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { TIPOS_CURSOS } from "@/lib/catalogo"
 import type { Course } from "@/lib/hooks"
 
@@ -58,17 +56,17 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
     <ResponsiveShell
       open={open}
       onClose={onClose}
-      maxWidth="sm:max-w-md"
+      size="xs"
       title="Editar curso"
     >
-      <RedesignModalHeader
+      <ModalHeader
         title="Editar curso"
         subtitle="Actualiza nombre, tipo y duración del curso"
         onClose={onClose}
       />
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
-        <div className="space-y-5 px-6 py-6">
+        <div className="space-y-4 p-(--card-padding)">
           <div className="space-y-1.5">
             <Label htmlFor={nameId}>Nombre del curso</Label>
             <Input
@@ -127,7 +125,7 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
           )}
         </div>
       </div>
-      <RedesignModalFooter
+      <ModalFooter
         onCancel={onClose}
         onConfirm={handleConfirm}
         saving={saving}

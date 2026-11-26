@@ -1,17 +1,12 @@
 "use client"
 
 import { useEffect } from "react"
-import Link from "next/link"
 import { AlertCircle, ArrowLeft, RotateCcw } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  StatusCaption, StatusDivider, StatusShell,
-} from "@/components/ui/status-shell"
+import { ErrorState } from "@/components/ui/error-state"
 
 /**
- * Route error boundary. Rendered by Next.js when a segment throws.
- * Shares the StatusShell surface with the maintenance screen so both
- * system states feel like one product (tokens, density, fonts, motion).
+ * Error boundary de rutas: comparte superficie, tipografía y tokens con
+ * 404, sin conexión y mantenimiento.
  */
 export default function RouteError({
   error,
@@ -27,48 +22,20 @@ export default function RouteError({
   const code = error.digest ? `#${error.digest}` : null
 
   return (
-    <>
-      <StatusShell
-        icon={AlertCircle}
-        tone="destructive"
-        eyebrow="Error inesperado"
-        title="Algo salió mal"
-        description="No pudimos mostrar esta sección. Intenta de nuevo; si el problema continúa, recarga la página."
-        labelledBy="error-heading"
-      >
-        {code && (
-          <div className="mt-5 rounded-xl border border-border bg-muted/50 px-4 py-3">
-            <p className="font-sans text-body-sm text-muted-foreground">
-              Código de referencia:{" "}
-              <span className="font-bold text-foreground">{code}</span>
-            </p>
-          </div>
-        )}
-
-        <StatusDivider />
-
-        {/* Actions */}
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <Button onClick={reset} aria-label="Reintentar cargar la sección">
-            <RotateCcw aria-hidden="true" />
-            Reintentar
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/inicio">
-              <ArrowLeft aria-hidden="true" />
-              Ir al inicio
-            </Link>
-          </Button>
-        </div>
-      </StatusShell>
-
-      <p className="sr-only">
-        Si este error persiste, reporta el incidente a Recursos Humanos e incluye el código de referencia.
-      </p>
-
-      <StatusCaption className="fixed inset-x-0 bottom-4 px-4 text-center">
-        Vinoplastic · Planta Querétaro — App Error
-      </StatusCaption>
-    </>
+    <ErrorState
+      icon={AlertCircle}
+      tone="destructive"
+      code="Error inesperado"
+      title="Algo salió mal"
+      description="No pudimos mostrar esta sección. Intenta de nuevo; si el problema continúa, recarga la página."
+      primaryAction={{ label: "Reintentar", icon: RotateCcw, onClick: reset }}
+      secondaryAction={{ label: "Ir al inicio", icon: ArrowLeft, href: "/inicio" }}
+    >
+      {code && (
+        <p className="w-full rounded-md border border-border bg-muted/50 px-3 py-2 text-body-sm tabular-nums text-muted-foreground">
+          Código de referencia: <span className="font-medium text-foreground">{code}</span>
+        </p>
+      )}
+    </ErrorState>
   )
 }

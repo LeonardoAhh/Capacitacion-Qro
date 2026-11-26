@@ -35,9 +35,10 @@ export function isThemeMode(value: string | null): value is ThemeMode {
 }
 
 export const FONT_SIZE_MAP: Record<FontSize, string> = {
-  small: "14px",
+  // Pasos de 1px en la base (±6%): body-md queda en 14 / 15 / 16px.
+  small: "15px",
   medium: "16px",
-  large: "18px",
+  large: "17px",
 }
 
 // localStorage persistence keys. Written/read by both the bootstrap script

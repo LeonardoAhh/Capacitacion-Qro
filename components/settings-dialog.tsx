@@ -9,6 +9,7 @@ import { useUser } from "@/lib/hooks/useUser"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { hasPrivateDeveloperAccess } from "@/lib/auth/private-developer"
 import { cn } from "@/lib/utils"
+import { SECTION_NAV_ACTIVE, SECTION_NAV_ICON, SECTION_NAV_IDLE, SECTION_NAV_ITEM } from "@/components/ui/section-nav-layout"
 import { AppearanceSettings } from "@/components/content/settings/AppearanceSettings"
 import { DeveloperSettings } from "@/components/content/settings/DeveloperSettings"
 import { ProfileSettings } from "@/components/content/settings/ProfileSettings"
@@ -38,15 +39,17 @@ export function SettingsDialog({ open, onOpenChange }: { open: boolean; onOpenCh
         {/* Móvil: una sola línea base compartida por las pestañas. Tablet y escritorio: barra lateral. */}
         <div className="flex shrink-0 items-end gap-2 border-b pl-(--card-padding) pr-2 pt-2 md:flex-col md:items-stretch md:gap-0 md:border-b-0 md:border-r md:bg-muted/30 md:p-2">
           <TabsList aria-label="Secciones de configuración" className="flex-1 justify-start border-b-0 md:flex-none md:flex-col md:items-stretch md:gap-0.5">
-            {secciones.map(({ id, label, icon: Icon }) => (
-              <TabsTrigger key={id} value={id} className={cn(
-                "md:mb-0 md:justify-start md:gap-2 md:rounded-md md:border-b-0 md:px-2",
-                "md:data-[state=active]:bg-background md:data-[state=active]:shadow-sm",
-              )}>
-                <Icon aria-hidden="true" className="hidden size-4 shrink-0 md:block" />
-                {label}
-              </TabsTrigger>
-            ))}
+            {secciones.map(({ id, label, icon: Icon }) => {
+              const current = id === activa.id
+              return (
+                // Lateral: misma fila que los apartados de Plantilla y Exámenes. Móvil: pestaña de línea.
+                <TabsTrigger key={id} value={id}
+                  className={lateral ? cn(SECTION_NAV_ITEM, "justify-start", current ? SECTION_NAV_ACTIVE : SECTION_NAV_IDLE) : undefined}>
+                  {lateral && <Icon aria-hidden="true" className={cn(SECTION_NAV_ICON, current && "text-primary")} />}
+                  {label}
+                </TabsTrigger>
+              )
+            })}
           </TabsList>
           <Button type="button" variant="ghost" size="icon" className="mb-1 shrink-0 md:hidden" onClick={close} aria-label="Cerrar configuración">
             <X aria-hidden="true" />

@@ -60,10 +60,20 @@ export function ConfirmationDialog({
   size = "xs", tone = "default", appearance = "standard", icon, requireInputText, inputValue,
   onInputChange, onCancel, onConfirm,
 }: ConfirmationDialogProps) {
+  const inputRef = React.useRef<HTMLInputElement>(null)
   const styles = TONE_STYLES[tone]
-  const confirmDisabled = Boolean(requireInputText && inputValue !== requireInputText)
+  const normalizedInput = inputValue.trim().toLocaleUpperCase("es-MX")
+  const normalizedTarget = requireInputText?.trim().toLocaleUpperCase("es-MX") ?? ""
+  const confirmDisabled = Boolean(requireInputText && normalizedInput !== normalizedTarget)
   const confirmVariant = tone === "destructive" ? "destructive" : tone === "warning" ? "warning" : "primary"
-  const minimal = appearance === "minimal"
+  const minimal = appearance === "minimal" || Boolean(requireInputText)
+  const isUppercaseTarget = Boolean(requireInputText && requireInputText === normalizedTarget)
+
+  React.useEffect(() => {
+    if (!open || !requireInputText) return
+    const frame = window.requestAnimationFrame(() => inputRef.current?.focus())
+    return () => window.cancelAnimationFrame(frame)
+  }, [open, requireInputText])
 
   return (
     <ResponsiveShell
@@ -86,13 +96,14 @@ export function ConfirmationDialog({
         </div>
         {requireInputText && (
           <div className="mt-4 space-y-2">
-            <Label htmlFor="confirm-required-text" className="text-body-md font-medium text-foreground">
-              Escribe <span className="font-sans text-body-sm font-medium">{requireInputText}</span>
+            <Label htmlFor="confirm-required-text" className="text-body-md text-foreground">
+              Escribe <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-foreground select-all">{requireInputText}</span> para confirmar
             </Label>
             <Input
+              ref={inputRef}
               id="confirm-required-text"
               value={inputValue}
-              onChange={event => onInputChange(event.target.value)}
+              onChange={event => onInputChange(isUppercaseTarget ? event.target.value.toLocaleUpperCase("es-MX") : event.target.value)}
               onKeyDown={event => {
                 if (event.key === "Enter" && !confirmDisabled) {
                   event.preventDefault()
@@ -101,6 +112,8 @@ export function ConfirmationDialog({
               }}
               placeholder={requireInputText}
               autoComplete="off"
+              autoCapitalize={isUppercaseTarget ? "characters" : "off"}
+              spellCheck={false}
             />
           </div>
         )}

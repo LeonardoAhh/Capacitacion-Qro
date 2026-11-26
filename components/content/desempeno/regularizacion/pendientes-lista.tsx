@@ -54,7 +54,7 @@ export function PendientesLista({ items, onSelect }: {
             <TableHead scope="col" className={HEAD}>Empleado</TableHead>
             <TableHead scope="col" className={cn(HEAD, "hidden w-40 md:table-cell")}>Evaluación</TableHead>
             <TableHead scope="col" className={cn(HEAD, "hidden w-32 sm:table-cell")}>Venció</TableHead>
-            <TableHead className="w-32"><span className="sr-only">Acción</span></TableHead>
+            <TableHead scope="col" className="w-32 text-right"><span className="sr-only">Acción</span></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -63,14 +63,14 @@ export function PendientesLista({ items, onSelect }: {
             return <TableRow key={`${item.numero}:${item.periodo}:${item.hito_nuevo_ingreso ?? "planta"}`} className="cursor-pointer" onClick={() => onSelect(item)}>
               <TableCell>
                 <span className="block truncate text-label-sm text-foreground">{item.nombre}</span>
-                <span className="block truncate text-body-sm text-muted-foreground">#{item.numero} · {item.periodo}<span className="md:hidden"> · {tipo}</span></span>
+                <span className="block truncate text-body-sm tabular-nums text-muted-foreground">#{item.numero} · {item.periodo}<span className="md:hidden"> · {tipo}</span></span>
               </TableCell>
               <TableCell className="hidden truncate text-body-sm text-muted-foreground md:table-cell">{tipo}</TableCell>
-              <TableCell className="hidden text-body-sm text-muted-foreground sm:table-cell">
+              <TableCell className="hidden text-body-sm tabular-nums text-muted-foreground sm:table-cell">
                 <time dateTime={item.fecha_limite}>{formatDate(item.fecha_limite)}</time>
               </TableCell>
               <TableCell className="text-right">
-                <Button type="button" size="sm" variant="outline" onClick={event => { event.stopPropagation(); onSelect(item) }}
+                <Button type="button" size="sm" variant="outline" className="touch-target" onClick={event => { event.stopPropagation(); onSelect(item) }}
                   aria-label={`Capturar ${item.hito_nuevo_ingreso ? `${tipo} de ` : ""}${item.periodo} de ${item.nombre}`}>
                   Capturar
                 </Button>

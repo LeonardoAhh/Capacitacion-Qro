@@ -126,7 +126,7 @@ export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="min-w-0">
           {identity ? <p className="truncate text-label-sm text-foreground">{identity.nombre}</p> : <Skeleton className="mb-1 h-4 w-48" />}
-          <p className="truncate text-body-sm text-muted-foreground">
+          <p className="truncate text-body-sm tabular-nums text-muted-foreground">
             #{numeroEmpleado}{identity?.puesto && ` · ${identity.puesto}`}
           </p>
         </div>
@@ -140,7 +140,7 @@ export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) 
               <ChevronRight aria-hidden="true" />
             </Button>
           </nav>
-          <Button type="submit" form={formId} size="sm" disabled={!dirty || saving || loading}>
+          <Button type="submit" form={formId} size="sm" className="touch-target" disabled={!dirty || saving || loading} aria-busy={saving || undefined}>
             {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Check aria-hidden="true" />}
             Guardar cambios
           </Button>
@@ -166,7 +166,7 @@ export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) 
             {INCIDENCIA_CATEGORIES.map((category, index) => {
               const id = `${fieldId}-${index}`
               return (
-                <div key={category} className="flex min-w-0 items-center justify-between gap-3 bg-card px-(--card-padding) py-2">
+                <div key={category} className="flex min-w-0 items-center justify-between gap-2 bg-card px-3 py-2 sm:gap-3 sm:px-4">
                   <Label htmlFor={id} className="min-w-0 truncate text-label-sm text-foreground">{CATEGORY_META[category].shortLabel}</Label>
                   <Input id={id} type="number" min={0} step={1} inputMode="numeric" value={values[category] || ""}
                     onChange={event => changeValue(category, event.target.value)} placeholder="0" disabled={saving}
@@ -174,7 +174,7 @@ export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) 
                 </div>
               )
             })}
-            <div className="flex items-center justify-between gap-3 bg-muted/50 px-(--card-padding) py-2">
+            <div className="flex items-center justify-between gap-2 bg-muted/50 px-3 py-2 sm:gap-3 sm:px-4">
               <span className="text-label-sm text-foreground">Total</span>
               <output aria-live="polite" className="w-16 text-center text-label-sm tabular-nums text-foreground">{total}</output>
             </div>
