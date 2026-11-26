@@ -43,6 +43,7 @@ export function AppTransition({
   leaving = false,
 }: AppTransitionProps) {
   const reducedMotion = useAppReducedMotion()
+  const isOverlay = mode === "overlay"
   const transition = { duration: reducedMotion ? 0 : APP_TRANSITION_EXIT_MS / 1000, ease: APP_TRANSITION_EASE }
 
   return (
@@ -50,22 +51,27 @@ export function AppTransition({
       role="status"
       aria-live="polite"
       aria-busy="true"
-      initial={mode === "overlay" ? { opacity: 0 } : false}
+      initial={isOverlay ? { opacity: 0 } : false}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={transition}
       className={
-        mode === "overlay"
-          ? "workspace-shell fixed inset-0 z-[200] bg-background text-foreground"
+        isOverlay
+          ? "workspace-shell fixed inset-0 z-[200] min-h-0 select-none bg-background text-foreground"
           : "workspace-shell bg-background text-foreground"
       }
     >
       <div className="workspace-panel min-h-0 overflow-hidden bg-card md:rounded-xl md:border md:border-border">
-        <WorkspaceBackdrop className="sm:min-h-dvh md:h-full md:min-h-0">
+        <WorkspaceBackdrop className={isOverlay ? "h-full min-h-0" : "sm:min-h-dvh md:h-full md:min-h-0"}>
           <motion.div
-            className="flex h-full min-h-dvh items-center justify-center px-6 text-center md:min-h-0"
-            initial={{ opacity: 0, y: 8 }}
-            animate={leaving ? { opacity: 0, y: -8 } : { opacity: 1, y: 0 }}
+            className={
+              isOverlay
+                ? "flex h-full min-h-0 items-center justify-center px-6 text-center"
+                : "flex h-full min-h-dvh items-center justify-center px-6 text-center md:min-h-0"
+            }
+            initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
+            animate={leaving ? (reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }) : { opacity: 1, y: 0 }}
+            exit={isOverlay ? (reducedMotion ? { opacity: 0 } : { opacity: 0, y: -8 }) : undefined}
             transition={transition}
           >
             <span className="text-heading-md text-foreground sm:text-heading-xl">

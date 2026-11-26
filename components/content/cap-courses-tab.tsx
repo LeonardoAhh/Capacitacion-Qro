@@ -63,11 +63,11 @@ export function CapCoursesTab({
             onValueChange={(value) => { setCourseSearch(value); setCoursePage(1) }}
           />
           <div className="@container flex flex-wrap items-center gap-2">
-            <Button variant="outline" size="sm" className="touch-target" onClick={() => setAuditOpen(true)} aria-label="Auditoría global">
+            <Button variant="outline" size="sm" className="touch-target" onClick={() => setAuditOpen(true)}>
               <FileSpreadsheet aria-hidden="true" />
               <span>Auditoría</span>
             </Button>
-            <Button variant="outline" size="sm" className="touch-target" onClick={() => setPreviewOpen(true)} aria-label="Descargar reporte Excel">
+            <Button variant="outline" size="sm" className="touch-target" onClick={() => setPreviewOpen(true)}>
               <Download aria-hidden="true" />
               <span>Reporte</span>
             </Button>
@@ -145,6 +145,8 @@ export function CapCoursesTab({
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
         onDownload={handleDownload}
+        employeeCount={employees.length}
+        courseCount={courses.length}
       />
 
       <CapCourseAuditDialog

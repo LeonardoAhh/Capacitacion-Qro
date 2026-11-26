@@ -37,12 +37,11 @@ import {
   isHabilitado,
   calcularAptitud,
 } from "@/lib/promociones/utils"
-import { PromDesempenoDialog } from "./prom-desempeno-dialog"
 import { PromPromoverDialog } from "./prom-promover-dialog"
 import { PromExamDialog } from "./prom-exam-dialog"
 import { PromReglasPreview, PromDatosPreview } from "./prom-import-tab"
 import { usePromocionesImport } from "@/lib/hooks/usePromocionesImport"
-import { PromotionTable } from "./prom-table-rows"
+import { PromotionTable, PromotionTableSkeleton } from "./prom-table-rows"
 
 // Re-export types for backward compat (page.tsx may import from here)
 export type { AptitudStatus, CursoRequerido, ReglaPromocion, EvaluacionDesempeño, EmpleadoPromocion } from "@/lib/promociones/types"
@@ -60,14 +59,14 @@ const ESTADOS_FILTRO = [
 
 export default function PromocionesContent({
   empleados,
+  loading = false,
   onDatosActualizados,
-  guardarDesempeño,
   promoverEmpleado,
   guardarExamen,
 }: {
   empleados: EmpleadoPromocion[]
+  loading?: boolean
   onDatosActualizados?: () => void
-  guardarDesempeño: (numero: string, calificacion: number, periodo?: string) => Promise<void>
   promoverEmpleado: (empleadoId: string, numero: string | undefined, nuevoPuesto: string, datos: ConfirmarPromocionInput) => Promise<void>
   guardarExamen: (numero: string, datos: ExamenPromocionInput) => Promise<void>
 }) {
@@ -77,35 +76,56 @@ export default function PromocionesContent({
   const [pagina, setPagina] = useState(1)
   const [empleadoPromover, setEmpleadoPromover] = useState<EmpleadoPromocion | null>(null)
   const [empleadoExamen, setEmpleadoExamen] = useState<EmpleadoPromocion | null>(null)
-  const [empleadoDesempeño, setEmpleadoDesempeño] = useState<EmpleadoPromocion | null>(null)
   const imp = usePromocionesImport(onDatosActualizados)
 
-  const empleadosFiltrados = useMemo(() => {
-    const base = empleados
-      .filter((emp) => {
-        const aptitud = calcularAptitud(emp)
-        const matchBusqueda =
-          busqueda === "" ||
-          emp.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-          emp.puesto.toLowerCase().includes(busqueda.toLowerCase()) ||
-          (emp.numero ?? "").includes(busqueda)
-        const matchStatus = filtroStatus === "todos" || aptitud === filtroStatus
-        return matchBusqueda && matchStatus
-      })
-      .sort((a, b) => parseInt(a.numero ?? "0", 10) - parseInt(b.numero ?? "0", 10))
+  const empleadosIndexados = useMemo(
+    () =>
+      [...empleados]
+        .sort((a, b) => parseInt(a.numero ?? "0", 10) - parseInt(b.numero ?? "0", 10))
+        .map((emp) => ({
+          emp,
+          aptitud: calcularAptitud(emp),
+          conCategoria: isHabilitado(emp.puesto) || emp.regla != null,
+          nombreLower: emp.nombre.toLowerCase(),
+          puestoLower: emp.puesto.toLowerCase(),
+          numeroStr: emp.numero ?? "",
+        })),
+    [empleados],
+  )
 
-    const habilitados   = base.filter((e) => isHabilitado(e.puesto) || e.regla != null)
-    const inhabilitados = base.filter((e) => !isHabilitado(e.puesto) && e.regla == null)
-    return { conCategoria: habilitados, sinCategoria: inhabilitados }
-  }, [empleados, busqueda, filtroStatus])
+  const todosOrdenados = useMemo(() => {
+    const query = busqueda.trim().toLowerCase()
+    const conCategoria: EmpleadoPromocion[] = []
+    const sinCategoria: EmpleadoPromocion[] = []
+    for (const item of empleadosIndexados) {
+      if (filtroStatus !== "todos" && item.aptitud !== filtroStatus) continue
+      if (
+        query !== "" &&
+        !item.nombreLower.includes(query) &&
+        !item.puestoLower.includes(query) &&
+        !item.numeroStr.includes(query)
+      ) {
+        continue
+      }
+      if (item.conCategoria) conCategoria.push(item.emp)
+      else sinCategoria.push(item.emp)
+    }
+    return [...conCategoria, ...sinCategoria]
+  }, [empleadosIndexados, busqueda, filtroStatus])
 
   React.useEffect(() => { setPagina(1) }, [busqueda, filtroStatus])
 
-  const todosOrdenados = [...empleadosFiltrados.conCategoria, ...empleadosFiltrados.sinCategoria]
   const totalPaginas = Math.ceil(todosOrdenados.length / PAGE_SIZE)
-  const paginados = todosOrdenados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)
-  const paginadosConCategoria = paginados.filter((e) => isHabilitado(e.puesto) || e.regla != null)
-  const paginadosSinCategoria = paginados.filter((e) => !isHabilitado(e.puesto) && e.regla == null)
+  const { paginadosConCategoria, paginadosSinCategoria } = useMemo(() => {
+    const slice = todosOrdenados.slice((pagina - 1) * PAGE_SIZE, pagina * PAGE_SIZE)
+    const con: EmpleadoPromocion[] = []
+    const sin: EmpleadoPromocion[] = []
+    for (const emp of slice) {
+      if (isHabilitado(emp.puesto) || emp.regla != null) con.push(emp)
+      else sin.push(emp)
+    }
+    return { paginadosConCategoria: con, paginadosSinCategoria: sin }
+  }, [todosOrdenados, pagina])
 
   const hasFilters = busqueda || filtroStatus !== "todos"
 
@@ -177,7 +197,7 @@ export default function PromocionesContent({
         placeholder="Buscar empleado, puesto, número…" />
       <div className="@container">
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+        <Select value={filtroStatus} onValueChange={setFiltroStatus} disabled={loading}>
           <SelectTrigger className="w-36 shrink-0" aria-label="Filtrar por estado">
             <SelectValue />
           </SelectTrigger>
@@ -192,7 +212,8 @@ export default function PromocionesContent({
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={exporting || todosOrdenados.length === 0}
+                  className="touch-target"
+                  disabled={loading || exporting || todosOrdenados.length === 0}
                   data-testid="promociones-export-trigger"
                   aria-label={exporting ? "Generando…" : "Descargar"}
                 >
@@ -218,7 +239,7 @@ export default function PromocionesContent({
             </DropdownMenu>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button asChild variant="outline" size="sm">
+                <Button asChild variant="outline" size="sm" className="touch-target">
                   <Link href="/promociones/reglas" aria-label="Reglas">
                     <SlidersHorizontal aria-hidden="true" />
                     <span className="hidden @xl:inline">Reglas</span>
@@ -227,7 +248,7 @@ export default function PromocionesContent({
               </TooltipTrigger>
               <TooltipContent side="bottom">Reglas</TooltipContent>
             </Tooltip>
-            {empleados.length > 0 && todosOrdenados.length > 0 && (
+            {!loading && empleados.length > 0 && todosOrdenados.length > 0 && (
               <CompactPager label="Paginación de empleados" page={pagina} totalPages={totalPaginas} onPageChange={setPagina} />
             )}
         </div>
@@ -235,8 +256,10 @@ export default function PromocionesContent({
       </div>
 
       {/* Contenido principal */}
-      {empleados.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed bg-background">
+      {loading ? (
+        <PromotionTableSkeleton rows={PAGE_SIZE} />
+      ) : empleados.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center rounded-xl border border-dashed bg-card">
           <div className="bg-primary/10 p-4 rounded-md mb-4">
             <ChartNoAxesColumnIncreasing aria-hidden="true" className={`${PROMOTION_ICON.emptyState} text-primary`} />
           </div>
@@ -248,16 +271,12 @@ export default function PromocionesContent({
       ) : todosOrdenados.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-body-md">Sin resultados para los filtros aplicados</div>
       ) : (
-        <>
-          <PromotionTable
-            conCategoria={paginadosConCategoria}
-            sinCategoria={paginadosSinCategoria}
-            onPromover={setEmpleadoPromover}
-            onCapturarExamen={setEmpleadoExamen}
-            onDesempeño={setEmpleadoDesempeño}
-          />
-
-        </>
+        <PromotionTable
+          conCategoria={paginadosConCategoria}
+          sinCategoria={paginadosSinCategoria}
+          onPromover={setEmpleadoPromover}
+          onCapturarExamen={setEmpleadoExamen}
+        />
       )}
 
 
@@ -291,19 +310,6 @@ export default function PromocionesContent({
           onGuardar={async datos => {
             if (!empleadoExamen.numero) throw new Error("El empleado no tiene N.N asignado")
             await guardarExamen(empleadoExamen.numero, datos)
-          }}
-        />
-      )}
-
-      {empleadoDesempeño && (
-        <PromDesempenoDialog
-          empleado={empleadoDesempeño}
-          open={!!empleadoDesempeño}
-          isReadOnly={isReadOnly}
-          onClose={() => setEmpleadoDesempeño(null)}
-          onGuardar={async (cal, periodo) => {
-            if (!empleadoDesempeño.numero) throw new Error("El empleado no tiene N.N asignado")
-            await guardarDesempeño(empleadoDesempeño.numero, cal, periodo || undefined)
           }}
         />
       )}

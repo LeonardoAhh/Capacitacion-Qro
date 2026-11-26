@@ -1,57 +1,42 @@
 "use client"
 
-import { useEffect } from "react"
-import { notify } from "@/lib/notify"
+import { AlertCircle } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Button } from "@/components/ui/button"
 import { usePromociones } from "@/lib/hooks/usePromociones"
 import PromocionesContent from "@/components/content/promociones"
-import { Skeleton } from "@/components/ui/skeleton"
 
 export default function PromocionesClient() {
-    const {
-        empleados,
-        loading,
-        error,
-        recargar,
-        guardarDesempeño,
-        promoverEmpleado,
-        guardarExamen,
-    } = usePromociones()
+  const {
+    empleados,
+    loading,
+    error,
+    recargar,
+    promoverEmpleado,
+    guardarExamen,
+  } = usePromociones()
 
-    useEffect(() => {
-        if (error) notify.error(`Error al cargar datos: ${error}`)
-    }, [error])
-
+  if (error && empleados.length === 0) {
     return (
-        <div className="w-full space-y-4">
-
-            {/* Empleados */}
-            {loading && empleados.length === 0 ? (
-                <div className="space-y-2">
-                    <Skeleton className="h-9 w-full rounded-md" />
-                    <div className="hidden md:block rounded-xl border overflow-hidden">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <Skeleton key={i} className="h-12 w-full" />
-                        ))}
-                    </div>
-                    <div className="flex flex-col gap-2 md:hidden">
-                        {Array.from({ length: 4 }).map((_, i) => (
-                            <Skeleton key={i} className="h-28 rounded-xl" />
-                        ))}
-                    </div>
-                </div>
-            ) : error ? (
-                <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/10 text-destructive text-body-md">
-                    Error al cargar datos: {error}
-                </div>
-            ) : (
-                <PromocionesContent
-                    empleados={empleados}
-                    onDatosActualizados={recargar}
-                    guardarDesempeño={guardarDesempeño}
-                    promoverEmpleado={promoverEmpleado}
-                    guardarExamen={guardarExamen}
-                />
-            )}
+      <Alert variant="destructive" className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <AlertCircle className="size-4 shrink-0" aria-hidden="true" />
+          <AlertDescription>Error al cargar datos: {error}</AlertDescription>
         </div>
+        <Button type="button" variant="outline" size="sm" className="touch-target shrink-0" onClick={() => { void recargar() }}>
+          Reintentar
+        </Button>
+      </Alert>
     )
+  }
+
+  return (
+    <PromocionesContent
+      empleados={empleados}
+      loading={loading && empleados.length === 0}
+      onDatosActualizados={recargar}
+      promoverEmpleado={promoverEmpleado}
+      guardarExamen={guardarExamen}
+    />
+  )
 }

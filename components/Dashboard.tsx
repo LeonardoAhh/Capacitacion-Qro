@@ -14,10 +14,12 @@ import { useChartPalette } from "@/components/use-chart-palette"
 import { DESKTOP_QUERY, useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { AppTransition } from "@/components/app-transition"
 import { useActiveWorkspace } from "@/lib/hooks/useActiveWorkspace"
-import { HOME_PATH, LOGIN_PATH, MAIN_CONTENT_ID, SAFETY_HOME_PATH, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
+import { LOGIN_PATH, MAIN_CONTENT_ID, WORKSPACE_OPTIONS, type WorkspaceId } from "@/lib/navigation"
 import { useSignOut } from "@/components/signout-overlay"
 import { useWorkspaceSwitch } from "@/components/workspace-switch-overlay"
 import { HeaderSearchSlot } from "@/components/ui/header-search"
+import { notify } from "@/lib/notify"
+import { confirmUnsavedChanges } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
 
 interface DashboardProps {
@@ -58,13 +60,23 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
   const allowed = canAccess(pathname ?? "")
   const showWorkspaceSwitch = useWorkspaceSwitch()
 
-  const handleWorkspaceChange = (nextWorkspace: WorkspaceId) => {
-    if (nextWorkspace === workspace) return
-    const targetPath = nextWorkspace === "safety" ? SAFETY_HOME_PATH : HOME_PATH
-    // La capa de transición cubre el cambio de barra lateral y de página.
-    showWorkspaceSwitch(WORKSPACE_OPTIONS.find(option => option.id === nextWorkspace)?.label ?? "", targetPath)
-    setWorkspace(nextWorkspace)
-    if (pathname !== targetPath) router.push(targetPath)
+  const handleWorkspaceChange = async (nextWorkspace: WorkspaceId) => {
+    if (nextWorkspace === workspace || !workspaces.includes(nextWorkspace)) return
+    try {
+      if (!(await confirmUnsavedChanges())) return
+    } catch (error) {
+      console.error("Could not confirm unsaved changes before switching workspace:", error)
+      notify.error("No se pudo confirmar si hay cambios sin guardar. Inténtalo de nuevo.")
+      return
+    }
+    const targetPath = homeFor(role, nextWorkspace)
+    const label = WORKSPACE_OPTIONS.find(option => option.id === nextWorkspace)?.label ?? ""
+    if (pathname !== targetPath) router.prefetch(targetPath)
+    // La capa cubre primero la pantalla; el cambio de barra lateral y de ruta ocurre ya tapado.
+    showWorkspaceSwitch(label, targetPath, () => {
+      setWorkspace(nextWorkspace)
+      if (pathname !== targetPath) router.push(targetPath)
+    })
   }
 
   // Cada rol solo abre sus rutas (lib/constants/roles); durante el cierre de sesión no redirige al inicio del rol por defecto.

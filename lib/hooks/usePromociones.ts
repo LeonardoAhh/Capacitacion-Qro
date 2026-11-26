@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
 import type { ConfirmarPromocionInput, ExamenPromocionInput } from "@/lib/promociones/types"
@@ -10,6 +10,29 @@ import type {
   CursoRequerido,
   EvaluacionDesempeño,
 } from "@/lib/promociones/types"
+
+const PAGE_SIZE = 1000
+const MAX_CONCURRENT_PAGES = 6
+const CACHE_TTL_MS = 60_000
+
+let cachedEmpleados: EmpleadoPromocion[] | null = null
+let cachedAt = 0
+let inflightFetch: Promise<EmpleadoPromocion[]> | null = null
+let authListenerRegistered = false
+
+function invalidatePromocionesCache() {
+  cachedEmpleados = null
+  cachedAt = 0
+  inflightFetch = null
+}
+
+function ensureAuthCacheInvalidation() {
+  if (authListenerRegistered || typeof window === "undefined") return
+  authListenerRegistered = true
+  supabase.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") invalidatePromocionesCache()
+  })
+}
 
 /** Igual que useCapacitacion: mayúsculas, sin acentos, sin puntuación, trim */
 function norm(s: string | null | undefined): string {
@@ -22,253 +45,340 @@ function norm(s: string | null | undefined): string {
     .trim()
 }
 
-/** Trae TODAS las filas de una tabla paginando de 1000 en 1000 */
+/**
+ * Trae todas las filas de una tabla en páginas de 1000.
+ * La primera página pide el conteo exacto y, si hay más páginas, las descarga en paralelo.
+ */
 async function fetchAllRows<T>(
-  buildQuery: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown }>
+  buildQuery: (
+    from: number,
+    to: number,
+    withCount: boolean,
+  ) => PromiseLike<{ data: T[] | null; count?: number | null; error: unknown }>
 ): Promise<T[]> {
-  const PAGE = 1000
-  const result: T[] = []
-  let from = 0
+  const first = await buildQuery(0, PAGE_SIZE - 1, true)
+  if (first.error) throw first.error
+  const initialRows = first.data ?? []
+  if (initialRows.length < PAGE_SIZE) return initialRows
+
+  const total = first.count
+  if (typeof total === "number" && total > PAGE_SIZE) {
+    const ranges: Array<[number, number]> = []
+    for (let from = PAGE_SIZE; from < total; from += PAGE_SIZE) {
+      ranges.push([from, Math.min(from + PAGE_SIZE - 1, total - 1)])
+    }
+    const result = [...initialRows]
+    for (let i = 0; i < ranges.length; i += MAX_CONCURRENT_PAGES) {
+      const batch = ranges.slice(i, i + MAX_CONCURRENT_PAGES)
+      const pages = await Promise.all(
+        batch.map(async ([from, to]) => {
+          const { data, error } = await buildQuery(from, to, false)
+          if (error) throw error
+          return data ?? []
+        })
+      )
+      for (const page of pages) result.push(...page)
+    }
+    return result
+  }
+
+  const result = [...initialRows]
+  let from = PAGE_SIZE
   while (true) {
-    const { data, error } = await buildQuery(from, from + PAGE - 1)
+    const { data, error } = await buildQuery(from, from + PAGE_SIZE - 1, false)
     if (error) throw error
     if (!data || data.length === 0) break
     result.push(...data)
-    if (data.length < PAGE) break
-    from += PAGE
+    if (data.length < PAGE_SIZE) break
+    from += PAGE_SIZE
   }
   return result
 }
 
-export function usePromociones() {
-  const [empleados, setEmpleados] = useState<EmpleadoPromocion[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+async function fetchPromocionesDataset(): Promise<EmpleadoPromocion[]> {
+  const [
+    employeesData,
+    datosPromocionRes,
+    reglasRes,
+    positionsRes,
+    coursesRes,
+    posCourses,
+    empCourses,
+    evalsDesempeno,
+  ] = await Promise.all([
+    fetchAllRows<{
+      id: string
+      numero: string | null
+      nombre: string
+      puesto: string | null
+      departamento: string | null
+      area: string | null
+      turno: string | null
+      fecha_ingreso: string | null
+    }>((from, to, withCount) =>
+      supabase
+        .from("employees")
+        .select(
+          "id, numero, nombre, puesto, departamento, area, turno, fecha_ingreso",
+          withCount ? { count: "exact" } : undefined,
+        )
+        .order("nombre")
+        .order("id")
+        .range(from, to)
+    ),
+    supabase
+      .from("datos_promocion")
+      .select("*"),
+    supabase
+      .from("reglas_promocion")
+      .select(
+        "puesto, promocion_a, min_temporalidad_meses, min_calificacion_examen, min_calificacion_evaluacion, min_porcentaje_cursos",
+      ),
+    supabase.from("positions").select("id, name"),
+    supabase.from("courses").select("id, name"),
+    fetchAllRows<{
+      position_id: string
+      course_id: string
+      order_index: number
+    }>((from, to, withCount) =>
+      supabase
+        .from("position_courses")
+        .select("position_id, course_id, order_index", withCount ? { count: "exact" } : undefined)
+        .order("order_index")
+        .order("id")
+        .range(from, to)
+    ),
+    fetchAllRows<{
+      employee_id: string | null
+      course_id: string | null
+      calificacion: number | null
+      fecha_aplicacion: string | null
+    }>((from, to, withCount) =>
+      supabase
+        .from("employee_courses")
+        .select("employee_id, course_id, calificacion, fecha_aplicacion", withCount ? { count: "exact" } : undefined)
+        .not("employee_id", "is", null)
+        .not("course_id", "is", null)
+        .order("id")
+        .range(from, to)
+    ),
+    fetchAllRows<{
+      numero_empleado: string | null
+      periodo: string | null
+      calificacion_final: number | null
+      created_at: string
+    }>((from, to, withCount) =>
+      supabase
+        .from("evaluaciones_desempeno")
+        .select("numero_empleado, periodo, calificacion_final, created_at", withCount ? { count: "exact" } : undefined)
+        .order("id")
+        .range(from, to)
+    ),
+  ])
 
-  const cargarDatos = useCallback(async () => {
-    setLoading(true)
+  if (datosPromocionRes.error) throw datosPromocionRes.error
+  if (reglasRes.error) throw reglasRes.error
+  if (positionsRes.error) throw positionsRes.error
+  if (coursesRes.error) throw coursesRes.error
+
+  if (!employeesData.length) return []
+
+  const datosPromocion = datosPromocionRes.data ?? []
+  const reglasData = reglasRes.data ?? []
+  const positionsData = positionsRes.data ?? []
+  const coursesData = coursesRes.data ?? []
+
+  // Construir índices en una sola pasada por tabla.
+  const datosMap = new Map<string, (typeof datosPromocion)[number]>()
+  for (const d of datosPromocion) datosMap.set(String(d.numero), d)
+
+  const reglaMap = new Map<string, ReglaPromocion>()
+  for (const r of reglasData) {
+    reglaMap.set(norm(r.puesto), {
+      puesto:                    r.puesto,
+      promocionA:                r.promocion_a ?? undefined,
+      minTemporalidadMeses:      r.min_temporalidad_meses,
+      minCalificacionExamen:     r.min_calificacion_examen ?? undefined,
+      minCalificacionEvaluacion: r.min_calificacion_evaluacion,
+      minPorcentajeCursos:       r.min_porcentaje_cursos,
+    })
+  }
+
+  const courseNameMap = new Map<string, string>()
+  for (const c of coursesData) courseNameMap.set(c.id, c.name)
+
+  // Para cada nombre de posición, guardar el position_id con más cursos asignados.
+  const posCourseCount = new Map<string, number>()
+  type CourseRef = { course_id: string; name: string; orderIndex: number }
+  const posCoursesMap = new Map<string, CourseRef[]>()
+
+  for (const pc of posCourses) {
+    posCourseCount.set(pc.position_id, (posCourseCount.get(pc.position_id) ?? 0) + 1)
+    const courseName = courseNameMap.get(pc.course_id)
+    if (!courseName) continue
+    let list = posCoursesMap.get(pc.position_id)
+    if (!list) {
+      list = []
+      posCoursesMap.set(pc.position_id, list)
+    }
+    list.push({
+      course_id:  pc.course_id,
+      name:       courseName,
+      orderIndex: pc.order_index,
+    })
+  }
+
+  for (const list of posCoursesMap.values()) {
+    list.sort((a, b) => a.orderIndex - b.orderIndex)
+  }
+
+  const posFallMap = new Map<string, string>()
+  for (const p of positionsData) {
+    const key      = norm(p.name)
+    const existing = posFallMap.get(key)
+    const newCount = posCourseCount.get(p.id) ?? 0
+    const oldCount = existing ? (posCourseCount.get(existing) ?? 0) : -1
+    if (newCount > oldCount) posFallMap.set(key, p.id)
+  }
+
+  type TakenRow = { calificacion: number | null; fecha_aplicacion: string | null }
+  const empCoursesMap = new Map<string, Map<string, TakenRow>>()
+  for (const ec of empCourses) {
+    if (!ec.employee_id || !ec.course_id) continue
+    let takenMap = empCoursesMap.get(ec.employee_id)
+    if (!takenMap) {
+      takenMap = new Map()
+      empCoursesMap.set(ec.employee_id, takenMap)
+    }
+    takenMap.set(ec.course_id, {
+      calificacion:    ec.calificacion,
+      fecha_aplicacion: ec.fecha_aplicacion,
+    })
+  }
+
+  const evalsMap = new Map<string, EvaluacionDesempeño[]>()
+  for (const ev of evalsDesempeno) {
+    if (!ev.numero_empleado) continue
+    let list = evalsMap.get(ev.numero_empleado)
+    if (!list) {
+      list = []
+      evalsMap.set(ev.numero_empleado, list)
+    }
+    list.push({
+      fecha: String(ev.created_at).split("T")[0],
+      calificacion: Number(ev.calificacion_final),
+      periodo: ev.periodo ? String(ev.periodo) : undefined,
+    })
+  }
+
+  const todayIso = new Date().toISOString().split("T")[0]
+
+  return employeesData.map((emp) => {
+    const datos = emp.numero ? datosMap.get(String(emp.numero)) : undefined
+    const normPuesto = emp.puesto ? norm(emp.puesto) : ""
+    const regla = normPuesto ? reglaMap.get(normPuesto) : undefined
+    const posId = normPuesto ? posFallMap.get(normPuesto) : undefined
+    const requeridos = posId ? (posCoursesMap.get(posId) ?? []) : []
+    const tomados = empCoursesMap.get(emp.id)
+
+    const cursosRequeridos: CursoRequerido[] = requeridos.map(({ course_id, name }) => {
+      const taken = tomados?.get(course_id)
+      const cal   = taken?.calificacion ?? null
+      return {
+        nombre:          name,
+        // Aprobado = mismo criterio que useCapacitacion: cal >= 7 o simplemente tomado
+        completado:      taken != null && (cal == null || cal >= 7),
+        fechaAplicacion: taken?.fecha_aplicacion ?? undefined,
+        calificacion:    cal ?? undefined,
+      }
+    })
+
+    const evaluaciones = emp.numero ? [...(evalsMap.get(String(emp.numero)) ?? [])] : []
+
+    if (datos && datos.desempeño_actual != null) {
+      evaluaciones.push({
+        fecha: datos.updated_at ? String(datos.updated_at).split("T")[0] : todayIso,
+        calificacion: Number(datos.desempeño_actual),
+        periodo: datos.periodo_evaluacion ? String(datos.periodo_evaluacion) : undefined,
+      })
+    }
+
+    return {
+      id:               emp.id,
+      numero:           emp.numero ?? undefined,
+      nombre:           emp.nombre,
+      puesto:           emp.puesto ?? "",
+      departamento:     emp.departamento ?? "",
+      area:             emp.area ?? undefined,
+      turno:            emp.turno ?? undefined,
+      fechaIngresoPuesto: String(datos?.fecha_inicio_puesto ?? emp.fecha_ingreso ?? ""),
+      fechaExamenGuardada: datos?.fecha_examen ? String(datos.fecha_examen) : undefined,
+      calificacionExamen: datos?.ultima_calificacion_examen != null
+        ? Number(datos.ultima_calificacion_examen)
+        : undefined,
+      intentosExamen:   datos?.intentos_examen != null ? Number(datos.intentos_examen) : 0,
+      cursosRequeridos,
+      evaluaciones,
+      regla,
+    }
+  })
+}
+
+async function loadPromociones(force = false): Promise<EmpleadoPromocion[]> {
+  if (!force && inflightFetch) return inflightFetch
+  const promise = fetchPromocionesDataset()
+    .then((result) => {
+      cachedEmpleados = result
+      cachedAt = Date.now()
+      return result
+    })
+    .finally(() => {
+      if (inflightFetch === promise) inflightFetch = null
+    })
+  inflightFetch = promise
+  return promise
+}
+
+export function usePromociones() {
+  const [empleados, setEmpleados] = useState<EmpleadoPromocion[]>(() => cachedEmpleados ?? [])
+  const [loading, setLoading] = useState(() => cachedEmpleados === null)
+  const [error, setError] = useState<string | null>(null)
+  const mountedRef = useRef(true)
+
+  useEffect(() => {
+    mountedRef.current = true
+    ensureAuthCacheInvalidation()
+    return () => { mountedRef.current = false }
+  }, [])
+
+  const cargarDatos = useCallback(async (force = true) => {
+    const hasCache = cachedEmpleados !== null
+    if (!hasCache) setLoading(true)
     setError(null)
     try {
-      // ── 1. Empleados ──────────────────────────────────────────────────────
-      const { data: employeesData, error: empError } = await supabase
-        .from("employees")
-        .select("id, numero, nombre, puesto, departamento, area, turno, fecha_ingreso")
-        .order("nombre")
-      if (empError) throw empError
-      if (!employeesData?.length) { setEmpleados([]); return }
-
-      // ── 2. Datos de promoción (N.N → desempeño, examen, fecha inicio) ─────
-      const { data: datosPromocion } = await supabase
-        .from("datos_promocion")
-        .select("*")
-
-      // ── 3. Reglas de promoción por puesto ─────────────────────────────────
-      const { data: reglasData } = await supabase
-        .from("reglas_promocion")
-        .select("*")
-
-      // ── 4. Posiciones (id + name) ─────────────────────────────────────────
-      const { data: positionsData } = await supabase
-        .from("positions")
-        .select("id, name")
-
-      // ── 6. Cursos requeridos por posición (paginado) ──────────────────────
-      const posCourses = await fetchAllRows((from, to) =>
-        supabase
-          .from("position_courses")
-          .select("position_id, course_id, order_index, courses(id, name)")
-          .order("order_index")
-          .range(from, to)
-      )
-
-      // ── 7. Cursos tomados (paginado, solo los que tienen course_id) ────────
-      const empCourses = await fetchAllRows((from, to) =>
-        supabase
-          .from("employee_courses")
-          .select("employee_id, course_id, calificacion, fecha_aplicacion")
-          .not("course_id", "is", null)
-          .range(from, to)
-      )
-
-      // ── 8. Evaluaciones de desempeño reales ────────────────────────────────
-      const evalsDesempeno = await fetchAllRows((from, to) =>
-        supabase
-          .from("evaluaciones_desempeno")
-          .select("numero_empleado, periodo, calificacion_final, created_at")
-          .range(from, to)
-      )
-
-      // ── Construir índices ─────────────────────────────────────────────────
-
-      // numero → datos_promocion
-      const datosMap = new Map<string, Record<string, unknown>>()
-      for (const d of datosPromocion ?? []) datosMap.set(String(d.numero), d)
-
-      // norm(puesto) → regla   (sin acento, sin puntuación)
-      const reglaMap = new Map<string, ReglaPromocion>()
-      for (const r of reglasData ?? []) {
-        reglaMap.set(norm(r.puesto), {
-          puesto:                    r.puesto,
-          promocionA:                r.promocion_a ?? undefined,
-          minTemporalidadMeses:      r.min_temporalidad_meses,
-          minCalificacionExamen:     r.min_calificacion_examen ?? undefined,
-          minCalificacionEvaluacion: r.min_calificacion_evaluacion,
-          minPorcentajeCursos:       r.min_porcentaje_cursos,
-        })
-      }
-
-      // Para cada nombre de posición, guardar el position_id
-      // con MÁS cursos asignados (evita tomar una posición vacía o incompleta)
-      const posCourseCount = new Map<string, number>()
-      for (const pc of posCourses ?? []) {
-        posCourseCount.set(pc.position_id, (posCourseCount.get(pc.position_id) ?? 0) + 1)
-      }
-      // norm(posName) → position_id con MÁS cursos asignados
-      const posFallMap = new Map<string, string>()
-      for (const p of positionsData ?? []) {
-        const key      = norm(p.name)
-        const existing = posFallMap.get(key)
-        const newCount = posCourseCount.get(p.id) ?? 0
-        const oldCount = existing ? (posCourseCount.get(existing) ?? 0) : -1
-        if (newCount > oldCount) posFallMap.set(key, p.id)
-      }
-
-      // position_id → { course_id, name, order_index }[]
-      type CourseRef = { course_id: string; name: string; orderIndex: number }
-      const posCoursesMap = new Map<string, CourseRef[]>()
-      for (const pc of posCourses ?? []) {
-        const course = pc.courses as unknown as { id: string; name: string } | null
-        if (!course) continue
-        if (!posCoursesMap.has(pc.position_id)) posCoursesMap.set(pc.position_id, [])
-        posCoursesMap.get(pc.position_id)!.push({
-          course_id:  pc.course_id,
-          name:       course.name,
-          orderIndex: pc.order_index,
-        })
-      }
-
-      // employee_id → Map<course_id, { calificacion, fecha_aplicacion }>
-      type TakenRow = { calificacion: number | null; fecha_aplicacion: string | null }
-      const empCoursesMap = new Map<string, Map<string, TakenRow>>()
-      for (const ec of empCourses ?? []) {
-        if (!ec.course_id) continue
-        if (!empCoursesMap.has(ec.employee_id)) empCoursesMap.set(ec.employee_id, new Map())
-        empCoursesMap.get(ec.employee_id)!.set(ec.course_id, {
-          calificacion:    ec.calificacion,
-          fecha_aplicacion: ec.fecha_aplicacion,
-        })
-      }
-
-      // numero_empleado → EvaluacionDesempeño[]
-      const evalsMap = new Map<string, EvaluacionDesempeño[]>()
-      for (const ev of evalsDesempeno ?? []) {
-        if (!ev.numero_empleado) continue
-        if (!evalsMap.has(ev.numero_empleado)) evalsMap.set(ev.numero_empleado, [])
-        evalsMap.get(ev.numero_empleado)!.push({
-          fecha: String(ev.created_at).split("T")[0],
-          calificacion: Number(ev.calificacion_final),
-          periodo: ev.periodo ? String(ev.periodo) : undefined,
-        })
-      }
-
-      // ── Construir lista final ─────────────────────────────────────────────
-
-      const result: EmpleadoPromocion[] = employeesData.map((emp) => {
-        const datos = emp.numero ? datosMap.get(String(emp.numero)) : undefined
-        const regla = emp.puesto ? reglaMap.get(norm(emp.puesto)) : undefined
-
-        // Usar siempre la posición con MÁS cursos para el puesto dado.
-        // Esto replica el comportamiento real de fetchEmployeeProgress en Capacitación:
-        // cuando el lookup por departamento falla (ilike no es accent-insensitive),
-        // retorna la primera posición sin filtro, que suele ser la más completa.
-        const normPuesto = norm(emp.puesto ?? "")
-        const posId = posFallMap.get(normPuesto)
-
-        // Cursos requeridos (ordenados)
-        const requeridos = posId
-          ? (posCoursesMap.get(posId) ?? []).sort((a, b) => a.orderIndex - b.orderIndex)
-          : []
-
-        // Cursos tomados por este empleado
-        const tomados = empCoursesMap.get(emp.id) ?? new Map<string, TakenRow>()
-
-        const cursosRequeridos: CursoRequerido[] = requeridos.map(({ course_id, name }) => {
-          const taken = tomados.get(course_id)
-          const cal   = taken?.calificacion ?? null
-          return {
-            nombre:          name,
-            // Aprobado = mismo criterio que useCapacitacion: cal >= 7 o simplemente tomado
-            completado:      taken != null && (cal == null || cal >= 7),
-            fechaAplicacion: taken?.fecha_aplicacion ?? undefined,
-            calificacion:    cal ?? undefined,
-          }
-        })
-
-        // Evaluaciones de desempeño desde evaluaciones_desempeno (Exclusivo)
-        const evaluaciones = emp.numero ? [...(evalsMap.get(String(emp.numero)) ?? [])] : []
-
-        if (datos && datos.desempeño_actual != null) {
-          evaluaciones.push({
-            fecha: datos.updated_at ? String(datos.updated_at).split("T")[0] : new Date().toISOString().split("T")[0],
-            calificacion: Number(datos.desempeño_actual),
-            periodo: datos.periodo_evaluacion ? String(datos.periodo_evaluacion) : undefined,
-          })
-        }
-
-        return {
-          id:               emp.id,
-          numero:           emp.numero ?? undefined,
-          nombre:           emp.nombre,
-          puesto:           emp.puesto ?? "",
-          departamento:     emp.departamento ?? "",
-          area:             emp.area ?? undefined,
-          turno:            emp.turno ?? undefined,
-          fechaIngresoPuesto: String(datos?.fecha_inicio_puesto ?? emp.fecha_ingreso ?? ""),
-          fechaExamenGuardada: datos?.fecha_examen ? String(datos.fecha_examen) : undefined,
-          calificacionExamen: datos?.ultima_calificacion_examen != null
-            ? Number(datos.ultima_calificacion_examen)
-            : undefined,
-          intentosExamen:   datos?.intentos_examen != null ? Number(datos.intentos_examen) : 0,
-          cursosRequeridos,
-          evaluaciones,
-          regla,
-        }
-      })
-
-      setEmpleados(result)
+      const result = await loadPromociones(force)
+      if (mountedRef.current) setEmpleados(result)
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al cargar datos")
+      if (mountedRef.current) {
+        setError(err instanceof Error ? err.message : "Error al cargar datos")
+      }
       notify.error("Error al cargar promociones")
     } finally {
-      setLoading(false)
+      if (mountedRef.current) setLoading(false)
     }
   }, [])
 
-  useEffect(() => { cargarDatos() }, [cargarDatos])
-
-  const guardarDesempeño = useCallback(async (
-    numero: string,
-    calificacion: number,
-    periodo?: string,
-  ): Promise<void> => {
-    const { error: dbErr } = await supabase
-      .from("datos_promocion")
-      .upsert(
-        {
-          numero,
-          desempeño_actual: calificacion,
-          periodo_evaluacion: periodo?.trim() || null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "numero" }
-      )
-    if (dbErr) {
-      notify.error("Error al guardar evaluación")
-      throw new Error(dbErr.message)
+  useEffect(() => {
+    const isFresh = cachedEmpleados !== null && Date.now() - cachedAt < CACHE_TTL_MS
+    if (isFresh) {
+      setEmpleados(cachedEmpleados!)
+      setLoading(false)
+      return
     }
-    notify.success("Evaluación guardada")
-    await cargarDatos()
+    void cargarDatos(false)
   }, [cargarDatos])
+
+  const recargar = useCallback(() => cargarDatos(true), [cargarDatos])
 
   const promoverEmpleado = useCallback(async (
     empleadoId: string,
@@ -306,8 +416,8 @@ export function usePromociones() {
       }
     }
     notify.success(`Empleado promovido a ${nuevoPuesto}`)
-    await cargarDatos()
-  }, [cargarDatos])
+    await recargar()
+  }, [recargar])
 
   const guardarExamen = useCallback(async (
     numero: string,
@@ -333,9 +443,9 @@ export function usePromociones() {
       notify.error("Error al actualizar empleado")
       throw new Error(dpErr.message)
     }
-    notify.success("Empleado Actualizado")
-    await cargarDatos()
-  }, [cargarDatos])
+    notify.success("Empleado actualizado")
+    await recargar()
+  }, [recargar])
 
-  return { empleados, loading, error, recargar: cargarDatos, guardarDesempeño, promoverEmpleado, guardarExamen }
+  return { empleados, loading, error, recargar, promoverEmpleado, guardarExamen }
 }

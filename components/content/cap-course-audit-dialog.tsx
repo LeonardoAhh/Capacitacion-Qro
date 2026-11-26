@@ -1,13 +1,16 @@
 "use client"
 
-import { useState, useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Check, ChevronsUpDown, Download, Search, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import type { Course, Employee, EmployeeCourse } from "@/lib/hooks"
 import { getLatestEmployeeCourseAttempts, normalizeCourseName } from "@/lib/hooks/useCapacitacion"
+import { notify } from "@/lib/notify"
+import { cn } from "@/lib/utils"
 
 interface CapCourseAuditDialogProps {
   open: boolean
@@ -18,19 +21,25 @@ interface CapCourseAuditDialogProps {
 }
 
 function courseStatus(cal: number | null) {
-  if (cal == null) return 'pendiente'
-  return cal >= 7 ? 'aprobado' : 'reprobado'
+  if (cal == null) return "pendiente"
+  return cal >= 7 ? "aprobado" : "reprobado"
 }
 
 export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, empCourses }: CapCourseAuditDialogProps) {
-  const [selectedCourseId, setSelectedCourseId] = useState<string>("all")
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("")
   const [coursePickerOpen, setCoursePickerOpen] = useState(false)
   const [courseSearch, setCourseSearch] = useState("")
   const [isExporting, setIsExporting] = useState(false)
 
-  // Cursos ordenados alfabéticamente para el Select
+  useEffect(() => {
+    if (!open) {
+      setCoursePickerOpen(false)
+      setCourseSearch("")
+    }
+  }, [open])
+
   const sortedCourses = useMemo(() => {
-    return [...courses].sort((a, b) => a.name.localeCompare(b.name))
+    return [...courses].sort((a, b) => a.name.localeCompare(b.name, "es-MX"))
   }, [courses])
 
   // Montar cientos de opciones a la vez hacía lento el click del selector.
@@ -55,22 +64,20 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
 
   // Una sola fila por empleado: siempre el intento más reciente del curso.
   const auditData = useMemo(() => {
-    if (selectedCourseId === "all") return []
+    if (!selectedCourseId) return []
 
     const selectedCourse = courses.find(c => c.id === selectedCourseId)
     if (!selectedCourse) return []
 
     const courseNorm = normalizeCourseName(selectedCourse.name)
 
-    // Buscamos todas las entradas en empCourses que coincidan con este curso (por id o nombre normalizado)
     const matchingRecords = latestEmpCourses.filter(ec => {
       if (ec.course_id === selectedCourse.id) return true
-      const ecNorm = normalizeCourseName(ec.course?.name ?? ec.raw_course_name ?? '')
+      const ecNorm = normalizeCourseName(ec.course?.name ?? ec.raw_course_name ?? "")
       if (!ecNorm) return false
       return ecNorm === courseNorm
     })
 
-    // Ahora mapeamos esos registros a empleados reales
     const results = matchingRecords.map(record => {
       const emp = employeeById.get(record.employee_id)
       const calificacion = record.calificacion ?? null
@@ -78,7 +85,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
 
       return {
         empleadoId: record.employee_id,
-        nombre: emp?.nombre || "Empleado Desconocido",
+        nombre: emp?.nombre || "Empleado desconocido",
         puesto: emp?.puesto || "-",
         numero: emp?.numero || "-",
         calificacion,
@@ -87,34 +94,36 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
       }
     })
 
-    // Ordenar alfabéticamente por nombre
-    return results.sort((a, b) => a.nombre.localeCompare(b.nombre))
-
+    return results.sort((a, b) => a.nombre.localeCompare(b.nombre, "es-MX"))
   }, [selectedCourseId, courses, latestEmpCourses, employeeById])
 
   const selectedCourseName = useMemo(() => {
     return courses.find(c => c.id === selectedCourseId)?.name || ""
   }, [courses, selectedCourseId])
 
+  const handleClose = () => {
+    if (!isExporting) onOpenChange(false)
+  }
+
   const handleExport = async () => {
-    if (auditData.length === 0) return
+    if (auditData.length === 0 || isExporting) return
     setIsExporting(true)
 
     try {
-      const ExcelJS = await import('exceljs')
+      const ExcelJS = await import("exceljs")
       // @ts-expect-error file-saver no incluye declaraciones de tipos en este proyecto
-      const { saveAs } = await import('file-saver')
+      const { saveAs } = await import("file-saver")
       const workbook = new ExcelJS.Workbook()
-      const sheet = workbook.addWorksheet('Auditoría')
+      const sheet = workbook.addWorksheet("Auditoría")
 
       sheet.columns = [
-        { header: 'Número empleado', key: 'numero', width: 18 },
-        { header: 'Nombre', key: 'nombre', width: 35 },
-        { header: 'Puesto', key: 'puesto', width: 30 },
-        { header: 'Curso Evaluado', key: 'curso', width: 40 },
-        { header: 'Fecha Aplicación', key: 'fecha', width: 18 },
-        { header: 'Calificación', key: 'calif', width: 15 },
-        { header: 'Estado', key: 'estado', width: 15 },
+        { header: "Número empleado", key: "numero", width: 18 },
+        { header: "Nombre", key: "nombre", width: 35 },
+        { header: "Puesto", key: "puesto", width: 30 },
+        { header: "Curso Evaluado", key: "curso", width: 40 },
+        { header: "Fecha Aplicación", key: "fecha", width: 18 },
+        { header: "Calificación", key: "calif", width: 15 },
+        { header: "Estado", key: "estado", width: 15 },
       ]
 
       auditData.forEach(row => {
@@ -123,22 +132,25 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
           nombre: row.nombre,
           puesto: row.puesto,
           curso: selectedCourseName,
-          fecha: row.fecha ? row.fecha.split('-').reverse().join('/') : '-',
-          calif: row.calificacion != null ? String(row.calificacion) : '-',
-          estado: row.estado.toUpperCase()
+          fecha: row.fecha ? row.fecha.split("-").reverse().join("/") : "-",
+          calif: row.calificacion != null ? String(row.calificacion) : "-",
+          estado: row.estado.toUpperCase(),
         })
       })
 
-      // Estilos
-      sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' }, name: 'Daytona', size: 12 }
-      sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } }
-      sheet.getRow(1).alignment = { vertical: 'middle', horizontal: 'center' }
+      sheet.getRow(1).font = { bold: true, color: { argb: "FFFFFFFF" }, name: "Arial", size: 11 }
+      sheet.getRow(1).fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF18181B" } }
+      sheet.getRow(1).alignment = { vertical: "middle", horizontal: "center" }
 
       const buffer = await workbook.xlsx.writeBuffer()
       const today = new Date().toISOString().slice(0, 10)
-      saveAs(new Blob([buffer]), `auditoria-${selectedCourseName.replace(/[^a-zA-Z0-9]/g, '-')}-${today}.xlsx`)
+      const slug = normalizeCourseName(selectedCourseName).toLowerCase().replace(/\s+/g, "-") || "curso"
+      saveAs(new Blob([buffer]), `auditoria-${slug}-${today}.xlsx`)
+      notify.success(`Auditoría descargada (${auditData.length.toLocaleString("es-MX")} registros)`)
+      onOpenChange(false)
     } catch (e) {
-      console.error("Error al exportar:", e)
+      console.error("Error al exportar auditoría:", e)
+      notify.error("No se pudo generar el archivo de auditoría.")
     } finally {
       setIsExporting(false)
     }
@@ -147,19 +159,25 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
   return (
     <ResponsiveShell
       open={open}
-      onClose={() => onOpenChange(false)}
+      onClose={handleClose}
       size="sm"
-      title="Exportar auditoría"
+      title="Auditoría de curso"
+      description="Exporta en Excel el intento más reciente de cada empleado en el curso seleccionado."
     >
       <ModalHeader
-        title="Exportar auditoría de curso"
-        onClose={() => onOpenChange(false)}
+        title="Auditoría de curso"
+        onClose={handleClose}
       />
 
-      <div className="space-y-6 overflow-y-auto bg-card p-(--card-padding) dense:space-y-4">
+      <div className="space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
+        <p className="text-body-md text-muted-foreground">
+          Genera un Excel con el intento más reciente de cada empleado en el curso seleccionado.
+        </p>
+
         <div className="space-y-2">
-          <label className="text-body-md font-medium text-foreground">Curso</label>
+          <Label htmlFor="audit-course-picker">Curso</Label>
           <Popover
+            modal
             open={coursePickerOpen}
             onOpenChange={nextOpen => {
               setCoursePickerOpen(nextOpen)
@@ -168,16 +186,19 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
           >
             <PopoverTrigger asChild>
               <Button
+                id="audit-course-picker"
                 type="button"
                 variant="outline"
                 role="combobox"
                 aria-expanded={coursePickerOpen}
-                className="h-(--control-height) w-full min-w-0 justify-between bg-transparent px-3 text-body-lg font-normal shadow-none"
+                aria-controls="audit-course-listbox"
+                disabled={isExporting}
+                className="h-(--control-height) w-full min-w-0 justify-between bg-transparent px-3 text-body-md font-normal shadow-none"
               >
-                <span className="min-w-0 truncate text-left">
-                  {selectedCourseName || "Selecciona un curso..."}
+                <span className={cn("min-w-0 truncate text-left", !selectedCourseName && "text-muted-foreground")}>
+                  {selectedCourseName || "Selecciona un curso…"}
                 </span>
-                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                <ChevronsUpDown className="ml-2 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               </Button>
             </PopoverTrigger>
             <PopoverContent
@@ -187,38 +208,47 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
               className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
             >
               <div className="relative border-b border-border/60 p-2">
-                <Search className="absolute left-5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" aria-hidden="true" />
                 <Input
                   value={courseSearch}
                   onChange={event => setCourseSearch(event.target.value)}
-                  placeholder="Buscar curso..."
+                  aria-label="Buscar curso"
+                  placeholder="Buscar curso…"
                   className="h-(--control-height-sm) pl-9"
                 />
               </div>
-              <div className="max-h-60 overflow-y-auto p-1">
+              <div id="audit-course-listbox" role="listbox" className="max-h-60 overflow-y-auto overscroll-contain p-1">
                 {visibleCourses.length === 0 ? (
-                  <p className="px-3 py-6 text-center text-body-md text-muted-foreground">No se encontraron cursos.</p>
+                  <p className="px-3 py-6 text-center text-body-sm text-muted-foreground">No se encontraron cursos.</p>
                 ) : (
-                  visibleCourses.map(course => (
-                    <button
-                      key={course.id}
-                      type="button"
-                      title={course.name}
-                      onClick={() => {
-                        setSelectedCourseId(course.id)
-                        setCoursePickerOpen(false)
-                        setCourseSearch("")
-                      }}
-                      className="flex w-full min-w-0 items-center gap-2 rounded-sm px-3 py-2 text-left text-body-md outline-none hover:bg-accent focus-visible:bg-accent"
-                    >
-                      <Check className={`h-4 w-4 shrink-0 ${selectedCourseId === course.id ? 'opacity-100' : 'opacity-0'}`} />
-                      <span className="min-w-0 flex-1 truncate">{course.name}</span>
-                    </button>
-                  ))
+                  visibleCourses.map(course => {
+                    const isSelected = selectedCourseId === course.id
+                    return (
+                      <button
+                        key={course.id}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        title={course.name}
+                        onClick={() => {
+                          setSelectedCourseId(course.id)
+                          setCoursePickerOpen(false)
+                          setCourseSearch("")
+                        }}
+                        className="flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 rounded-sm px-2.5 text-left text-body-md outline-none transition-colors hover:bg-accent focus-visible:bg-accent"
+                      >
+                        <Check
+                          className={cn("size-4 shrink-0 text-primary", isSelected ? "opacity-100" : "opacity-0")}
+                          aria-hidden="true"
+                        />
+                        <span className="min-w-0 flex-1 truncate">{course.name}</span>
+                      </button>
+                    )
+                  })
                 )}
                 {sortedCourses.length > visibleCourses.length && !courseSearch && (
                   <p className="px-3 py-2 text-center text-body-sm text-muted-foreground">
-                    Escribe para buscar en los {sortedCourses.length.toLocaleString()} cursos.
+                    Escribe para buscar en los {sortedCourses.length.toLocaleString("es-MX")} cursos.
                   </p>
                 )}
               </div>
@@ -226,28 +256,32 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
           </Popover>
         </div>
 
-        {selectedCourseId !== "all" && (
-          <div className="flex items-center justify-between gap-4 rounded-xl border border-border px-4 py-3">
+        {selectedCourseId && (
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
             <div className="flex min-w-0 items-center gap-3">
-              <Users className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+              <Users className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
               <div className="min-w-0">
-                <p className="truncate text-body-md font-medium text-foreground">{selectedCourseName}</p>
-                <p className="text-body-sm text-muted-foreground">Registros únicos listos para exportar</p>
+                <p className="truncate text-label-sm text-foreground">{selectedCourseName}</p>
+                <p className="text-body-sm text-muted-foreground">
+                  {auditData.length === 0
+                    ? "Sin registros para exportar"
+                    : "Registros únicos listos para exportar"}
+                </p>
               </div>
             </div>
-            <span className="shrink-0 rounded-md bg-muted px-2.5 py-1 text-body-md font-medium tabular-nums text-foreground">
-              {auditData.length.toLocaleString()}
+            <span className="shrink-0 rounded-md border border-border bg-card px-2.5 py-1 text-label-sm tabular-nums text-foreground">
+              {auditData.length.toLocaleString("es-MX")}
             </span>
           </div>
         )}
       </div>
 
       <ModalFooter
-        onCancel={() => onOpenChange(false)}
-        cancelLabel="Cerrar"
+        onCancel={handleClose}
+        cancelLabel="Cancelar"
         onConfirm={handleExport}
         saving={isExporting}
-        confirmLabel="Descargar Excel"
+        confirmLabel={isExporting ? "Generando…" : "Descargar Excel"}
         confirmIcon={<Download className="size-4" aria-hidden="true" />}
         confirmDisabled={auditData.length === 0}
       />

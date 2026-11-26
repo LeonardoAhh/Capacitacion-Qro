@@ -1,63 +1,90 @@
 "use client"
 
 import { useState } from "react"
-import { Download } from "lucide-react"
+import { Download, FileSpreadsheet } from "lucide-react"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
+import { notify } from "@/lib/notify"
 
 interface CapReportPreviewDialogProps {
   open: boolean
   onClose: () => void
   onDownload: () => Promise<void>
+  employeeCount: number
+  courseCount: number
 }
 
-export function CapReportPreviewDialog({ open, onClose, onDownload }: CapReportPreviewDialogProps) {
+export function CapReportPreviewDialog({
+  open,
+  onClose,
+  onDownload,
+  employeeCount,
+  courseCount,
+}: CapReportPreviewDialogProps) {
   const [isDownloading, setIsDownloading] = useState(false)
 
+  const handleClose = () => {
+    if (!isDownloading) onClose()
+  }
+
   const handleDownload = async () => {
+    if (isDownloading) return
     setIsDownloading(true)
     try {
       await onDownload()
+      notify.success("Reporte general descargado")
       onClose()
     } catch (error) {
-      console.error(error)
+      console.error("Error al generar reporte general:", error)
+      notify.error("No se pudo generar el reporte general.")
     } finally {
       setIsDownloading(false)
     }
   }
 
+  const isEmpty = employeeCount === 0 && courseCount === 0
+
   return (
     <ResponsiveShell
       open={open}
-      onClose={() => { if (!isDownloading) onClose() }}
-      size="xs"
-      title="Descargar reporte general"
+      onClose={handleClose}
+      size="sm"
+      title="Reporte general"
+      description="Exporta en Excel una sola hoja con una fila por empleado y curso, conservando el intento más reciente."
     >
       <ModalHeader
-        title="Descargar reporte general"
-        onClose={() => { if (!isDownloading) onClose() }}
+        title="Reporte general"
+        onClose={handleClose}
       />
 
-      <div className="bg-card p-(--card-padding)">
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background">
-            <Download className="size-4 text-muted-foreground" aria-hidden="true" />
+      <div className="space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
+        <p className="text-body-md text-muted-foreground">
+          Genera un Excel de una sola hoja con una fila por empleado y curso, conservando únicamente el intento más reciente.
+        </p>
+
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-border bg-muted/30 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
+            <FileSpreadsheet className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <div className="min-w-0">
+              <p className="truncate text-label-sm text-foreground">Capacitación completa</p>
+              <p className="text-body-sm text-muted-foreground">
+                {isEmpty ? "Sin datos disponibles para exportar" : "Cursos requeridos y adicionales por empleado"}
+              </p>
+            </div>
           </div>
-          <div className="space-y-1">
-            <p className="text-body-md font-medium text-foreground">Reporte completo de capacitación</p>
-            <p className="text-body-md text-muted-foreground">
-              Se generará una sola hoja con una fila por empleado y curso, conservando únicamente el intento más reciente.
-            </p>
-          </div>
+          <span className="shrink-0 rounded-md border border-border bg-card px-2.5 py-1 text-body-sm font-medium tabular-nums text-foreground">
+            {employeeCount.toLocaleString("es-MX")} emp · {courseCount.toLocaleString("es-MX")} cursos
+          </span>
         </div>
       </div>
 
       <ModalFooter
-        onCancel={() => { if (!isDownloading) onClose() }}
+        onCancel={handleClose}
         cancelLabel="Cancelar"
         onConfirm={handleDownload}
         saving={isDownloading}
-        confirmLabel="Descargar Excel"
+        confirmLabel={isDownloading ? "Generando…" : "Descargar Excel"}
         confirmIcon={<Download className="size-4" aria-hidden="true" />}
+        confirmDisabled={isEmpty}
       />
     </ResponsiveShell>
   )

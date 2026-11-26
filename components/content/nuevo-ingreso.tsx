@@ -6,10 +6,18 @@ import Link from "next/link"
 import {
   CheckCircle2, AlertCircle, Loader2,
   UserPlus, FileUp, MessageSquareShare,
+  EllipsisVertical, Pencil, Trash2,
 } from "lucide-react"
 import { EvalCell, ContratoTerminoCell } from "@/components/content/shared/eval-badges"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { HeaderSearch } from "@/components/ui/header-search"
 import { FilterMenu } from "@/components/ui/filter-menu"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -186,6 +194,17 @@ export default function NuevoIngresoContent() {
     }
   }
 
+  const handleConfirmDelete = async (record: NuevoIngreso) => {
+    const ok = await notify.confirm({
+      title: "Eliminar empleado",
+      description: `Se eliminará a ${record.nombre}. Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      tone: "destructive",
+      requireInputText: "ELIMINAR",
+    })
+    if (ok) await handleDelete(record.id)
+  }
+
   const handleCreate = async (data: Omit<NuevoIngreso, 'id' | 'created_at' | 'updated_at'>) => {
     const result = await createRecord(data)
     if (result.success) {
@@ -196,14 +215,13 @@ export default function NuevoIngresoContent() {
     }
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <>
 
       {/* Alertas */}
       {createSuccess && (
         <Alert className="border-success/30 bg-success/10 text-success">
-          <CheckCircle2 className="h-4 w-4 text-success" />
+          <CheckCircle2 className="size-4 text-success" aria-hidden="true" />
           <AlertDescription className="text-success">
             Empleado creado correctamente.
           </AlertDescription>
@@ -211,7 +229,7 @@ export default function NuevoIngresoContent() {
       )}
       {error && (
         <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircle className="size-4" aria-hidden="true" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -226,7 +244,7 @@ export default function NuevoIngresoContent() {
             markDialogLoaded("create")
             setNuevoOpen(true)
           }} aria-label="Nuevo empleado">
-            <UserPlus className="@2xl:hidden" aria-hidden="true" />
+            <UserPlus aria-hidden="true" />
             <span className="hidden @2xl:inline">Nuevo empleado</span>
           </Button>
         )}
@@ -247,14 +265,14 @@ export default function NuevoIngresoContent() {
           {!isReadOnly && <>
             <Button asChild variant="outline" size="sm" className={SOLO_ICONO}>
               <Link href="/ingresos/compartir-pendientes" aria-label="Compartir pendientes">
-                <MessageSquareShare className="@2xl:hidden" aria-hidden="true" />
+                <MessageSquareShare aria-hidden="true" />
                 <span className="hidden @2xl:inline">Pendientes</span>
               </Link>
             </Button>
             <Button variant="outline" size="sm" className={SOLO_ICONO} onClick={handleOpenIncidenciasImport} disabled={capEmployeeNamesLoading} aria-busy={capEmployeeNamesLoading} aria-label="Importar incidencias">
               {capEmployeeNamesLoading
                 ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                : <FileUp className="@2xl:hidden" aria-hidden="true" />}
+                : <FileUp aria-hidden="true" />}
               <span className="hidden @2xl:inline">{capEmployeeNamesLoading ? "Cargando…" : "Incidencias"}</span>
             </Button>
           </>}
@@ -287,8 +305,13 @@ export default function NuevoIngresoContent() {
                 <TableHead scope="col" className={cn(HEAD, "hidden w-32 sm:table-cell")}>Eval. 1er mes</TableHead>
                 <TableHead scope="col" className={cn(HEAD, "hidden w-32 lg:table-cell")}>Eval. 2do mes</TableHead>
                 <TableHead scope="col" className={cn(HEAD, "hidden w-32 xl:table-cell")}>Eval. 3er mes</TableHead>
-                <TableHead scope="col" className={cn(HEAD, "hidden w-40 xl:table-cell")}>Contrato</TableHead>
+                <TableHead scope="col" className={cn(HEAD, "hidden w-44 xl:table-cell")}>Contrato</TableHead>
                 <TableHead scope="col" className={cn(HEAD, "w-28")}>RG-REC-048</TableHead>
+                {!isReadOnly && (
+                  <TableHead scope="col" className="w-14 px-1">
+                    <span className="sr-only">Acciones</span>
+                  </TableHead>
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -297,20 +320,15 @@ export default function NuevoIngresoContent() {
                 const entregado = r.rg_rec_048 === 'Entregado'
                 const rgUrgente = !entregado && rgDias !== null && rgDias <= 7
                 return (
-                  <TableRow key={r.id} className="cursor-pointer" onClick={() => handleEdit(r)}>
+                  <TableRow key={r.id}>
                     <TableCell>
-                      {/* El botón da acceso con teclado; toda la fila también responde al clic. */}
-                      <button type="button" aria-label={`Editar empleado ${r.nombre}`}
-                        onClick={event => { event.stopPropagation(); handleEdit(r) }}
-                        className="block w-full min-w-0 rounded-sm text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
-                        <span className="block truncate text-label-sm text-foreground">{r.nombre}</span>
-                        <span className="block truncate text-body-sm text-muted-foreground">
-                          {[`#${r.numero ?? '—'}`, r.puesto, r.turno && `Turno ${r.turno}`].filter(Boolean).join(' · ')}
-                        </span>
-                      </button>
+                      <span className="block truncate text-label-sm text-foreground">{r.nombre}</span>
+                      <span className="block truncate text-body-sm tabular-nums text-muted-foreground">
+                        {[`#${r.numero ?? '-'}`, r.puesto, r.turno && `Turno ${r.turno}`].filter(Boolean).join(' · ')}
+                      </span>
                     </TableCell>
                     <TableCell className="hidden lg:table-cell">
-                      <span className="block truncate text-body-sm text-foreground">{formatDate(r.fecha_ingreso)}</span>
+                      <span className="block truncate text-body-sm tabular-nums text-foreground">{formatDate(r.fecha_ingreso)}</span>
                       <span className="block truncate text-body-sm text-muted-foreground">{r.departamento}</span>
                     </TableCell>
                     <TableCell className="hidden sm:table-cell">
@@ -329,8 +347,38 @@ export default function NuevoIngresoContent() {
                       <span className={cn("block truncate text-body-sm", entregado ? "text-success" : rgUrgente ? "text-destructive" : "text-warning-deep")}>
                         {r.rg_rec_048}
                       </span>
-                      <span className="block truncate text-body-sm text-muted-foreground">{formatDate(r.fecha_vencimiento_rg)}</span>
+                      <span className="block truncate text-body-sm tabular-nums text-muted-foreground">{formatDate(r.fecha_vencimiento_rg)}</span>
                     </TableCell>
+                    {!isReadOnly && (
+                      <TableCell className="w-14 px-1 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              aria-label={`Acciones para ${r.nombre}`}
+                            >
+                              <EllipsisVertical className="size-4" aria-hidden="true" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onSelect={() => handleEdit(r)}>
+                              <Pencil className="size-4 text-muted-foreground" aria-hidden="true" />
+                              Editar
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onSelect={() => { void handleConfirmDelete(r) }}
+                              className="text-destructive focus:bg-destructive/10 focus:text-destructive"
+                            >
+                              <Trash2 className="size-4" aria-hidden="true" />
+                              Borrar
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
@@ -353,7 +401,6 @@ export default function NuevoIngresoContent() {
         saving={saving}
         onClose={() => { setEditOpen(false); setEditRecord(null) }}
         onSave={handleSave}
-        onDelete={handleDelete}
       />}
 
       {loadedDialogs.incidencias && <IncidenciasBulkImport

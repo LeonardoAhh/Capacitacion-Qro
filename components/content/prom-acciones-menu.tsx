@@ -3,7 +3,6 @@
 import Link from "next/link"
 import {
   ArrowUpRight,
-  ChartNoAxesColumnIncreasing,
   ClipboardPenLine,
   EllipsisVertical,
   UserRoundSearch,
@@ -19,27 +18,21 @@ import type { EmpleadoPromocion } from "@/lib/promociones/types"
 import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 import { calcularAptitud, isHabilitado } from "@/lib/promociones/utils"
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
 interface PromAccionesMenuProps {
   empleado: EmpleadoPromocion
   onPromover?: () => void
   onCapturarExamen?: () => void
-  onDesempeño?: () => void
 }
-
-// ─── Component ──────────────────────────────────────────────────────────────
 
 export function PromAccionesMenu({
   empleado,
   onPromover,
   onCapturarExamen,
-  onDesempeño,
 }: PromAccionesMenuProps) {
   const habilitado = isHabilitado(empleado.puesto) || empleado.regla != null
   const aptitud = habilitado ? calcularAptitud(empleado) : null
 
-  // La acción primaria cambia según si el empleado está listo para promoverse
+  // La acción primaria cambia según si el empleado está listo para promoverse.
   const esApto = aptitud === "apto"
   const onPrimaryAction = esApto ? onPromover : onCapturarExamen
   const primaryLabel = esApto ? "Promover empleado" : "Capturar examen"
@@ -51,7 +44,6 @@ export function PromAccionesMenu({
         <Button
           variant="ghost"
           size="icon"
-          className="size-(--control-height)"
           aria-label={`Acciones para ${empleado.nombre}`}
         >
           <EllipsisVertical aria-hidden="true" className={PROMOTION_ICON.control} />
@@ -72,12 +64,6 @@ export function PromAccionesMenu({
               aria-hidden="true"
             />
             {primaryLabel}
-          </DropdownMenuItem>
-        )}
-        {onDesempeño && (
-          <DropdownMenuItem onClick={onDesempeño} data-testid="prom-accion-desempeno">
-            <ChartNoAxesColumnIncreasing className={`${PROMOTION_ICON.control} text-warning-deep`} aria-hidden="true" />
-            Evaluar desempeño
           </DropdownMenuItem>
         )}
       </DropdownMenuContent>

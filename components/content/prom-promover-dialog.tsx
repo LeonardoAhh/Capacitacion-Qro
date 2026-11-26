@@ -68,10 +68,14 @@ function PromPromoverDialogContent({
     }
   }
 
+  const handleClose = () => {
+    if (!guardando) onClose()
+  }
+
   return (
-    <ResponsiveShell open={open} onClose={onClose} maxWidth="sm:max-w-xl" title={PROMOTION_DIALOG_COPY.title}>
-      <ModalHeader title={PROMOTION_DIALOG_COPY.title} onClose={onClose} />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+    <ResponsiveShell open={open} onClose={handleClose} maxWidth="sm:max-w-xl" title={PROMOTION_DIALOG_COPY.title}>
+      <ModalHeader title={PROMOTION_DIALOG_COPY.title} onClose={handleClose} />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
         <PromPositionChange empleado={empleado} />
         <PromPromotionCriteria empleado={empleado} />
 
@@ -98,9 +102,9 @@ function PromPromoverDialogContent({
       </div>
 
       <ModalFooter
-        onCancel={onClose}
+        onCancel={handleClose}
         onConfirm={() => void confirmarPromocion()}
-        confirmLabel={PROMOTION_DIALOG_COPY.confirmLabel}
+        confirmLabel={guardando ? "Guardando…" : PROMOTION_DIALOG_COPY.confirmLabel}
         confirmIcon={<ArrowUpRight aria-hidden="true" />}
         confirmDisabled={isReadOnly || !apto}
         saving={guardando}

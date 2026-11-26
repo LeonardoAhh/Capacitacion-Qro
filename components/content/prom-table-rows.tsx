@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react"
 import { Badge } from "@/components/ui/badge"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { EmpleadoPromocion } from "@/lib/promociones/types"
 import { getCriterionTone, getUnavailableCategoryLabel, PROMOTION_TABLE_COPY as COPY } from "@/lib/promociones/table-config"
@@ -32,7 +33,6 @@ const NUMBER = "text-right text-body-sm tabular-nums"
 interface Handlers {
   onPromover: (emp: EmpleadoPromocion) => void
   onCapturarExamen: (emp: EmpleadoPromocion) => void
-  onDesempeño: (emp: EmpleadoPromocion) => void
 }
 
 /** Valor de un criterio: en rojo solo si no cumple (el color no es la única señal). */
@@ -59,7 +59,7 @@ function DepartmentCell({ emp }: { emp: EmpleadoPromocion }) {
   </TableCell>
 }
 
-function Row({ emp, onPromover, onCapturarExamen, onDesempeño }: { emp: EmpleadoPromocion } & Handlers) {
+function Row({ emp, onPromover, onCapturarExamen }: { emp: EmpleadoPromocion } & Handlers) {
   const view = getPromotionRowView(emp)
   const cursos = <Criterio value={`${view.porcentajeCompletado}%`} cumple={view.cumpleCursos} />
   const desempeno = view.evaluacion ? <Criterio value={view.evaluacion.calificacion} cumple={view.cumpleEvaluacion} /> : COPY.noEvaluation
@@ -74,13 +74,13 @@ function Row({ emp, onPromover, onCapturarExamen, onDesempeño }: { emp: Emplead
     </TableCell>
     <TableCell className={COL.status}><AptitudBadge status={view.aptitud} /></TableCell>
     <TableCell className={cn(COL.actions, "text-center")}>
-      <PromAccionesMenu empleado={emp} onPromover={() => onPromover(emp)} onCapturarExamen={() => onCapturarExamen(emp)} onDesempeño={() => onDesempeño(emp)} />
+      <PromAccionesMenu empleado={emp} onPromover={() => onPromover(emp)} onCapturarExamen={() => onCapturarExamen(emp)} />
     </TableCell>
   </TableRow>
 }
 
-/** Sin categoría para promover: solo se consulta el desempeño. */
-function UnavailableRow({ emp, onDesempeño }: { emp: EmpleadoPromocion; onDesempeño: Handlers["onDesempeño"] }) {
+/** Sin categoría para promover: solo se consulta el detalle. */
+function UnavailableRow({ emp }: { emp: EmpleadoPromocion }) {
   const evaluacion = ultimaEvaluacion(emp.evaluaciones)
   const empty = <span className="text-muted-foreground"><span aria-hidden="true">{COPY.unavailableValue}</span><span className="sr-only">{COPY.notApplicable}</span></span>
   return <TableRow>
@@ -91,13 +91,13 @@ function UnavailableRow({ emp, onDesempeño }: { emp: EmpleadoPromocion; onDesem
     <TableCell className={cn(COL.performance, NUMBER, !evaluacion && "text-muted-foreground")}>{evaluacion?.calificacion ?? COPY.noEvaluation}</TableCell>
     <TableCell className={cn(COL.exam, NUMBER)}>{empty}</TableCell>
     <TableCell className={COL.status}><Badge variant="outline" size="sm" className="text-muted-foreground">{getUnavailableCategoryLabel(emp.puesto)}</Badge></TableCell>
-    <TableCell className={cn(COL.actions, "text-center")}><PromAccionesMenu empleado={emp} onDesempeño={() => onDesempeño(emp)} /></TableCell>
+    <TableCell className={cn(COL.actions, "text-center")}><PromAccionesMenu empleado={emp} /></TableCell>
   </TableRow>
 }
 
-function PromotionTableFrame({ label, children }: { label: string; children: ReactNode }) {
+function PromotionTableFrame({ label, busy, children }: { label: string; busy?: boolean; children: ReactNode }) {
   return <div className="overflow-hidden rounded-xl border bg-card">
-    <Table aria-label={label} className="table-fixed">
+    <Table aria-label={label} aria-busy={busy} className="table-fixed">
       <TableHeader className="bg-muted/50">
         <TableRow className="hover:bg-transparent">
           <TableHead className={HEAD}>{COPY.employee}</TableHead>
@@ -113,6 +113,41 @@ function PromotionTableFrame({ label, children }: { label: string; children: Rea
       <TableBody>{children}</TableBody>
     </Table>
   </div>
+}
+
+const SKELETON_NAME_WIDTHS = ["w-44", "w-52", "w-40", "w-48", "w-36"] as const
+const SKELETON_META_WIDTHS = ["w-36", "w-44", "w-32", "w-40", "w-28"] as const
+
+function PromotionSkeletonRow({ index }: { index: number }) {
+  const nameWidth = SKELETON_NAME_WIDTHS[index % SKELETON_NAME_WIDTHS.length]
+  const metaWidth = SKELETON_META_WIDTHS[index % SKELETON_META_WIDTHS.length]
+  return (
+    <TableRow aria-hidden="true" className="hover:bg-transparent">
+      <TableCell>
+        <Skeleton className={cn("h-4 max-w-full", nameWidth)} />
+        <Skeleton className={cn("mt-1.5 h-3.5 max-w-full", metaWidth)} />
+        <Skeleton className="mt-1.5 h-3.5 w-32 md:hidden" />
+      </TableCell>
+      <TableCell className={COL.department}>
+        <Skeleton className="h-3.5 w-24" />
+        <Skeleton className="mt-1.5 h-3 w-28" />
+      </TableCell>
+      <TableCell className={COL.tenure}><Skeleton className="h-3.5 w-20" /></TableCell>
+      <TableCell className={COL.courses}><Skeleton className="ml-auto h-3.5 w-10" /></TableCell>
+      <TableCell className={COL.performance}><Skeleton className="ml-auto h-3.5 w-8" /></TableCell>
+      <TableCell className={COL.exam}><Skeleton className="ml-auto h-3.5 w-8" /></TableCell>
+      <TableCell className={COL.status}><Skeleton className="h-6 w-16 rounded-md" /></TableCell>
+      <TableCell className={cn(COL.actions, "text-center")}><Skeleton className="mx-auto size-4 rounded-sm" /></TableCell>
+    </TableRow>
+  )
+}
+
+export function PromotionTableSkeleton({ rows = 9 }: { rows?: number }) {
+  return (
+    <PromotionTableFrame label="Cargando categorías" busy>
+      {Array.from({ length: rows }, (_, index) => <PromotionSkeletonRow key={index} index={index} />)}
+    </PromotionTableFrame>
+  )
 }
 
 /**
@@ -131,7 +166,7 @@ export function PromotionTable({ conCategoria, sinCategoria, ...handlers }: {
     {sinCategoria.length > 0 && <section aria-label={COPY.unavailableGroup} className="space-y-2">
       <p className="text-eyebrow uppercase text-muted-foreground">{COPY.unavailableGroup}</p>
       <PromotionTableFrame label={COPY.unavailableGroup}>
-        {sinCategoria.map(emp => <UnavailableRow key={emp.id} emp={emp} onDesempeño={handlers.onDesempeño} />)}
+        {sinCategoria.map(emp => <UnavailableRow key={emp.id} emp={emp} />)}
       </PromotionTableFrame>
     </section>}
   </div>

@@ -1,7 +1,7 @@
 {
   "name": "Capacitacion",
   "short_name": "Capacitacion",
-  "description": "Sistema de gestion de capacitacion.",
+  "description": "SAAS para Recursos Humanos",
   "start_url": "/kanban",
   "display": "standalone",
   "orientation": "portrait",

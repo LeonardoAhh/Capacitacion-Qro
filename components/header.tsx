@@ -36,7 +36,7 @@ export default function Header({
   mobileOnly = false,
   searchSlotRef,
 }: HeaderProps) {
-  const sidebarLabel = sidebarCollapsed ? "Mostrar barra lateral" : "Ocultar barra lateral"
+  const sidebarLabel = sidebarCollapsed ? "Mostrar Menú" : "Ocultar Menú"
   const pathname = usePathname()
   const router = useRouter()
   const pageLabel = getRouteLabel(pathname)

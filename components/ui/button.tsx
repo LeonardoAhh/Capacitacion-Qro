@@ -30,7 +30,7 @@ const buttonVariants = cva(
         xs: "relative touch-target h-7 rounded-md px-2 text-body-sm",
         sm: "relative touch-target h-(--control-height-sm) rounded-md px-3 text-body-md",
         lg: "h-(--control-height) rounded-md px-8 text-body-lg",
-        icon: "size-(--control-height)",
+        icon: "relative touch-target size-(--control-height)",
         marketing: "h-11 px-[14px] text-body-lg",
         nav: "relative touch-target h-9 px-[6px] text-body-md",
       },

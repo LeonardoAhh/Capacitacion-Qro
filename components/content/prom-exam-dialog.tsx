@@ -1,15 +1,15 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { ClipboardCheck, Trash2, TriangleAlert } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
+import { notify } from "@/lib/notify"
 import {
   EXAM_DIALOG_COPY,
   formatPromotionDate,
-  PROMOTION_DIALOG_TYPE,
   todayAsLocalDate,
 } from "@/lib/promociones/dialog-config"
 import type { EmpleadoPromocion, ExamenPromocionInput } from "@/lib/promociones/types"
@@ -25,6 +25,8 @@ interface PromExamDialogProps {
   onGuardar: (datos: ExamenPromocionInput) => Promise<void>
 }
 
+type ExamErrorField = "date" | "score" | "form" | null
+
 export function PromExamDialog({
   empleado,
   open,
@@ -39,32 +41,56 @@ export function PromExamDialog({
   )
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorField, setErrorField] = useState<ExamErrorField>(null)
+
+  const dateRef = useRef<HTMLInputElement>(null)
+  const scoreRef = useRef<HTMLInputElement>(null)
+
+  const handleClose = () => {
+    if (!guardando) onClose()
+  }
+
+  const clearError = () => {
+    if (error) {
+      setError(null)
+      setErrorField(null)
+    }
+  }
 
   async function ejecutar(datos: ExamenPromocionInput, fallback: string) {
     setGuardando(true)
     setError(null)
+    setErrorField(null)
     try {
       await onGuardar(datos)
       onClose()
     } catch (cause: unknown) {
       setError(cause instanceof Error ? cause.message : fallback)
+      setErrorField("form")
     } finally {
       setGuardando(false)
     }
   }
 
   function guardar() {
+    if (disabled) return
     const calificacion = Number(calExamen)
     if (!fechaExamen) {
       setError(EXAM_DIALOG_COPY.missingDate)
+      setErrorField("date")
+      dateRef.current?.focus()
       return
     }
     if (fechaExamen <= empleado.fechaIngresoPuesto) {
       setError(EXAM_DIALOG_COPY.invalidDate)
+      setErrorField("date")
+      dateRef.current?.focus()
       return
     }
     if (calExamen === "" || !Number.isFinite(calificacion) || calificacion < 0 || calificacion > 100) {
       setError(EXAM_DIALOG_COPY.invalidScore)
+      setErrorField("score")
+      scoreRef.current?.focus()
       return
     }
 
@@ -76,8 +102,16 @@ export function PromExamDialog({
     }, EXAM_DIALOG_COPY.saveError)
   }
 
-  function borrar() {
-    void ejecutar({
+  async function borrar() {
+    if (disabled) return
+    const confirmed = await notify.confirm({
+      title: "Borrar examen",
+      description: `Se eliminará la calificación de examen de ${empleado.nombre}.`,
+      confirmLabel: "Borrar",
+      tone: "destructive",
+    })
+    if (!confirmed) return
+    await ejecutar({
       fechaExamen: "",
       calExamen: null,
       intentosPrevios: empleado.intentosExamen,
@@ -88,21 +122,32 @@ export function PromExamDialog({
   const disabled = guardando || isReadOnly || !!fechaDesbloqueo
 
   return (
-    <ResponsiveShell open={open} onClose={onClose} maxWidth="sm:max-w-md" title={EXAM_DIALOG_COPY.title}>
-      <ModalHeader title={EXAM_DIALOG_COPY.title} onClose={onClose} />
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-5">
+    <ResponsiveShell
+      open={open}
+      onClose={handleClose}
+      size="sm"
+      title={EXAM_DIALOG_COPY.title}
+      description={empleado.nombre}
+    >
+      <ModalHeader title={EXAM_DIALOG_COPY.title} onClose={handleClose} />
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
         <PromEmployeeSummary empleado={empleado} />
 
-        <form id="prom-exam-form" className="space-y-4" onSubmit={event => { event.preventDefault(); guardar() }}>
+        <form id="prom-exam-form" noValidate className="space-y-4" onSubmit={event => { event.preventDefault(); guardar() }}>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="prom-exam-date">{EXAM_DIALOG_COPY.dateLabel}</Label>
               <Input
+                ref={dateRef}
                 id="prom-exam-date"
                 type="date"
                 min={empleado.fechaIngresoPuesto}
                 value={fechaExamen}
-                onChange={event => setFechaExamen(event.target.value)}
+                onChange={event => {
+                  setFechaExamen(event.target.value)
+                  clearError()
+                }}
+                aria-invalid={errorField === "date" || undefined}
                 aria-describedby={error ? "prom-exam-error" : undefined}
                 disabled={disabled}
               />
@@ -110,6 +155,7 @@ export function PromExamDialog({
             <div className="space-y-2">
               <Label htmlFor="prom-exam-score">{EXAM_DIALOG_COPY.scoreLabel}</Label>
               <Input
+                ref={scoreRef}
                 id="prom-exam-score"
                 type="number"
                 min={0}
@@ -118,27 +164,34 @@ export function PromExamDialog({
                 inputMode="decimal"
                 placeholder={EXAM_DIALOG_COPY.scoreHint}
                 value={calExamen}
-                onChange={event => setCalExamen(event.target.value)}
-                aria-invalid={!!error}
+                onChange={event => {
+                  setCalExamen(event.target.value)
+                  clearError()
+                }}
+                aria-invalid={errorField === "score" || undefined}
                 aria-describedby={error ? "prom-exam-error" : undefined}
                 disabled={disabled}
               />
             </div>
           </div>
 
-          <dl className={`flex flex-wrap gap-x-6 gap-y-2 ${PROMOTION_DIALOG_TYPE.supporting}`}>
-            <div className="flex gap-1.5">
+          <dl className="flex flex-wrap gap-x-6 gap-y-1.5 text-body-sm text-muted-foreground">
+            <div className="flex items-baseline gap-1.5">
               <dt>{EXAM_DIALOG_COPY.attemptsLabel}:</dt>
-              <dd className="font-medium text-foreground">{empleado.intentosExamen ?? 0}</dd>
+              <dd className="font-medium tabular-nums text-foreground">{empleado.intentosExamen ?? 0}</dd>
             </div>
             {empleado.regla?.minCalificacionExamen != null && (
-              <div className="flex gap-1.5">
+              <div className="flex items-baseline gap-1.5">
                 <dt>{EXAM_DIALOG_COPY.minimumLabel}:</dt>
-                <dd className="font-medium text-foreground">{empleado.regla.minCalificacionExamen}</dd>
+                <dd className="font-medium tabular-nums text-foreground">{empleado.regla.minCalificacionExamen}</dd>
               </div>
             )}
           </dl>
         </form>
+
+        {isReadOnly && (
+          <p className="text-body-sm text-muted-foreground">Solo lectura. No tienes permiso para editar este examen.</p>
+        )}
 
         {fechaDesbloqueo && (
           <Alert variant="destructive">
@@ -157,16 +210,16 @@ export function PromExamDialog({
       </div>
 
       <ModalFooter
-        onCancel={onClose}
+        onCancel={handleClose}
         onConfirm={guardar}
-        confirmLabel={EXAM_DIALOG_COPY.saveLabel}
+        confirmLabel={guardando ? "Guardando…" : EXAM_DIALOG_COPY.saveLabel}
         confirmIcon={<ClipboardCheck aria-hidden="true" />}
         confirmDisabled={disabled}
         saving={guardando}
         secondaryAction={empleado.calificacionExamen != null ? {
           icon: <Trash2 aria-hidden="true" />,
           label: EXAM_DIALOG_COPY.deleteLabel,
-          onClick: borrar,
+          onClick: () => { void borrar() },
           disabled,
           variant: "ghost",
         } : undefined}

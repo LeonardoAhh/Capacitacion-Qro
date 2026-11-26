@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Megaphone as MegaphoneIcon } from "lucide"
-import { LayoutDashboard, Megaphone, PanelLeft, UsersRound, X, type LucideIcon } from "lucide-react"
+import { HardHat, HeartPulse, LayoutDashboard, Megaphone, Monitor, PanelLeft, Search, Tags, UserPlus, UsersRound, X, type LucideIcon } from "lucide-react"
 import { useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { CompactPager } from "@/components/ui/compact-pager"
+import { DialogClose, DialogHeader } from "@/components/ui/dialog"
 import { NoticeIcon } from "@/components/ui/notice-icon"
+import { ResponsiveShell } from "@/components/ui/responsive-shell"
+import { SECTION_NAV_ACTIVE, SECTION_NAV_ICON, SECTION_NAV_IDLE, SECTION_NAV_ITEM } from "@/components/ui/section-nav-layout"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { abrirChangelog, CHANGELOG, cerrarChangelog, type Novedad, type SeccionNovedad } from "@/lib/changelog"
 import { useChangelog } from "@/lib/hooks/useChangelog"
 import { cn } from "@/lib/utils"
@@ -18,8 +22,14 @@ const AVISO_DESPUES_MS = 2_000
 /** Mismo ícono que cada sección tiene en el menú (lib/navigation). */
 const ICONO_SECCION: Record<SeccionNovedad, LucideIcon> = {
   Inicio: LayoutDashboard,
+  Categorías: Tags,
+  "Nuevos Empleados": UserPlus,
   Plantilla: UsersRound,
+  Búsqueda: Search,
+  "Safe Walk": HardHat,
+  "Occupational Health": HeartPulse,
   Menú: PanelLeft,
+  General: Monitor,
 }
 
 /** Cambios agrupados por sección, en el orden en que aparecen. */
@@ -68,13 +78,15 @@ export function ChangelogButton({ triggerClassName, iconBoxClassName, iconClassN
 }
 
 /**
- * Aviso flotante de novedades sin ver y la lista completa. Se monta una sola vez en el workspace;
- * el aviso se cierra por esta visita, el punto del botón sigue hasta abrir la lista.
+ * Aviso flotante de novedades sin ver y modal con paginación por actualización
+ * y vista detalle por sección para mantener tamaño fijo sin scroll.
  */
 export function Changelog() {
   const { nuevo, abierto } = useChangelog()
   const [listo, setListo] = useState(false)
   const [cerradoAviso, setCerradoAviso] = useState(false)
+  const [page, setPage] = useState(1)
+  const [selectedSection, setSelectedSection] = useState<SeccionNovedad | null>(null)
   const reduced = useAppReducedMotion()
   const ultima = CHANGELOG[0]
 
@@ -83,7 +95,22 @@ export function Changelog() {
     return () => clearTimeout(timer)
   }, [])
 
+  useEffect(() => {
+    if (abierto) {
+      setPage(1)
+      setSelectedSection(null)
+    }
+  }, [abierto])
+
   const mostrarAviso = listo && nuevo && !cerradoAviso && !abierto && Boolean(ultima)
+  const novedad = CHANGELOG[page - 1] ?? ultima
+  const secciones = novedad ? porSeccion(novedad.cambios) : []
+  const seccionActiva = secciones.find(([seccion]) => seccion === selectedSection) ?? secciones[0]
+
+  const handlePageChange = (nextPage: number) => {
+    setPage(nextPage)
+    setSelectedSection(null)
+  }
 
   return (
     <>
@@ -120,41 +147,105 @@ export function Changelog() {
         )}
       </AnimatePresence>
 
-      <Dialog open={abierto} onOpenChange={open => { if (!open) cerrarChangelog() }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Novedades</DialogTitle>
-            <DialogDescription className="sr-only">Cambios recientes en el sistema.</DialogDescription>
-          </DialogHeader>
-          {/* Cada novedad: fecha y título; debajo, sus cambios agrupados por sección del menú. */}
-          <ol className="divide-y pb-2">
-            {CHANGELOG.map(novedad => (
-              <li key={novedad.id} className="space-y-4 py-4 first:pt-2">
-                <div>
-                  <p className="text-body-sm text-muted-foreground">
-                    <time dateTime={novedad.fecha}>{formatFecha(novedad.fecha)}</time>
-                  </p>
-                  <h3 className="text-heading-md text-foreground">{novedad.titulo}</h3>
-                </div>
-                {porSeccion(novedad.cambios).map(([seccion, textos]) => {
-                  const Icon = ICONO_SECCION[seccion]
-                  return (
-                    <section key={seccion} aria-label={seccion} className="space-y-1">
-                      <h4 className="flex items-center gap-2 text-label-sm text-foreground">
-                        <Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-                        {seccion}
-                      </h4>
-                      <ul className="list-disc space-y-1 pl-6 text-body-md text-foreground marker:text-muted-foreground">
-                        {textos.map(texto => <li key={texto}>{texto}</li>)}
-                      </ul>
-                    </section>
-                  )
-                })}
-              </li>
-            ))}
-          </ol>
-        </DialogContent>
-      </Dialog>
+      <ResponsiveShell
+        open={abierto}
+        onClose={cerrarChangelog}
+        size="md"
+        title={novedad ? `Novedades: ${novedad.titulo}` : "Novedades"}
+        description="Cambios recientes en el sistema."
+      >
+        {novedad && (
+          <>
+            <DialogHeader className="sticky top-0 z-10 mb-0 flex-row items-start justify-between gap-4 border-b border-border bg-card px-4 py-3 text-left sm:px-6">
+              <div className="min-w-0 flex-1 space-y-0.5">
+                <p className="text-body-sm text-muted-foreground">
+                  Novedades · <time dateTime={novedad.fecha}>{formatFecha(novedad.fecha)}</time>
+                </p>
+                <h2 className="break-words text-heading-md text-foreground">{novedad.titulo}</h2>
+              </div>
+              <DialogClose asChild>
+                <Button type="button" variant="ghost" size="icon" className="shrink-0" aria-label="Cerrar modal">
+                  <X aria-hidden="true" />
+                </Button>
+              </DialogClose>
+            </DialogHeader>
+
+            <div className="grid min-h-0 flex-1 grid-cols-1 bg-card sm:h-[19rem] sm:flex-none sm:grid-cols-[12.5rem_minmax(0,1fr)]">
+              <div className="border-b border-border px-4 py-3 sm:border-b-0 sm:border-r sm:px-3 sm:py-4">
+                <Select
+                  value={seccionActiva?.[0] ?? ""}
+                  onValueChange={next => {
+                    const match = secciones.find(([s]) => s === next)
+                    if (match) setSelectedSection(match[0])
+                  }}
+                >
+                  <SelectTrigger aria-label="Apartados de esta actualización" className="w-full sm:hidden">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {secciones.map(([seccion]) => (
+                      <SelectItem key={seccion} value={seccion}>{seccion}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <nav aria-label="Apartados de esta actualización" className="hidden sm:block">
+                  <ul className="space-y-0.5">
+                    {secciones.map(([seccion]) => {
+                      const Icon = ICONO_SECCION[seccion]
+                      const current = seccionActiva?.[0] === seccion
+                      return (
+                        <li key={seccion}>
+                          <button
+                            type="button"
+                            aria-current={current || undefined}
+                            onClick={() => setSelectedSection(seccion)}
+                            className={cn(SECTION_NAV_ITEM, current ? SECTION_NAV_ACTIVE : SECTION_NAV_IDLE)}
+                          >
+                            <Icon className={cn(SECTION_NAV_ICON, current && "text-primary")} aria-hidden="true" />
+                            <span className="min-w-0 truncate">{seccion}</span>
+                          </button>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </nav>
+              </div>
+
+              <div className="min-h-[15rem] overflow-y-auto px-4 py-4 sm:min-h-0 sm:px-6">
+                {seccionActiva && (
+                  <section
+                    key={`${novedad.id}-${seccionActiva[0]}`}
+                    aria-label={seccionActiva[0]}
+                    className="step-enter"
+                  >
+                    <h3 className="sr-only">{seccionActiva[0]}</h3>
+                    <ul className="list-disc space-y-2.5 pl-5 text-body-md text-foreground marker:text-muted-foreground">
+                      {seccionActiva[1].map(texto => (
+                        <li key={texto}>{texto}</li>
+                      ))}
+                    </ul>
+                  </section>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-auto flex shrink-0 items-center justify-between gap-3 border-t border-border bg-card px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:px-6 sm:pb-3">
+              <div>
+                <CompactPager
+                  label="Paginación de novedades"
+                  page={page}
+                  totalPages={CHANGELOG.length}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+              <Button type="button" variant="outline" size="sm" onClick={cerrarChangelog}>
+                Cerrar
+              </Button>
+            </div>
+          </>
+        )}
+      </ResponsiveShell>
     </>
   )
 }
