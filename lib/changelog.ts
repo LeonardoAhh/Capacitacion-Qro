@@ -24,6 +24,7 @@ export interface Novedad {
   id: string
   /** "AAAA-MM-DD" */
   fecha: string
+  /** Título corto (máx. ~35 caracteres) para mantenerse en una línea en el modal. */
   titulo: string
   cambios: { seccion: SeccionNovedad; texto: string }[]
 }
@@ -32,7 +33,7 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-27",
     fecha: "2026-11-27",
-    titulo: "Registros de cada empleado y nuevos indicadores de seguridad",
+    titulo: "Registros y nuevos indicadores",
     cambios: [
       { seccion: "Plantilla", texto: "Las incidencias, actas administrativas, incumplimientos, retardos y omisiones de marcaje de cada empleado ahora están en una sola página: Registros." },
       { seccion: "Plantilla", texto: "Ábrela con la opción Registros del menú de cada empleado y elige el apartado que necesitas." },
@@ -48,7 +49,7 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-26-2",
     fecha: "2026-11-26",
-    titulo: "Mejoras en Categorías, Nuevos Empleados y reportes",
+    titulo: "Categorías, empleados y reportes",
     cambios: [
       { seccion: "Categorías", texto: "La lista abre más rápido, también al regresar del detalle de una persona." },
       { seccion: "Categorías", texto: "En el detalle de una persona ves sus Criterios, Evaluaciones y Cursos por separado." },
@@ -76,7 +77,7 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-25",
     fecha: "2026-11-25",
-    titulo: "Buscador en la barra superior",
+    titulo: "Buscador en barra superior",
     cambios: [
       { seccion: "Búsqueda", texto: "Busca personas, cursos o registros con la lupa de la barra superior." },
       { seccion: "Búsqueda", texto: "Está en Plantilla, Categorías, Nuevos Empleados, Recontratación, Exámenes, Cumpleaños y Desempeño." },
@@ -85,7 +86,7 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-24",
     fecha: "2026-11-24",
-    titulo: "Nuevo espacio de Seguridad e Higiene",
+    titulo: "Espacio de Seguridad e Higiene",
     cambios: [
       { seccion: "Safe Walk", texto: "Registra hallazgos de seguridad con foto, área, responsable y fecha límite, y dales seguimiento." },
       { seccion: "Safe Walk", texto: "Ve los hallazgos en tarjetas o en lista, amplía las fotos y cierra cada caso con la foto de la solución." },
@@ -97,7 +98,7 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-23",
     fecha: "2026-11-23",
-    titulo: "Pensado para computadora y tablet",
+    titulo: "Mejor en computadora y tablet",
     cambios: [
       { seccion: "General", texto: "El sistema está pensado para usarse en computadora y tablet." },
       { seccion: "General", texto: "En celular algunas pantallas todavía pueden verse distintas o fallar; seguimos mejorándolas." },
