@@ -17,6 +17,7 @@ export type SeccionNovedad =
   | "Occupational Health"
   | "Indicators"
   | "Reports"
+  | "Formato TE"
   | "Menú"
   | "General"
 
@@ -34,12 +35,14 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-27",
     fecha: "2026-11-27",
-    titulo: "Plantilla y reportes en PDF",
+    titulo: "Plantilla, Formato TE y PDF",
     cambios: [
       { seccion: "Plantilla", texto: "Nuevos Empleados se integró en Plantilla en una sola lista, con filtro de Nuevos ingresos." },
       { seccion: "Plantilla", texto: "Cada nuevo ingreso muestra Nuevo ingreso o Atención, y abre Seguimiento en su menú." },
       { seccion: "Plantilla", texto: "Cargar cursos, Incidencias y Pendientes ahora están en el menú lateral de Plantilla." },
       { seccion: "Plantilla", texto: "El número de empleado es obligatorio sin duplicados; al borrar se quita su seguimiento." },
+      { seccion: "Formato TE", texto: "Nueva página en Herramientas para capturar el tiempo extra e imprimir su formato de autorización." },
+      { seccion: "Formato TE", texto: "Teclea el número de empleado y se agrega solo; mientras capturas ves cómo queda cada hoja." },
       { seccion: "Reports", texto: "Descarga en PDF el reporte semanal de Safe Walk y Occupational Health, con fotos incluidas." },
     ],
   },

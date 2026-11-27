@@ -7,6 +7,7 @@
 import type { LucideIcon } from "lucide-react"
 import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, SAFETY_INDICATORS_PATH, SAFETY_REPORTS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
+import { FORMATO_TE_PATH } from "@/lib/formato-te"
 import {
   BadgeCheck,
   Cake,
@@ -14,6 +15,7 @@ import {
   CalendarDays,
   ClipboardList,
   ClipboardPenLine,
+  FileClock,
   FileSearch,
   FileText,
   FolderOpen,
@@ -109,6 +111,13 @@ export const NAV_SECTIONS: NavSection[] = [
     collapsible: true,
     items: [
       { label: "Cumpleaños", href: "/cumpleanos", icon: Cake },
+    ],
+  },
+  {
+    label: "Herramientas",
+    collapsible: true,
+    items: [
+      { label: "Formato TE", href: FORMATO_TE_PATH, icon: FileClock },
     ],
   },
 ]

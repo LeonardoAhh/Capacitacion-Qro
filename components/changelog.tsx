@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
 import { Megaphone as MegaphoneIcon } from "lucide"
-import { ChartColumn, ClipboardPenLine, FileText, HardHat, HeartPulse, LayoutDashboard, Megaphone, Monitor, PanelLeft, Search, Tags, UserPlus, UsersRound, X, type LucideIcon } from "lucide-react"
+import { ChartColumn, ClipboardPenLine, FileClock, FileText, HardHat, HeartPulse, LayoutDashboard, Megaphone, Monitor, PanelLeft, Search, Tags, UserPlus, UsersRound, X, type LucideIcon } from "lucide-react"
 import { useAppReducedMotion } from "@/components/app-transition"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
@@ -31,6 +31,7 @@ const ICONO_SECCION: Record<SeccionNovedad, LucideIcon> = {
   "Occupational Health": HeartPulse,
   Indicators: ChartColumn,
   Reports: FileText,
+  "Formato TE": FileClock,
   Menú: PanelLeft,
   General: Monitor,
 }
