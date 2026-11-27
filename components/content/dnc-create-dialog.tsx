@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import type { DncDepartment } from "@/lib/dnc"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface DncCreateDialogProps {
   anio: number
@@ -28,7 +29,7 @@ export function DncCreateDialog({ anio, disponibles, onClose, onCreate }: DncCre
     try {
       await onCreate(departmentId)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo crear el reporte.")
+      setError(describeSupabaseError(cause, "No se pudo crear el reporte"))
     } finally {
       setSaving(false)
     }
@@ -40,7 +41,7 @@ export function DncCreateDialog({ anio, disponibles, onClose, onCreate }: DncCre
       <div className="grid gap-2 p-(--card-padding)">
         <Label htmlFor="dnc-departamento-nuevo">Departamento</Label>
         <Select value={departmentId} onValueChange={setDepartmentId}>
-          <SelectTrigger id="dnc-departamento-nuevo"><SelectValue placeholder="Selecciona un departamento" /></SelectTrigger>
+          <SelectTrigger id="dnc-departamento-nuevo"><SelectValue placeholder="Falta el departamento" /></SelectTrigger>
           <SelectContent matchTriggerWidth>
             {disponibles.map(departamento => (
               <SelectItem key={departamento.id} value={departamento.id}>{departamento.name}</SelectItem>

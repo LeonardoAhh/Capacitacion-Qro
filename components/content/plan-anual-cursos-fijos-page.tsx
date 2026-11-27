@@ -15,6 +15,7 @@ import { notify } from "@/lib/notify"
 import { cargarCursosFijos, guardarFijosEnPlan, type CursoFijo, type TipoCurso } from "@/lib/plan-anual"
 import { rutaPlan } from "@/lib/plan-anual-rutas"
 import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 type Fila = Omit<CursoFijo, "orden"> & { key: number }
 
@@ -47,7 +48,7 @@ export function PlanAnualCursosFijosPage({ anio }: { anio: number }) {
       setFilas(lista.map((fijo, key) => ({ ...fijo, key })))
       setNextKey(lista.length)
     }).catch(cause => {
-      if (active) setLoadError(cause instanceof Error ? cause.message : "No se pudieron cargar los cursos fijos.")
+      if (active) setLoadError(describeSupabaseError(cause, "No se pudieron cargar los cursos fijos"))
     })
     return () => { active = false }
   }, [catalogo.cargar])
@@ -101,10 +102,10 @@ export function PlanAnualCursosFijosPage({ anio }: { anio: number }) {
     try {
       const agregados = await guardarFijosEnPlan(anio, filas.map(({ course_id, area_solicitante, aplica_para, tipo }) => ({ course_id, area_solicitante, aplica_para, tipo })))
       setDirty(false)
-      notify.success(agregados ? `Cursos fijos guardados · ${agregados} agregados al plan` : "Cursos fijos guardados")
+      notify.success("Cursos fijos guardados", agregados ? { description: `${agregados} agregados al plan` } : undefined)
       router.push(volver)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron guardar los cursos fijos.")
+      setError(describeSupabaseError(cause, "No se pudieron guardar los cursos fijos"))
       setSaving(false)
     }
   }
@@ -120,7 +121,7 @@ export function PlanAnualCursosFijosPage({ anio }: { anio: number }) {
     <div className="grid gap-4">
       <PlanAnualCapturaBarra volverHref={volver} onConfirm={() => void guardar()} saving={saving}
         confirmDisabled={cargando || Boolean(errorCarga)} confirmLabel="Guardar cursos fijos"
-        acciones={<Button type="button" variant="outline" onClick={agregar} disabled={cargando || Boolean(errorCarga)}><Plus aria-hidden="true" />Agregar curso</Button>}
+        acciones={<Button type="button" variant="outline" size="sm" onClick={agregar} disabled={cargando || Boolean(errorCarga)}><Plus aria-hidden="true" />Agregar curso</Button>}
         descripcion={`Se programan todos los meses y se listan primero. Al guardar, los que falten se agregan a los meses ya iniciados de ${anio}.`} />
       {/* Junto a la acción que lo provocó. */}
       {error && <p role="alert" className="text-body-sm text-destructive">{error}</p>}

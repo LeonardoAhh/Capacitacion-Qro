@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { nombreCursoPlan, type CursoPlan } from "@/lib/plan-anual"
 import { cargarMetricasCurso, type CourseMetrics } from "@/lib/plan-anual-metrics"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PlanAnualMetricsDialogProps {
   curso: CursoPlan
@@ -24,7 +25,7 @@ export function PlanAnualMetricsDialog({ curso, onClose }: PlanAnualMetricsDialo
     cargarMetricasCurso(curso.course_id, curso.anio, curso.mes, curso.fechas_imparticion).then(data => {
       if (active) setMetrics(data)
     }).catch(cause => {
-      if (active) setError(cause instanceof Error ? cause.message : "No se pudieron cargar las métricas.")
+      if (active) setError(describeSupabaseError(cause, "No se pudieron cargar las métricas"))
     })
     return () => { active = false }
   }, [curso.course_id, curso.anio, curso.mes, curso.fechas_imparticion])

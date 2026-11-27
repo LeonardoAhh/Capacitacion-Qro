@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { limpiarAlEscribir, MAX_NOTA, normalizarTexto } from "@/lib/kanban"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface KanbanNotaConfig {
   title: string
@@ -37,7 +38,7 @@ export function KanbanNotaDialog({ config, onClose }: { config: KanbanNotaConfig
       await config.onSave(limpio)
       onClose()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar.")
+      setError(describeSupabaseError(cause, "No se pudo guardar"))
     } finally {
       setSaving(false)
     }

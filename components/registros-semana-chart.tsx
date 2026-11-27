@@ -13,9 +13,10 @@ import {
 } from "@/components/dashboard-panel"
 import { useTheme } from "@/components/theme-context"
 import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
+import { hoyISO, inicioSemana, semanaIso, sumarDias } from "@/lib/fechas"
 import { cn } from "@/lib/utils"
 import {
-  lunesDe, semanaIso, sumarSemanas, useRegistrosSemana,
+  useRegistrosSemana,
   type RegistrosDia, type RegistrosEmpleado,
 } from "@/lib/hooks/useRegistrosSemana"
 import { capitalize, type RegistroPorDiaConfig } from "@/lib/plantilla/registros-por-dia"
@@ -68,8 +69,8 @@ function SemanaPager({ lunes, actual, onChange }: { lunes: string; actual: strin
       label="Semana"
       previousLabel="Semana anterior"
       nextLabel="Semana siguiente"
-      onPrevious={() => onChange(sumarSemanas(lunes, -1))}
-      onNext={lunes < actual ? () => onChange(sumarSemanas(lunes, 1)) : undefined}
+      onPrevious={() => onChange(sumarDias(lunes, -7))}
+      onNext={lunes < actual ? () => onChange(sumarDias(lunes, 7)) : undefined}
       className="whitespace-nowrap"
     >
       Semana {semanaIso(lunes).semana}
@@ -106,7 +107,7 @@ function TablaPersonal({ empleados, plural }: { empleados: RegistrosEmpleado[]; 
 
 /** Registros de la semana (retardos, omisiones…): top 10 departamentos por día o el personal con más registros. */
 export default function RegistrosSemanaChart({ config, label }: { config: RegistroPorDiaConfig; label: string }) {
-  const [actual] = useState(() => lunesDe(new Date()))
+  const [actual] = useState(() => inicioSemana(hoyISO()))
   const [lunes, setLunes] = useState(actual)
   const [vista, setVista] = useState<Vista>("departamentos")
   const { loading, error, data, refresh } = useRegistrosSemana(config, lunes)

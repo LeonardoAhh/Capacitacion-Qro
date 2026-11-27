@@ -58,7 +58,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
       .then(({ data, error: dbError }) => {
         if (!active) return
         if (dbError) {
-          notify.error(describeSupabaseError(dbError, "Error al cargar el empleado"))
+          notify.error(describeSupabaseError(dbError, "No se pudo cargar el empleado"))
           return
         }
         setNombreEmpleado(data?.nombre ?? null)
@@ -167,7 +167,7 @@ export function RegistrosPorDiaPage({ config, numeroEmpleado }: RegistrosPorDiaP
       },
     ]))
     setShowForm(false)
-    notify.success(anterior ? "Registro actualizado." : textosRegistro(config).capturado)
+    notify.success(anterior ? "Registro actualizado" : textosRegistro(config).capturado)
   }
 
   return (

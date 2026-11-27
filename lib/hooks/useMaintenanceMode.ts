@@ -126,7 +126,7 @@ export function useMaintenanceMode() {
         ? "Falta la columna del contador en Supabase. Ejecuta la migración 20260904_maintenance_countdown.sql en el proyecto conectado a esta aplicación."
         : error?.code === "PGRST116"
           ? "No se actualizó el mantenimiento. Verifica que exista el registro maintenance_mode y que tu cuenta tenga permiso para modificarlo."
-          : describeSupabaseError(err, "No se pudo guardar el mantenimiento.")
+          : describeSupabaseError(err, "No se pudo guardar el mantenimiento")
       setSaveError(message)
       console.error(`Error updating maintenance mode: [${error?.code ?? "unknown"}] ${error?.message || message}`)
       return false

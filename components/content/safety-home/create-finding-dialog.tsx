@@ -1,8 +1,6 @@
 "use client"
 
 import { useMemo, useState, type FormEvent } from "react"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AutoHeight } from "@/components/ui/auto-height"
 import { Button } from "@/components/ui/button"
 import { DateTextInput } from "@/components/ui/date-text-input"
@@ -37,6 +35,7 @@ import {
 } from "./finding-constraints"
 import { FindingFileField } from "./finding-file-field"
 import { createFinding } from "./findings-data"
+import { notify } from "@/lib/notify"
 
 interface CreateFindingDialogProps {
   open: boolean
@@ -60,7 +59,6 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState<1 | 2 | 3>(1)
   const [saving, setSaving] = useState(false)
-  const [formError, setFormError] = useState("")
 
   const responsibleOptions = department
     ? JEFES_DE_AREA_POR_DEPARTAMENTO[department] ?? []
@@ -78,7 +76,6 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
       setDateIso("")
       setImages([])
       setSubmitted(false)
-      setFormError("")
       setStep(1)
     }
     onOpenChange(nextOpen)
@@ -87,7 +84,6 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const handleDepartmentChange = (value: string) => {
     setDepartment(value)
     setResponsible("")
-    setFormError("")
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -97,40 +93,37 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
 
     if (step === 1) {
       if (!title.trim() || !description.trim()) {
-        setFormError("Completa el título y la descripción para continuar.")
+        notify.error("Falta el título o la descripción")
         return
       }
       if (title.trim().length > MAX_FINDING_TITLE_LENGTH || description.length > MAX_FINDING_DESCRIPTION_LENGTH) {
-        setFormError("Reduce la longitud del texto al límite permitido.")
+        notify.error("El texto es demasiado largo")
         return
       }
       setSubmitted(false)
-      setFormError("")
       setStep(2)
       return
     }
     if (step === 2) {
       if (!department || !responsible || !dateIso) {
-        setFormError("Selecciona departamento, responsable y una fecha válida (DD/MM/AAAA).")
+        notify.error("Falta departamento, responsable o fecha")
         return
       }
       setSubmitted(false)
-      setFormError("")
       setStep(3)
       return
     }
     if (!deadline) {
-      setFormError("Selecciona un plazo de atención.")
+      notify.error("Falta el plazo de atención")
       return
     }
     if (images.length === 0) {
-      setFormError("Selecciona al menos una imagen del hallazgo.")
+      notify.error("Agrega al menos una foto")
       return
     }
     if (!title.trim() || !description.trim() || !department || !responsible || !dateIso) return
 
     setSaving(true)
-    setFormError("")
     try {
       await createFinding(
         {
@@ -147,7 +140,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
       await onCreate(isoWeek(dateIso), Number(dateIso.slice(0, 4)))
       handleOpenChange(false)
     } catch (err) {
-      setFormError(describeSupabaseError(err, "No se pudo guardar el hallazgo. Intenta de nuevo."))
+      notify.error(describeSupabaseError(err, "No se pudo guardar el hallazgo"))
     } finally {
       setSaving(false)
     }
@@ -167,15 +160,14 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 if (step === 1) handleOpenChange(false)
                 else {
                   setSubmitted(false)
-                  setFormError("")
                   setStep(step === 3 ? 2 : 1)
                 }
               }}
             >
               {step === 1 ? "Cancelar" : "Atrás"}
             </Button>
-            <Button type="submit" form="create-finding-form" disabled={saving}>
-              {saving ? "Guardando…" : step === 3 ? "Crear hallazgo" : "Continuar"}
+            <Button type="submit" form="create-finding-form" loading={saving}>
+              {step === 3 ? "Crear hallazgo" : "Continuar"}
             </Button>
           </DialogFooter>
         }
@@ -186,12 +178,6 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
             <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground" aria-live="polite">Paso {step} de 3</span>
             <DialogDescription className="sr-only">Formulario en tres pasos para registrar un hallazgo de Safe Walk.</DialogDescription>
           </DialogHeader>
-          {formError && (
-            <Alert variant="destructive" className="bg-destructive/10">
-              <AlertCircle className="size-4" aria-hidden="true" />
-              <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
 
           <AutoHeight>
             {step === 1 ? (
@@ -206,7 +192,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                     value={title}
                     maxLength={MAX_FINDING_TITLE_LENGTH}
                     disabled={saving}
-                    onChange={(event) => { setTitle(event.target.value); setFormError("") }}
+                    onChange={(event) => setTitle(event.target.value)}
                     aria-invalid={submitted && (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH)}
                   />
                 </div>
@@ -221,7 +207,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                     value={description}
                     maxLength={MAX_FINDING_DESCRIPTION_LENGTH}
                     disabled={saving}
-                    onChange={(event) => { setDescription(event.target.value); setFormError("") }}
+                    onChange={(event) => setDescription(event.target.value)}
                     aria-invalid={submitted && (!description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH)}
                   />
                 </div>
@@ -244,7 +230,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
 
                 <div className="space-y-2">
                   <Label htmlFor="finding-responsible">Responsable</Label>
-                  <Select value={responsible} onValueChange={(value) => { setResponsible(value); setFormError("") }} disabled={saving || !department}>
+                  <Select value={responsible} onValueChange={(value) => setResponsible(value)} disabled={saving || !department}>
                     <SelectTrigger id="finding-responsible" aria-invalid={submitted && !responsible}>
                       <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
@@ -276,7 +262,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                     id="finding-date"
                     value={dateIso}
                     disabled={saving}
-                    onValueChange={(nextIso) => { setDateIso(nextIso); setFormError("") }}
+                    onValueChange={(nextIso) => setDateIso(nextIso)}
                     aria-invalid={submitted && !dateIso}
                   />
                 </div>
@@ -285,7 +271,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="finding-deadline">Plazo</Label>
-                  <Select value={deadline} onValueChange={(value) => { setDeadline(value as FindingDeadline); setFormError("") }} disabled={saving}>
+                  <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)} disabled={saving}>
                     <SelectTrigger id="finding-deadline" aria-invalid={submitted && !deadline}>
                       <SelectValue placeholder="Seleccionar plazo" />
                     </SelectTrigger>
@@ -294,7 +280,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                     </SelectContent>
                   </Select>
                 </div>
-                <FindingFileField label="Imágenes del hallazgo" files={images} onChange={(files) => { setImages(files); setFormError("") }} required disabled={saving} />
+                <FindingFileField label="Imágenes del hallazgo" files={images} onChange={(files) => setImages(files)} required disabled={saving} />
               </div>
             )}
           </AutoHeight>

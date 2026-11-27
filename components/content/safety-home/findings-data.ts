@@ -46,9 +46,12 @@ export async function loadFindingSummaries(): Promise<FindingSummary[]> {
   }))
 }
 
-export async function loadFindings(): Promise<FindingPreview[]> {
-  const { data, error } = await supabase.from("safety_findings")
+/** Hallazgos con sus fotos firmadas; con `rango` (AAAA-MM-DD), solo los de esas fechas (reporte semanal). */
+export async function loadFindings(rango?: { desde: string; hasta: string }): Promise<FindingPreview[]> {
+  let query = supabase.from("safety_findings")
     .select("id,title,description,department,responsible,status,deadline,finding_date,evidence_paths,completion_evidence_paths")
+  if (rango) query = query.gte("finding_date", rango.desde).lte("finding_date", rango.hasta)
+  const { data, error } = await query
     .order("finding_date", { ascending: false })
     .order("created_at", { ascending: false })
   if (error) throw error
@@ -102,7 +105,7 @@ export async function updateFinding(finding: FindingPreview): Promise<void> {
     deadline: finding.deadline,
     finding_date: toIsoDate(finding.date),
   }).eq("id", finding.id).select("id").single()
-  if (error || !data) throw error ?? new Error("No se pudo actualizar el hallazgo.")
+  if (error || !data) throw error ?? new Error("No se pudo actualizar el hallazgo")
 }
 
 export async function addCompletionEvidence(finding: FindingPreview, files: File[]): Promise<void> {
@@ -126,7 +129,7 @@ export async function addCompletionEvidence(finding: FindingPreview, files: File
     const { data, error } = await supabase.from("safety_findings")
       .update({ completion_evidence_paths: [...existingPaths, ...paths] })
       .eq("id", finding.id).select("id").single()
-    if (error || !data) throw error ?? new Error("No se pudo actualizar el hallazgo.")
+    if (error || !data) throw error ?? new Error("No se pudo actualizar el hallazgo")
   } catch (error) {
     if (paths.length) await supabase.storage.from(BUCKET).remove(paths)
     throw error
@@ -136,7 +139,7 @@ export async function addCompletionEvidence(finding: FindingPreview, files: File
 export async function deleteFinding(finding: FindingPreview): Promise<void> {
   const { data, error } = await supabase.from("safety_findings")
     .delete().eq("id", finding.id).select("id").single()
-  if (error || !data) throw error ?? new Error("No se pudo borrar el hallazgo.")
+  if (error || !data) throw error ?? new Error("No se pudo borrar el hallazgo")
   const allPaths = [...finding.evidencePaths, ...finding.completionEvidencePaths]
   if (allPaths.length) {
     const { error: storageError } = await supabase.storage.from(BUCKET).remove(allPaths)

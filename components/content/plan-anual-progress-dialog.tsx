@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { MESES, nombreCursoPlan, type CursoSeguimiento, type DatosSeguimiento } from "@/lib/plan-anual"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PlanAnualProgressDialogProps {
   curso: CursoSeguimiento
@@ -64,7 +65,7 @@ export function PlanAnualProgressDialog({ curso, canEdit, onClose, onSave }: Pla
         fechas_imparticion: impartido ? [...fechasImparticion].sort() : [],
       })
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar el seguimiento.")
+      setError(describeSupabaseError(cause, "No se pudo guardar el seguimiento"))
     } finally {
       setSaving(false)
     }

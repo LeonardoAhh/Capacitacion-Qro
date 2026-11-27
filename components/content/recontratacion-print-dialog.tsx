@@ -54,7 +54,7 @@ export function RecontratacionPrintDialog({ numero, nombre, data, onClose }: {
     setPreparando(true)
     const cargado = data ?? await fetchByNumero(numero)
     if (!cargado) {
-      notify.error("No se pudo cargar el formato.")
+      notify.error("No se pudo cargar el formato")
       setPreparando(false)
       return
     }

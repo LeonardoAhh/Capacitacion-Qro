@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { supabase } from "@/lib/supabase/client"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface CumpleanosEntry {
   id: string
@@ -131,7 +132,7 @@ export function useCumpleanos(dias = 90) {
         todos:        resultado,
       })
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar cumpleaños")
+      setError(describeSupabaseError(err, "No se pudieron cargar los cumpleaños"))
       setData(EMPTY)
     } finally {
       setLoading(false)

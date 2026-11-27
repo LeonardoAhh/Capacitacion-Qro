@@ -33,7 +33,7 @@ export function CompetencyRatingCard({ item, name, showError, onChange }: Compet
         {ESCALA_COMPETENCIAS.map(({ valor, etiqueta }) => <label
           key={valor}
           className={cn(
-            "relative flex min-h-(--control-height) min-w-(--control-height) cursor-pointer items-center justify-center rounded-md text-label-sm transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-ring",
+            "relative flex min-h-(--control-height) min-w-(--control-height) cursor-pointer items-center justify-center rounded-md text-label-sm transition-colors has-[:focus-visible]:outline-[1.5px] has-[:focus-visible]:outline-offset-1 has-[:focus-visible]:outline-ring",
             item.evaluada && item.calificacion === valor
               ? "bg-primary text-primary-foreground"
               : "text-muted-foreground hover:bg-card/70 hover:text-foreground",

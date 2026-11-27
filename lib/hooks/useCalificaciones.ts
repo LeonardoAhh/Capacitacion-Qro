@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -100,8 +101,8 @@ export function useCalificaciones() {
 
       setData(result)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Error al cargar calificaciones")
-      notify.error("Error al cargar calificaciones")
+      setError(describeSupabaseError(e, "No se pudieron cargar las calificaciones"))
+      notify.error("No se pudieron cargar las calificaciones")
     } finally {
       setLoading(false)
     }

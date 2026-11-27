@@ -22,6 +22,7 @@ import type { CumpleanosEntry } from "@/lib/hooks/useCumpleanos"
 import { useRole } from "@/lib/hooks/useRole"
 import { notify } from "@/lib/notify"
 import { cn } from "@/lib/utils"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-MX", {
   day: "numeric",
@@ -284,10 +285,10 @@ export default function CumpleanosContent() {
         })
         await recargar()
       } else {
-        notify.error(result.resultados[0]?.error ?? "No se pudo enviar la felicitación")
+        notify.error(describeSupabaseError(result.resultados[0]?.error, "No se pudo enviar la felicitación"))
       }
     } catch (sendError) {
-      notify.error(sendError instanceof Error ? sendError.message : "No se pudo enviar la felicitación")
+      notify.error(describeSupabaseError(sendError, "No se pudo enviar la felicitación"))
     } finally {
       setSendingId(null)
     }
@@ -303,17 +304,16 @@ export default function CumpleanosContent() {
       if (result.exitosos === result.total) {
         notify.success(`${result.exitosos} correos enviados`)
       } else if (result.exitosos === 0) {
-        notify.error(result.resultados.find((item) => !item.ok)?.error ?? "No se pudo enviar el correo")
+        notify.error(describeSupabaseError(result.resultados.find((item) => !item.ok)?.error, "No se pudo enviar el correo"))
       } else {
-        const firstError = result.resultados.find((item) => !item.ok)?.error
-        notify.warning(
-          `${result.exitosos} de ${result.total} correos enviados${firstError ? `. ${firstError}` : ""}`,
-        )
+        notify.warning(`${result.exitosos} de ${result.total} correos enviados`, {
+          description: describeSupabaseError(result.resultados.find((item) => !item.ok)?.error, "Algunos no se pudieron enviar"),
+        })
       }
       setSelectedIds(new Set())
       await recargar()
     } catch (sendError) {
-      notify.error(sendError instanceof Error ? sendError.message : "No se pudo completar el envío")
+      notify.error(describeSupabaseError(sendError, "No se pudo completar el envío"))
     } finally {
       setSendingBulk(false)
     }

@@ -78,8 +78,8 @@ export function RegistroPorDiaFormDialog({
             <Button type="button" variant="outline" size="sm" className="touch-target" onClick={() => onOpenChange(false)} disabled={saving}>
               Cancelar
             </Button>
-            <Button type="submit" form={formId} size="sm" className="touch-target" disabled={saving} aria-busy={saving || undefined}>
-              {saving ? "Guardando…" : existing ? "Actualizar" : "Guardar"}
+            <Button type="submit" form={formId} size="sm" className="touch-target" loading={saving}>
+              {existing ? "Actualizar" : "Guardar"}
             </Button>
           </DialogFooter>
         }

@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { SummaryStrip } from "@/components/ui/summary-strip"
 import { Switch } from "@/components/ui/switch"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useRole } from "@/lib/hooks"
 import { useCumplimientoDesempeno, type EmpleadoCumplimiento } from "@/lib/hooks/useCumplimientoDesempeno"
 import { type PeriodoModo } from "@/lib/catalogo"
@@ -135,18 +136,19 @@ export default function DesempenoCumplimientoContent() {
 
       <div className="grid items-start gap-6 dense:gap-4 md:grid-cols-[16rem_minmax(0,1fr)]">
         <aside className="flex min-w-0 flex-col gap-3 md:sticky md:top-0 md:max-h-[calc(100dvh-var(--workspace-header-height)-2*var(--workspace-inset))]">
-          <div role="group" aria-label="Modalidad de evaluación" className="grid grid-cols-2 gap-1 rounded-md border bg-muted p-1">
-            {MODES.map((value) => (
-              <Button key={value} type="button" size="sm" variant={mode === value ? "outline" : "ghost"}
-                aria-pressed={mode === value} disabled={saving} onClick={() => setMode(value)}>
-                {DESEMPENO.modes[value]}
-              </Button>
-            ))}
-          </div>
+          <Tabs value={mode} onValueChange={(value) => setMode(value as PeriodoModo)}>
+            <TabsList aria-label="Modalidad de evaluación" className="grid w-full grid-cols-2">
+              {MODES.map((value) => (
+                <TabsTrigger key={value} value={value} disabled={saving} className="px-2">
+                  {DESEMPENO.modes[value]}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
           {/* La búsqueda va en el header (lupa). */}
           <HeaderSearch value={search} onValueChange={setSearch} label="Buscar por nombre, número, puesto o área" placeholder="Buscar persona…" />
           <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as StatusFilter)}>
-            <SelectTrigger className="w-full" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
+            <SelectTrigger size="sm" className="w-full" aria-label="Filtrar por estado"><SelectValue /></SelectTrigger>
             <SelectContent>
               {STATUS_FILTERS.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
             </SelectContent>

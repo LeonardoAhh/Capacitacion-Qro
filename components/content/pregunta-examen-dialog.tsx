@@ -9,6 +9,7 @@ import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/respo
 import { Stepper } from "@/components/ui/stepper"
 import type { PreguntaInsert } from "@/lib/hooks/useExamenes"
 import { cn } from "@/lib/utils"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 const PASOS = ["Pregunta", "Opciones", "Respuesta"] as const
 type Paso = 1 | 2 | 3
@@ -72,7 +73,7 @@ export function PreguntaExamenDialog({ initial, departamentos, readOnly, onClose
     try {
       await onSave(form)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la pregunta.")
+      setError(describeSupabaseError(cause, "No se pudo guardar la pregunta"))
     } finally {
       setSaving(false)
     }
@@ -88,7 +89,7 @@ export function PreguntaExamenDialog({ initial, departamentos, readOnly, onClose
           <div className="space-y-1.5">
             <Label htmlFor="pregunta-departamento">Departamento</Label>
             <Select value={form.departamento} onValueChange={value => update("departamento", value)}>
-              <SelectTrigger id="pregunta-departamento"><SelectValue placeholder="Selecciona un departamento" /></SelectTrigger>
+              <SelectTrigger id="pregunta-departamento"><SelectValue placeholder="Falta el departamento" /></SelectTrigger>
               <SelectContent>
                 {departamentos.map(dep => <SelectItem key={dep} value={dep}>{dep}</SelectItem>)}
               </SelectContent>

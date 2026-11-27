@@ -7,6 +7,7 @@ import { format } from "date-fns"
 import { es } from "date-fns/locale"
 import { generarFolioExamen } from "@/lib/utils"
 import type { PreguntaExamen } from "./useExamenes"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface ExamenHistorial {
   id: string
@@ -183,8 +184,8 @@ export function useHistorialExamenes() {
       const list = await fetchHistorialList(force)
       setExamenes(filtrarExamenes(list, term))
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al cargar historial")
-      notify.error("Error al cargar historial de exámenes")
+      setError(describeSupabaseError(e, "No se pudo cargar el historial"))
+      notify.error("No se pudo cargar el historial de exámenes")
     } finally {
       setLoading(false)
     }
@@ -204,11 +205,11 @@ export function useHistorialExamenes() {
         cachedList = { data: cachedList.data.filter((ex) => ex.id !== id), at: cachedList.at }
       }
       setExamenes((prev) => prev.filter((ex) => ex.id !== id))
-      notify.success("Examen eliminado correctamente")
+      notify.success("Examen eliminado")
       return true
     } catch (e: unknown) {
       console.error(e)
-      notify.error("Error al eliminar el examen")
+      notify.error("No se pudo eliminar el examen")
       return false
     }
   }, [])

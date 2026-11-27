@@ -1,15 +1,15 @@
 "use client"
 
 import { useState, useEffect, useId } from "react"
-import { AlertCircle } from "lucide-react"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ResponsiveShell, ModalHeader, ModalFooter } from "@/components/ui/responsive-shell"
 import { CATALOGO_ORGANIZACIONAL, TURNOS, JEFES_DE_AREA } from "@/lib/catalogo"
 import type { Employee } from "@/lib/hooks"
+import { PersonNameInput } from "@/components/ui/employee-inputs"
+import { notify } from "@/lib/notify"
 
 export interface EditEmployeeForm {
   nombre: string
@@ -34,7 +34,6 @@ export interface CapEditEmployeeDialogProps {
 export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onClose, onSave }: CapEditEmployeeDialogProps) {
   const fieldId = useId()
   const [form, setForm] = useState<EditEmployeeForm>({ nombre: '', departamento: '', area: '', puesto: '', turno: '', fecha_ingreso: '', jefe_directo: '', evaluacion_desempeno: '' })
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (employee) {
@@ -48,7 +47,6 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
         jefe_directo: employee.jefe_directo ?? '',
         evaluacion_desempeno: employee.evaluacion_desempeno ?? '',
       })
-      setError(null)
     }
   }, [employee])
 
@@ -58,8 +56,7 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
   const puestos = form.departamento ? (CATALOGO_ORGANIZACIONAL[form.departamento]?.puestos ?? []) : []
 
   const handleConfirm = () => {
-    if (!form.nombre.trim()) { setError('El nombre es requerido'); return }
-    setError(null)
+    if (!form.nombre.trim()) { notify.error('Falta el nombre'); return }
     onSave(form)
   }
 
@@ -69,12 +66,6 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
 
       <div className="flex-1 overflow-y-auto overscroll-contain">
         <div className="space-y-4 p-(--card-padding)">
-          {error && (
-            <Alert variant="destructive" className="py-2">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 space-y-2">
@@ -90,7 +81,7 @@ export function CapEditEmployeeDialog({ employee, open, saving, isReadOnly, onCl
               <Label htmlFor={`${fieldId}-nombre`}>
                 Nombre completo <span aria-hidden="true" className="text-destructive">*</span><span className="sr-only"> (obligatorio)</span>
               </Label>
-              <Input id={`${fieldId}-nombre`} value={form.nombre} onChange={e => setForm(f => ({ ...f, nombre: e.target.value }))} required />
+              <PersonNameInput id={`${fieldId}-nombre`} value={form.nombre} onValueChange={nombre => setForm(f => ({ ...f, nombre }))} required />
             </div>
 
             <div className="min-w-0 space-y-2">

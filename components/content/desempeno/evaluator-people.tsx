@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/search-input"
+import { Skeleton } from "@/components/ui/skeleton"
 import type { AssignableEmployee } from "@/lib/desempeno/evaluator-assignments"
 import { EvaluatorPanel } from "./evaluator-panel"
 import type { EvaluatorAssignmentsState } from "./use-evaluator-assignments"
@@ -56,7 +57,7 @@ export function EvaluatorPeople({
       )}
 
       <p className="text-body-sm tabular-nums text-muted-foreground">{assignedNumbers.length} asignadas individualmente</p>
-      {loadingAssignments ? <p className={NOTE}>Cargando asignaciones…</p>
+      {loadingAssignments ? <div role="status" aria-label="Cargando asignaciones" className="grid gap-2">{Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}</div>
         : assignedNumbers.length === 0 ? <p className={NOTE}>Aún no hay personas asignadas individualmente.</p>
         : <ul aria-label="Personas asignadas" className={LIST}>
             {assignedNumbers.map(number => {

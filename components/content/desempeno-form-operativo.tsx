@@ -15,7 +15,7 @@ import { PercentageCriterionCard } from "./desempeno/percentage-criterion-card";
 import { CompetencyRatingCard } from "./desempeno/competency-rating-card";
 import { ReviewDateField } from "./desempeno/review-date-field";
 import { EvaluationNavBar, EvaluationStepper } from "./desempeno/evaluation-progress";
-import { ChevronLeft, ChevronRight, Loader2, Save } from "lucide-react";
+import { ChevronLeft, ChevronRight, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -209,6 +209,6 @@ export function DesempenoForm({ data, onUpdate, onGuardar, guardarDisabled, guar
       back={<Button type="button" variant="outline" onClick={activeView === 1 && onExit ? onExit : goPrevView} disabled={(activeView === 1 && !onExit) || saving} className="shrink-0 pl-2 pr-3"><ChevronLeft aria-hidden="true" />Atrás</Button>}
       next={activeView < EVALUATION_STEPS.length
         ? <Button type="submit" className="shrink-0 pl-3 pr-2">Siguiente<ChevronRight aria-hidden="true" /></Button>
-        : <Button type="submit" className="shrink-0 pl-2 pr-3" disabled={!validation.valida || guardarDisabled || saving} aria-busy={saving || undefined}>{saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Save aria-hidden="true" />}{saving ? "Guardando…" : <><span className="sm:hidden">Guardar</span><span className="hidden sm:inline">Guardar evaluación</span></>}</Button>} />
+        : <Button type="submit" className="shrink-0 pl-2 pr-3" disabled={!validation.valida || guardarDisabled} loading={saving}><Save aria-hidden="true" /><><span className="sm:hidden">Guardar</span><span className="hidden sm:inline">Guardar evaluación</span></></Button>} />
   </form>;
 }

@@ -1,22 +1,19 @@
 /**
- * Translate a Supabase / Postgres error into a user-facing Spanish message.
- *
- * After PR #39 the database actively rejects writes from non-dev users, so
- * the UI started surfacing raw errors like `"new row violates row-level
- * security policy"` or `"insufficient_privilege"`. This helper maps those
- * onto friendly copy.
- *
- * Accepts any error-shaped value (PostgrestError, Error, unknown) and always
- * returns a string.
+ * Mensajes que no son para quien usa el sistema: inglés de la base o del navegador, códigos,
+ * nombres de tablas o de servicios. Esos se cambian por el texto de respaldo.
  */
-export function describeSupabaseError(err: unknown, fallback = "Ocurrió un error inesperado"): string {
+const TECNICO = /\b(the|of|is|not|failed|invalid|column|relation|violates|function|does|exist|syntax|denied|timeout|unexpected|undefined|null|error|request|status|key|json|array|api|jwt|rpc|schema|constraint|supabase|resend|twilio|vapid|fetch)\b|[a-z]+_[a-z]+|\(\d{3}\)|https?:|[{}[\]]/i
+
+/**
+ * Translate a Supabase / Postgres error (or any thrown value) into a short user-facing
+ * Spanish message. Accepts PostgrestError, Error, a plain string or unknown.
+ */
+export function describeSupabaseError(err: unknown, fallback = "Algo salió mal"): string {
   if (!err) return fallback
 
-  const e = err as {
+  const e = (typeof err === "string" ? { message: err } : err) as {
     code?: string
     message?: string
-    details?: string
-    hint?: string
   }
   const message = (e.message ?? "").toLowerCase()
   const code = e.code ?? ""
@@ -27,47 +24,47 @@ export function describeSupabaseError(err: unknown, fallback = "Ocurrió un erro
     message.includes("insufficient_privilege") ||
     message.includes("only dev role") ||
     message.includes("row-level security") ||
-    message.includes("row level security") ||
-    message.includes("violates row-level security")
+    message.includes("row level security")
   ) {
-    return "No tienes permisos para hacer este cambio. Contacta al administrador."
+    return "No tienes permiso para este cambio"
   }
 
   // Unique constraint violations.
   if (code === "23505" || message.includes("duplicate key")) {
-    return "Ya existe un registro con esos datos."
+    return "Ya existe un registro con esos datos"
   }
 
   // Foreign-key violations.
   if (code === "23503" || message.includes("foreign key")) {
-    return "No se puede eliminar: hay registros relacionados que dependen de este."
+    return "No se puede eliminar: tiene registros ligados"
   }
 
   // Not-null violations.
   if (code === "23502" || message.includes("null value")) {
-    return "Faltan campos obligatorios."
+    return "Faltan datos obligatorios"
   }
 
   // Check-constraint violations.
   if (code === "23514" || message.includes("check constraint")) {
-    return "Uno de los valores no cumple con las reglas de validación."
+    return "Hay un dato que no es válido"
   }
 
   // Auth errors from Supabase-JS.
   if (message.includes("jwt expired") || message.includes("invalid jwt")) {
-    return "Tu sesión expiró. Inicia sesión de nuevo."
+    return "Tu sesión expiró. Vuelve a entrar"
   }
 
-  // Network / fetch failures.
-  if (message.includes("failed to fetch") || message.includes("networkerror")) {
-    return "Sin conexión. Verifica tu internet e inténtalo de nuevo."
+  // Network / fetch failures (Chrome, Firefox and Safari wording).
+  if (message.includes("failed to fetch") || message.includes("networkerror") || message.includes("load failed")) {
+    return "Sin conexión a internet"
   }
 
-  // Known no-rows shape (PGRST116) — generally handled before reaching here,
-  // but keep a friendly fallback just in case.
+  // Known no-rows shape (PGRST116) — generally handled before reaching here.
   if (code === "PGRST116") {
-    return "No se encontraron resultados."
+    return "No se encontraron resultados"
   }
 
-  return e.message || fallback
+  // Un error de la base sin traducir, o un texto técnico, no se muestra tal cual.
+  if (code || !e.message || TECNICO.test(e.message)) return fallback
+  return e.message
 }

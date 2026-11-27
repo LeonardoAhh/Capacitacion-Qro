@@ -63,7 +63,8 @@ interface EvaluationUiError {
   description: string
 }
 
-const fechaRecepcion = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "long", year: "numeric" })
+// Corta ("1 dic"): cabe en la línea de descripción del toast.
+const fechaRecepcion = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short" })
 
 function formatFechaProgramada(fecha: string | null | undefined): string {
   const coincidencia = fecha?.match(/^(\d{4})-(\d{2})-(\d{2})$/)
@@ -269,7 +270,7 @@ export function useDesempeno() {
         }
       }
 
-      if (!empleadoData || !origenEmpleado) throw new EvaluationMessageError("Empleado no encontrado", "Verifica el número o el nombre e inténtalo de nuevo.")
+      if (!empleadoData || !origenEmpleado) throw new EvaluationMessageError("Empleado no encontrado", "Revisa el número o el nombre")
 
       // Trae TODAS las evaluaciones del empleado (más reciente primero) para
       // poder resolver el periodo correcto y cargar la fila de ESE periodo.
@@ -319,32 +320,29 @@ export function useDesempeno() {
       if (!capturaAbierta) {
         const ventana = getVentanaEntrega(periodoResuelto)
         throw new EvaluationMessageError(
-          "Evaluación semestral fuera de fechas",
+          "Semestral fuera de fechas",
           ventana
-            ? `La evaluación ${periodoResuelto} se captura del ${fechaRecepcion.format(ventana.inicio)} al ${fechaRecepcion.format(ventana.fin)}, durante la recepción de físicos.`
-            : "Las evaluaciones semestrales solo se capturan durante la recepción de físicos.",
+            ? `Se captura del ${fechaRecepcion.format(ventana.inicio)} al ${fechaRecepcion.format(ventana.fin)}`
+            : "Solo durante la recepción de físicos",
         )
       }
 
       if (estadoHito?.estado === "vencido") {
         throw new EvaluationMessageError(
           "Regularización requerida",
-          `El ${estadoHito.hito.etiqueta} venció el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}.`,
+          `El ${estadoHito.hito.etiqueta} venció el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}`,
         )
       }
 
       if (estadoHito?.estado === "proximo") {
-        const ventana = estadoHito.hito.numero === 3
-          ? "Estará disponible desde 15 días antes de la fecha programada y hasta ese día."
-          : "Estará disponible desde un día antes y hasta un día después de la fecha programada."
         throw new EvaluationMessageError(
           "Evaluación aún no disponible",
-          `La evaluación del ${estadoHito.hito.etiqueta} está programada para el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}. ${ventana}`,
+          `Programada para el ${formatFechaProgramada(ni?.[estadoHito.hito.fecha])}`,
         )
       }
 
       if (origenEmpleado === "nuevo_ingreso" && !hitoPendiente) {
-        throw new EvaluationMessageError("Sin evaluación programada", "No hay una evaluación de nuevo ingreso pendiente para el periodo vigente.")
+        throw new EvaluationMessageError("Sin evaluación programada", "No tiene evaluación pendiente en este periodo")
       }
 
       const { data: incidenciaData, error: incidenciaError } = await supabase
@@ -368,8 +366,8 @@ export function useDesempeno() {
       } catch (error) {
         console.error("[buscarEmpleado] No se pudieron consultar los datos automáticos del periodo:", error)
         throw new EvaluationMessageError(
-          "Datos automáticos no disponibles",
-          "No se pudieron consultar las actas administrativas, los incumplimientos o los retardos del periodo. Inténtalo de nuevo antes de continuar.",
+          "No se pudieron revisar actas y retardos",
+          "Inténtalo de nuevo antes de continuar",
         )
       }
 
@@ -392,7 +390,7 @@ export function useDesempeno() {
       if (requestId !== searchRequest.current) return null
       setError(e instanceof EvaluationMessageError
         ? { title: e.title, description: e.message }
-        : { title: "Búsqueda no disponible", description: "No se pudo buscar al empleado. Inténtalo de nuevo." })
+        : { title: "No se pudo buscar al empleado", description: "Inténtalo de nuevo" })
       return null
     } finally {
       if (requestId === searchRequest.current) setLoading(false)
@@ -442,7 +440,7 @@ export function useDesempeno() {
 
       const evalKey = `${evalData.numero_empleado}:${normalizarPeriodoDesempeno(evalData.periodo)}:${evalData.hito_nuevo_ingreso ?? ""}`
       if (isEvaluador && lastEvalId.current) {
-        throw new EvaluationMessageError("Evaluación cerrada", "No puedes modificar una evaluación guardada.")
+        throw new EvaluationMessageError("Evaluación cerrada", "Ya está guardada y no se puede cambiar")
       }
       if (lastEvalId.current && lastEvalKey.current === evalKey) {
         const { error: err } = await supabase
@@ -452,7 +450,7 @@ export function useDesempeno() {
         if (err) throw err
       } else {
         if (!origen || (origen !== "nuevo_ingreso" && normalizarPeriodoDesempeno(evalData.periodo) !== normalizarPeriodoDesempeno(periodoVigenteParaEmpleado(origen, fechaIngreso).periodo))) {
-          throw new EvaluationMessageError("Periodo fuera de vigencia", "Busca de nuevo al empleado para evaluar el periodo vigente.")
+          throw new EvaluationMessageError("Periodo fuera de vigencia", "Vuelve a buscar al empleado")
         }
         if (origen === "nuevo_ingreso") {
           const { data: seguimiento, error: seguimientoError } = await supabase
@@ -468,7 +466,7 @@ export function useDesempeno() {
           const periodoProgramado = periodoMensualDeFecha(fechaProgramada)
           if (!estadoHito || estadoHito.estado !== "disponible" || estadoHito.hito.numero !== evalData.hito_nuevo_ingreso
             || !periodoProgramado || normalizarPeriodoDesempeno(evalData.periodo) !== normalizarPeriodoDesempeno(periodoProgramado)) {
-            throw new EvaluationMessageError("Evaluación no disponible", "Esta evaluación ya se registró o su fecha programada cambió. Busca de nuevo al empleado.")
+            throw new EvaluationMessageError("Evaluación no disponible", "Ya se registró o cambió de fecha")
           }
         }
         const { data: existingRows, error: existingError } = await supabase
@@ -479,7 +477,7 @@ export function useDesempeno() {
         if (existingRows?.some((row) => origen === "nuevo_ingreso"
           ? row.hito_nuevo_ingreso === evalData.hito_nuevo_ingreso
           : row.periodo && normalizarPeriodoDesempeno(row.periodo) === normalizarPeriodoDesempeno(evalData.periodo))) {
-          throw new EvaluationMessageError("Evaluación ya guardada", "Ya existe una evaluación para esta fecha programada. Busca de nuevo al empleado.")
+          throw new EvaluationMessageError("Evaluación ya guardada", "Ya hay una para esta fecha")
         }
         const { data: inserted, error: err } = await supabase
           .from("evaluaciones_desempeno")
@@ -496,11 +494,9 @@ export function useDesempeno() {
       return true
       // notify.success ya no es necesario — el modal DesempenoSaveSuccess lo muestra
     } catch (e: unknown) {
-      const msg = e instanceof EvaluationMessageError
-        ? e.message
-        : "No se pudo guardar la evaluación. Inténtalo de nuevo."
       console.error("[guardar]", e)
-      notify.error(msg)
+      if (e instanceof EvaluationMessageError) notify.error(e.title, { description: e.message })
+      else notify.error("No se pudo guardar la evaluación", { description: "Inténtalo de nuevo" })
       return false
     } finally {
       savingRef.current = false
@@ -590,7 +586,7 @@ export function useDesempeno() {
         }))
       )
     } catch (e) {
-      notify.error(e instanceof Error ? e.message : "Error al cargar historial")
+      notify.error(describeSupabaseError(e, "No se pudo cargar el historial"))
     } finally {
       setHistorialLoading(false)
     }
@@ -598,7 +594,7 @@ export function useDesempeno() {
 
   const cargarEvaluacion = useCallback(async (evalId: string) => {
     if (isEvaluador) {
-      setError({ title: "Evaluación cerrada", description: "No puedes modificar una evaluación guardada." })
+      setError({ title: "Evaluación cerrada", description: "Ya está guardada y no se puede cambiar" })
       return null
     }
     const requestId = ++searchRequest.current
@@ -614,7 +610,7 @@ export function useDesempeno() {
         .eq("id", evalId)
         .single()
 
-      if (err || !evalRow) throw err ?? new EvaluationMessageError("Evaluación no encontrada", "Vuelve a buscar al empleado para abrir la evaluación.")
+      if (err || !evalRow) throw err ?? new EvaluationMessageError("Evaluación no encontrada", "Vuelve a buscar al empleado")
 
       // Find employee info
       let nombre = ""
@@ -694,7 +690,7 @@ export function useDesempeno() {
       if (requestId !== searchRequest.current) return null
       setError(e instanceof EvaluationMessageError
         ? { title: e.title, description: e.message }
-        : { title: "Evaluación no disponible", description: "No se pudo abrir la evaluación. Inténtalo de nuevo." })
+        : { title: "No se pudo abrir la evaluación", description: "Inténtalo de nuevo" })
       return null
     } finally {
       if (requestId === searchRequest.current) setLoading(false)
@@ -716,11 +712,11 @@ export function useDesempeno() {
           details: err.details,
           hint: err.hint,
         })
-        notify.error(describeSupabaseError(err, "Error al eliminar"))
+        notify.error(describeSupabaseError(err, "No se pudo eliminar la evaluación"))
         return false
       }
       if (!deleted) {
-        notify.error("No se eliminó la evaluación. Verifica tus permisos o actualiza el historial.")
+        notify.error("No se pudo eliminar la evaluación", { description: "Revisa tus permisos o actualiza el historial" })
         return false
       }
 
@@ -737,7 +733,7 @@ export function useDesempeno() {
       return true
     } catch (e) {
       console.error("[eliminarEvaluacion]", e instanceof Error ? e.message : e)
-      notify.error(describeSupabaseError(e, "Error al eliminar"))
+      notify.error(describeSupabaseError(e, "No se pudo eliminar"))
       return false
     }
   }, [])

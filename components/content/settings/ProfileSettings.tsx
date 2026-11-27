@@ -80,9 +80,8 @@ export function ProfileSettings() {
           <AvatarFallback className="bg-muted text-label-sm text-foreground">{initials}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-            {uploading && <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
-            {uploading ? "Subiendo…" : "Cambiar foto"}
+          <Button type="button" variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} loading={uploading}>
+            Cambiar foto
           </Button>
           <p className="mt-1 text-body-sm text-muted-foreground">Imagen cuadrada de hasta 2 MB.</p>
           <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={changePhoto}

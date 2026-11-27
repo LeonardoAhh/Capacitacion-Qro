@@ -3,6 +3,7 @@
 import { useCallback, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
+import { notify } from "@/lib/notify"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -36,12 +37,10 @@ export type ActaSeguimientoUpdate = Partial<Omit<ActaSeguimiento, "id" | "create
 export function useActasSeguimiento() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   /** Fetch administrative actas for a given employee number, newest first */
   const fetchByEmpleado = useCallback(async (numero: string): Promise<ActaSeguimiento[]> => {
     setLoading(true)
-    setError(null)
     try {
       const { data, error: dbError } = await supabase
         .from("actas_seguimiento")
@@ -52,8 +51,7 @@ export function useActasSeguimiento() {
       if (dbError) throw new Error(dbError.message)
       return (data ?? []) as ActaSeguimiento[]
     } catch (err) {
-      const msg = describeSupabaseError(err, "Error al cargar actas administrativas")
-      setError(msg)
+      notify.error(describeSupabaseError(err, "No se pudieron cargar las actas"))
       return []
     } finally {
       setLoading(false)
@@ -64,7 +62,6 @@ export function useActasSeguimiento() {
   const create = useCallback(
     async (payload: ActaSeguimientoInsert): Promise<{ success: boolean; error?: string }> => {
       setSaving(true)
-      setError(null)
       try {
         const { error: dbError } = await supabase
           .from("actas_seguimiento")
@@ -72,9 +69,7 @@ export function useActasSeguimiento() {
         if (dbError) throw new Error(dbError.message)
         return { success: true }
       } catch (err) {
-        const msg = describeSupabaseError(err, "Error al guardar")
-        setError(msg)
-        return { success: false, error: msg }
+        return { success: false, error: describeSupabaseError(err, "No se pudo guardar") }
       } finally {
         setSaving(false)
       }
@@ -86,7 +81,6 @@ export function useActasSeguimiento() {
   const update = useCallback(
     async (id: string, patch: ActaSeguimientoUpdate): Promise<{ success: boolean; error?: string }> => {
       setSaving(true)
-      setError(null)
       try {
         const { error: dbError } = await supabase
           .from("actas_seguimiento")
@@ -95,9 +89,7 @@ export function useActasSeguimiento() {
         if (dbError) throw new Error(dbError.message)
         return { success: true }
       } catch (err) {
-        const msg = describeSupabaseError(err, "Error al actualizar")
-        setError(msg)
-        return { success: false, error: msg }
+        return { success: false, error: describeSupabaseError(err, "No se pudo actualizar") }
       } finally {
         setSaving(false)
       }
@@ -109,7 +101,6 @@ export function useActasSeguimiento() {
   const remove = useCallback(
     async (id: string): Promise<{ success: boolean; error?: string }> => {
       setSaving(true)
-      setError(null)
       try {
         const { error: dbError } = await supabase
           .from("actas_seguimiento")
@@ -118,9 +109,7 @@ export function useActasSeguimiento() {
         if (dbError) throw new Error(dbError.message)
         return { success: true }
       } catch (err) {
-        const msg = describeSupabaseError(err, "Error al eliminar")
-        setError(msg)
-        return { success: false, error: msg }
+        return { success: false, error: describeSupabaseError(err, "No se pudo eliminar") }
       } finally {
         setSaving(false)
       }
@@ -128,7 +117,7 @@ export function useActasSeguimiento() {
     [],
   )
 
-  return { loading, saving, error, fetchByEmpleado, create, update, remove }
+  return { loading, saving, fetchByEmpleado, create, update, remove }
 }
 
 /** Fetch all open administrative actas across all employees. */

@@ -1,8 +1,6 @@
 "use client"
 
 import { useMemo, useState, type FormEvent } from "react"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -23,6 +21,7 @@ import {
   type FindingDeadline,
   type FindingStatus,
 } from "./finding-constraints"
+import { notify } from "@/lib/notify"
 
 interface Props {
   finding: FindingPreview
@@ -44,7 +43,6 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
   const [dateIso, setDateIso] = useState(() => textoAISO(finding.date) ?? "")
   const [submitted, setSubmitted] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
   const responsibleOptions = JEFES_DE_AREA_POR_DEPARTAMENTO[area] ?? []
 
   const save = async (event: FormEvent<HTMLFormElement>) => {
@@ -53,19 +51,18 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
     setSubmitted(true)
 
     if (!title.trim() || !description.trim() || !area || !responsible || !dateIso) {
-      setError("Completa todos los campos obligatorios y verifica la fecha (DD/MM/AAAA).")
+      notify.error("Faltan datos o la fecha no es válida")
       return
     }
     if (title.trim().length > MAX_FINDING_TITLE_LENGTH) {
-      setError(`El título debe tener máximo ${MAX_FINDING_TITLE_LENGTH} caracteres.`)
+      notify.error(`El título debe tener máximo ${MAX_FINDING_TITLE_LENGTH} caracteres.`)
       return
     }
     if (description.length > MAX_FINDING_DESCRIPTION_LENGTH) {
-      setError(`La descripción debe tener máximo ${MAX_FINDING_DESCRIPTION_LENGTH} caracteres.`)
+      notify.error(`La descripción debe tener máximo ${MAX_FINDING_DESCRIPTION_LENGTH} caracteres.`)
       return
     }
     setSaving(true)
-    setError("")
     const updated: FindingPreview = {
       ...finding,
       title: title.trim(),
@@ -81,7 +78,7 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
       await onSaved(updated)
       onClose()
     } catch (err) {
-      setError(describeSupabaseError(err, "No se pudo guardar el hallazgo. Intenta de nuevo."))
+      notify.error(describeSupabaseError(err, "No se pudo guardar el hallazgo"))
     } finally {
       setSaving(false)
     }
@@ -92,7 +89,7 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
       <DialogContent className="sm:max-w-xl" footer={
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={saving}>Cancelar</Button>
-          <Button type="submit" form="edit-finding-form" disabled={saving}>{saving ? "Guardando…" : "Guardar cambios"}</Button>
+          <Button type="submit" form="edit-finding-form" loading={saving}>Guardar cambios</Button>
         </DialogFooter>
       }>
         <form id="edit-finding-form" onSubmit={save} className="space-y-4" noValidate>
@@ -100,12 +97,6 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
             <DialogTitle>Editar hallazgo</DialogTitle>
             <DialogDescription className="sr-only">Actualiza los datos del hallazgo seleccionado.</DialogDescription>
           </DialogHeader>
-          {error && (
-            <Alert variant="destructive" className="bg-destructive/10">
-              <AlertCircle className="size-4" aria-hidden="true" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
               <Label htmlFor="edit-finding-title">Título</Label>
@@ -113,7 +104,7 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
             </div>
             <Input id="edit-finding-title" value={title} maxLength={MAX_FINDING_TITLE_LENGTH} disabled={saving}
               aria-invalid={submitted && (!title.trim() || title.trim().length > MAX_FINDING_TITLE_LENGTH)}
-              onChange={(event) => { setTitle(event.target.value); setError("") }} />
+              onChange={(event) => setTitle(event.target.value)} />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
@@ -122,19 +113,19 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
             </div>
             <Textarea id="edit-finding-description" value={description} maxLength={MAX_FINDING_DESCRIPTION_LENGTH} disabled={saving}
               aria-invalid={submitted && (!description.trim() || description.length > MAX_FINDING_DESCRIPTION_LENGTH)}
-              onChange={(event) => { setDescription(event.target.value); setError("") }} />
+              onChange={(event) => setDescription(event.target.value)} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="edit-finding-department">Departamento</Label>
-              <Select value={area} onValueChange={(value) => { setArea(value); setResponsible(""); setError("") }} disabled={saving}>
+              <Select value={area} onValueChange={(value) => { setArea(value); setResponsible("") }} disabled={saving}>
                 <SelectTrigger id="edit-finding-department" aria-invalid={submitted && !area}><SelectValue /></SelectTrigger>
                 <SelectContent matchTriggerWidth>{departments.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-finding-responsible">Responsable</Label>
-              <Select value={responsible} onValueChange={(value) => { setResponsible(value); setError("") }} disabled={saving || !area}>
+              <Select value={responsible} onValueChange={(value) => setResponsible(value)} disabled={saving || !area}>
                 <SelectTrigger id="edit-finding-responsible" aria-invalid={submitted && !responsible}><SelectValue placeholder="Seleccionar" /></SelectTrigger>
                 <SelectContent matchTriggerWidth>{responsibleOptions.map((value) => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent>
               </Select>
@@ -157,7 +148,7 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
                 value={dateIso}
                 disabled={saving}
                 aria-invalid={submitted && !dateIso}
-                onValueChange={(nextIso) => { setDateIso(nextIso); setError("") }}
+                onValueChange={(nextIso) => setDateIso(nextIso)}
               />
             </div>
             <div className="space-y-2 sm:col-span-2">

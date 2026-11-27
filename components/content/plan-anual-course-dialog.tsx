@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import type { CursoCatalogo, CursoPlan, DatosCurso, TipoCurso } from "@/lib/plan-anual"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PlanAnualCourseDialogProps {
   curso: CursoPlan | null
@@ -39,7 +40,7 @@ export function PlanAnualCourseDialog({ curso, mes, catalog, catalogLoading, cat
       await onSave({ course_id: selectedCourse.id, nombre: selectedCourse.name,
         area_solicitante: area, aplica_para: aplicaPara, tipo })
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar el curso.")
+      setError(describeSupabaseError(cause, "No se pudo guardar el curso"))
     } finally {
       setSaving(false)
     }

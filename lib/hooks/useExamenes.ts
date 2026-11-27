@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface PreguntaExamen {
   id: string
@@ -43,8 +44,8 @@ export function useExamenes() {
       if (err) throw err
       setPreguntas(data ?? [])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al buscar preguntas")
-      notify.error("Error al buscar preguntas")
+      setError(describeSupabaseError(e, "No se pudieron buscar las preguntas"))
+      notify.error("No se pudieron buscar las preguntas")
     } finally {
       setLoading(false)
     }

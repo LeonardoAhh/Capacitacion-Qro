@@ -155,7 +155,7 @@ export function CapMatrizPage({ empleadoId }: { empleadoId: string }) {
       if (active) {
         setEstado({
           status: "error",
-          message: cause instanceof Error ? cause.message : "No se pudo cargar la matriz",
+          message: describeSupabaseError(cause, "No se pudo cargar la matriz"),
         })
       }
     })
@@ -183,7 +183,7 @@ export function CapMatrizPage({ empleadoId }: { empleadoId: string }) {
                 void cargar(true).catch(cause => {
                   setEstado({
                     status: "error",
-                    message: cause instanceof Error ? cause.message : "No se pudo cargar la matriz",
+                    message: describeSupabaseError(cause, "No se pudo cargar la matriz"),
                   })
                 })
               }}

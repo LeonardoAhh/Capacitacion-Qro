@@ -16,6 +16,7 @@ export type SeccionNovedad =
   | "Safe Walk"
   | "Occupational Health"
   | "Indicators"
+  | "Reports"
   | "Menú"
   | "General"
 
@@ -33,6 +34,18 @@ export const CHANGELOG: readonly Novedad[] = [
   {
     id: "2026-11-27",
     fecha: "2026-11-27",
+    titulo: "Plantilla y reportes en PDF",
+    cambios: [
+      { seccion: "Plantilla", texto: "Nuevos Empleados se integró en Plantilla en una sola lista, con filtro de Nuevos ingresos." },
+      { seccion: "Plantilla", texto: "Cada nuevo ingreso muestra Nuevo ingreso o Atención, y abre Seguimiento en su menú." },
+      { seccion: "Plantilla", texto: "Cargar cursos, Incidencias y Pendientes ahora están en el menú lateral de Plantilla." },
+      { seccion: "Plantilla", texto: "El número de empleado es obligatorio sin duplicados; al borrar se quita su seguimiento." },
+      { seccion: "Reports", texto: "Descarga en PDF el reporte semanal de Safe Walk y Occupational Health, con fotos incluidas." },
+    ],
+  },
+  {
+    id: "2026-11-26",
+    fecha: "2026-11-26",
     titulo: "Registros y nuevos indicadores",
     cambios: [
       { seccion: "Plantilla", texto: "Las incidencias, actas administrativas, incumplimientos, retardos y omisiones de marcaje de cada empleado ahora están en una sola página: Registros." },
@@ -47,8 +60,8 @@ export const CHANGELOG: readonly Novedad[] = [
     ],
   },
   {
-    id: "2026-11-26-2",
-    fecha: "2026-11-26",
+    id: "2026-11-25-2",
+    fecha: "2026-11-25",
     titulo: "Categorías, empleados y reportes",
     cambios: [
       { seccion: "Categorías", texto: "La lista abre más rápido, también al regresar del detalle de una persona." },
@@ -62,8 +75,8 @@ export const CHANGELOG: readonly Novedad[] = [
     ],
   },
   {
-    id: "2026-11-26",
-    fecha: "2026-11-26",
+    id: "2026-11-25",
+    fecha: "2026-11-25",
     titulo: "Mejoras en Inicio y Plantilla",
     cambios: [
       { seccion: "Inicio", texto: "Ahora ves los retardos y las omisiones de marcaje de cada semana, por departamento y por persona." },

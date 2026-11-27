@@ -1,10 +1,8 @@
 "use client"
 
 import React, { useId, useState, useEffect } from "react"
-import { AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   Select,
   SelectContent,
@@ -14,6 +12,7 @@ import {
 } from "@/components/ui/select"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { TIPOS_CURSOS } from "@/lib/catalogo"
+import { notify } from "@/lib/notify"
 
 export interface CapNewCourseDialogProps {
   open: boolean
@@ -26,23 +25,26 @@ export function CapNewCourseDialog({ open, saving, onClose, onSave }: CapNewCour
   const nameId = useId()
   const typeId = useId()
   const durationId = useId()
-  const errorId = useId()
   const [name, setName] = useState('')
   const [tipo, setTipo] = useState<string>('INDUCCIÓN')
   const [duration, setDuration] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const mostrarError = (mensaje: string) => {
+    setError(mensaje)
+    notify.error(mensaje)
+  }
 
   useEffect(() => {
     if (open) { setName(''); setTipo('INDUCCIÓN'); setDuration(''); setError(null) }
   }, [open])
 
   const handleConfirm = () => {
-    if (!name.trim()) { setError('El nombre del curso es requerido'); return }
+    if (!name.trim()) { mostrarError('Falta el nombre del curso'); return }
     let durationHours: number | null = null
     if (duration.trim() !== '') {
       const n = Number(duration.replace(',', '.'))
       if (!Number.isFinite(n) || n <= 0) {
-        setError('La duración debe ser un número mayor a 0')
+        mostrarError('La duración debe ser mayor a 0')
         return
       }
       durationHours = Math.round(n * 100) / 100
@@ -77,7 +79,6 @@ export function CapNewCourseDialog({ open, saving, onClose, onSave }: CapNewCour
               onChange={e => setName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
               aria-invalid={error?.startsWith("El nombre") || undefined}
-              aria-describedby={error ? errorId : undefined}
             />
           </div>
 
@@ -110,17 +111,10 @@ export function CapNewCourseDialog({ open, saving, onClose, onSave }: CapNewCour
                 onChange={e => setDuration(e.target.value)}
                 onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
                 aria-invalid={error?.startsWith("La duración") || undefined}
-                aria-describedby={error ? errorId : undefined}
               />
             </div>
           </div>
 
-          {error && (
-            <Alert id={errorId} variant="destructive">
-              <AlertCircle aria-hidden="true" />
-              <AlertDescription role="alert">{error}</AlertDescription>
-            </Alert>
-          )}
         </div>
       </div>
 

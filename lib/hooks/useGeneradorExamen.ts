@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
 import type { PreguntaExamen } from "./useExamenes"
 import { invalidarHistorialExamenesCache } from "./useHistorialExamenes"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Tipos
@@ -142,7 +143,7 @@ export function useGeneradorExamen() {
       if (err) throw err
       setResultados(data ?? [])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al buscar empleados")
+      setError(describeSupabaseError(e, "No se pudieron buscar los empleados"))
     } finally {
       setBuscando(false)
     }
@@ -196,10 +197,10 @@ export function useGeneradorExamen() {
 
         if (insertErr) {
           console.error("Error al guardar el examen:", insertErr)
-          notify.error("Error al guardar historial del examen")
+          notify.error("No se pudo guardar el examen")
         } else {
           invalidarHistorialExamenesCache()
-          notify.success("Examen guardado correctamente")
+          notify.success("Examen guardado")
         }
 
         setExamen({
@@ -215,8 +216,8 @@ export function useGeneradorExamen() {
           fecha: new Date().toISOString().split("T")[0],
         })
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "Error al generar el examen")
-        notify.error("Error al generar examen")
+        setError(describeSupabaseError(e, "No se pudo generar el examen"))
+        notify.error("No se pudo generar el examen")
       } finally {
         setGenerando(false)
       }
@@ -260,7 +261,7 @@ export function useReglasCRUD() {
       if (err) throw err
       setReglas((data as ReglaExamen[]) ?? [])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al cargar reglas")
+      setError(describeSupabaseError(e, "No se pudieron cargar las reglas"))
     } finally {
       setLoading(false)
     }

@@ -48,7 +48,7 @@ export function useCursos(): UseCursosReturn {
       .order("orden", { ascending: true, nullsFirst: false })
     if (sbError) {
       setError(sbError.message)
-      notify.error("Error al cargar cursos")
+      notify.error("No se pudieron cargar los cursos")
     } else {
       setCursos(data ?? [])
     }

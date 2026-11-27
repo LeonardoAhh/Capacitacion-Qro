@@ -3,11 +3,13 @@
 import { useId, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { DateTextInput } from "@/components/ui/date-text-input"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { normalizeBirthdayDate } from "@/lib/cumpleanos"
 import { notify } from "@/lib/notify"
+import { EmployeeNumberInput } from "@/components/ui/employee-inputs"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 const FIELD = "grid min-w-0 gap-2"
 
@@ -51,7 +53,7 @@ export function CumpleanosRegistroDialog({ open, onOpenChange, onSaved }: Cumple
   async function save() {
     const date = normalizeBirthdayDate(fecha)
     if (!fecha || "error" in date) {
-      setError("Escribe una fecha de nacimiento válida (DD/MM/AAAA).")
+      setError("La fecha de nacimiento no es válida")
       return
     }
     setError(null)
@@ -74,7 +76,7 @@ export function CumpleanosRegistroDialog({ open, onOpenChange, onSaved }: Cumple
       onSaved()
       close()
     } catch (saveError) {
-      notify.error(saveError instanceof Error ? saveError.message : "No se pudo guardar")
+      notify.error(describeSupabaseError(saveError, "No se pudo guardar"))
     } finally {
       setSaving(false)
     }
@@ -87,8 +89,8 @@ export function CumpleanosRegistroDialog({ open, onOpenChange, onSaved }: Cumple
         footer={
           <DialogFooter>
             <Button type="button" variant="outline" size="sm" onClick={() => change(false)} disabled={saving}>Cancelar</Button>
-            <Button type="submit" form={formId} size="sm" disabled={saving} aria-busy={saving || undefined}>
-              {saving ? "Guardando…" : "Guardar"}
+            <Button type="submit" form={formId} size="sm" loading={saving}>
+              Guardar
             </Button>
           </DialogFooter>
         }
@@ -101,8 +103,8 @@ export function CumpleanosRegistroDialog({ open, onOpenChange, onSaved }: Cumple
           onSubmit={event => { event.preventDefault(); void save() }}>
           <div className={FIELD}>
             <Label htmlFor={`${formId}-numero`}>Número de empleado</Label>
-            <Input id={`${formId}-numero`} required maxLength={50} autoComplete="off" inputMode="numeric" className="tabular-nums"
-              value={numero} onChange={event => setNumero(event.target.value)} disabled={saving}
+            <EmployeeNumberInput id={`${formId}-numero`} required
+              value={numero} onValueChange={setNumero} disabled={saving}
               aria-invalid={Boolean(error) || undefined} aria-describedby={error ? errorId : undefined} />
           </div>
           <div className={FIELD}>

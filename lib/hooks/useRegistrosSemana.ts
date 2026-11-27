@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { fetchAllRows } from "@/lib/supabase/fetchAll"
+import { diasDeSemana } from "@/lib/fechas"
 import { textosRegistro, type RegistroPorDiaConfig } from "@/lib/plantilla/registros-por-dia"
 
 export const SIN_DEPARTAMENTO = "Sin departamento"
@@ -35,37 +36,6 @@ export interface RegistrosSemana {
 
 interface RegistroRow { numero_empleado: string; mes: string; dia: number; cantidad: number }
 interface EmpleadoRow { numero: string; nombre: string | null; departamento: string | null }
-
-const DAY_MS = 86_400_000
-
-const toIso = (date: Date) => date.toISOString().slice(0, 10)
-const fromIso = (fecha: string) => new Date(`${fecha}T00:00:00Z`)
-
-/** Lunes ("YYYY-MM-DD") de la semana que contiene la fecha local dada. */
-export function lunesDe(date: Date): string {
-  const utc = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  const diaSemana = (new Date(utc).getUTCDay() + 6) % 7
-  return toIso(new Date(utc - diaSemana * DAY_MS))
-}
-
-export function sumarSemanas(lunes: string, semanas: number): string {
-  return toIso(new Date(fromIso(lunes).getTime() + semanas * 7 * DAY_MS))
-}
-
-/** Número de semana ISO 8601 y su año (el del jueves de esa semana). */
-export function semanaIso(lunes: string): { semana: number; anio: number } {
-  const jueves = new Date(fromIso(lunes).getTime() + 3 * DAY_MS)
-  const anio = jueves.getUTCFullYear()
-  const primerJueves = Date.UTC(anio, 0, 4)
-  const lunesSemana1 = primerJueves - ((new Date(primerJueves).getUTCDay() + 6) % 7) * DAY_MS
-  return { semana: Math.floor((fromIso(lunes).getTime() - lunesSemana1) / (7 * DAY_MS)) + 1, anio }
-}
-
-/** Las 7 fechas de lunes a domingo. */
-export function diasDeSemana(lunes: string): string[] {
-  const inicio = fromIso(lunes).getTime()
-  return Array.from({ length: 7 }, (_, index) => toIso(new Date(inicio + index * DAY_MS)))
-}
 
 const fechaDe = (row: RegistroRow) => `${row.mes}-${String(row.dia).padStart(2, "0")}`
 

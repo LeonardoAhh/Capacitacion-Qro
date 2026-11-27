@@ -6,6 +6,7 @@ import { notify } from "@/lib/notify"
 import { esElegibleParaPeriodo, esPeriodoSemestral } from "@/lib/desempeno/elegibilidad"
 import { periodoVigenteParaEmpleado, type OrigenEmpleado } from "@/lib/desempeno/periodo-empleado"
 import { normalizarPeriodoDesempeno } from "@/lib/catalogo"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -278,7 +279,7 @@ export function useCumplimientoDesempeno(periodo: string) {
       setLoadedPeriod(periodo)
     } catch (e) {
       if (currentRequest !== requestId.current || activePeriod.current !== periodo) return
-      const msg = e instanceof Error ? e.message : "Error al cargar cumplimiento"
+      const msg = describeSupabaseError(e, "No se pudo cargar el cumplimiento")
       setError(msg)
       if (!background) {
         setDeptGroups([])
@@ -307,7 +308,7 @@ export function useCumplimientoDesempeno(periodo: string) {
       // (RLS en DB es la defensa final, pero esto evita el round-trip.)
       const elegibilidad = esElegibleParaPeriodo(opts?.fechaIngreso ?? null, periodo)
       if (elegibilidad.reglaAplica && !elegibilidad.elegible) {
-        notify.error(elegibilidad.motivo)
+        notify.error("No es elegible este semestre", { description: elegibilidad.motivo })
         return
       }
 
@@ -330,7 +331,7 @@ export function useCumplimientoDesempeno(periodo: string) {
         notify.success(entregada ? "Marcada como entregada" : "Marca de entrega quitada")
         await cargar({ background: true })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Error al actualizar entrega"
+        const msg = describeSupabaseError(e, "No se pudo marcar la entrega")
         notify.error(msg)
       } finally {
         setSaving(false)
@@ -354,7 +355,7 @@ export function useCumplimientoDesempeno(periodo: string) {
         notify.success(fisico ? "Físico marcado como entregado" : "Marca de físico quitada")
         await cargar({ background: true })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : "Error al actualizar entrega física"
+        const msg = describeSupabaseError(e, "No se pudo marcar el físico")
         notify.error(msg)
       } finally {
         setSaving(false)

@@ -36,7 +36,7 @@ export function DeveloperSettings({ onNavigate }: { onNavigate?: () => void }) {
   const saveMaintenance = async (active: boolean) => {
     const success = await toggleMaintenance(active, seconds)
     if (success) notify.success(active ? "Mantenimiento activado" : "Mantenimiento desactivado")
-    else notify.error("No se pudo actualizar el mantenimiento.")
+    else notify.error("No se pudo actualizar el mantenimiento")
   }
 
   return (

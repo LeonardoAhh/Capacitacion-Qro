@@ -65,7 +65,7 @@ export async function DELETE(
 
   if (error) {
     console.error("[WhatsApp reset] Error:", error.message)
-    return NextResponse.json({ error: "Error al eliminar registro" }, { status: 500 })
+    return NextResponse.json({ error: "No se pudo eliminar el registro" }, { status: 500 })
   }
 
   // Log user id (not email) to avoid PII in Vercel log storage.

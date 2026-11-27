@@ -1,8 +1,6 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Table, TableBody, TableHeader } from "@/components/ui/table"
 import { EmpleadoHeader, EmpleadoRow, SkeletonRow } from "@/components/content/recontratacion-employee-row"
@@ -14,7 +12,7 @@ import { PAGE_SIZE, sortByTermino } from "@/components/content/recontratacion-lo
 import { useNuevoIngreso, type NuevoIngreso } from "@/lib/hooks"
 
 export default function RecontratacionContent() {
-  const { loading, error, fetchAll } = useNuevoIngreso()
+  const { loading, fetchAll } = useNuevoIngreso()
 
   const [records, setRecords] = useState<NuevoIngreso[]>([])
   const [search, setSearch] = useState("")
@@ -82,12 +80,6 @@ export default function RecontratacionContent() {
 
   return (
     <div className="grid gap-4 dense:gap-3">
-      {error && (
-        <Alert variant="destructive">
-          <AlertCircle className="size-4" aria-hidden="true" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {/* La búsqueda va en el header; aquí, filtro a la izquierda y paginación a la derecha. */}
       <HeaderSearch label="Buscar empleado" placeholder="Nombre, número, puesto…" value={search} onValueChange={setSearch} />

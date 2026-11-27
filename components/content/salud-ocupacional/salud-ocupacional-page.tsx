@@ -42,7 +42,7 @@ export function SaludOcupacionalPage() {
       const rows = await cargarAccidentes()
       setAccidentes(rows)
     } catch (err) {
-      setLoadError(describeSupabaseError(err, "No se pudieron cargar los accidentes."))
+      setLoadError(describeSupabaseError(err, "No se pudieron cargar los accidentes"))
     } finally {
       setLoading(false)
     }
@@ -52,7 +52,7 @@ export function SaludOcupacionalPage() {
     let active = true
     cargarAccidentes()
       .then(rows => { if (active) { setAccidentes(rows); setLoadError("") } })
-      .catch(err => { if (active) setLoadError(describeSupabaseError(err, "No se pudieron cargar los accidentes.")) })
+      .catch(err => { if (active) setLoadError(describeSupabaseError(err, "No se pudieron cargar los accidentes")) })
       .finally(() => { if (active) setLoading(false) })
     return () => { active = false }
   }, [])
@@ -103,7 +103,7 @@ export function SaludOcupacionalPage() {
     try {
       await eliminarAccidente(accidente.id)
     } catch (err) {
-      notify.error(describeSupabaseError(err, "No se pudo eliminar el accidente."))
+      notify.error(describeSupabaseError(err, "No se pudo eliminar el accidente"))
       return
     }
     const restantes = accidentes.filter(item => item.id !== accidente.id)
@@ -139,7 +139,7 @@ export function SaludOcupacionalPage() {
           events={marcadores} markersOnly countLabel={["accidente", "accidentes"]} label="Calendario de accidentes"
           dayClassName={date => listo && enRacha(date, rachaActual.desde, hoy) ? TONO_RACHA.fondo : undefined}
           actions={canManageSafety && (
-            <Button type="button" className="hidden md:inline-flex lg:hidden" disabled={!listo} onClick={crear}>
+            <Button type="button" size="sm" className="hidden md:inline-flex lg:hidden" disabled={!listo} onClick={crear}>
               <Plus aria-hidden="true" />Registrar accidente
             </Button>
           )} />
@@ -147,7 +147,7 @@ export function SaludOcupacionalPage() {
 
       <aside aria-label="Indicadores de accidentes" className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-3 lg:overflow-y-auto">
         {canManageSafety && (
-          <Button type="button" className="w-full md:hidden lg:inline-flex" disabled={!listo} onClick={crear}>
+          <Button type="button" size="sm" className="w-full md:hidden lg:inline-flex" disabled={!listo} onClick={crear}>
             <Plus aria-hidden="true" />Registrar accidente
           </Button>
         )}

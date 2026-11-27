@@ -4,7 +4,7 @@ import "@/app/globals.css"
 import fontSans from "@/lib/fonts"
 import { ThemeProvider } from "@/components/theme-context"
 import { PWARegister } from "@/components/pwa-register"
-import { SonnerProvider } from "@/components/ui/sonner-provider"
+import { Toaster } from "@/components/ui/toast/toaster"
 import { ConfirmProvider } from "@/components/ui/confirm-dialog"
 import { ConnectionStatus } from "@/components/connection-status"
 import { UpdateBanner } from "@/components/update-banner"
@@ -91,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 {/* App-wide overlays share the display preferences provider. */}
                 <PWARegister />
                 <UpdateBanner />
-                <SonnerProvider />
+                <Toaster />
                 <ConfirmProvider />
                 <ConnectionStatus />
               </RoleProvider>

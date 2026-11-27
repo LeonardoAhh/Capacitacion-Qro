@@ -12,6 +12,7 @@ import { crearBorradorEvaluacion } from "@/lib/desempeno/crear-borrador"
 import { aplicarRetardosDelPeriodo } from "@/lib/desempeno/retardos-evaluacion"
 import { cargarEvaluacionesVencidas, guardarEvaluacionTardia, type EvaluacionVencida } from "@/lib/desempeno/regularizacion/servicio"
 import { validarEvaluacion, type DesempenoData } from "@/lib/types/desempeno"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export function useRegularizacion(enabled: boolean) {
   const [pendientes, setPendientes] = useState<EvaluacionVencida[]>([])
@@ -57,7 +58,7 @@ export function useRegularizacion(enabled: boolean) {
     try {
       setPendientes(await cargarEvaluacionesVencidas())
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron cargar las evaluaciones vencidas.")
+      setError(describeSupabaseError(cause, "No se pudieron cargar las evaluaciones vencidas"))
     } finally {
       setLoading(false)
     }
@@ -96,7 +97,7 @@ export function useRegularizacion(enabled: boolean) {
       setData(draft)
     } catch (cause) {
       if (id !== request.current) return
-      setError(cause instanceof Error ? cause.message : "No se pudo preparar la evaluación.")
+      setError(describeSupabaseError(cause, "No se pudo preparar la evaluación"))
     } finally {
       if (id === request.current) setLoadingDraft(false)
     }
@@ -132,7 +133,7 @@ export function useRegularizacion(enabled: boolean) {
       setBaseline("")
       await reload()
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la evaluación tardía.")
+      setError(describeSupabaseError(cause, "No se pudo guardar la evaluación tardía"))
     } finally {
       setSaving(false)
     }

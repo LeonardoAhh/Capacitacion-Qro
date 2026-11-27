@@ -95,9 +95,10 @@ export function ConfirmationDialog({
           </div>
         </div>
         {requireInputText && (
-          <div className="mt-4 space-y-2">
-            <Label htmlFor="confirm-required-text" className="text-body-md text-foreground">
-              Escribe <span className="rounded-sm bg-muted px-1.5 py-0.5 font-medium text-foreground select-all">{requireInputText}</span> para confirmar
+          // Etiqueta con su alto de línea: el contorno de foco del campo no la toca.
+          <div className="mt-4 grid gap-2">
+            <Label htmlFor="confirm-required-text" className="text-body-sm leading-(--text-body-sm--line-height) font-normal text-muted-foreground">
+              Escribe <span className="rounded-sm bg-muted px-1 font-medium text-foreground select-all">{requireInputText}</span> para confirmar
             </Label>
             <Input
               ref={inputRef}
@@ -110,7 +111,6 @@ export function ConfirmationDialog({
                   onConfirm()
                 }
               }}
-              placeholder={requireInputText}
               autoComplete="off"
               autoCapitalize={isUppercaseTarget ? "characters" : "off"}
               spellCheck={false}

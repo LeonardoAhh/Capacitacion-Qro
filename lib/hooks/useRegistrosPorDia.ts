@@ -22,7 +22,7 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
       if (dbError) throw dbError
       return (data ?? []) as unknown as RegistroPorDia[]
     } catch (caught) {
-      setError(describeSupabaseError(caught, `Error al cargar ${config.plural}`))
+      setError(describeSupabaseError(caught, `No se pudieron cargar los ${config.plural}`))
       return []
     } finally {
       setLoading(false)
@@ -56,7 +56,7 @@ export function useRegistrosPorDia(config: RegistroPorDiaConfig) {
       if (dbError) throw dbError
       return { success: true as const }
     } catch (caught) {
-      return { success: false as const, error: describeSupabaseError(caught, `Error al guardar ${textosRegistro(config).elSingular}`) }
+      return { success: false as const, error: describeSupabaseError(caught, `No se pudo guardar ${textosRegistro(config).elSingular}`) }
     } finally {
       setSaving(false)
     }

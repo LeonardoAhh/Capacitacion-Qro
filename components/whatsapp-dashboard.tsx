@@ -37,7 +37,7 @@ export default function WhatsAppDashboard() {
       .order("queried_at", { ascending: false })
     if (error) {
       console.error("[WhatsApp dashboard] Supabase error:", error)
-      notify.error(`Error al cargar consultas: ${error.message}`)
+      notify.error("No se pudieron cargar las consultas")
     } else {
       setConsultas(data ?? [])
     }
@@ -62,7 +62,7 @@ export default function WhatsAppDashboard() {
         notify.success(`Consulta de #${numero} eliminada`)
         setConsultas((prev) => prev.filter((c) => c.numero !== numero))
       } catch {
-        notify.error("Error al eliminar consulta")
+        notify.error("No se pudo eliminar la consulta")
       }
     })
   }

@@ -4,8 +4,8 @@ import { useId } from "react"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { etiquetaTurno, TODOS } from "@/lib/ingresos/share-messages"
-import { cn } from "@/lib/utils"
 
 const FIELD = "grid min-w-0 content-start gap-2"
 
@@ -16,30 +16,21 @@ interface SegmentControlProps<T extends string> {
   options: { value: T; label: string }[]
 }
 
-/**
- * Elección única entre pocas opciones. Mismo aspecto que las pestañas del sistema;
- * semánticamente es un grupo de botones con estado (aria-pressed), no pestañas.
- */
+/** Elección única entre pocas opciones con el mismo diseño de pestañas del sistema. */
 export function SegmentControl<T extends string>({ label, value, onValueChange, options }: SegmentControlProps<T>) {
   return (
-    <fieldset className={FIELD}>
-      <legend className="mb-2 text-label-sm text-foreground">{label}</legend>
-      <div className="grid auto-cols-fr grid-flow-col rounded-md border border-border bg-muted p-0.5">
-        {options.map(option => {
-          const active = option.value === value
-          return (
-            <button key={option.value} type="button" aria-pressed={active} onClick={() => onValueChange(option.value)}
-              className={cn(
-                "min-h-10 min-w-0 truncate rounded-md border px-3 text-label-sm transition-colors",
-                "",
-                active ? "border-border bg-card text-primary" : "border-transparent text-muted-foreground hover:text-foreground",
-              )}>
+    <div className={FIELD}>
+      <p className="text-label-sm text-foreground">{label}</p>
+      <Tabs value={value} onValueChange={(next) => onValueChange(next as T)}>
+        <TabsList aria-label={label} className="grid w-full auto-cols-fr grid-flow-col">
+          {options.map((option) => (
+            <TabsTrigger key={option.value} value={option.value} className="min-w-0 truncate">
               {option.label}
-            </button>
-          )
-        })}
-      </div>
-    </fieldset>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+    </div>
   )
 }
 

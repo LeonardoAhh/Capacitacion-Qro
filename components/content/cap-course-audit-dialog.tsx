@@ -150,7 +150,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
       onOpenChange(false)
     } catch (e) {
       console.error("Error al exportar auditoría:", e)
-      notify.error("No se pudo generar el archivo de auditoría.")
+      notify.error("No se pudo descargar la auditoría")
     } finally {
       setIsExporting(false)
     }
@@ -204,7 +204,6 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
             <PopoverContent
               align="start"
               side="bottom"
-              sideOffset={4}
               className="w-[var(--radix-popover-trigger-width)] max-w-[calc(100vw-2rem)] overflow-hidden p-0"
             >
               <div className="relative border-b border-border/60 p-2">
@@ -276,7 +275,7 @@ export function CapCourseAuditDialog({ open, onOpenChange, courses, employees, e
         cancelLabel="Cancelar"
         onConfirm={handleExport}
         saving={isExporting}
-        confirmLabel={isExporting ? "Generando…" : "Descargar Excel"}
+        confirmLabel="Descargar Excel"
         confirmIcon={<Download className="size-4" aria-hidden="true" />}
         confirmDisabled={auditData.length === 0}
       />

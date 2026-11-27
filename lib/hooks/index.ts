@@ -15,7 +15,7 @@ export type { Curso } from './useCursos'
 export { useCursosPublicos } from './useCursosPublicos'
 export type { CursoPublico, CursoPublicoInput } from './useCursosPublicos'
 export type { NuevoIngreso, NuevoIngresoUpdate, TipoContrato, EstadoRG, EvalStatus } from './useNuevoIngreso'
-export { formatDate, daysFromToday, evalStatus, addDays } from './useNuevoIngreso'
+export { formatDate, daysFromToday, evalStatus, addDays, requiereAtencion } from './useNuevoIngreso'
 export type {
   Department,
   Position,

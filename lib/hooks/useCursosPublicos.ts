@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
+import { notify } from '@/lib/notify'
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface CursoPublico {
   id: string
@@ -17,11 +19,9 @@ export type CursoPublicoInput = Omit<CursoPublico, 'id' | 'created_at'>
 export function useCursosPublicos(soloActivos = false) {
   const [cursos, setCursos] = useState<CursoPublico[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
 
   const fetchCursos = useCallback(async () => {
     setLoading(true)
-    setError(null)
     try {
       let query = supabase
         .from('cursos_publicos')
@@ -37,7 +37,7 @@ export function useCursosPublicos(soloActivos = false) {
       if (err) throw err
       setCursos(data ?? [])
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Error al cargar cursos')
+      notify.error(describeSupabaseError(e, 'No se pudieron cargar los cursos'))
     } finally {
       setLoading(false)
     }
@@ -71,5 +71,5 @@ export function useCursosPublicos(soloActivos = false) {
     await fetchCursos()
   }, [fetchCursos])
 
-  return { cursos, loading, error, refetch: fetchCursos, crear, actualizar, eliminar }
+  return { cursos, loading, refetch: fetchCursos, crear, actualizar, eliminar }
 }

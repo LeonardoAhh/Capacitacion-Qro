@@ -71,7 +71,7 @@ async function updateServer(method: "POST" | "DELETE", subscription: PushSubscri
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(method === "POST" ? payload : { endpoint: subscription.endpoint }),
   })
-  if (!response.ok) throw new Error("No se pudo guardar la configuración de notificaciones.")
+  if (!response.ok) throw new Error("No se pudo guardar la configuración de notificaciones")
 }
 
 /**
@@ -124,7 +124,7 @@ export async function activateKanbanPush(userId: string) {
 
   const before = await navigator.serviceWorker.getRegistration("/").then(registration => registration?.pushManager.getSubscription())
   const subscription = await currentSubscription(true)
-  if (!subscription) throw new Error("No se pudieron activar las notificaciones.")
+  if (!subscription) throw new Error("No se pudieron activar las notificaciones")
   try {
     await updateServer("POST", subscription)
   } catch (error) {

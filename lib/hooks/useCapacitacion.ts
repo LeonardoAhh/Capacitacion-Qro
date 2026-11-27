@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { isPassingCourseGrade } from '@/lib/capacitacion/utils'
 import { fetchAllRows } from '@/lib/supabase/fetchAll'
+import { describeSupabaseError } from "@/lib/supabase/errors"
+import { fechasDeIngreso } from "@/lib/hooks/useNuevoIngreso"
 
 interface PositionCourseSummary {
   courseId: string
@@ -399,6 +401,39 @@ function parseDate(s: string): string | null {
 // Hook
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Si la persona tiene seguimiento de ingreso, le pasa los datos editados en Plantilla. Un cambio de
+ * fecha de ingreso recalcula sus fechas de evaluación, contrato y RG. Devuelve false si falló.
+ */
+async function sincronizarNuevoIngreso(
+  numero: string,
+  data: { nombre: string; puesto: string | null; departamento: string | null; area: string | null; turno: string | null; fecha_ingreso: string | null; jefe_directo: string | null },
+): Promise<boolean> {
+  const { data: ingreso, error } = await supabase
+    .from('nuevo_ingreso')
+    .select('id, fecha_ingreso')
+    .eq('numero', numero)
+    .maybeSingle()
+  if (error) return false
+  if (!ingreso) return true
+  const nuevaFecha = data.fecha_ingreso && data.fecha_ingreso !== ingreso.fecha_ingreso ? data.fecha_ingreso : null
+  const { error: updateError } = await supabase
+    .from('nuevo_ingreso')
+    .update({
+      nombre: data.nombre,
+      puesto: data.puesto,
+      departamento: data.departamento,
+      area: data.area,
+      turno: data.turno,
+      // En el seguimiento de ingreso el jefe directo se llama "jefe de área".
+      jefe_area: data.jefe_directo,
+      ...(nuevaFecha ? { fecha_ingreso: nuevaFecha, ...fechasDeIngreso(nuevaFecha, data.departamento) } : {}),
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', ingreso.id)
+  return !updateError
+}
+
 export function useCapacitacion() {
   const [importing, setImporting] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
@@ -552,7 +587,7 @@ export function useCapacitacion() {
         catalogSnapshot: catalog,
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al analizar historial'
+      const msg = describeSupabaseError(err, 'No se pudo revisar el historial')
       setMatchError(msg)
       throw err
     } finally {
@@ -657,7 +692,7 @@ export function useCapacitacion() {
 
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al importar historial'
+      const msg = describeSupabaseError(err, 'No se pudo importar el historial')
       setImportError(msg)
       return { success: false, error: msg }
     } finally {
@@ -754,7 +789,7 @@ export function useCapacitacion() {
 
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al borrar historial'
+      const msg = describeSupabaseError(err, 'No se pudo borrar el historial')
       setImportError(msg)
       return { success: false, error: msg }
     } finally {
@@ -794,7 +829,7 @@ export function useCapacitacion() {
 
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al borrar empleado'
+      const msg = describeSupabaseError(err, 'No se pudo borrar el empleado')
       return { success: false, error: msg }
     }
   }
@@ -807,63 +842,11 @@ export function useCapacitacion() {
       if (error) throw error
       return { success: true }
     } catch (err) {
-      return { success: false, error: err instanceof Error ? err.message : 'Error' }
+      return { success: false, error: describeSupabaseError(err, 'Algo salió mal') }
     }
   }
 
   // ── Crear empleado manualmente con cursos ────────────────────────────────
-
-  const createEmployeeManual = async (
-    employee: {
-      numero: string | null
-      nombre: string
-      puesto: string | null
-      departamento: string | null
-      area: string | null
-      turno: string | null
-      fecha_ingreso: string | null
-      jefe_directo: string | null
-      evaluacion_desempeno: string | null
-    },
-    employeeCourses: { course_id: string; course_name: string; fecha_aplicacion: string | null; calificacion: number | null }[]
-  ): Promise<{ success: boolean; error?: string }> => {
-    setImporting(true)
-    setImportError(null)
-    try {
-      const { data: empData, error: empError } = await supabase
-        .from('employees')
-        .insert([employee])
-        .select('id')
-      if (empError) throw new Error(empError.message)
-      const employeeId = empData?.[0]?.id
-      if (!employeeId) throw new Error('No se obtuvo el ID del empleado')
-
-      if (employeeCourses.length > 0) {
-        const records = employeeCourses
-          .filter(c => c.course_id)
-          .map(c => ({
-            employee_id: employeeId,
-            course_id: c.course_id,
-            raw_course_name: c.course_name,
-            fecha_aplicacion: c.fecha_aplicacion,
-            calificacion: c.calificacion,
-          }))
-        if (records.length > 0) {
-          const { error: ecError } = await supabase
-            .from('employee_courses')
-            .upsert(records, { onConflict: 'employee_id,raw_course_name', ignoreDuplicates: true })
-          if (ecError) throw new Error(ecError.message)
-        }
-      }
-      return { success: true }
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al crear empleado'
-      setImportError(msg)
-      return { success: false, error: msg }
-    } finally {
-      setImporting(false)
-    }
-  }
 
   const updateEmployee = async (
     employeeId: string,
@@ -877,16 +860,19 @@ export function useCapacitacion() {
       jefe_directo: string | null
       evaluacion_desempeno: string | null
     }
-  ): Promise<{ success: boolean; error?: string }> => {
+  ): Promise<{ success: boolean; error?: string; aviso?: string }> => {
     try {
-      const { error } = await supabase
+      const { data: actualizado, error } = await supabase
         .from('employees')
         .update(data)
         .eq('id', employeeId)
+        .select('numero')
+        .single()
       if (error) throw new Error(error.message)
-      return { success: true }
+      const sincronizado = actualizado?.numero ? await sincronizarNuevoIngreso(actualizado.numero, data) : true
+      return { success: true, aviso: sincronizado ? undefined : 'No se pudo actualizar su seguimiento de ingreso' }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al actualizar empleado'
+      const msg = describeSupabaseError(err, 'No se pudo actualizar el empleado')
       return { success: false, error: msg }
     }
   }
@@ -905,7 +891,7 @@ export function useCapacitacion() {
       if (error) throw new Error(error.message)
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al asignar curso'
+      const msg = describeSupabaseError(err, 'No se pudo asignar el curso')
       return { success: false, error: msg }
     }
   }
@@ -921,7 +907,7 @@ export function useCapacitacion() {
       if (error) throw new Error(error.message)
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al quitar curso'
+      const msg = describeSupabaseError(err, 'No se pudo quitar el curso')
       return { success: false, error: msg }
     }
   }
@@ -939,7 +925,7 @@ export function useCapacitacion() {
       if (error) throw new Error(error.message)
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al crear puesto'
+      const msg = describeSupabaseError(err, 'No se pudo crear el puesto')
       return { success: false, error: msg }
     }
   }
@@ -958,7 +944,7 @@ export function useCapacitacion() {
       if (error) throw new Error(error.message)
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al crear curso'
+      const msg = describeSupabaseError(err, 'No se pudo crear el curso')
       return { success: false, error: msg }
     }
   }
@@ -981,7 +967,7 @@ export function useCapacitacion() {
       if (error) throw new Error(error.message)
       return { success: true }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Error al actualizar curso'
+      const msg = describeSupabaseError(err, 'No se pudo actualizar el curso')
       return { success: false, error: msg }
     }
   }
@@ -1007,7 +993,6 @@ export function useCapacitacion() {
     importHistorial,
     clearHistorial,
     deleteEmployee,
-    createEmployeeManual,
     updateEmployee,
     createPosition,
     createCourse,

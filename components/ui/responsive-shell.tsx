@@ -2,7 +2,7 @@
 
 import React from "react"
 import { cn } from "@/lib/utils"
-import { Loader2, X } from "lucide-react"
+import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -108,11 +108,11 @@ export function ModalFooter({
             variant={confirmButtonVariant}
             size="sm"
             onClick={onConfirm}
-            disabled={saving || confirmDisabled}
-            aria-busy={saving || undefined}
+            disabled={confirmDisabled}
+            loading={saving}
             className={cn("touch-target", confirmWarningClasses)}
           >
-            {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : confirmIcon}
+            {confirmIcon}
             {confirmLabel}
           </Button>
         )}

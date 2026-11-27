@@ -29,6 +29,20 @@ export function inicioSemana(iso: string): string {
   return sumarDias(iso, -((deISO(iso).getDay() + 6) % 7))
 }
 
+/** Las 7 fechas de lunes a domingo de la semana que empieza en `lunes`. */
+export function diasDeSemana(lunes: string): string[] {
+  return Array.from({ length: 7 }, (_, index) => sumarDias(lunes, index))
+}
+
+/** Número de semana ISO 8601 de la semana que empieza en `lunes` y su año (el del jueves). */
+export function semanaIso(lunes: string): { semana: number; anio: number } {
+  const jueves = deISO(sumarDias(lunes, 3))
+  const anio = jueves.getFullYear()
+  const lunesSemana1 = deISO(inicioSemana(aISO(new Date(anio, 0, 4))))
+  const dias = Math.round((deISO(lunes).getTime() - lunesSemana1.getTime()) / 86_400_000)
+  return { semana: Math.floor(dias / 7) + 1, anio }
+}
+
 /** Primer día del mes de la fecha. */
 export function inicioMes(iso: string): string {
   return `${iso.slice(0, 7)}-01`

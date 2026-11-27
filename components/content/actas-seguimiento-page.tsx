@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useId } from "react"
-import { AlertTriangle, Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
@@ -11,7 +11,6 @@ import {
   SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -143,7 +142,7 @@ export interface ActasSeguimientoPageProps {
 
 export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPageProps) {
   const { canCapturePlantilla, canEdit } = useRole()
-  const { loading, saving, error, fetchByEmpleado, create, update, remove } = useActasSeguimiento()
+  const { loading, saving, fetchByEmpleado, create, update, remove } = useActasSeguimiento()
 
   const [records, setRecords] = useState<ActaSeguimiento[]>([])
   const [nombreEmpleado, setNombreEmpleado] = useState<string | null>(null)
@@ -151,7 +150,6 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState<FormState>(blankForm)
-  const [formError, setFormError] = useState<string | null>(null)
   const formId = useId()
 
   const load = useCallback(async () => {
@@ -170,11 +168,10 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
     return () => { active = false }
   }, [load, numeroEmpleado])
 
-  const closeForm = () => { setShowForm(false); setFormError(null) }
+  const closeForm = () => { setShowForm(false) }
 
   const handleSave = async () => {
-    if (!form.fecha) { setFormError("La fecha es obligatoria."); return }
-    setFormError(null)
+    if (!form.fecha) { notify.error("Falta la fecha"); return }
     const result = await create({
       numero_empleado: numeroEmpleado,
       tipo: "ACTA ADMINISTRATIVA",
@@ -189,9 +186,9 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
       setForm(blankForm())
       setPage(1)
       void load()
-      notify.success("Registro guardado correctamente")
+      notify.success("Acta guardada")
     } else {
-      setFormError(result.error ?? "Error al guardar")
+      notify.error(result.error ?? "No se pudo guardar")
     }
   }
 
@@ -200,7 +197,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
     if (result.success) {
       setRecords(prev => prev.map(r => r.id === id ? { ...r, estatus } : r))
     } else {
-      notify.error(result.error ?? "Error al actualizar estatus")
+      notify.error(result.error ?? "No se pudo cambiar el estatus")
     }
   }
 
@@ -218,7 +215,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
       setSelectedId(null)
       setRecords(prev => prev.filter(r => r.id !== id))
     } else {
-      notify.error(result.error ?? "Error al eliminar")
+      notify.error(result.error ?? "No se pudo eliminar")
     }
   }
 
@@ -240,7 +237,7 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
           <div className="ml-auto flex items-center gap-2">
             {vencidos > 0 && <Badge variant="destructive" size="sm" className="tabular-nums">{vencidos} {vencidos === 1 ? "revisión vencida" : "revisiones vencidas"}</Badge>}
             {canCapturePlantilla && (
-              <Button type="button" size="sm" className="touch-target" onClick={() => { setForm(blankForm()); setFormError(null); setShowForm(true) }}>
+              <Button type="button" size="sm" className="touch-target" onClick={() => { setForm(blankForm()); setShowForm(true) }}>
                 <Plus aria-hidden="true" /> Nuevo registro
               </Button>
             )}
@@ -248,19 +245,12 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
           </div>
         </div>
 
-        {error && (
-          <Alert variant="destructive" role="alert">
-            <AlertTriangle className="size-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {loading ? (
           <div className="space-y-2" role="status" aria-label="Cargando actas">
             {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
           </div>
         ) : records.length === 0 ? (
-          !error && <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
+          <p className="rounded-xl border border-dashed px-(--card-padding) py-12 text-center text-body-md text-muted-foreground">
             No hay actas administrativas para este empleado.
           </p>
         ) : (
@@ -309,12 +299,6 @@ export function ActasSeguimientoPage({ numeroEmpleado }: ActasSeguimientoPagePro
         <ModalHeader title="Nueva acta administrativa" onClose={closeForm} />
         <form id={formId} onSubmit={event => { event.preventDefault(); void handleSave() }}
           className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-(--card-padding)">
-          {formError && (
-            <Alert variant="destructive" role="alert">
-              <AlertTriangle className="size-4" aria-hidden="true" />
-              <AlertDescription>{formError}</AlertDescription>
-            </Alert>
-          )}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="min-w-0 space-y-1.5">
               <Label htmlFor={`${formId}-fecha`}>Fecha <span aria-hidden="true">*</span><span className="sr-only"> (obligatoria)</span></Label>

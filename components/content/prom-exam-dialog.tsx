@@ -17,6 +17,7 @@ import type { EmpleadoPromocion, ExamenPromocionInput } from "@/lib/promociones/
 import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 import { calcularDesbloqueoExamen } from "@/lib/promociones/utils"
 import { PromEmployeeSummary } from "./prom-employee-summary"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PromExamDialogProps {
   empleado: EmpleadoPromocion
@@ -42,6 +43,10 @@ export function PromExamDialog({
   )
   const [guardando, setGuardando] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const mostrarError = (mensaje: string) => {
+    setError(mensaje)
+    notify.error(mensaje)
+  }
   const [errorField, setErrorField] = useState<ExamErrorField>(null)
 
   const dateRef = useRef<HTMLInputElement>(null)
@@ -66,7 +71,7 @@ export function PromExamDialog({
       await onGuardar(datos)
       onClose()
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : fallback)
+      mostrarError(describeSupabaseError(cause, fallback))
       setErrorField("form")
     } finally {
       setGuardando(false)
@@ -77,19 +82,19 @@ export function PromExamDialog({
     if (disabled) return
     const calificacion = Number(calExamen)
     if (!fechaExamen) {
-      setError(EXAM_DIALOG_COPY.missingDate)
+      mostrarError(EXAM_DIALOG_COPY.missingDate)
       setErrorField("date")
       dateRef.current?.focus()
       return
     }
     if (fechaExamen <= empleado.fechaIngresoPuesto) {
-      setError(EXAM_DIALOG_COPY.invalidDate)
+      mostrarError(EXAM_DIALOG_COPY.invalidDate)
       setErrorField("date")
       dateRef.current?.focus()
       return
     }
     if (calExamen === "" || !Number.isFinite(calificacion) || calificacion < 0 || calificacion > 100) {
-      setError(EXAM_DIALOG_COPY.invalidScore)
+      mostrarError(EXAM_DIALOG_COPY.invalidScore)
       setErrorField("score")
       scoreRef.current?.focus()
       return
@@ -147,7 +152,6 @@ export function PromExamDialog({
                   clearError()
                 }}
                 aria-invalid={errorField === "date" || undefined}
-                aria-describedby={error ? "prom-exam-error" : undefined}
                 disabled={disabled}
               />
             </div>
@@ -168,7 +172,6 @@ export function PromExamDialog({
                   clearError()
                 }}
                 aria-invalid={errorField === "score" || undefined}
-                aria-describedby={error ? "prom-exam-error" : undefined}
                 disabled={disabled}
               />
             </div>
@@ -200,18 +203,12 @@ export function PromExamDialog({
             </AlertDescription>
           </Alert>
         )}
-        {error && (
-          <Alert variant="destructive">
-            <TriangleAlert aria-hidden="true" className={PROMOTION_ICON.control} />
-            <AlertDescription id="prom-exam-error">{error}</AlertDescription>
-          </Alert>
-        )}
       </div>
 
       <ModalFooter
         onCancel={handleClose}
         onConfirm={guardar}
-        confirmLabel={guardando ? "Guardando…" : EXAM_DIALOG_COPY.saveLabel}
+        confirmLabel={EXAM_DIALOG_COPY.saveLabel}
         confirmIcon={<ClipboardCheck aria-hidden="true" />}
         confirmDisabled={disabled}
         saving={guardando}

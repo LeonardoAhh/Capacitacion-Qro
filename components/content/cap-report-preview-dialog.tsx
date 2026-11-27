@@ -35,7 +35,7 @@ export function CapReportPreviewDialog({
       onClose()
     } catch (error) {
       console.error("Error al generar reporte general:", error)
-      notify.error("No se pudo generar el reporte general.")
+      notify.error("No se pudo descargar el reporte general")
     } finally {
       setIsDownloading(false)
     }
@@ -77,7 +77,7 @@ export function CapReportPreviewDialog({
         cancelLabel="Cancelar"
         onConfirm={handleDownload}
         saving={isDownloading}
-        confirmLabel={isDownloading ? "Generando…" : "Descargar Excel"}
+        confirmLabel="Descargar Excel"
         confirmIcon={<Download className="size-4" aria-hidden="true" />}
         confirmDisabled={isEmpty}
       />

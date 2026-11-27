@@ -12,6 +12,8 @@ import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
 import { calcularAptitud } from "@/lib/promociones/utils"
 import { PromPositionChange } from "./prom-position-change"
 import { PromPromotionCriteria } from "./prom-promotion-criteria"
+import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PromPromoverDialogProps {
   empleado: EmpleadoPromocion | null
@@ -49,20 +51,18 @@ function PromPromoverDialogContent({
   const apto = calcularAptitud(empleado) === "apto" && !!empleado.regla?.promocionA
   const [fechaInicio, setFechaInicio] = useState(todayAsLocalDate)
   const [guardando, setGuardando] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   async function confirmarPromocion() {
     if (!fechaInicio) {
-      setError(PROMOTION_DIALOG_COPY.invalidDate)
+      notify.error(PROMOTION_DIALOG_COPY.invalidDate)
       return
     }
     setGuardando(true)
-    setError(null)
     try {
       await onConfirmarPromocion({ fechaInicio })
       onClose()
     } catch (cause: unknown) {
-      setError(cause instanceof Error ? cause.message : PROMOTION_DIALOG_COPY.saveError)
+      notify.error(describeSupabaseError(cause, PROMOTION_DIALOG_COPY.saveError))
     } finally {
       setGuardando(false)
     }
@@ -94,16 +94,12 @@ function PromPromoverDialogContent({
           <TriangleAlert aria-hidden="true" className={PROMOTION_ICON.control} />
           <AlertDescription>{PROMOTION_DIALOG_COPY.notEligible}</AlertDescription>
         </Alert>}
-        {error && <Alert variant="destructive">
-          <TriangleAlert aria-hidden="true" className={PROMOTION_ICON.control} />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>}
       </div>
 
       <ModalFooter
         onCancel={handleClose}
         onConfirm={() => void confirmarPromocion()}
-        confirmLabel={guardando ? "Guardando…" : PROMOTION_DIALOG_COPY.confirmLabel}
+        confirmLabel={PROMOTION_DIALOG_COPY.confirmLabel}
         confirmIcon={<ArrowUpRight aria-hidden="true" />}
         confirmDisabled={isReadOnly || !apto}
         saving={guardando}

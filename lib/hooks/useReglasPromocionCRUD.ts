@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface ReglaPromocionRow {
   id: string
@@ -46,7 +47,7 @@ export function useReglasPromocionCRUD(onChange?: () => void) {
       if (err) throw err
       setReglas((data as ReglaPromocionRow[]) ?? [])
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Error al cargar reglas")
+      setError(describeSupabaseError(e, "No se pudieron cargar las reglas"))
     } finally {
       setLoading(false)
     }
@@ -73,7 +74,7 @@ export function useReglasPromocionCRUD(onChange?: () => void) {
         .select()
         .single()
       if (err) {
-        notify.error("Error al guardar regla")
+        notify.error("No se pudo guardar la regla")
         throw new Error(err.message)
       }
       const row = data as ReglaPromocionRow
@@ -99,7 +100,7 @@ export function useReglasPromocionCRUD(onChange?: () => void) {
         .delete()
         .eq("id", id)
       if (err) {
-        notify.error("Error al eliminar regla")
+        notify.error("No se pudo eliminar la regla")
         throw new Error(err.message)
       }
       setReglas((prev) => prev.filter((r) => r.id !== id))
@@ -116,7 +117,7 @@ export function useReglasPromocionCRUD(onChange?: () => void) {
         .update({ activo, updated_at: new Date().toISOString() })
         .eq("id", id)
       if (err) {
-        notify.error("Error al cambiar estado")
+        notify.error("No se pudo cambiar el estado")
         throw new Error(err.message)
       }
       setReglas((prev) => prev.map((r) => (r.id === id ? { ...r, activo } : r)))

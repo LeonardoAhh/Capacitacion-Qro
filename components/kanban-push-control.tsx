@@ -1,6 +1,6 @@
 "use client"
 
-import { BellRing, Loader2 } from "lucide-react"
+import { BellRing } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { KanbanPushHookState } from "@/lib/hooks/useKanbanPush"
 
@@ -29,14 +29,11 @@ export function KanbanPushControl({ state, onActivate }: {
         type="button"
         variant="ghost"
         className="w-full justify-start rounded-none px-3 text-body-sm text-foreground focus-inset"
-        disabled={activating}
-        aria-busy={activating || undefined}
+        loading={activating}
         onClick={onActivate}
       >
-        {activating
-          ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
-          : <BellRing aria-hidden="true" />}
-        {activating ? "Activando…" : "Activar notificaciones en este dispositivo"}
+        <BellRing aria-hidden="true" />
+        Activar notificaciones en este dispositivo
       </Button>
     </div>
   )

@@ -2,7 +2,7 @@
 
 import { useId } from "react"
 import Link from "next/link"
-import { Check, ChevronRight, Lightbulb, LogOut, Monitor, Moon, Settings, Sun, type LucideIcon } from "lucide-react"
+import { Check, ChevronRight, Lightbulb, Loader2, LogOut, Monitor, Moon, Settings, Sun, type LucideIcon } from "lucide-react"
 import { ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { useTheme } from "@/components/theme-context"
 import { WORKSPACE_ICON } from "@/components/workspace-switcher"
@@ -95,8 +95,10 @@ export function AccountSheet({ open, onClose, displayName, roleLabel, workspace,
             </Link>
           )}
           <button type="button" className={cn(ROW, "text-destructive hover:bg-destructive/10")} disabled={signingOut} onClick={onLogout}>
-            <LogOut className="size-4 shrink-0" aria-hidden="true" />
-            {signingOut ? "Cerrando sesión…" : "Cerrar sesión"}
+            {signingOut
+              ? <Loader2 className="size-4 shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              : <LogOut className="size-4 shrink-0" aria-hidden="true" />}
+            Cerrar sesión
           </button>
         </div>
       </div>

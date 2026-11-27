@@ -106,9 +106,8 @@ function DesempenoSearchContent() {
     const needsRegularization = error.title === REGULARIZATION_TITLE;
     notify.error(error.title, {
       id: SEARCH_ERROR_TOAST_ID,
-      description: needsRegularization && !supervisesEvaluations
-        ? `${error.description} Acude a Recursos Humanos.`
-        : error.description,
+      // Quien no regulariza solo necesita saber a dónde ir: cabe en una línea.
+      description: needsRegularization && !supervisesEvaluations ? "Acude a Recursos Humanos" : error.description,
       // Con acción, el toast permanece hasta que se use o se cierre.
       ...(needsRegularization && supervisesEvaluations ? {
         duration: Infinity,

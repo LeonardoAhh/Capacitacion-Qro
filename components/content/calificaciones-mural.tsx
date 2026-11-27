@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import {
+  Building2,
   Search,
   RefreshCw,
   BookOpen,
@@ -18,6 +19,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  DEFAULT_FILTER_OPERATORS,
+  FilterBar,
+  matchesFilterTokens,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import {
   Select,
   SelectContent,
@@ -242,7 +250,7 @@ type SortKey = "nombre" | "promedio-desc" | "promedio-asc" | "cursos"
 export default function CalificacionesMural() {
   const { data, loading, error, fetch } = useCalificaciones()
   const [search, setSearch] = useState("")
-  const [filterDept, setFilterDept] = useState("all")
+  const [filters, setFilters] = useState<Filter[]>([])
   const [sortKey, setSortKey] = useState<SortKey>("nombre")
   const [page, setPage] = useState(1)
 
@@ -255,20 +263,29 @@ export default function CalificacionesMural() {
     return Array.from(depts).sort()
   }, [data])
 
+  const filterFields = useMemo<FilterFieldDef[]>(() => [
+    {
+      id: "departamento",
+      label: "Departamento",
+      icon: <Building2 aria-hidden="true" />,
+      operators: DEFAULT_FILTER_OPERATORS,
+      options: departments.map((d) => ({ value: d, label: d })),
+    },
+  ], [departments])
+
   const filtered = useMemo(() => {
     let list = data.filter((e) => {
       const q = search.toLowerCase()
-      return (
+      const matchesSearch =
         e.nombre.toLowerCase().includes(q) ||
         (e.numero ?? "").toLowerCase().includes(q) ||
         (e.puesto ?? "").toLowerCase().includes(q) ||
         (e.departamento ?? "").toLowerCase().includes(q)
+      if (!matchesSearch) return false
+      return matchesFilterTokens(filters, (fieldId) =>
+        fieldId === "departamento" ? (e.departamento ?? "") : null,
       )
     })
-
-    if (filterDept !== "all") {
-      list = list.filter((e) => e.departamento === filterDept)
-    }
 
     list = [...list].sort((a, b) => {
       if (sortKey === "nombre") return a.nombre.localeCompare(b.nombre)
@@ -279,14 +296,13 @@ export default function CalificacionesMural() {
     })
 
     return list
-  }, [data, search, filterDept, sortKey])
+  }, [data, search, filters, sortKey])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage = Math.min(page, totalPages)
   const paginated = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
-  // Reset to page 1 when filters change
-  useEffect(() => { setPage(1) }, [search, filterDept, sortKey])
+  useEffect(() => { setPage(1) }, [search, filters, sortKey])
 
   return (
     <div className="space-y-6">
@@ -315,43 +331,37 @@ export default function CalificacionesMural() {
             )}
           </div>
 
-          {/* Filters row — 2-col grid on mobile, inline on sm+ */}
-          <div className="flex items-center gap-2">
-            <Select value={filterDept} onValueChange={setFilterDept}>
-              <SelectTrigger className="flex-1 sm:w-48 sm:flex-none bg-muted text-body-md">
-                <SelectValue placeholder="Departamento" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Departamentos</SelectItem>
-                {departments.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
-              <SelectTrigger className="flex-1 sm:w-44 sm:flex-none bg-muted text-body-md">
-                <SelectValue placeholder="Ordenar" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="nombre">Nombre A–Z</SelectItem>
-                <SelectItem value="promedio-desc">Mayor calificación</SelectItem>
-                <SelectItem value="promedio-asc">Menor calificación</SelectItem>
-                <SelectItem value="cursos">Más cursos</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={fetch}
-              disabled={loading}
-              title="Actualizar"
-              aria-label="Actualizar calificaciones"
-              className="shrink-0"
-            >
-              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-            </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <FilterBar
+              fields={filterFields}
+              value={filters}
+              onChange={setFilters}
+              aria-label="Filtros de calificaciones"
+            />
+            <div className="ml-auto flex items-center gap-2">
+              <Select value={sortKey} onValueChange={(v) => setSortKey(v as SortKey)}>
+                <SelectTrigger size="sm" className="w-44" aria-label="Ordenar calificaciones">
+                  <SelectValue placeholder="Ordenar" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nombre">Nombre A-Z</SelectItem>
+                  <SelectItem value="promedio-desc">Mayor calificación</SelectItem>
+                  <SelectItem value="promedio-asc">Menor calificación</SelectItem>
+                  <SelectItem value="cursos">Más cursos</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetch}
+                disabled={loading}
+                title="Actualizar"
+                aria-label="Actualizar calificaciones"
+                className="w-(--control-height-sm) shrink-0 px-0"
+              >
+                <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
           </div>
 
           <p className="text-body-sm text-muted-foreground">

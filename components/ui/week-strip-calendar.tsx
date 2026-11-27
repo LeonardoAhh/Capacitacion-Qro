@@ -41,7 +41,7 @@ export const WeekStripCalendar = forwardRef<HTMLDivElement, WeekStripCalendarPro
     const [weekStart, setWeekStart] = useState(() => startOfWeek(value ?? today));
     const days = useMemo(() => Array.from({ length: 7 }, (_, index) => addDays(weekStart, index)), [weekStart]);
 
-    return <div ref={ref} data-slot="week-strip-calendar" className={cn("w-full rounded-md border border-input bg-card p-3 text-foreground", className)} {...props}>
+    return <div ref={ref} data-slot="week-strip-calendar" className={cn("w-full rounded-md border border-border bg-card p-3 text-foreground", className)} {...props}>
       <div className="flex items-center justify-between gap-2">
         <p className="text-body-md font-bold first-letter:uppercase">{monthYear.format(days[3])}</p>
         <div className="flex items-center gap-1">

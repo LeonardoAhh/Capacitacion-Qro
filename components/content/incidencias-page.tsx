@@ -1,8 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useId, useState } from "react"
-import { AlertTriangle, Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Check, ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -33,7 +32,7 @@ function emptyByCategory<T>(value: T): Record<IncidenciaCategory, T> {
 
 /** Captura mensual de incidencias de un empleado: cantidad por categoría y notas opcionales. */
 export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) {
-  const { loading, saving, error, fetchByEmpleado, saveMonth } = useIncidencias()
+  const { loading, saving, fetchByEmpleado, saveMonth } = useIncidencias()
   const fieldId = useId()
   const formId = `${fieldId}-form`
   const [identity, setIdentity] = useState<{ nombre: string; puesto: string | null } | null>(null)
@@ -146,13 +145,6 @@ export function IncidenciasPage({ numeroEmpleado }: { numeroEmpleado: string }) 
           </Button>
         </div>
       </div>
-
-      {error && (
-        <Alert variant="destructive" role="alert">
-          <AlertTriangle className="size-4" aria-hidden="true" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
 
       {loading ? (
         <div className="space-y-2" role="status" aria-label="Cargando incidencias">

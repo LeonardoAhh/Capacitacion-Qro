@@ -22,7 +22,7 @@ export function useLogout() {
       if (!(await confirmUnsavedChanges())) return
     } catch (error) {
       console.error("Could not confirm unsaved changes before sign out:", error)
-      notify.error("No se pudo confirmar si hay cambios sin guardar. Inténtalo de nuevo.")
+      notify.error("No se pudo revisar si hay cambios sin guardar")
       return
     }
 
@@ -43,7 +43,7 @@ export function useLogout() {
         if (sessionError) throw sessionError
         if (session) throw error
         console.error("Local sign out completed with a server revocation error:", error)
-        notify.warning("La sesión se cerró, pero no se pudo confirmar con el servidor.")
+        notify.warning("Sesión cerrada en este equipo")
       }
       try {
         window.sessionStorage.removeItem("plantilla:tab")
@@ -54,7 +54,7 @@ export function useLogout() {
     } catch (error) {
       console.error("Could not sign out:", error)
       setSigningOut(false)
-      notify.error("No se pudo cerrar la sesión. Inténtalo de nuevo.")
+      notify.error("No se pudo cerrar la sesión")
     }
   }
 

@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { ChevronRight, ChevronsUpDown, LogOut } from "lucide-react"
+import { ChevronRight, ChevronsUpDown, Loader2, LogOut } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -173,8 +173,10 @@ export function AccountMenu({ onNavigate, workspace, onWorkspaceChange }: Accoun
             disabled={signingOut}
             onSelect={() => { void logout() }}
           >
-            <span className="flex-1">{signingOut ? "Cerrando sesión…" : "Cerrar sesión"}</span>
-            <LogOut className="size-4 shrink-0" aria-hidden="true" />
+            <span className="flex-1">Cerrar sesión</span>
+            {signingOut
+              ? <Loader2 className="size-4 shrink-0 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              : <LogOut className="size-4 shrink-0" aria-hidden="true" />}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>}

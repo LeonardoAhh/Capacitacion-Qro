@@ -248,7 +248,7 @@ export function useProfile(userId?: string) {
       const errorMessage = 'Failed to upload avatar'
       setEntry(userId, { error: errorMessage })
       console.error('Error uploading avatar:', err instanceof Error ? err.message : JSON.stringify(err))
-      notify.error('No se pudo subir el avatar')
+      notify.error('No se pudo subir la foto')
       return { success: false, error: errorMessage }
     }
   }

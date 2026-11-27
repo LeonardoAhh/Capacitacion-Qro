@@ -22,7 +22,6 @@ export const DESEMPENO = {
     placeholder: "Buscar por número o nombre…",
     label: "Número o nombre del empleado",
     clear: "Limpiar búsqueda",
-    loading: "Buscando…",
     empty: "Sin coincidencias",
     period: "Periodo de evaluación",
   },

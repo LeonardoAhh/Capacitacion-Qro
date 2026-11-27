@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { ResponsiveShell, ModalHeader, ModalFooter } from "@/components/ui/responsive-shell"
 import type { ReglaPromocionInput, ReglaPromocionRow } from "@/lib/hooks/useReglasPromocionCRUD"
 import { PROMOTION_ICON } from "@/lib/promociones/icon-styles"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export interface PromReglaDialogProps {
   open: boolean
@@ -92,7 +93,7 @@ export function PromReglaDialog({
       })
       onClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Error al guardar")
+      setError(describeSupabaseError(err, "No se pudo guardar"))
     } finally {
       setGuardando(false)
     }

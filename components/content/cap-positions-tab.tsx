@@ -1,15 +1,20 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Plus, X } from "lucide-react"
+import { Building2, Plus } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { HeaderSearch } from "@/components/ui/header-search"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { CompactPager } from "@/components/ui/compact-pager"
-import { FILTER_ALL } from "@/components/ui/filter-menu"
+import {
+  DEFAULT_FILTER_OPERATORS,
+  FilterBar,
+  matchesFilterTokens,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import type { Department, Position } from "@/lib/hooks"
 import { puestoCursosHref } from "@/components/content/plantilla-paths"
 import { cn } from "@/lib/utils"
@@ -29,31 +34,38 @@ export function CapPositionsTab({
   departments, positions, loadingPositions, isReadOnly, onNewPosition,
 }: CapPositionsTabProps) {
   const router = useRouter()
-  const [posSearch, setPosSearch]     = useState("")
-  const [selectedDept, setSelectedDept] = useState(FILTER_ALL)
-  const [posPage, setPosPage]         = useState(1)
+  const [posSearch, setPosSearch] = useState("")
+  const [filters, setFilters] = useState<Filter[]>([])
+  const [posPage, setPosPage] = useState(1)
+
+  const filterFields = useMemo<FilterFieldDef[]>(() => [
+    {
+      id: "departamento",
+      label: "Departamento",
+      icon: <Building2 aria-hidden="true" />,
+      operators: DEFAULT_FILTER_OPERATORS,
+      options: departments.map((d) => ({ value: d.id, label: d.name })),
+    },
+  ], [departments])
 
   const getDeptName = (p: Position): string | undefined =>
     (p.department as { name?: string } | null | undefined)?.name
-  const filtered = positions.filter(p => {
-    const matchesDept   = selectedDept === FILTER_ALL || p.department_id === selectedDept
-    const matchesSearch =
-      p.name.toLowerCase().includes(posSearch.toLowerCase()) ||
-      (getDeptName(p) ?? "").toLowerCase().includes(posSearch.toLowerCase())
-    return matchesDept && matchesSearch
+
+  const filtered = positions.filter((p) => {
+    const matchesTokens = matchesFilterTokens(filters, (fieldId) =>
+      fieldId === "departamento" ? p.department_id : null,
+    )
+    if (!matchesTokens) return false
+    const query = posSearch.toLowerCase()
+    if (!query) return true
+    return p.name.toLowerCase().includes(query) || (getDeptName(p) ?? "").toLowerCase().includes(query)
   })
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const safePage   = Math.min(posPage, totalPages)
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
-  useEffect(() => { setPosPage(1) }, [posSearch, selectedDept])
-
-  const hasFilters = posSearch.trim() !== "" || selectedDept !== FILTER_ALL
-  const clearFilters = () => {
-    setPosSearch("")
-    setSelectedDept(FILTER_ALL)
-  }
+  useEffect(() => { setPosPage(1) }, [posSearch, filters])
 
   return (
     <div className="space-y-4">
@@ -63,25 +75,13 @@ export function CapPositionsTab({
         value={posSearch}
         onValueChange={setPosSearch}
       />
-      {/* Filtro de departamento a la izquierda; "Nuevo puesto" y paginación a la derecha. */}
       <div className="@container flex flex-wrap items-center gap-2">
-        <Select value={selectedDept} onValueChange={setSelectedDept}>
-          <SelectTrigger className="min-w-0 flex-1 sm:w-52 sm:flex-none" aria-label="Filtrar por departamento">
-            <SelectValue placeholder="Departamento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={FILTER_ALL}>Departamentos</SelectItem>
-            {departments.map(d => (
-              <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {hasFilters && (
-          <Button variant="ghost" size="sm" className="touch-target" onClick={clearFilters} aria-label="Limpiar filtros">
-            <X aria-hidden="true" />
-            Limpiar
-          </Button>
-        )}
+        <FilterBar
+          fields={filterFields}
+          value={filters}
+          onChange={setFilters}
+          aria-label="Filtros de puestos"
+        />
         <div className="ml-auto flex items-center gap-2">
           {!isReadOnly && (
             <Button size="sm" className="touch-target" onClick={onNewPosition} aria-label="Nuevo puesto">

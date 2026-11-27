@@ -1,5 +1,6 @@
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
+import { Loader2 } from "lucide-react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
@@ -47,17 +48,28 @@ export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean
+  /**
+   * Trabajando: conserva su texto, cambia su ícono por uno que gira y no se puede volver a
+   * presionar. No aplica con `asChild`.
+   */
+  loading?: boolean
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, shape, size, asChild = false, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button"
+  ({ className, variant, shape, size, asChild = false, loading = false, children, ...props }, ref) => {
+    const classes = cn(buttonVariants({ variant, shape, size, className }))
+    if (asChild) return <Slot className={classes} ref={ref} {...props}>{children}</Slot>
     return (
-      <Comp
-        className={cn(buttonVariants({ variant, shape, size, className }))}
+      <button
+        className={cn(classes, loading && "[&>svg:not([data-spinner])]:hidden")}
         ref={ref}
         {...props}
-      />
+        disabled={props.disabled || loading}
+        aria-busy={loading || props["aria-busy"] || undefined}
+      >
+        {loading && <Loader2 data-spinner className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+        {children}
+      </button>
     )
   }
 )

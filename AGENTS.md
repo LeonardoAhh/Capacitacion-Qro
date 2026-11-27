@@ -214,7 +214,7 @@ Regla dura: marketing = pill neutro de tinta. Nav/app = cuadrado 6px grafito (--
 Inputs
 TextInput: fondo canvas-elevated, texto ink, 1px solid var(--hairline), radius: 6px, padding 8px 12px, body-md.
 
-Focus: outline: 2px solid var(--ring) (muted-foreground); outline-offset: 2px; — nunca box-shadow de glow. Es una sola regla en app/globals.css; los componentes no declaran su foco, solo usan .focus-inset cuando su contenedor recorta el contorno.
+Focus: outline: 1.5px solid var(--ring) (muted-foreground); outline-offset: 1px; — nunca box-shadow de glow. Es una sola regla en app/globals.css; los componentes no declaran su foco, solo usan .focus-inset cuando su contenedor recorta el contorno.
 
 Cards
 FeatureCard: canvas-elevated, hairline, radius: 12px, padding 24px, body-md.
@@ -281,7 +281,7 @@ No uses --primary para texto largo ni para fills decorativos. Solo acciones prim
 6. Accesibilidad
 Hit area mínimo 44×44px en todo control interactivo (botones, nav, icon buttons). En pills y 6px se consigue vía line-height + min-height, nunca con padding vertical que rompa la regla de "padding solo horizontal".
 
-Focus visible siempre: outline: 2px solid var(--ring); outline-offset: 2px; definido una sola vez en app/globals.css. No elimines el outline ni agregues clases de foco por componente.
+Focus visible siempre: outline: 1.5px solid var(--ring); outline-offset: 1px; definido una sola vez en app/globals.css. No elimines el outline ni agregues clases de foco por componente.
 
 Contraste: usa los tokens foreground/muted-foreground del tema activo y verifica AA en cada superficie. muted-foreground se reserva para texto secundario.
 

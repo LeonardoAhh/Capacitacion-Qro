@@ -30,7 +30,7 @@ export function ConnectionStatus() {
         wasOnline.current = false
         setOffline(true)
         offlineToast.current = notify.error("Sin conexión", {
-          description: "Revisa tu red. Mostraremos los datos en caché mientras regresa.",
+          description: "Revisa tu internet; verás lo último guardado",
           duration: Infinity,
         })
       }, 1500)

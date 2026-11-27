@@ -1,36 +1,31 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertTriangle, CheckCircle2, RefreshCw, UserX, X } from "lucide-react"
+import { AlertTriangle, Calendar, CheckCircle2, CircleDot, RefreshCw, UserX } from "lucide-react"
 import { HeaderSearch } from "@/components/ui/header-search"
-import { TOOLBAR_FILTER } from "@/components/ui/tabs-toolbar"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
-  Select, SelectContent, SelectItem,
-  SelectTrigger, SelectValue,
-} from "@/components/ui/select"
+  DEFAULT_FILTER_OPERATORS,
+  FilterBar,
+  matchesFilterTokens,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { supabase } from "@/lib/supabase/client"
 import { PERIODOS_DESEMPENO, TIPO_LABEL } from "@/lib/catalogo"
 import { useRole } from "@/lib/hooks"
+import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 import { cn } from "@/lib/utils"
 
-// All period strings flattened into one array for filter dropdown
 const ALL_PERIODOS: string[] = [
   ...PERIODOS_DESEMPENO.semestrales,
   ...PERIODOS_DESEMPENO.mensuales,
 ]
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Umbral de calificación reprobada */
-import { UMBRAL_CALIFICACION_APROBATORIA } from "@/lib/types/desempeno"
-
 
 interface EvalRow {
   id: string
@@ -46,11 +41,7 @@ interface EvalRow {
   created_at: string
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Fecha local (no UTC) en formato YYYY-MM-DD */
+/** Fecha local (no UTC) en formato YYYY-MM-DD. */
 function today(): string {
   const d = new Date()
   const y = d.getFullYear()
@@ -60,8 +51,7 @@ function today(): string {
 }
 
 function formatDate(iso: string | null): string {
-  if (!iso) return "—"
-  // Could be YYYY-MM-DD or a free-text date entered by evaluator
+  if (!iso) return "-"
   if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
     const [y, m, d] = iso.split("-")
     return `${d}/${m}/${y}`
@@ -81,16 +71,9 @@ function getRevisionStatus(fechaRevision: string | null): RevisionStatus {
   return "pendiente"
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Sub-components
-// ─────────────────────────────────────────────────────────────────────────────
-
-
-// 9 filas de dos líneas caben con la barra superior en una pantalla de escritorio sin scroll.
 const PAGE_SIZE = 9
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 
-/** Estado de la revisión: color solo cuando pide atención (vencida o próxima). */
 const REVISION_CFG: Record<RevisionStatus, { label: string; className: string }> = {
   vencido:   { label: "Vencida",    className: "text-destructive" },
   proximo:   { label: "Próxima",    className: "text-warning-deep" },
@@ -98,11 +81,29 @@ const REVISION_CFG: Record<RevisionStatus, { label: string; className: string }>
   sin_fecha: { label: "Sin fecha",  className: "text-muted-foreground" },
 }
 
-/**
- * Compromisos por evaluación: una tabla para todas las pantallas. Columnas con
- * ancho fijo y texto en una o dos líneas; en pantallas chicas se ocultan las
- * secundarias y el periodo pasa debajo del nombre.
- */
+const SEGUIMIENTO_FILTER_FIELDS: FilterFieldDef[] = [
+  {
+    id: "periodo",
+    label: "Período",
+    icon: <Calendar aria-hidden="true" />,
+    operators: DEFAULT_FILTER_OPERATORS,
+    options: ALL_PERIODOS.map((p) => ({ value: p, label: p })),
+  },
+  {
+    id: "estado",
+    label: "Estado",
+    icon: <CircleDot aria-hidden="true" />,
+    operators: DEFAULT_FILTER_OPERATORS,
+    options: [
+      { value: "reprobado", label: "Reprobados", glyph: <span aria-hidden="true" className="size-2 rounded-full bg-destructive" /> },
+      { value: "vencido", label: "Vencidos", glyph: <span aria-hidden="true" className="size-2 rounded-full bg-destructive" /> },
+      { value: "proximo", label: "Próximos", glyph: <span aria-hidden="true" className="size-2 rounded-full bg-warning" /> },
+      { value: "pendiente", label: "Pendientes", glyph: <span aria-hidden="true" className="size-2 rounded-full bg-muted-foreground" /> },
+      { value: "sin_fecha", label: "Sin fecha", glyph: <span aria-hidden="true" className="size-2 rounded-full bg-border" /> },
+    ],
+  },
+]
+
 function EvalTable({ rows }: { rows: EvalRow[] }) {
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
@@ -119,7 +120,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {rows.map(row => {
+          {rows.map((row) => {
             const tipo = TIPO_LABEL[row.tipo] ?? row.tipo
             const revision = REVISION_CFG[getRevisionStatus(row.fecha_revision)]
             const reprobada = row.calificacion_final < UMBRAL_CALIFICACION_APROBATORIA
@@ -135,7 +136,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                   </span>
                 </TableCell>
                 <TableCell className="hidden md:table-cell">
-                  <span className="block truncate text-body-sm text-foreground">{row.periodo ?? "—"}</span>
+                  <span className="block truncate text-body-sm text-foreground">{row.periodo ?? "-"}</span>
                   <span className="block truncate text-body-sm text-muted-foreground">{tipo}</span>
                 </TableCell>
                 <TableCell className={cn("text-right text-label-sm tabular-nums", reprobada ? "text-destructive" : "text-foreground")}>
@@ -150,7 +151,7 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
                   <span className="block truncate text-body-sm text-muted-foreground">{formatDate(row.fecha_revision)}</span>
                 </TableCell>
                 <TableCell className="hidden truncate text-body-sm text-muted-foreground xl:table-cell">
-                  {row.evaluador_nombre ?? "—"}
+                  {row.evaluador_nombre ?? "-"}
                 </TableCell>
               </TableRow>
             )
@@ -161,36 +162,15 @@ function EvalTable({ rows }: { rows: EvalRow[] }) {
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Status filter options (sin emojis — accesibles para screen readers)
-// ─────────────────────────────────────────────────────────────────────────────
-
-const STATUS_OPTIONS: { value: string; label: string; dot?: string }[] = [
-  { value: "all",       label: "Estados" },
-  { value: "reprobado", label: "Reprobados", dot: "bg-destructive" },
-  { value: "vencido",   label: "Vencidos",                          dot: "bg-destructive" },
-  { value: "proximo",   label: "Próximos", dot: "bg-warning" },
-  { value: "pendiente", label: "Pendientes",                        dot: "bg-muted-foreground" },
-  { value: "sin_fecha", label: "Sin fecha",                         dot: "bg-border" },
-]
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────────────────────────────────────
-
 export default function DesempenoSeguimiento() {
-  useRole() // ensures auth guard if needed
+  useRole()
 
   const [rows, setRows] = useState<EvalRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
   const [search, setSearch] = useState("")
-  const [filterPeriodo, setFilterPeriodo] = useState("all")
-  const [filterStatus, setFilterStatus] = useState("all")
+  const [filters, setFilters] = useState<Filter[]>([])
   const [page, setPage] = useState(1)
-
-  // ── Fetch ─────────────────────────────────────────────────────────────────
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -215,9 +195,8 @@ export default function DesempenoSeguimiento() {
 
       if (dbErr) throw new Error(dbErr.message)
 
-      // Enrich with nombre/puesto from employees or nuevo_ingreso tables
       const rawRows = (data ?? []) as Omit<EvalRow, "nombre" | "puesto">[]
-      const numeros = [...new Set(rawRows.map(r => r.numero_empleado))]
+      const numeros = [...new Set(rawRows.map((r) => r.numero_empleado))]
 
       const nameMap: Record<string, { nombre: string; puesto: string }> = {}
       if (numeros.length > 0) {
@@ -230,8 +209,7 @@ export default function DesempenoSeguimiento() {
           if (e.numero) nameMap[e.numero] = { nombre: e.nombre ?? "", puesto: e.puesto ?? "" }
         }
 
-        // Fill gaps from nuevo_ingreso
-        const missing = numeros.filter(n => !nameMap[n])
+        const missing = numeros.filter((n) => !nameMap[n])
         if (missing.length > 0) {
           const { data: nis } = await supabase
             .from("nuevo_ingreso")
@@ -243,7 +221,7 @@ export default function DesempenoSeguimiento() {
         }
       }
 
-      const enriched: EvalRow[] = rawRows.map(r => ({
+      const enriched: EvalRow[] = rawRows.map((r) => ({
         ...r,
         nombre: nameMap[r.numero_empleado]?.nombre || null,
         puesto: nameMap[r.numero_empleado]?.puesto || null,
@@ -251,53 +229,48 @@ export default function DesempenoSeguimiento() {
 
       setRows(enriched)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al cargar datos")
+      setError(describeSupabaseError(err, "No se pudieron cargar los datos"))
     } finally {
       setLoading(false)
     }
   }, [])
 
-  useEffect(() => { load() }, [load])
-
-  // ── Filtering ─────────────────────────────────────────────────────────────
+  useEffect(() => { void load() }, [load])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    return rows
-      .filter(r => {
-        if (!q) return true
-        return (
-          (r.nombre ?? "").toLowerCase().includes(q) ||
-          r.numero_empleado.toLowerCase().includes(q) ||
-          (r.puesto ?? "").toLowerCase().includes(q)
-        )
+    return rows.filter((r) => {
+      if (
+        q &&
+        !(r.nombre ?? "").toLowerCase().includes(q) &&
+        !r.numero_empleado.toLowerCase().includes(q) &&
+        !(r.puesto ?? "").toLowerCase().includes(q)
+      ) {
+        return false
+      }
+      return matchesFilterTokens(filters, (fieldId) => {
+        if (fieldId === "periodo") return r.periodo ?? ""
+        if (fieldId === "estado") {
+          const rev = getRevisionStatus(r.fecha_revision)
+          return r.calificacion_final < UMBRAL_CALIFICACION_APROBATORIA ? [rev, "reprobado"] : [rev]
+        }
+        return null
       })
-      .filter(r => filterPeriodo === "all" || r.periodo === filterPeriodo)
-      .filter(r => {
-        if (filterStatus === "all") return true
-        if (filterStatus === "reprobado") return r.calificacion_final < UMBRAL_CALIFICACION_APROBATORIA
-        return getRevisionStatus(r.fecha_revision) === filterStatus
-      })
-  }, [rows, search, filterPeriodo, filterStatus])
+    })
+  }, [rows, search, filters])
 
-  const hasActiveFilters = search !== "" || filterPeriodo !== "all" || filterStatus !== "all"
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
-  // Si un filtro reduce las páginas, se queda en la última disponible.
   const currentPage = Math.min(page, totalPages)
   const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
 
   const clearFilters = () => {
     setSearch("")
-    setFilterPeriodo("all")
-    setFilterStatus("all")
+    setFilters([])
     setPage(1)
   }
 
-  // ─── Render ──────────────────────────────────────────────────────────────
-
   return (
     <div className="space-y-4">
-      {/* Error */}
       {error && (
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" aria-hidden="true" />
@@ -306,7 +279,7 @@ export default function DesempenoSeguimiento() {
             <Button
               variant="outline"
               size="sm"
-              onClick={load}
+              onClick={() => void load()}
               data-testid="retry-load-button"
             >
               <RefreshCw aria-hidden="true" /> Reintentar
@@ -315,80 +288,33 @@ export default function DesempenoSeguimiento() {
         </Alert>
       )}
 
-      {/* La búsqueda va en el header (lupa). Barra: filtros a la izquierda y página a la derecha. */}
       {!loading && rows.length > 0 && (
         <>
-        <HeaderSearch
-          label="Buscar empleado por nombre, número o puesto"
-          placeholder="Buscar por nombre, número o puesto…"
-          value={search}
-          onValueChange={value => { setSearch(value); setPage(1) }}
-          data-testid="seguimiento-search-input"
-        />
-        <div
-          className="flex flex-wrap items-center gap-2"
-          role="group"
-          aria-label="Filtrar seguimiento de compromisos"
-        >
-
-          {/* Periodo filter */}
-          <Select value={filterPeriodo} onValueChange={value => { setFilterPeriodo(value); setPage(1) }}>
-            <SelectTrigger
-              className={cn(TOOLBAR_FILTER, "shrink-0")}
-              aria-label="Filtrar por período"
-              data-testid="filter-periodo-select"
-            >
-              <SelectValue placeholder="Período" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Periodos</SelectItem>
-              {ALL_PERIODOS.map(p => (
-                <SelectItem key={p} value={p}>{p}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {/* Status filter */}
-          <Select value={filterStatus} onValueChange={value => { setFilterStatus(value); setPage(1) }}>
-            <SelectTrigger
-              className={cn(TOOLBAR_FILTER, "shrink-0")}
-              aria-label="Filtrar por estado de revisión"
-              data-testid="filter-status-select"
-            >
-              <SelectValue placeholder="Estado revisión" />
-            </SelectTrigger>
-            <SelectContent>
-              {STATUS_OPTIONS.map(({ value, label, dot }) => (
-                <SelectItem key={value} value={value}>
-                  <span className="flex items-center gap-2">
-                    {dot && (
-                      <span
-                        aria-hidden="true"
-                        className={`size-2 shrink-0 rounded-full ${dot}`}
-                      />
-                    )}
-                    {label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} aria-label="Limpiar filtros" data-testid="clear-filters-toolbar-button">
-              <X aria-hidden="true" />
-              Limpiar
-            </Button>
-          )}
-
-          <div className="ml-auto shrink-0">
-            <CompactPager label="Paginación de compromisos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+          <HeaderSearch
+            label="Buscar empleado por nombre, número o puesto"
+            placeholder="Buscar por nombre, número o puesto…"
+            value={search}
+            onValueChange={(value) => { setSearch(value); setPage(1) }}
+            data-testid="seguimiento-search-input"
+          />
+          <div
+            className="flex flex-wrap items-center gap-2"
+            role="group"
+            aria-label="Filtrar seguimiento de compromisos"
+          >
+            <FilterBar
+              fields={SEGUIMIENTO_FILTER_FIELDS}
+              value={filters}
+              onChange={(next) => { setFilters(next); setPage(1) }}
+              aria-label="Filtros de compromisos"
+            />
+            <div className="ml-auto shrink-0">
+              <CompactPager label="Paginación de compromisos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
+            </div>
           </div>
-        </div>
         </>
       )}
 
-      {/* Loading */}
       {loading && (
         <div className="space-y-2" role="status" aria-live="polite" aria-label="Cargando evaluaciones">
           <span className="sr-only">Cargando evaluaciones…</span>
@@ -396,7 +322,6 @@ export default function DesempenoSeguimiento() {
         </div>
       )}
 
-      {/* Empty state — no data */}
       {!loading && rows.length === 0 && !error && (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
           <CheckCircle2 className="size-6 text-success" aria-hidden="true" />
@@ -407,7 +332,6 @@ export default function DesempenoSeguimiento() {
         </div>
       )}
 
-      {/* Empty state — filters too strict */}
       {!loading && rows.length > 0 && filtered.length === 0 && (
         <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed px-(--card-padding) py-12 text-center">
           <UserX className="size-6 text-muted-foreground" aria-hidden="true" />
@@ -420,7 +344,6 @@ export default function DesempenoSeguimiento() {
         </div>
       )}
 
-      {/* Results */}
       {!loading && filtered.length > 0 && <EvalTable rows={pageRows} />}
     </div>
   )

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { Loader2, Save, Search } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { HeaderSearch } from "@/components/ui/header-search"
@@ -78,9 +79,9 @@ export default function ReglasExamenContent() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        <Loader2 size={20} className="mr-2 animate-spin" />
-        Cargando reglas...
+      // Misma rejilla que las tarjetas de departamento.
+      <div role="status" aria-label="Cargando reglas" className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
       </div>
     )
   }

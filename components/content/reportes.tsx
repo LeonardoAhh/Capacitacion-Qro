@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useMemo } from "react"
-import { FileText, Loader2 } from "lucide-react"
+import { FileText } from "lucide-react"
 import jsPDF from "jspdf"
 import autoTable from "jspdf-autotable"
 
@@ -45,7 +45,7 @@ export default function ReportesContent() {
       setEmployees(data)
     } catch (err) {
       console.error(err)
-      notify.error("Error al cargar empleados")
+      notify.error("No se pudieron cargar los empleados")
     } finally {
       setLoading(false)
     }
@@ -192,10 +192,10 @@ export default function ReportesContent() {
       addReportFooter(doc)
       const fileName = `Reporte_Capacitacion_${new Date().toISOString().split("T")[0]}.pdf`
       doc.save(fileName)
-      notify.success("Reporte generado exitosamente")
+      notify.success("Reporte generado")
     } catch (err) {
       console.error(err)
-      notify.error("Error al generar el reporte")
+      notify.error("No se pudo generar el reporte")
     } finally {
       setGenerating(false)
     }
@@ -207,9 +207,9 @@ export default function ReportesContent() {
       <HeaderSearch value={search} onValueChange={value => { setSearch(value); setPage(1) }}
         label="Buscar por nombre, número o puesto" placeholder="Buscar por nombre, número o puesto…" />
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={handleDownload} disabled={selected.size === 0 || generating}>
-          {generating ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <FileText aria-hidden="true" />}
-          {generating ? "Generando PDF…" : "Descargar PDF"}
+        <Button size="sm" onClick={handleDownload} disabled={selected.size === 0} loading={generating}>
+          <FileText aria-hidden="true" />
+          Descargar PDF
         </Button>
         <div className="ml-auto flex shrink-0 items-center gap-2">
           {filtered.length > 0 && (

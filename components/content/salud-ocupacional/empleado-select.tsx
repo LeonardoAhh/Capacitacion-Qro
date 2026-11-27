@@ -5,8 +5,10 @@ import { ChevronDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { SearchInput } from "@/components/ui/search-input"
+import { Skeleton } from "@/components/ui/skeleton"
 import { buscarEmpleadosPorNumero, type EmpleadoEncontrado } from "@/lib/salud-ocupacional"
 import { cn } from "@/lib/utils"
+import { limpiarNumeroEmpleado, NUMERO_EMPLEADO_MAX } from "@/lib/validations/empleado"
 
 const SEARCH_DELAY_MS = 250
 
@@ -61,7 +63,6 @@ export function EmpleadoSelect({ id, value, onChange, invalid }: {
   }
 
   const estado = !numero.trim() ? "Escribe el número de empleado."
-    : loading ? "Buscando…"
     : error ? "No se pudo buscar. Inténtalo de nuevo."
     : resultados.length ? null : "Sin coincidencias."
 
@@ -78,10 +79,16 @@ export function EmpleadoSelect({ id, value, onChange, invalid }: {
       </PopoverTrigger>
       <PopoverContent align="start" className="grid w-[var(--radix-popover-trigger-width)] min-w-[min(18rem,calc(100vw-2rem))] gap-1 p-1">
         <SearchInput label="Número de empleado" placeholder="Número de empleado" inputMode="numeric" autoFocus
-          value={numero} onValueChange={value => setNumero(value.replace(/\D/g, ""))} onKeyDown={onKeyDown} loading={loading}
+          maxLength={NUMERO_EMPLEADO_MAX} value={numero} onValueChange={value => setNumero(limpiarNumeroEmpleado(value))} onKeyDown={onKeyDown} loading={loading}
           role="combobox" aria-expanded={resultados.length > 0} aria-controls={listId}
           aria-activedescendant={resultados[activo] ? `${listId}-${activo}` : undefined} />
-        {estado
+        {loading && numero.trim()
+          ? (
+            <div role="status" aria-label="Buscando colaboradores" className="grid gap-1 p-1">
+              {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-(--control-height) w-full" />)}
+            </div>
+          )
+          : estado
           ? <p role="status" className="px-2 py-2 text-body-sm text-muted-foreground">{estado}</p>
           : (
             <ul id={listId} role="listbox" aria-label="Colaboradores" className="grid max-h-60 overflow-y-auto">

@@ -84,7 +84,7 @@ export function esElegibleParaPeriodo(
   if (!fechaIngreso) {
     return {
       elegible: false,
-      motivo: `No elegible: falta fecha_ingreso (regla: ≥ ${MESES_MIN_ANTIGUEDAD_SEMESTRAL} meses antes de ${cutoff}).`,
+      motivo: "Falta su fecha de ingreso",
       cutoff,
       reglaAplica: true,
     }
@@ -95,7 +95,7 @@ export function esElegibleParaPeriodo(
   if (ingresoStr > cutoff) {
     return {
       elegible: false,
-      motivo: `No elegible: ingresó ${ingresoStr}, debe ser ≤ ${cutoff} (${MESES_MIN_ANTIGUEDAD_SEMESTRAL} meses antes del cierre del periodo ${periodo}).`,
+      motivo: `Necesita ${MESES_MIN_ANTIGUEDAD_SEMESTRAL} meses de antigüedad al cierre`,
       cutoff,
       reglaAplica: true,
     }

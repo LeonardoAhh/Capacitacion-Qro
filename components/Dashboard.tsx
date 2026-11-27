@@ -66,7 +66,7 @@ export default function Dashboard({ content, headerTitleHref, headerTitleHrefLab
       if (!(await confirmUnsavedChanges())) return
     } catch (error) {
       console.error("Could not confirm unsaved changes before switching workspace:", error)
-      notify.error("No se pudo confirmar si hay cambios sin guardar. Inténtalo de nuevo.")
+      notify.error("No se pudo revisar si hay cambios sin guardar")
       return
     }
     const targetPath = homeFor(role, nextWorkspace)

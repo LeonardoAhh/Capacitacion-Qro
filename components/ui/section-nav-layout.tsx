@@ -27,6 +27,7 @@ export function SectionNavLayout<T extends string>({
   value,
   onValueChange,
   showNav = true,
+  fill = false,
   children,
 }: {
   /** Nombre accesible de la navegación, p. ej. "Apartados de plantilla". */
@@ -36,13 +37,18 @@ export function SectionNavLayout<T extends string>({
   onValueChange: (value: T) => void
   /** Con un solo apartado disponible para el rol, se oculta la navegación. */
   showNav?: boolean
+  /**
+   * Desde lg, el contenido ocupa el alto que queda en la página (con Dashboard fillHeight),
+   * p. ej. una vista previa que no debe hacer scroll en el main.
+   */
+  fill?: boolean
   children: ReactNode
 }) {
   const headingId = useId()
   const active = items.find((item) => item.id === value) ?? items[0]
 
   return (
-    <div className={cn("grid items-start gap-6 dense:gap-4", showNav && "lg:grid-cols-[13rem_minmax(0,1fr)]")}>
+    <div className={cn("grid items-start gap-6 dense:gap-4", showNav && "lg:grid-cols-[13rem_minmax(0,1fr)]", fill && "lg:min-h-0 lg:flex-1 lg:items-stretch")}>
       {showNav && (
         <aside className="min-w-0 lg:sticky lg:top-0">
           <Select
@@ -84,9 +90,9 @@ export function SectionNavLayout<T extends string>({
         </aside>
       )}
 
-      <section aria-labelledby={headingId} className="min-w-0">
+      <section aria-labelledby={headingId} className={cn("min-w-0", fill && "lg:flex lg:min-h-0 lg:flex-col")}>
         <h2 id={headingId} className="sr-only">{active.label}</h2>
-        <div key={value} className="step-enter">
+        <div key={value} className={cn("step-enter", fill && "lg:flex lg:min-h-0 lg:flex-1 lg:flex-col")}>
           {children}
         </div>
       </section>

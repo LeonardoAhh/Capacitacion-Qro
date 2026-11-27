@@ -5,7 +5,7 @@
  * (page titles). Add new routes here once — every consumer updates itself.
  */
 import type { LucideIcon } from "lucide-react"
-import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, SAFETY_INDICATORS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
+import { IDEAS_PATH, OCCUPATIONAL_HEALTH_PATH, SAFETY_HOME_PATH, SAFETY_INDICATORS_PATH, SAFETY_REPORTS_PATH, TRAINING_WORKSPACE_PATH, WORKSPACE_SELECTION_PATH } from "@/lib/workspace-paths"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import {
   BadgeCheck,
@@ -15,6 +15,7 @@ import {
   ClipboardList,
   ClipboardPenLine,
   FileSearch,
+  FileText,
   FolderOpen,
   Handshake,
   HeartPulse,
@@ -24,7 +25,6 @@ import {
   TableProperties,
   Tags,
   Target,
-  UserPlus,
   UserRoundCog,
   UsersRound,
 } from "lucide-react"
@@ -95,7 +95,6 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Capacitación",
     collapsible: true,
     items: [
-      { label: "Nuevos Empleados", href: "/ingresos", icon: UserPlus },
       { label: "Plantilla", href: "/plantilla", icon: UsersRound },
       { label: "Matriz de Habilidades", href: "/matriz", icon: TableProperties },
       { label: "Categorías", href: "/promociones", icon: Tags },
@@ -121,6 +120,7 @@ export const SAFETY_NAV_SECTIONS: NavSection[] = [
       { label: "Safe Walk", href: SAFETY_HOME_PATH, icon: LayoutDashboard },
       { label: "Occupational Health", href: OCCUPATIONAL_HEALTH_PATH, icon: HeartPulse },
       { label: "Indicators", href: SAFETY_INDICATORS_PATH, icon: ChartColumn },
+      { label: "Reports", href: SAFETY_REPORTS_PATH, icon: FileText },
     ],
   },
 ]
@@ -137,10 +137,9 @@ const ROUTE_LABEL_OVERRIDES: Record<string, string> = {
   [SAFETY_HOME_PATH]: "Safe Walk",
   [OCCUPATIONAL_HEALTH_PATH]: "Occupational Health",
   [SAFETY_INDICATORS_PATH]: "Indicators",
-  "/ingresos/compartir-pendientes": "Compartir pendientes",
+  [SAFETY_REPORTS_PATH]: "Reports",
   "/dnc": "Reporte de identificación y detección de necesidades de formación",
   "/plan-anual": "Plan Anual",
-  "/plantilla/cargar-cursos": "Cargar cursos",
   [IDEAS_PATH]: "Ideas de mejora",
   "/promociones": "Categorías",
   "/promociones/reglas": "Reglas de promoción",

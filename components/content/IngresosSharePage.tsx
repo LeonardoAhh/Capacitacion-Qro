@@ -82,15 +82,15 @@ export function IngresosSharePage() {
         await navigator.clipboard.writeText(text)
       }
       setCopied(true)
-      notify.success("Copiado al portapapeles")
+      notify.success("Mensaje copiado")
     } catch {
-      notify.error("No se pudo copiar el mensaje.")
+      notify.error("No se pudo copiar el mensaje")
     }
   }
 
   function send() {
     if (text.length > WA_CHAR_LIMIT) {
-      notify.error("El mensaje excede el límite de WhatsApp. Reduce la lista primero.")
+      notify.error("El mensaje es muy largo para WhatsApp", { description: "Quita personas de la lista" })
       return
     }
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer")

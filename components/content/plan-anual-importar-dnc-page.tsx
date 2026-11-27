@@ -15,6 +15,7 @@ import { cargarPropuestasDnc, importarAlPlan, type PropuestaDnc } from "@/lib/pl
 import { rutaPlan } from "@/lib/plan-anual-rutas"
 import { registerUnsavedChangesGuard } from "@/lib/unsaved-changes"
 import { cn } from "@/lib/utils"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 type Fila = Pick<PropuestaDnc, "mes" | "tipo" | "area_solicitante" | "aplica_para"> & { incluir: boolean }
 interface Datos {
@@ -57,7 +58,7 @@ export function PlanAnualImportarDncPage({ anio }: { anio: number }) {
         aplica_para: propuesta.aplica_para,
       }])))
     }).catch(cause => {
-      if (active) setLoadError(cause instanceof Error ? cause.message : "No se pudieron cargar las DNC.")
+      if (active) setLoadError(describeSupabaseError(cause, "No se pudieron cargar las DNC"))
     })
     return () => { active = false }
   }, [anio])
@@ -112,7 +113,7 @@ export function PlanAnualImportarDncPage({ anio }: { anio: number }) {
       notify.success(agregados === 1 ? "1 curso agregado al plan" : `${agregados} cursos agregados al plan`)
       router.push(rutaPlan(anio, Math.min(...items.map(item => item.mes))))
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudieron agregar los cursos.")
+      setError(describeSupabaseError(cause, "No se pudieron agregar los cursos"))
       setSaving(false)
     }
   }

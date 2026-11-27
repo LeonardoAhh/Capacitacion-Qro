@@ -27,7 +27,7 @@ export function useReglamentoIncumplimientos() {
       if (dbError) throw dbError
       return (data ?? []) as ReglamentoIncumplimiento[]
     } catch (caught) {
-      const message = describeSupabaseError(caught, "Error al cargar incumplimientos")
+      const message = describeSupabaseError(caught, "No se pudieron cargar los incumplimientos")
       setError(message)
       return []
     } finally {
@@ -62,7 +62,7 @@ export function useReglamentoIncumplimientos() {
       if (dbError) throw dbError
       return { success: true }
     } catch (caught) {
-      const message = describeSupabaseError(caught, "Error al guardar el incumplimiento")
+      const message = describeSupabaseError(caught, "No se pudo guardar el incumplimiento")
       setError(message)
       return { success: false, error: message }
     } finally {

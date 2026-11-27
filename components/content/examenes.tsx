@@ -1,14 +1,19 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react"
+import { useState, useCallback, useMemo } from "react"
+import { Building2, Loader2, Pencil, Plus, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { HeaderSearch } from "@/components/ui/header-search"
 import { TabsToolbar } from "@/components/ui/tabs-toolbar"
 import { CompactPager } from "@/components/ui/compact-pager"
 import { FILTER_ALL } from "@/components/ui/filter-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  FilterBar,
+  SINGLE_FILTER_OPERATORS,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -21,6 +26,15 @@ import { CATALOGO_ORGANIZACIONAL } from "@/lib/catalogo"
 import { cn } from "@/lib/utils"
 
 const DEPARTAMENTOS = Object.keys(CATALOGO_ORGANIZACIONAL)
+const EXAMEN_FILTER_FIELDS: FilterFieldDef[] = [
+  {
+    id: "departamento",
+    label: "Departamento",
+    icon: <Building2 aria-hidden="true" />,
+    operators: SINGLE_FILTER_OPERATORS,
+    options: DEPARTAMENTOS.map((d) => ({ value: d, label: d })),
+  },
+]
 const RESPUESTA_LABELS: Record<string, string> = { a: "A", b: "B", c: "C" }
 const PAGE_SIZE = 9
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
@@ -105,11 +119,13 @@ export default function ExamenesContent({
     }
   }
 
+  const deptFilters = useMemo<Filter[]>(
+    () => (departamento !== FILTER_ALL ? [{ id: "dept", field: "departamento", operator: "is", values: [departamento] }] : []),
+    [departamento],
+  )
+
   return (
     <div className="space-y-4">
-      {/* Búsqueda en el header; departamento, "Nueva pregunta" y página en la línea de las pestañas. Con poco
-          ancho (menos de 48rem en la barra), Nueva pregunta queda solo con ícono. Un solo filtro: selector
-          directo, sin el menú que agrupa varios. */}
       <TabsToolbar>
         <HeaderSearch
           label="Buscar preguntas"
@@ -119,15 +135,15 @@ export default function ExamenesContent({
           onSearch={term => consultar(term, depFiltro)}
           loading={loading}
         />
-        <Select value={departamento} onValueChange={changeDepartamento}>
-          <SelectTrigger className="w-52 shrink-0" aria-label="Filtrar por departamento">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={FILTER_ALL}>Departamentos</SelectItem>
-            {DEPARTAMENTOS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        {/* mr-auto: el filtro se va a la esquina izquierda; la acción y la paginación quedan a la derecha. */}
+        <div className="mr-auto">
+          <FilterBar
+            fields={EXAMEN_FILTER_FIELDS}
+            value={deptFilters}
+            onChange={(next) => changeDepartamento(next[0]?.values[0] ?? FILTER_ALL)}
+            aria-label="Filtros de preguntas"
+          />
+        </div>
         <Button size="sm" onClick={() => setEditor({ id: null, initial: null })} disabled={isReadOnly} aria-label="Nueva pregunta">
           <Plus aria-hidden="true" />
           <span className="hidden @3xl:inline">Nueva pregunta</span>

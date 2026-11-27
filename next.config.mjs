@@ -32,6 +32,28 @@ const nextConfig = {
         destination: "/plantilla/:path*",
         permanent: true,
       },
+      // Nuevos Empleados se unió a Plantilla: sus enlaces llevan ahí, con el filtro de nuevos ingresos.
+      {
+        source: "/ingresos",
+        destination: "/plantilla?filtro=nuevos-ingresos",
+        permanent: true,
+      },
+      {
+        source: "/ingresos/compartir-pendientes",
+        destination: "/plantilla?seccion=compartir-pendientes",
+        permanent: true,
+      },
+      // Cargar cursos y Pendientes son apartados de la sidebar de Plantilla.
+      {
+        source: "/plantilla/cargar-cursos",
+        destination: "/plantilla?seccion=cargar-cursos",
+        permanent: true,
+      },
+      {
+        source: "/plantilla/compartir-pendientes",
+        destination: "/plantilla?seccion=compartir-pendientes",
+        permanent: true,
+      },
       {
         source: "/desempeño",
         destination: "/desempeno",

@@ -8,7 +8,7 @@ import { DepartmentPager } from "./desempeno/department-pager";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserPlus, CalendarRange } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePendingEvals } from "@/lib/hooks/usePendingEvals";
 import { useSemestralPendientes } from "@/lib/hooks/useSemestralPendientes";
 import { getPeriodosSemestralesRecientes } from "@/lib/catalogo";
@@ -65,16 +65,18 @@ export default function DesempenoPendientes() {
   return <EvaluationWorkspace>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-2 sm:w-auto">
-        <div role="group" aria-label="Tipo de evaluación" className="grid w-full grid-cols-2 gap-2 sm:inline-grid sm:w-auto">
-          <Button variant={vista === "mensual" ? "default" : "outline"} onClick={() => setVista("mensual")} aria-pressed={vista === "mensual"}>
-            <UserPlus aria-hidden="true" />
-            Nuevo ingreso
-          </Button>
-          <Button variant={vista === "semestral" ? "default" : "outline"} onClick={() => setVista("semestral")} aria-pressed={vista === "semestral"}>
-            <CalendarRange aria-hidden="true" />
-            Semestrales
-          </Button>
-        </div>
+        <Tabs value={vista} onValueChange={(value) => setVista(value as Vista)} className="w-full sm:w-auto">
+          <TabsList aria-label="Tipo de evaluación" className="max-sm:grid max-sm:w-full max-sm:grid-cols-2">
+            <TabsTrigger value="mensual">
+              <UserPlus aria-hidden="true" />
+              Nuevo ingreso
+            </TabsTrigger>
+            <TabsTrigger value="semestral">
+              <CalendarRange aria-hidden="true" />
+              Semestrales
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
         {vista === "semestral" && <Select value={periodoSemestral} onValueChange={setPeriodoSemestral}>
           <SelectTrigger variant="ghost" aria-label="Periodo semestral" className="text-label-sm"><SelectValue /></SelectTrigger>
           <SelectContent>

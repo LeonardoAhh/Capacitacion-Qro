@@ -1,13 +1,12 @@
 "use client"
 
 import React, { useId, useState, useEffect } from "react"
-import { AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import type { Department } from "@/lib/hooks"
+import { notify } from "@/lib/notify"
 
 export interface CapNewPositionDialogProps {
   open: boolean
@@ -20,18 +19,21 @@ export interface CapNewPositionDialogProps {
 export function CapNewPositionDialog({ open, saving, departments, onClose, onSave }: CapNewPositionDialogProps) {
   const nameId = useId()
   const departmentId = useId()
-  const errorId = useId()
   const [name, setName] = useState('')
   const [deptId, setDeptId] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const mostrarError = (mensaje: string) => {
+    setError(mensaje)
+    notify.error(mensaje)
+  }
 
   useEffect(() => {
     if (open) { setName(''); setDeptId(''); setError(null) }
   }, [open])
 
   const handleConfirm = () => {
-    if (!name.trim()) { setError('El nombre del puesto es requerido'); return }
-    if (!deptId) { setError('Selecciona un departamento'); return }
+    if (!name.trim()) { mostrarError('Falta el nombre del puesto'); return }
+    if (!deptId) { mostrarError('Falta el departamento'); return }
     setError(null)
     onSave(name, deptId)
   }
@@ -61,7 +63,6 @@ export function CapNewPositionDialog({ open, saving, departments, onClose, onSav
               onChange={e => setName(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') handleConfirm() }}
               aria-invalid={error?.startsWith("El nombre") || undefined}
-              aria-describedby={error ? errorId : undefined}
             />
           </div>
           <div className="space-y-1.5">
@@ -70,7 +71,6 @@ export function CapNewPositionDialog({ open, saving, departments, onClose, onSav
               <SelectTrigger
                 aria-labelledby={departmentId}
                 aria-invalid={error?.startsWith("Selecciona") || undefined}
-                aria-describedby={error ? errorId : undefined}
               >
                 <SelectValue placeholder="Selecciona departamento" />
               </SelectTrigger>
@@ -79,12 +79,6 @@ export function CapNewPositionDialog({ open, saving, departments, onClose, onSav
               </SelectContent>
             </Select>
           </div>
-          {error && (
-            <Alert id={errorId} variant="destructive">
-              <AlertCircle aria-hidden="true" />
-              <AlertDescription role="alert">{error}</AlertDescription>
-            </Alert>
-          )}
         </div>
       </div>
       

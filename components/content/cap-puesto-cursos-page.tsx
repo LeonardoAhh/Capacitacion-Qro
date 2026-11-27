@@ -10,6 +10,7 @@ import { useCapacitacion, useRole } from "@/lib/hooks"
 import type { Course, Position, PositionCourse } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 import { PLANTILLA_PATH } from "@/components/content/plantilla-paths"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 type Estado =
   | { status: "loading" }
@@ -53,7 +54,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
         setEstado(position ? { status: "ready", position, positionCourses, courses } : { status: "not-found" })
       })
       .catch(cause => {
-        if (active) setEstado({ status: "error", message: cause instanceof Error ? cause.message : "No se pudieron cargar los cursos del puesto" })
+        if (active) setEstado({ status: "error", message: describeSupabaseError(cause, "No se pudieron cargar los cursos del puesto") })
       })
     return () => { active = false }
   }, [puestoId])
@@ -88,9 +89,9 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
     if (result.success) {
       setAssignCourseId("")
       await recargar()
-      notify.success("Curso asignado correctamente")
+      notify.success("Curso asignado")
     } else {
-      notify.error(result.error ?? "Error al asignar curso")
+      notify.error(result.error ?? "No se pudo asignar el curso")
     }
     setSaving(false)
   }
@@ -102,7 +103,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
       await recargar()
       notify.success("Curso quitado")
     } else {
-      notify.error(result.error ?? "Error al quitar curso")
+      notify.error(result.error ?? "No se pudo quitar el curso")
     }
     setRemovingId(null)
   }
@@ -119,7 +120,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
         {!isReadOnly && (
           <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
             <Select value={assignCourseId} onValueChange={setAssignCourseId} disabled={disponibles.length === 0}>
-              <SelectTrigger className="min-w-0 flex-1 sm:w-72 sm:flex-none" aria-label="Curso para asignar">
+              <SelectTrigger size="sm" className="min-w-0 flex-1 sm:w-72 sm:flex-none" aria-label="Curso para asignar">
                 <SelectValue placeholder={disponibles.length === 0 ? "Todos los cursos asignados" : "Selecciona un curso…"} />
               </SelectTrigger>
               <SelectContent matchTriggerWidth>
@@ -128,7 +129,7 @@ export function CapPuestoCursosPage({ puestoId }: { puestoId: string }) {
                 ))}
               </SelectContent>
             </Select>
-            <Button type="button" disabled={!assignCourseId || saving} aria-busy={saving || undefined} onClick={asignar}>
+            <Button type="button" size="sm" disabled={!assignCourseId || saving} aria-busy={saving || undefined} onClick={asignar}>
               {saving ? <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <Plus aria-hidden="true" />}
               Asignar
             </Button>

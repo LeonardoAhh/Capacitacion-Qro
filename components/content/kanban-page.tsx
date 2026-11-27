@@ -24,6 +24,7 @@ import {
   MAX_TITULO, ordenarTarjetas, PARAM_TARJETA, plantillaDesdeTarjeta, sumarDias,
   type DatosTarjeta, type KanbanEstado, type KanbanPlantilla, type KanbanTarjeta, type TarjetaDesde,
 } from "@/lib/kanban"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 type Vista = "tablero" | "lista" | "calendario"
 
@@ -39,7 +40,7 @@ const esVista = (value: string | null): value is Vista => VISTAS.some(item => it
 const VISTA_KEY = "kanban-vista"
 
 function mensaje(cause: unknown, fallback: string) {
-  return cause instanceof Error ? cause.message : fallback
+  return describeSupabaseError(cause, fallback)
 }
 
 /**
@@ -160,7 +161,7 @@ export default function KanbanPage() {
     const actuales = enProgresoDe(tarjetas, responsableId, excluirId)
     if (actuales < LIMITE_EN_PROGRESO) return
     const quien = responsableId === userId ? "Ya tienes" : `${miembrosPorId.get(responsableId)?.nombre ?? "Esta persona"} ya tiene`
-    notify.warning(`${quien} ${actuales} en progreso (límite sugerido: ${LIMITE_EN_PROGRESO}).`)
+    notify.warning(`${quien} ${actuales} en progreso`, { description: `Se sugiere un máximo de ${LIMITE_EN_PROGRESO}` })
   }
 
   /** Cambio rápido desde el menú, con aviso de éxito o error. */
@@ -169,7 +170,7 @@ export default function KanbanPage() {
       await actualizar(tarjeta.id, cambios)
       notify.success(exito)
     } catch (cause) {
-      notify.error(mensaje(cause, "No se pudo actualizar la tarjeta."))
+      notify.error(mensaje(cause, "No se pudo actualizar la tarjeta"))
     }
   }
 
@@ -178,7 +179,7 @@ export default function KanbanPage() {
     if (anterior) {
       await actualizar(anterior.id, datos)
       const concluyoRepetible = anterior.estado !== "concluido" && datos.estado === "concluido" && datos.repeticion !== "ninguna"
-      notify.success(concluyoRepetible ? "Tarjeta actualizada · se programó el siguiente recordatorio" : "Tarjeta actualizada")
+      notify.success("Tarjeta actualizada", concluyoRepetible ? { description: "Se programó el siguiente recordatorio" } : undefined)
     } else {
       await crear(datos)
       notify.success("Tarjeta creada")
@@ -199,7 +200,7 @@ export default function KanbanPage() {
       if (estado === "concluido" && tarjeta.repeticion !== "ninguna") notify.success("Se programó el siguiente recordatorio")
       if (estado === "en_progreso") avisarLimite(tarjeta.responsable_id, tarjeta.id)
     } catch (cause) {
-      notify.error(mensaje(cause, "No se pudo mover la tarjeta."))
+      notify.error(mensaje(cause, "No se pudo mover la tarjeta"))
     }
   }
 
@@ -216,7 +217,7 @@ export default function KanbanPage() {
       await eliminar(tarjeta.id)
       notify.success("Tarjeta eliminada")
     } catch (cause) {
-      notify.error(mensaje(cause, "No se pudo eliminar la tarjeta."))
+      notify.error(mensaje(cause, "No se pudo eliminar la tarjeta"))
     }
   }
 
@@ -232,7 +233,7 @@ export default function KanbanPage() {
     try {
       await eliminarComentario(id)
     } catch (cause) {
-      notify.error(mensaje(cause, "No se pudo eliminar el comentario."))
+      notify.error(mensaje(cause, "No se pudo eliminar el comentario"))
     }
   }
 
@@ -249,7 +250,7 @@ export default function KanbanPage() {
       await eliminarPlantilla(plantilla.id)
       notify.success("Plantilla eliminada")
     } catch (cause) {
-      notify.error(mensaje(cause, "No se pudo eliminar la plantilla."))
+      notify.error(mensaje(cause, "No se pudo eliminar la plantilla"))
     }
   }
 
@@ -284,7 +285,7 @@ export default function KanbanPage() {
       const agregar = !miDia.has(tarjeta.id)
       alternarMiDia(tarjeta.id, agregar)
         .then(() => notify.success(agregar ? "Agregada a tu día" : "Quitada de tu día"))
-        .catch(cause => notify.error(mensaje(cause, "No se pudo actualizar tu día.")))
+        .catch(cause => notify.error(mensaje(cause, "No se pudo actualizar tu día")))
     },
     pedirApoyo: tarjeta => setNota({
       title: "Pedir apoyo",
@@ -363,13 +364,13 @@ export default function KanbanPage() {
 
           <div className="ml-auto flex shrink-0 items-center gap-2">
             {plantillas.length > 0 && (
-              <Button type="button" variant="outline" size="icon" aria-label={`Plantillas (${plantillas.length})`} title="Plantillas"
+              <Button type="button" variant="outline" size="sm" className="w-(--control-height-sm) px-0" aria-label={`Plantillas (${plantillas.length})`} title="Plantillas"
                 onClick={() => setVerPlantillas(true)}>
                 <LayoutTemplate aria-hidden="true" />
               </Button>
             )}
-            <Button type="button" title="Nueva tarjeta"
-              className="w-(--control-height) px-0 @3xl:w-auto @3xl:px-4" disabled={loading || Boolean(error)}
+            <Button type="button" size="sm" title="Nueva tarjeta"
+              className="w-(--control-height-sm) px-0 @3xl:w-auto @3xl:px-3" disabled={loading || Boolean(error)}
               onClick={() => setDialog({ tarjeta: null, estado: "por_hacer" })}>
               <Plus aria-hidden="true" /><span className="sr-only @3xl:not-sr-only">Nueva tarjeta</span>
             </Button>
@@ -431,10 +432,10 @@ export default function KanbanPage() {
             }}
             onAgregarPaso={texto => agregarPaso(detalle.id, texto)}
             onMarcarPaso={(paso, hecho) => {
-              marcarPaso(paso.id, hecho).catch(cause => notify.error(mensaje(cause, "No se pudo actualizar el paso.")))
+              marcarPaso(paso.id, hecho).catch(cause => notify.error(mensaje(cause, "No se pudo actualizar el paso")))
             }}
             onEliminarPaso={paso => {
-              eliminarPaso(paso.id).catch(cause => notify.error(mensaje(cause, "No se pudo eliminar el paso.")))
+              eliminarPaso(paso.id).catch(cause => notify.error(mensaje(cause, "No se pudo eliminar el paso")))
             }}
             onComentar={texto => comentar(detalle.id, texto)}
             onEliminarComentario={comentario => void handleDeleteComentario(comentario.id)} />

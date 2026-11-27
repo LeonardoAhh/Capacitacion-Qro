@@ -57,7 +57,7 @@ function BancoTab() {
   const [totalBanco, setTotalBanco] = useState<number | null>(null)
 
   useEffect(() => {
-    if (error) notify.error(`Error al cargar datos: ${error}`)
+    if (error) notify.error("No se pudieron cargar los exámenes")
   }, [error])
 
   // Count once on first mount so the empty state can show "N preguntas en el banco".

@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { CalendarPlus, FileInput, Pin, Plus, Printer, type LucideIcon } from "lucide-react"
+import { Calendar, CalendarDays, CalendarPlus, FileInput, Pin, Plus, Printer, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FilterBar, type Filter, type FilterFieldDef } from "@/components/ui/filter-token-bar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { useRole } from "@/lib/hooks"
@@ -21,6 +20,7 @@ import { PlanAnualTable } from "@/components/content/plan-anual-table"
 import { PlanAnualProgressDialog } from "@/components/content/plan-anual-progress-dialog"
 import { PlanAnualMetricsDialog } from "@/components/content/plan-anual-metrics-dialog"
 import { PlanAnualPrint } from "@/components/content/plan-anual-print"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 /** Acción de la barra: con poco espacio solo muestra el ícono y su nombre va en el tooltip. */
 function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onClick, href }: {
@@ -28,9 +28,7 @@ function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onCli
   label: string
   variant?: "default" | "outline"
   disabled?: boolean
-  /** Acción en la misma página (abre un modal)… */
   onClick?: () => void
-  /** …o enlace a su propia página. */
   href?: string
 }) {
   const texto = <span className="hidden @3xl:inline">{label}</span>
@@ -39,9 +37,9 @@ function ToolbarAction({ icon: Icon, label, variant = "outline", disabled, onCli
       <TooltipTrigger asChild>
         {href ? (
           // Si la página tarda, el ícono pasa a spinner.
-          <Button asChild variant={variant} aria-label={label} className="px-3"><Link href={href}><LinkPendingIcon icon={Icon} />{texto}</Link></Button>
+          <Button asChild size="sm" variant={variant} aria-label={label}><Link href={href}><LinkPendingIcon icon={Icon} />{texto}</Link></Button>
         ) : (
-          <Button type="button" variant={variant} onClick={onClick} disabled={disabled} aria-label={label} className="px-3"><Icon aria-hidden="true" />{texto}</Button>
+          <Button type="button" size="sm" variant={variant} onClick={onClick} disabled={disabled} aria-label={label}><Icon aria-hidden="true" />{texto}</Button>
         )}
       </TooltipTrigger>
       <TooltipContent side="bottom">{label}</TooltipContent>
@@ -97,7 +95,7 @@ export default function PlanAnualPage({ initialYear, initialMonth }: {
       setSelectedMonth(current => data.meses.includes(current) ? current : data.meses[0] ?? 1)
       setLoadedYear(year)
     }).catch(cause => {
-      if (active) setError(cause instanceof Error ? cause.message : "No se pudo cargar el plan anual.")
+      if (active) setError(describeSupabaseError(cause, "No se pudo cargar el plan anual"))
     }).finally(() => {
       if (active) setLoading(false)
     })
@@ -165,7 +163,7 @@ export default function PlanAnualPage({ initialYear, initialMonth }: {
       setCourses(current => current.filter(item => item.id !== course.id))
       notify.success("Curso eliminado")
     } catch (cause) {
-      notify.error(cause instanceof Error ? cause.message : "No se pudo eliminar el curso.")
+      notify.error(describeSupabaseError(cause, "No se pudo eliminar el curso"))
     }
   }
 
@@ -176,36 +174,53 @@ export default function PlanAnualPage({ initialYear, initialMonth }: {
     notify.success("Seguimiento guardado")
   }
 
+  const periodFields: FilterFieldDef[] = [
+    ...(ready
+      ? [{
+          id: "mes",
+          label: "Mes",
+          icon: <CalendarDays aria-hidden="true" />,
+          operators: [],
+          options: monthOptions.map((month) => ({
+            value: String(month),
+            label: `${MESES[month - 1]}${months.length ? "" : " · Sin iniciar"}`,
+          })),
+        }]
+      : []),
+    {
+      id: "anio",
+      label: "Año",
+      icon: <Calendar aria-hidden="true" />,
+      operators: [],
+      options: yearOptions.map((option) => ({ value: String(option), label: String(option) })),
+    },
+  ]
+
+  const periodFilters: Filter[] = [
+    ...(ready ? [{ id: "mes", field: "mes", operator: "is", values: [String(selectedMonth)], locked: true }] : []),
+    { id: "anio", field: "anio", operator: "is", values: [String(year)], locked: true },
+  ]
+
   return (
     <div className="space-y-6 dense:space-y-4">
-      {/* Una sola fila en escritorio: filtros a la izquierda y acciones a la derecha; en móvil salta de línea sin desbordar. */}
       <div className="@container">
         <div className="flex flex-wrap items-center gap-2">
-          {ready && (
-            <>
-              <Label htmlFor="plan-mes-vista" className="sr-only">Mes</Label>
-              <Select value={String(selectedMonth)} onValueChange={value => setSelectedMonth(Number(value))}>
-                <SelectTrigger id="plan-mes-vista" className="w-36 shrink-0"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {monthOptions.map(month => (
-                    <SelectItem key={month} value={String(month)}>
-                      {MESES[month - 1]}{months.length ? "" : " · Sin iniciar"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </>
-          )}
-          <Label htmlFor="plan-anio" className="sr-only">Año</Label>
-          <Select value={String(year)} onValueChange={value => {
-            setYear(Number(value))
-            setSelectedMonth(1)
-          }}>
-            <SelectTrigger id="plan-anio" className="w-24 shrink-0"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
-            </SelectContent>
-          </Select>
+          <FilterBar
+            hideAdd
+            aria-label="Periodo del plan anual"
+            fields={periodFields}
+            value={periodFilters}
+            onChange={(next) => {
+              const nextYear = Number(next.find((f) => f.field === "anio")?.values[0] ?? year)
+              if (nextYear !== year) {
+                setYear(nextYear)
+                setSelectedMonth(1)
+                return
+              }
+              const nextMonth = Number(next.find((f) => f.field === "mes")?.values[0] ?? selectedMonth)
+              if (nextMonth !== selectedMonth) setSelectedMonth(nextMonth)
+            }}
+          />
           {ready && (
             <TooltipProvider delayDuration={300}>
               <div className="ml-auto flex flex-wrap items-center gap-2">

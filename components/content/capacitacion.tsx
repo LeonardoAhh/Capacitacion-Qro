@@ -1,14 +1,13 @@
 "use client"
 
-import { useState, useEffect, useCallback, useRef } from "react"
-import { Briefcase, BookOpen, ClipboardList } from "lucide-react"
+import { useState, useEffect, useCallback, useMemo, useRef } from "react"
+import { Briefcase, BookOpen, BookUp, ClipboardList, FileUp, MessageSquareShare } from "lucide-react"
 import { SectionNavLayout, type SectionNavItem } from "@/components/ui/section-nav-layout"
-import { useCapacitacion, useRole } from "@/lib/hooks"
-import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
+import { useCapacitacion, useNuevoIngreso, useRole } from "@/lib/hooks"
+import type { Department, Position, Course, PositionCourse, Employee, EmployeeCourse, NuevoIngreso, NuevoIngresoUpdate } from "@/lib/hooks"
 import { notify } from "@/lib/notify"
 
 import { CapEditEmployeeDialog, type EditEmployeeForm } from "@/components/content/cap-edit-employee-dialog"
-import { CapNewEmployeeDialog } from "@/components/redesign/cap-new-employee-dialog"
 import { CapNewPositionDialog } from "@/components/content/cap-new-position-dialog"
 import { CapNewCourseDialog } from "@/components/content/cap-new-course-dialog"
 import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog"
@@ -16,18 +15,34 @@ import { CapEditCourseDialog } from "@/components/content/cap-edit-course-dialog
 import { CapPositionsTab } from "@/components/content/cap-positions-tab"
 import { CapCoursesTab } from "@/components/content/cap-courses-tab"
 import { CapHistorialTab } from "@/components/content/cap-historial-tab"
+import { IngresoAcciones } from "@/components/content/plantilla/ingreso-acciones"
+import { SeguimientoIngresoDialog } from "@/components/content/plantilla/seguimiento-ingreso-dialog"
+import { IngresosSharePage } from "@/components/content/IngresosSharePage"
+import { CargarCursosPage } from "@/components/content/cargar-cursos-page"
+import { IncidenciasBulkImport } from "@/components/content/incidencias-bulk-import"
+import { PLANTILLA_PATH } from "@/components/content/plantilla-paths"
 
 const TAB_STORAGE_KEY = "plantilla:tab"
-type PlantillaTab = "historial" | "cursos" | "puestos"
+type PlantillaTab = "historial" | "cursos" | "puestos" | "cargar-cursos" | "incidencias" | "compartir-pendientes"
 
 const SECCIONES: readonly SectionNavItem<PlantillaTab>[] = [
   { id: "historial", label: "Empleados", icon: ClipboardList },
   { id: "cursos", label: "Cursos", icon: BookOpen },
   { id: "puestos", label: "Puestos", icon: Briefcase },
+  { id: "cargar-cursos", label: "Cargar cursos", icon: BookUp },
+  { id: "incidencias", label: "Incidencias", icon: FileUp },
+  { id: "compartir-pendientes", label: "Pendientes", icon: MessageSquareShare },
 ]
+/** Apartados que solo ve quien edita. */
+const SOLO_EDICION: readonly PlantillaTab[] = ["cargar-cursos", "incidencias", "compartir-pendientes"]
 
 function isPlantillaTab(value: string | null): value is PlantillaTab {
-  return value === "historial" || value === "cursos" || value === "puestos"
+  return SECCIONES.some(seccion => seccion.id === value)
+}
+
+/** La URL dice el apartado (`?seccion=`); Empleados es la dirección sin parámetro. */
+function hrefDeApartado(tab: PlantillaTab) {
+  return tab === "historial" ? PLANTILLA_PATH : `${PLANTILLA_PATH}?seccion=${tab}`
 }
 
 export default function CapacitacionContent() {
@@ -37,15 +52,18 @@ export default function CapacitacionContent() {
     fetchDepartments, fetchPositions, fetchCourses,
     fetchAllPositionCourses, fetchAllEmployeeCourses,
     fetchEmployees,
-    deleteEmployee, createEmployeeManual, updateEmployee,
+    deleteEmployee, updateEmployee,
 
     createPosition, createCourse, updateCourse,
   } = useCapacitacion()
+  const { saving: ingresoSaving, fetchAll: fetchIngresos, createRecord, updateRecord, deleteRecord } = useNuevoIngreso()
 
   const [departments, setDepartments] = useState<Department[]>([])
   const [positions, setPositions] = useState<Position[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
+  const [ingresos, setIngresos] = useState<NuevoIngreso[]>([])
+  const [seguimiento, setSeguimiento] = useState<NuevoIngreso | null>(null)
   const [empCourses, setEmpCourses] = useState<EmployeeCourse[]>([])
   const [positionCourses, setPositionCourses] = useState<PositionCourse[]>([])
   const [loadingPositions, setLoadingPositions] = useState(false)
@@ -73,15 +91,12 @@ export default function CapacitacionContent() {
   const [editEmpTarget, setEditEmpTarget] = useState<Employee | null>(null)
   const [editEmpSaving, setEditEmpSaving] = useState(false)
 
-  const [newEmpOpen, setNewEmpOpen] = useState(false)
-  const [newEmpSaving, setNewEmpSaving] = useState(false)
-  const [newEmpSuccess, setNewEmpSuccess] = useState(false)
 
 
   const loadCoursesData = useCallback(async () => {
     setLoadingCourses(true)
     try { setCourses(await fetchCourses()) }
-    catch (err) { console.error("Error loading courses:", err); notify.error("Error al cargar cursos") }
+    catch (err) { console.error("Error loading courses:", err); notify.error("No se pudieron cargar los cursos") }
     finally { setLoadingCourses(false) }
   }, [fetchCourses])
 
@@ -93,11 +108,14 @@ export default function CapacitacionContent() {
     setLoadingEmployees(true)
     const loadPromise = (async () => {
       try {
-        setEmployees(await fetchEmployees())
+        // Plantilla y el seguimiento de ingreso se muestran en la misma tabla.
+        const [empleados, nuevos] = await Promise.all([fetchEmployees(), fetchIngresos()])
+        setEmployees(empleados)
+        setIngresos(nuevos)
         employeesLoaded.current = true
       } catch (err) {
         console.error("Error loading employees:", err instanceof Error ? err.message : JSON.stringify(err))
-        notify.error("Error al cargar empleados")
+        notify.error("No se pudieron cargar los empleados")
       } finally {
         setLoadingEmployees(false)
         employeesLoadPromise.current = null
@@ -105,7 +123,16 @@ export default function CapacitacionContent() {
     })()
     employeesLoadPromise.current = loadPromise
     return loadPromise
-  }, [fetchEmployees])
+  }, [fetchEmployees, fetchIngresos])
+
+  const ingresosPorNumero = useMemo(
+    () => new Map(ingresos.flatMap(ingreso => ingreso.numero ? [[ingreso.numero, ingreso] as const] : [])),
+    [ingresos],
+  )
+  const employeeNames = useMemo(
+    () => Object.fromEntries(employees.flatMap(emp => emp.numero ? [[emp.numero, emp.nombre]] : [])),
+    [employees],
+  )
 
   const loadPositionData = useCallback((refresh = false) => {
     if (refresh) positionsLoaded.current = false
@@ -120,7 +147,7 @@ export default function CapacitacionContent() {
         positionsLoaded.current = true
       } catch (err) {
         console.error("Error loading positions:", err)
-        notify.error("Error al cargar puestos")
+        notify.error("No se pudieron cargar los puestos")
       } finally {
         setLoadingPositions(false)
         positionsLoadPromise.current = null
@@ -171,7 +198,7 @@ export default function CapacitacionContent() {
         coursesTabDataLoaded.current = true
       } catch (err) {
         console.error("Error loading course tab data:", err)
-        notify.error("Error al cargar los datos de cursos")
+        notify.error("No se pudieron cargar los cursos")
       } finally {
         setLoadingCourses(false)
         setLoadingCourseDetails(false)
@@ -187,7 +214,9 @@ export default function CapacitacionContent() {
     loadPositionData()
     loadEmployees()
     try {
-      const saved = sessionStorage.getItem(TAB_STORAGE_KEY)
+      // Primero el apartado de la URL (enlaces directos); si no hay, el último que se abrió.
+      const pedido = new URLSearchParams(window.location.search).get("seccion")
+      const saved = isPlantillaTab(pedido) ? pedido : sessionStorage.getItem(TAB_STORAGE_KEY)
       if (isPlantillaTab(saved)) {
         setActiveTab(saved)
         if (saved === "cursos") void loadCoursesTabData()
@@ -199,6 +228,7 @@ export default function CapacitacionContent() {
 
   const handleTabChange = useCallback(async (next: PlantillaTab) => {
     setActiveTab(next)
+    window.history.replaceState(null, "", hrefDeApartado(next))
     try { sessionStorage.setItem(TAB_STORAGE_KEY, next) } catch { /* ignore */ }
     if (next === "cursos") {
       await loadCoursesTabData()
@@ -209,16 +239,16 @@ export default function CapacitacionContent() {
     setNewPosSaving(true)
     const result = await createPosition(name, departmentId)
     setNewPosSaving(false)
-    if (result.success) { setNewPosOpen(false); loadPositionData(true); notify.success('Puesto creado correctamente') }
-    else notify.error(result.error ?? 'Error al crear puesto')
+    if (result.success) { setNewPosOpen(false); loadPositionData(true); notify.success('Puesto creado') }
+    else notify.error(result.error ?? 'No se pudo crear el puesto')
   }, [createPosition, loadPositionData])
 
   const handleSaveNewCourse = useCallback(async (name: string, tipo: string, durationHours: number | null) => {
     setNewCourseSaving(true)
     const result = await createCourse(name, tipo, durationHours)
     setNewCourseSaving(false)
-    if (result.success) { invalidateCoursesTabData(); setNewCourseOpen(false); loadCoursesData(); notify.success('Curso creado correctamente') }
-    else notify.error(result.error ?? 'Error al crear curso')
+    if (result.success) { invalidateCoursesTabData(); setNewCourseOpen(false); loadCoursesData(); notify.success('Curso creado') }
+    else notify.error(result.error ?? 'No se pudo crear el curso')
   }, [createCourse, invalidateCoursesTabData, loadCoursesData])
 
   const handleSaveEditCourse = useCallback(async (id: string, data: { name: string; tipo: string; duration_hours: number | null }) => {
@@ -230,7 +260,7 @@ export default function CapacitacionContent() {
       setEditCourseOpen(false); setEditCourseTarget(null); loadCoursesData()
       notify.success('Curso actualizado')
     } else {
-      notify.error(result.error ?? 'Error al actualizar curso')
+      notify.error(result.error ?? 'No se pudo actualizar el curso')
     }
   }, [invalidateCoursesTabData, updateCourse, loadCoursesData])
 
@@ -248,35 +278,18 @@ export default function CapacitacionContent() {
     if (result.success) {
       invalidateCoursesTabData()
       setEditEmpOpen(false); setEditEmpTarget(null); loadEmployees(true)
-      notify.success('Empleado actualizado')
+      if (result.aviso) notify.warning('Empleado actualizado', { description: result.aviso })
+      else notify.success('Empleado actualizado')
     } else {
-      notify.error(result.error ?? 'Error al actualizar')
+      notify.error(result.error ?? 'No se pudo actualizar')
     }
   }, [editEmpTarget, invalidateCoursesTabData, updateEmployee, loadEmployees])
 
-  const handleSaveNewEmp = useCallback(async (
-    emp: { numero: string; nombre: string; puesto: string; departamento: string; area: string; turno: string; fecha_ingreso: string; jefe_directo: string; evaluacion_desempeno: string },
-  ) => {
-    setNewEmpSaving(true)
-    const result = await createEmployeeManual(
-      {
-        numero: emp.numero.trim() || null, nombre: emp.nombre.trim(),
-        puesto: emp.puesto || null, departamento: emp.departamento || null,
-        area: emp.area || null, turno: emp.turno || null,
-        fecha_ingreso: emp.fecha_ingreso || null, jefe_directo: emp.jefe_directo || null,
-        evaluacion_desempeno: emp.evaluacion_desempeno.trim() || null,
-      },
-      []
-    )
-    setNewEmpSaving(false)
-    if (result.success) { invalidateCoursesTabData(); setNewEmpOpen(false); setNewEmpSuccess(true); loadEmployees(true); notify.success('Empleado creado') }
-    else notify.error(result.error ?? 'Error al crear empleado')
-  }, [createEmployeeManual, invalidateCoursesTabData, loadEmployees])
 
   const handleDeleteEmployee = useCallback(async (emp: Employee) => {
     const ok = await notify.confirm({
       title: "Eliminar empleado",
-      description: `Se eliminará a ${emp.nombre} de la plantilla. Sus cursos tomados se conservan en los indicadores de capacitación. Esta acción no se puede deshacer.`,
+      description: `Se eliminará a ${emp.nombre}, también su seguimiento de ingreso. Sus cursos se conservan en los indicadores. No se puede deshacer.`,
       confirmLabel: "Eliminar",
       tone: "destructive",
       requireInputText: "ELIMINAR",
@@ -288,22 +301,60 @@ export default function CapacitacionContent() {
       setEmployees(prev => prev.filter(e => e.id !== emp.id))
       notify.success('Empleado eliminado')
     } else {
-      notify.error(result.error ?? 'Error al eliminar')
+      notify.error(result.error ?? 'No se pudo eliminar')
     }
   }, [deleteEmployee, invalidateCoursesTabData])
 
-  const currentTab: PlantillaTab = employeesOnly ? "historial" : activeTab
+  /** Alta única: Plantilla y seguimiento de ingreso (lib/hooks/useNuevoIngreso). */
+  const handleCreateIngreso = useCallback(async (data: Omit<NuevoIngreso, "id" | "created_at" | "updated_at">) => {
+    const result = await createRecord(data)
+    if (result.success) { invalidateCoursesTabData(); void loadEmployees(true) }
+    return result.success
+  }, [createRecord, invalidateCoursesTabData, loadEmployees])
+
+  const handleSaveSeguimiento = useCallback(async (id: string, updates: NuevoIngresoUpdate) => {
+    const result = await updateRecord(id, updates)
+    if (!result.success) return
+    setSeguimiento(null)
+    void loadEmployees(true)
+  }, [updateRecord, loadEmployees])
+
+  const handleRemoveSeguimiento = useCallback(async (ingreso: NuevoIngreso) => {
+    const ok = await notify.confirm({
+      title: "Quitar del seguimiento",
+      description: `${ingreso.nombre} deja de mostrarse como nuevo ingreso. Seguirá en Plantilla.`,
+      confirmLabel: "Quitar",
+      tone: "destructive",
+    })
+    if (!ok) return
+    const result = await deleteRecord(ingreso.id)
+    if (!result.success) return
+    setSeguimiento(null)
+    setIngresos(prev => prev.filter(item => item.id !== ingreso.id))
+  }, [deleteRecord])
+
+  const secciones = canEdit ? SECCIONES : SECCIONES.filter(seccion => !SOLO_EDICION.includes(seccion.id))
+  const currentTab: PlantillaTab = employeesOnly || !secciones.some(seccion => seccion.id === activeTab) ? "historial" : activeTab
 
   return (
     <>
       <SectionNavLayout
         label="Apartados de plantilla"
-        items={SECCIONES}
+        items={secciones}
         value={currentTab}
         onValueChange={value => void handleTabChange(value)}
         showNav={!employeesOnly}
       >
-        {currentTab === "puestos" ? (
+        {currentTab === "compartir-pendientes" ? (
+          <IngresosSharePage />
+        ) : currentTab === "cargar-cursos" ? (
+          <CargarCursosPage />
+        ) : currentTab === "incidencias" ? (
+          <IncidenciasBulkImport
+            employeeNames={employeeNames}
+            loadingEmployees={loadingEmployees}
+          />
+        ) : currentTab === "puestos" ? (
           <CapPositionsTab
             departments={departments}
             positions={positions}
@@ -327,23 +378,27 @@ export default function CapacitacionContent() {
         ) : (
           <CapHistorialTab
             employees={employees}
+            ingresos={ingresosPorNumero}
             loadingEmployees={loadingEmployees}
             canEdit={canEdit}
-            newEmpSuccess={newEmpSuccess}
-            onNewEmployee={() => { setNewEmpSuccess(false); setNewEmpOpen(true) }}
+            acciones={canEdit ? <IngresoAcciones saving={ingresoSaving} onCreate={handleCreateIngreso} /> : undefined}
             onEditEmployee={(emp) => { setEditEmpTarget(emp); setEditEmpOpen(true) }}
             onDeleteEmployee={handleDeleteEmployee}
+            onSeguimiento={setSeguimiento}
           />
         )}
       </SectionNavLayout>
 
 
-      <CapNewEmployeeDialog
-        open={newEmpOpen}
-        saving={newEmpSaving}
-        isReadOnly={isReadOnly}
-        onClose={() => setNewEmpOpen(false)}
-        onSave={handleSaveNewEmp}
+      <SeguimientoIngresoDialog
+        key={seguimiento?.id ?? "sin-seguimiento"}
+        record={seguimiento}
+        open={seguimiento !== null}
+        saving={ingresoSaving}
+        readOnly={!canEdit}
+        onClose={() => setSeguimiento(null)}
+        onSave={(id, updates) => void handleSaveSeguimiento(id, updates)}
+        onRemove={ingreso => void handleRemoveSeguimiento(ingreso)}
       />
 
       <CapEditEmployeeDialog

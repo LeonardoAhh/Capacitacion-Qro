@@ -17,6 +17,7 @@ import {
   etiquetaEstado, formatHace, limpiarAlEscribir, MAX_COMENTARIO, MAX_PASO, MAX_PASOS, normalizarTexto,
   type KanbanComentario, type KanbanMiembro, type KanbanPaso, type KanbanTarjeta,
 } from "@/lib/kanban"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface KanbanDetailDialogProps {
   tarjeta: KanbanTarjeta
@@ -36,7 +37,7 @@ interface KanbanDetailDialogProps {
 const SECTION_TITLE = "flex items-baseline gap-2 text-label-sm text-foreground"
 
 function mensaje(cause: unknown, fallback: string) {
-  return cause instanceof Error ? cause.message : fallback
+  return describeSupabaseError(cause, fallback)
 }
 
 /** Pasos de la tarjeta: marcar, quitar y agregar sin salir del detalle. */
@@ -62,7 +63,7 @@ function Checklist({ tarjeta, pasos, onAgregar, onMarcar, onEliminar }: {
       setTexto("")
       setError(null)
     } catch (cause) {
-      setError(mensaje(cause, "No se pudo agregar el paso."))
+      setError(mensaje(cause, "No se pudo agregar el paso"))
     } finally {
       setSaving(false)
     }
@@ -137,7 +138,7 @@ function Comentarios({ tarjeta, comentarios, miembros, userId, onComentar, onEli
       setTexto("")
       setError(null)
     } catch (cause) {
-      setError(mensaje(cause, "No se pudo publicar el comentario."))
+      setError(mensaje(cause, "No se pudo publicar el comentario"))
     } finally {
       setSaving(false)
     }

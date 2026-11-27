@@ -149,7 +149,7 @@ export function useRecontratacion() {
         if (!data) return null
         return await buildRecontratacionData(data as NuevoIngreso)
       } catch (err) {
-        setError(describeSupabaseError(err, 'Error al cargar el registro'))
+        setError(describeSupabaseError(err, 'No se pudo cargar el registro'))
         return null
       } finally {
         setLoading(false)

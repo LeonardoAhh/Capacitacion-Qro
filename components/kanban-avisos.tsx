@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils"
 import { formatHace, hoyISO, PARAM_TARJETA, textoAviso } from "@/lib/kanban"
 import { DESEMPENO } from "@/lib/desempeno/presentation"
 import { TRAINING_WORKSPACE_PATH } from "@/lib/workspace-paths"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 const SECCION = "px-3 pb-1 pt-3 text-eyebrow text-muted-foreground"
 const ITEM = "flex min-h-(--menu-item-height) w-full min-w-0 items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-accent focus-inset"
@@ -101,13 +102,13 @@ export function KanbanAvisos() {
   function configurarPush(accion: () => Promise<void>, exito: string) {
     accion()
       .then(() => notify.success(exito))
-      .catch(cause => notify.error(cause instanceof Error ? cause.message : "No se pudieron configurar las notificaciones."))
+      .catch(cause => notify.error(describeSupabaseError(cause, "No se pudieron configurar las notificaciones")))
   }
 
   function marcar(ids: string[], bloquearTodo = false) {
     if (bloquearTodo) setMarkingAll(true)
     marcarLeidos(ids)
-      .catch(cause => notify.error(cause instanceof Error ? cause.message : "No se pudieron marcar los avisos."))
+      .catch(cause => notify.error(describeSupabaseError(cause, "No se pudieron marcar los avisos")))
       .finally(() => { if (bloquearTodo) setMarkingAll(false) })
   }
 
@@ -145,9 +146,9 @@ export function KanbanAvisos() {
     <div className="ml-auto flex items-center gap-1">
       {sinLeer.length > 0 && (
         <Button type="button" variant="ghost" size="xs" className="text-muted-foreground"
-          disabled={markingAll} aria-busy={markingAll || undefined}
+          loading={markingAll}
           onClick={() => marcar(sinLeer.map(aviso => aviso.id), true)}>
-          {markingAll ? "Marcando…" : "Marcar como leídos"}
+          Marcar como leídos
         </Button>
       )}
       {(push.state === "active" || desactivandoPush) && (
@@ -172,10 +173,9 @@ export function KanbanAvisos() {
             <AlertCircle className="size-4" aria-hidden="true" />
             <AlertDescription className="text-body-sm">{errorMensaje}</AlertDescription>
             <div>
-              <Button type="button" variant="outline" size="xs" disabled={retrying}
-                aria-busy={retrying || undefined} onClick={reintentar}>
-                <RotateCw className={cn(retrying && "animate-spin motion-reduce:animate-none")} aria-hidden="true" />
-                {retrying ? "Reintentando…" : "Reintentar"}
+              <Button type="button" variant="outline" size="xs" loading={retrying} onClick={reintentar}>
+                <RotateCw aria-hidden="true" />
+                Reintentar
               </Button>
             </div>
           </Alert>

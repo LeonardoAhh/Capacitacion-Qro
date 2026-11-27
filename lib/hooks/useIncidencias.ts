@@ -122,12 +122,10 @@ export function parseIncidenciasJSON(
 export function useIncidencias() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   /** Fetch all incidencias for a given employee number */
   const fetchByEmpleado = useCallback(async (numero: string): Promise<IncidenciaRecord[]> => {
     setLoading(true)
-    setError(null)
     try {
       const { data, error } = await supabase
         .from('incidencias')
@@ -137,8 +135,8 @@ export function useIncidencias() {
       if (error) throw new Error(error.message)
       return (data ?? []) as IncidenciaRecord[]
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al cargar incidencias')
-      setError(msg)
+      const msg = describeSupabaseError(err, 'No se pudieron cargar las incidencias')
+      notify.error(msg)
       return []
     } finally {
       setLoading(false)
@@ -151,7 +149,6 @@ export function useIncidencias() {
     mes: string,
   ): Promise<IncidenciaRecord[]> => {
     setLoading(true)
-    setError(null)
     try {
       const { data, error } = await supabase
         .from('incidencias')
@@ -162,8 +159,8 @@ export function useIncidencias() {
       if (error) throw new Error(error.message)
       return (data ?? []) as IncidenciaRecord[]
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al cargar incidencias')
-      setError(msg)
+      const msg = describeSupabaseError(err, 'No se pudieron cargar las incidencias')
+      notify.error(msg)
       return []
     } finally {
       setLoading(false)
@@ -175,7 +172,6 @@ export function useIncidencias() {
     data: IncidenciaInsert,
   ): Promise<{ success: boolean; error?: string }> => {
     setSaving(true)
-    setError(null)
     try {
       // Check if record exists
       const { data: existing } = await supabase
@@ -200,8 +196,8 @@ export function useIncidencias() {
       }
       return { success: true }
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al guardar incidencia')
-      setError(msg)
+      const msg = describeSupabaseError(err, 'No se pudo guardar la incidencia')
+      notify.error(msg)
       return { success: false, error: msg }
     } finally {
       setSaving(false)
@@ -213,7 +209,6 @@ export function useIncidencias() {
     records: IncidenciaInsert[],
   ): Promise<{ success: boolean; error?: string; count: number }> => {
     setSaving(true)
-    setError(null)
     try {
       if (records.length === 0) throw new Error('No hay registros para importar')
 
@@ -229,8 +224,7 @@ export function useIncidencias() {
       notify.success(`${records.length} incidencias importadas`)
       return { success: true, count: records.length }
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al importar incidencias')
-      setError(msg)
+      const msg = describeSupabaseError(err, 'No se pudieron importar las incidencias')
       notify.error(msg)
       return { success: false, error: msg, count: 0 }
     } finally {
@@ -246,7 +240,7 @@ export function useIncidencias() {
       if (error) throw error
       return { success: true }
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al eliminar')
+      const msg = describeSupabaseError(err, 'No se pudo eliminar')
       notify.error(msg)
       return { success: false }
     } finally {
@@ -262,7 +256,6 @@ export function useIncidencias() {
     notas: Record<IncidenciaCategory, string>,
   ): Promise<{ success: boolean }> => {
     setSaving(true)
-    setError(null)
     try {
       // Delete existing month data
       const { error: deleteError } = await supabase
@@ -291,8 +284,7 @@ export function useIncidencias() {
       notify.success('Incidencias guardadas')
       return { success: true }
     } catch (err) {
-      const msg = describeSupabaseError(err, 'Error al guardar incidencias')
-      setError(msg)
+      const msg = describeSupabaseError(err, 'No se pudieron guardar las incidencias')
       notify.error(msg)
       return { success: false }
     } finally {
@@ -303,7 +295,6 @@ export function useIncidencias() {
   return {
     loading,
     saving,
-    error,
     fetchByEmpleado,
     fetchByEmpleadoMes,
     upsertRecord,

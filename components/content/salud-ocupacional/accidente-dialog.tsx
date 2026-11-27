@@ -1,8 +1,6 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { AlertCircle } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { DateTextInput } from "@/components/ui/date-text-input"
 import { Label } from "@/components/ui/label"
 import { Stepper } from "@/components/ui/stepper"
@@ -16,6 +14,7 @@ import { AccidenteAtencion } from "./accidente-atencion"
 import { AccidenteClasificacion } from "./accidente-clasificacion"
 import { aDatos, errorDelPaso, formularioInicial, type FormularioAccidente, type Paso } from "./accidente-form"
 import { EmpleadoSelect } from "./empleado-select"
+import { notify } from "@/lib/notify"
 
 const PASOS = ["Accidente", "Clasificación", "Atención"] as const
 // Campo que recibe el foco al entrar a cada paso.
@@ -31,12 +30,16 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
   /** Día propuesto al crear. */
   fecha: string
   onClose: () => void
-  /** Guarda en la base; si falla, el error se muestra en el modal. */
+  /** Guarda en la base; si falla, el error sale en un toast. */
   onSave: (datos: DatosAccidente) => Promise<void>
 }) {
   const [step, setStep] = useState<Paso>(1)
   const [form, setForm] = useState<FormularioAccidente>(() => formularioInicial(accidente, fecha))
   const [error, setError] = useState<string | null>(null)
+  const mostrarError = (mensaje: string) => {
+    setError(mensaje)
+    notify.error(mensaje)
+  }
   const [saving, setSaving] = useState(false)
   // Mientras guarda, el modal no se cierra.
   const cerrar = () => { if (!saving) onClose() }
@@ -61,7 +64,7 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
     if (saving) return
     const falta = errorDelPaso(form, step)
     if (falta) {
-      setError(falta)
+      mostrarError(falta)
       return
     }
     if (step < 3) {
@@ -73,7 +76,7 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
     try {
       await onSave(aDatos(form, form.empleado, form.severidad))
     } catch (err) {
-      setError(describeSupabaseError(err, "No se pudo guardar el accidente. Inténtalo de nuevo."))
+      mostrarError(describeSupabaseError(err, "No se pudo guardar el accidente"))
       setSaving(false)
     }
   }
@@ -117,12 +120,6 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
         {step === 3 && <AccidenteAtencion form={form} cambiar={cambiar} />}
         </AutoHeight>
 
-        {error && (
-          <Alert variant="destructive" className="bg-destructive/10">
-            <AlertCircle className="size-4" aria-hidden="true" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
       </form>
       <ModalFooter onCancel={step === 1 ? cerrar : () => { setError(null); setStep((step - 1) as Paso) }}
         cancelLabel={step === 1 ? "Cancelar" : "Volver"}

@@ -11,6 +11,7 @@ import { notify } from "@/lib/notify"
 import { DncNeedsTable } from "@/components/content/dnc-needs-table"
 import { DncPrint } from "@/components/content/dnc-print"
 import { nombreDepartamento, responsablesDnc, type CambiosEncabezadoDnc, type DncNecesidad, type DncPosition, type DncReporte } from "@/lib/dnc"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface DncReportProps {
   reporte: DncReporte
@@ -90,7 +91,7 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
       await onSaveHeader({ [field]: value })
     } catch (cause) {
       setters[field](saved)
-      notify.error(cause instanceof Error ? cause.message : "No se pudo guardar el cambio.")
+      notify.error(describeSupabaseError(cause, "No se pudo guardar el cambio"))
     } finally {
       setSavingField(null)
     }
@@ -98,7 +99,6 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
 
   return (
     <div className="space-y-4">
-      {/* El título del reporte vive en el header de la página. */}
       <div className="grid gap-3">
         <div className="flex flex-wrap items-end gap-3">
           {editing ? (
@@ -114,7 +114,7 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
                     setNombre(value)
                     void saveField("responsable_nombre", value)
                   }}>
-                  <SelectTrigger ref={firstFieldRef} id="dnc-responsable" aria-busy={savingField === "responsable_nombre" || undefined}>
+                  <SelectTrigger ref={firstFieldRef} id="dnc-responsable" size="sm" aria-busy={savingField === "responsable_nombre" || undefined}>
                     <SelectValue placeholder="Selecciona al responsable" />
                   </SelectTrigger>
                   <SelectContent matchTriggerWidth>
@@ -127,16 +127,15 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
               <div className="grid w-full min-w-0 gap-2 sm:w-48">
                 <Label htmlFor="dnc-fecha">Fecha de elaboración</Label>
                 {/* Al salir se guarda la fecha ya convertida (AAAA-MM-DD), no el texto del campo. */}
-                <DateTextInput id="dnc-fecha" value={fecha} onValueChange={setFecha}
+                <DateTextInput id="dnc-fecha" className="h-(--control-height-sm)" value={fecha} onValueChange={setFecha}
                   onBlur={() => void saveField("fecha_elaboracion", fecha)}
                   aria-busy={savingField === "fecha_elaboracion" || undefined} />
               </div>
               {headerComplete && (
-                <Button type="submit" variant="outline">Listo</Button>
+                <Button type="submit" variant="outline" size="sm">Listo</Button>
               )}
             </form>
           ) : (
-            // Vista de solo lectura: deja claro que el encabezado ya está capturado y cuándo se modificó.
             <dl className="flex min-h-(--control-height) flex-wrap items-end gap-x-8 gap-y-2">
               <div className="grid gap-1">
                 <dt className="text-body-sm text-muted-foreground">Responsable de área</dt>
@@ -160,14 +159,13 @@ export function DncReport({ reporte, necesidades, puestos, canEdit, filtros, onS
               )}
             </dl>
           )}
-          {/* Una sola fila: encabezado a la izquierda; filtros y acciones a la derecha. */}
           <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
             {filtros}
-            <Button type="button" variant="outline" onClick={() => window.print()} disabled={necesidades.length === 0}>
+            <Button type="button" variant="outline" size="sm" onClick={() => window.print()} disabled={necesidades.length === 0}>
               <Printer aria-hidden="true" />Imprimir
             </Button>
             {canEdit && (
-              <Button type="button" onClick={onAdd}><Plus aria-hidden="true" />Agregar necesidad</Button>
+              <Button type="button" size="sm" onClick={onAdd}><Plus aria-hidden="true" />Agregar necesidad</Button>
             )}
           </div>
         </div>

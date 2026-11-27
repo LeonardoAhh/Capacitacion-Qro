@@ -1,14 +1,13 @@
 "use client"
 
 import { useId, useState, useEffect } from "react"
-import { AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { TIPOS_CURSOS } from "@/lib/catalogo"
 import type { Course } from "@/lib/hooks"
+import { notify } from "@/lib/notify"
 
 export interface CapEditCourseDialogProps {
   course: Course | null
@@ -26,30 +25,27 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
   const [name, setName] = useState('')
   const [tipo, setTipo] = useState<string>('INDUCCIÓN')
   const [duration, setDuration] = useState('')
-  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (open && course) {
       setName(course.name)
       setTipo(course.tipo ?? 'INDUCCIÓN')
       setDuration(course.duration_hours != null ? String(course.duration_hours) : '')
-      setError(null)
     }
   }, [open, course])
 
   const handleConfirm = () => {
     if (!course) return
-    if (!name.trim()) { setError('El nombre del curso es requerido'); return }
+    if (!name.trim()) { notify.error('Falta el nombre del curso'); return }
     let durationHours: number | null = null
     if (duration.trim() !== '') {
       const n = Number(duration.replace(',', '.'))
       if (!Number.isFinite(n) || n <= 0) {
-        setError('La duración debe ser un número mayor a 0')
+        notify.error('La duración debe ser mayor a 0')
         return
       }
       durationHours = Math.round(n * 100) / 100
     }
-    setError(null)
     onSave(course.id, { name, tipo, duration_hours: durationHours })
   }
 
@@ -113,12 +109,6 @@ export function CapEditCourseDialog({ course, open, saving, onClose, onSave }: C
             </div>
           </div>
 
-          {error && (
-            <Alert variant="destructive" className="py-2 border-destructive/30 bg-destructive/10 text-destructive" data-testid="edit-course-error">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
         </div>
       </div>
       <ModalFooter

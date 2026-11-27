@@ -6,6 +6,7 @@ import { Stepper } from "@/components/ui/stepper"
 import { AutoHeight } from "@/components/ui/auto-height"
 import { DncNeedAuthorizationStep, DncNeedDetailsStep, DncNeedIdentityStep } from "@/components/content/dnc-need-steps"
 import { aMayusculasDnc, CAMPOS_TEXTO_NECESIDAD, type DatosNecesidad, type DncCourse, type DncNecesidad, type DncPosition, type ProgramacionCurso } from "@/lib/dnc"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface DncNeedDialogProps {
   necesidad: DncNecesidad | null
@@ -107,7 +108,7 @@ export function DncNeedDialog({ necesidad, cursos, cursosLoading, cursosError, p
     try {
       await onSave(form)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la necesidad.")
+      setError(describeSupabaseError(cause, "No se pudo guardar la necesidad"))
     } finally {
       setSaving(false)
     }

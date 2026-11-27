@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils"
 
 export type NoticeTone = "neutral" | "success" | "error" | "warning" | "info"
 
-const TONE_CLASS: Record<NoticeTone, string> = {
+export const NOTICE_TONE_CLASS: Record<NoticeTone, string> = {
   neutral: "text-primary",
   success: "text-success",
   error: "text-destructive",
@@ -29,7 +29,7 @@ export function NoticeIcon({ icon, tone = "neutral", spin = false }: NoticeIconP
   useEffect(() => { setCurrent(icon) }, [icon])
 
   return (
-    <span className={cn("flex shrink-0", TONE_CLASS[tone])} aria-hidden="true">
+    <span className={cn("flex shrink-0", NOTICE_TONE_CLASS[tone])} aria-hidden="true">
       <MorphIcon
         icon={reducedMotion ? icon : current}
         size={20}

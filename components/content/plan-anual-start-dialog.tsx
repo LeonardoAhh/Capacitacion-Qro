@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ModalFooter, ModalHeader, ResponsiveShell } from "@/components/ui/responsive-shell"
 import { MESES } from "@/lib/plan-anual"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface PlanAnualStartDialogProps {
   anio: number
@@ -25,7 +26,7 @@ export function PlanAnualStartDialog({ anio, disponibles, preferredMonth, onClos
     try {
       await onStart(Number(mes))
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo iniciar el mes.")
+      setError(describeSupabaseError(cause, "No se pudo iniciar el mes"))
     } finally {
       setSaving(false)
     }

@@ -10,6 +10,7 @@ import type {
   CursoRequerido,
   EvaluacionDesempeño,
 } from "@/lib/promociones/types"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 const PAGE_SIZE = 1000
 const MAX_CONCURRENT_PAGES = 6
@@ -360,9 +361,9 @@ export function usePromociones() {
       if (mountedRef.current) setEmpleados(result)
     } catch (err: unknown) {
       if (mountedRef.current) {
-        setError(err instanceof Error ? err.message : "Error al cargar datos")
+        setError(describeSupabaseError(err, "No se pudieron cargar los datos"))
       }
-      notify.error("Error al cargar promociones")
+      notify.error("No se pudieron cargar las promociones")
     } finally {
       if (mountedRef.current) setLoading(false)
     }
@@ -391,7 +392,7 @@ export function usePromociones() {
       .update({ puesto: nuevoPuesto })
       .eq("id", empleadoId)
     if (empErr) {
-      notify.error("Error al promover empleado")
+      notify.error("No se pudo promover al empleado")
       throw new Error(empErr.message)
     }
 
@@ -411,7 +412,7 @@ export function usePromociones() {
           { onConflict: "numero" }
         )
       if (dpErr) {
-        notify.error("Error al guardar datos de promoción")
+        notify.error("No se pudo guardar la promoción")
         throw new Error(dpErr.message)
       }
     }
@@ -440,7 +441,7 @@ export function usePromociones() {
         { onConflict: "numero" }
       )
     if (dpErr) {
-      notify.error("Error al actualizar empleado")
+      notify.error("No se pudo actualizar el empleado")
       throw new Error(dpErr.message)
     }
     notify.success("Empleado actualizado")

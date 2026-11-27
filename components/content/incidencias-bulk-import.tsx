@@ -1,45 +1,28 @@
 "use client"
 
-import React, { useState, useRef, useMemo } from "react"
-import { AnimatePresence, motion } from "framer-motion"
-import {
-  FileUp, Upload, RotateCcw, AlertCircle, CheckCircle2,
-  Loader2, Users, ChevronDown, ChevronUp,
-} from "lucide-react"
-import { ResponsiveShell, ModalHeader, ModalFooter } from "@/components/ui/responsive-shell"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
+import { useId, useMemo, useState } from "react"
+import { ChevronDown } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  useIncidencias,
-  INCIDENCIA_CATEGORIES,
-  parseIncidenciasJSON,
-  formatMes,
-} from "@/lib/hooks/useIncidencias"
-import type {
-  IncidenciaInsert,
-} from "@/lib/hooks/useIncidencias"
+import { Button } from "@/components/ui/button"
+import { JsonImportError, JsonPasteStep, JsonReviewHeader } from "@/components/content/plantilla/json-import-step"
 import { CATEGORY_META } from "@/lib/constants/incidencias"
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
+import {
+  formatMes,
+  parseIncidenciasJSON,
+  useIncidencias,
+  type IncidenciaInsert,
+} from "@/lib/hooks/useIncidencias"
+import { cn } from "@/lib/utils"
 
 interface EmployeeNameMap {
   [numero: string]: string
 }
 
 interface IncidenciasBulkImportProps {
-  open: boolean
-  onClose: () => void
-  /** Map of numero_empleado → nombre for preview display */
+  /** Mapa numero_empleado -> nombre de la plantilla activa para vista previa. */
   employeeNames: EmployeeNameMap
+  loadingEmployees?: boolean
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Preview group structure
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface PreviewGroup {
   numero: string
@@ -51,17 +34,23 @@ interface PreviewGroup {
   totalRecords: number
 }
 
+const PLACEHOLDER_JSON = JSON.stringify(
+  [{ numero_empleado: "123", mes: "2025-01", "FALTA INJUSTIFICADA": 2, "VACACIÓN": 1 }],
+  null,
+  2,
+)
+
 function buildPreviewGroups(
   records: IncidenciaInsert[],
   names: EmployeeNameMap,
 ): PreviewGroup[] {
   const map = new Map<string, Map<string, IncidenciaInsert[]>>()
 
-  for (const r of records) {
-    if (!map.has(r.numero_empleado)) map.set(r.numero_empleado, new Map())
-    const empMap = map.get(r.numero_empleado)!
-    if (!empMap.has(r.mes)) empMap.set(r.mes, [])
-    empMap.get(r.mes)!.push(r)
+  for (const record of records) {
+    if (!map.has(record.numero_empleado)) map.set(record.numero_empleado, new Map())
+    const empMap = map.get(record.numero_empleado)!
+    if (!empMap.has(record.mes)) empMap.set(record.mes, [])
+    empMap.get(record.mes)!.push(record)
   }
 
   const groups: PreviewGroup[] = []
@@ -73,7 +62,7 @@ function buildPreviewGroups(
       numero,
       nombre: names[numero] ?? null,
       months,
-      totalRecords: months.reduce((a, m) => a + m.items.length, 0),
+      totalRecords: months.reduce((acc, m) => acc + m.items.length, 0),
     })
   }
 
@@ -87,382 +76,219 @@ function buildPreviewGroups(
   })
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Collapsible employee preview row
-// ─────────────────────────────────────────────────────────────────────────────
-
 function EmployeePreviewRow({ group }: { group: PreviewGroup }) {
   const [expanded, setExpanded] = useState(false)
+  const panelId = useId()
   const isBaja = group.nombre === null
 
   return (
-    <div className={`border rounded-xl overflow-hidden ${
-      isBaja ? 'border-destructive/30 opacity-60' : 'border-border'
-    }`}>
-      {/* Header row */}
+    <li className={cn(isBaja && "bg-destructive/5")}>
       <button
         type="button"
-        onClick={() => setExpanded(!expanded)}
-        className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
-          isBaja ? 'bg-destructive/5' : 'hover:bg-muted/30'
-        }`}
+        aria-expanded={expanded}
+        aria-controls={panelId}
+        onClick={() => setExpanded((prev) => !prev)}
+        className="flex min-h-(--control-height) w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-muted/40"
       >
-        <span className="font-sans text-body-sm text-muted-foreground w-12 shrink-0">
+        <span className="w-14 shrink-0 text-body-sm tabular-nums text-muted-foreground">
           #{group.numero}
         </span>
-        <span className={`text-body-md font-medium flex-1 truncate ${
-          isBaja ? 'line-through text-muted-foreground' : ''
-        }`}>
-          {isBaja
-            ? <span className="text-destructive italic">Baja — excluido</span>
-            : group.nombre
-          }
+        <span
+          className={cn(
+            "min-w-0 flex-1 truncate text-body-md",
+            isBaja ? "text-destructive" : "text-foreground",
+          )}
+        >
+          {isBaja ? "Baja (excluido)" : group.nombre}
         </span>
         {isBaja ? (
-          <Badge className="text-body-sm shrink-0 bg-destructive/10 text-destructive border-destructive/30">
+          <Badge variant="destructive" size="sm" className="shrink-0">
             Baja
           </Badge>
         ) : (
-          <Badge variant="secondary" className="text-body-sm shrink-0">
-            {group.months.length} mes{group.months.length !== 1 ? 'es' : ''} · {group.totalRecords} reg
-          </Badge>
+          <span className="shrink-0 text-body-sm tabular-nums text-muted-foreground">
+            {group.months.length} {group.months.length === 1 ? "mes" : "meses"} · {group.totalRecords} reg
+          </span>
         )}
-        {expanded ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground shrink-0" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
-        )}
+        <ChevronDown
+          aria-hidden="true"
+          className={cn(
+            "size-4 shrink-0 text-muted-foreground transition-transform duration-150 motion-reduce:transition-none",
+            expanded && "rotate-180",
+          )}
+        />
       </button>
 
-      {/* Expanded detail */}
-      <AnimatePresence>
-        {expanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="overflow-hidden"
-          >
-            <div className="border-t border-border bg-muted/20 px-3 py-2 space-y-2">
-              {group.months.map(({ mes, items }) => (
-                <div key={mes}>
-                  <p className="text-body-sm font-bold text-foreground mb-1">
-                    {formatMes(mes)}
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {items.map((item, i) => {
-                      const meta = CATEGORY_META[item.categoria]
-                      return (
-                        <span
-                          key={i}
-                          className={`inline-flex items-center gap-1 text-body-sm px-2 py-0.5 rounded-md bg-card border border-border ${meta?.color ?? ''}`}
-                        >
-                          {meta?.shortLabel ?? item.categoria}
-                          <span className="font-sans font-bold">{item.valor}</span>
-                        </span>
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
+      {expanded && (
+        <div id={panelId} className="space-y-2.5 border-t border-border bg-muted/20 px-4 py-3">
+          {group.months.map(({ mes, items }) => (
+            <div key={mes} className="space-y-1.5">
+              <p className="text-label-sm text-foreground">{formatMes(mes)}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {items.map((item, idx) => {
+                  const meta = CATEGORY_META[item.categoria]
+                  return (
+                    <span
+                      key={`${mes}-${item.categoria}-${idx}`}
+                      className={cn(
+                        "inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2 py-0.5 text-body-sm",
+                        meta?.color,
+                      )}
+                    >
+                      <span>{meta?.shortLabel ?? item.categoria}</span>
+                      <span className="text-label-sm tabular-nums">{item.valor}</span>
+                    </span>
+                  )
+                })}
+              </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          ))}
+        </div>
+      )}
+    </li>
   )
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Main component
-// ─────────────────────────────────────────────────────────────────────────────
-
+/** Carga masiva de incidencias desde JSON en dos pasos: pegado y revisión. */
 export function IncidenciasBulkImport({
-  open,
-  onClose,
   employeeNames,
+  loadingEmployees = false,
 }: IncidenciasBulkImportProps) {
   const { saving, importBulk } = useIncidencias()
-
-  const [jsonText, setJsonText] = useState('')
+  const [jsonText, setJsonText] = useState("")
   const [parseResult, setParseResult] = useState<{
     records: IncidenciaInsert[]
     errors: string[]
   } | null>(null)
-  const [importSuccess, setImportSuccess] = useState(false)
-  const fileRef = useRef<HTMLInputElement | null>(null)
 
-  // Build grouped preview
   const previewGroups = useMemo(() => {
     if (!parseResult || parseResult.records.length === 0) return []
     return buildPreviewGroups(parseResult.records, employeeNames)
   }, [parseResult, employeeNames])
 
-  // Stats — separate matched (importable) from bajas (excluded)
   const stats = useMemo(() => {
     if (!previewGroups.length) return null
     const employees = previewGroups.length
-    const matchedGroups = previewGroups.filter(g => g.nombre !== null)
+    const matchedGroups = previewGroups.filter((group) => group.nombre !== null)
     const matched = matchedGroups.length
     const bajas = employees - matched
-    const importableRecords = matchedGroups.reduce((a, g) => a + g.totalRecords, 0)
-    const totalMonths = matchedGroups.reduce((a, g) => a + g.months.length, 0)
+    const importableRecords = matchedGroups.reduce((acc, group) => acc + group.totalRecords, 0)
+    const totalMonths = matchedGroups.reduce((acc, group) => acc + group.months.length, 0)
     return { employees, matched, bajas, importableRecords, totalMonths }
   }, [previewGroups])
 
-  // Records that will actually be imported (only matched employees)
   const importableRecords = useMemo(() => {
     if (!parseResult) return []
     const matchedNumbers = new Set(
-      previewGroups.filter(g => g.nombre !== null).map(g => g.numero)
+      previewGroups.filter((group) => group.nombre !== null).map((group) => group.numero),
     )
-    return parseResult.records.filter(r => matchedNumbers.has(r.numero_empleado))
+    return parseResult.records.filter((record) => matchedNumbers.has(record.numero_empleado))
   }, [parseResult, previewGroups])
 
-  // ── Handlers ─────────────────────────────────────────────────────────────
-
-  const tryParse = (text: string) => {
+  const volverAlEditor = () => {
     setParseResult(null)
-    setImportSuccess(false)
-    if (!text.trim()) return
-    try {
-      const parsed = JSON.parse(text)
-      const arr = Array.isArray(parsed) ? parsed : [parsed]
-      if (arr.length === 0) {
-        setParseResult({ records: [], errors: ['JSON vacío'] })
-        return
-      }
-      setParseResult(parseIncidenciasJSON(arr))
-    } catch {
-      setParseResult({ records: [], errors: ['JSON inválido — verifica formato'] })
-    }
   }
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    const reader = new FileReader()
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string
-      setJsonText(text)
-      tryParse(text)
+  const reiniciar = () => {
+    setJsonText("")
+    setParseResult(null)
+  }
+
+  const validar = () => {
+    setParseResult(null)
+    if (!jsonText.trim()) return
+    try {
+      const parsed = JSON.parse(jsonText)
+      const arr = Array.isArray(parsed) ? parsed : [parsed]
+      if (arr.length === 0) {
+        setParseResult({ records: [], errors: ["JSON vacío."] })
+        return
+      }
+      const result = parseIncidenciasJSON(arr)
+      if (result.errors.length === 0 && result.records.length === 0) {
+        setParseResult({ records: [], errors: ["No se encontraron categorías válidas en los datos."] })
+        return
+      }
+      setParseResult(result)
+    } catch {
+      setParseResult({ records: [], errors: ["JSON inválido. Verifica el formato."] })
     }
-    reader.readAsText(file)
-    if (fileRef.current) fileRef.current.value = ''
   }
 
   const handleImport = async () => {
     if (importableRecords.length === 0) return
     const result = await importBulk(importableRecords)
-    if (result.success) {
-      setImportSuccess(true)
-      setJsonText('')
-      setParseResult(null)
-    }
+    if (result.success) reiniciar()
   }
 
-  const handleReset = () => {
-    setJsonText('')
-    setParseResult(null)
-    setImportSuccess(false)
-  }
+  const employeesMissing = loadingEmployees && Object.keys(employeeNames).length === 0
+  const hasParseErrors = Boolean(parseResult && parseResult.errors.length > 0)
+  const listo = !hasParseErrors && previewGroups.length > 0 && stats !== null
 
-  const handleClose = () => {
-    handleReset()
-    onClose()
-  }
+  if (listo && stats) {
+    return (
+      <div className="step-enter max-w-4xl space-y-4">
+        <JsonReviewHeader
+          disabled={saving}
+          onBack={volverAlEditor}
+          stats={[
+            { label: "Activos", value: stats.matched },
+            { label: "Meses", value: stats.totalMonths },
+            { label: "Registros", value: stats.importableRecords },
+            ...(stats.bajas > 0 ? [{ label: "Bajas (excluidas)", value: stats.bajas }] : []),
+          ]}
+        />
 
-  // ── Render ───────────────────────────────────────────────────────────────
-  return (
-    <ResponsiveShell
-      open={open}
-      onClose={handleClose}
-      title="Importar Incidencias"
-      description="Carga masiva de incidencias por empleado y mes vía archivo JSON."
-      maxWidth="sm:max-w-2xl"
-    >
-      <ModalHeader
-        title="Importar Incidencias"
-        subtitle="Carga masiva de incidencias por empleado y mes vía archivo JSON."
-      />
-      <div className="flex-1 overflow-y-auto p-4 sm:p-(--card-padding) space-y-4">
+        <div className="overflow-hidden rounded-xl border border-border bg-card">
+          <ul className="max-h-[28rem] divide-y divide-border overflow-y-auto scrollbar-thin">
+            {previewGroups.map((group) => (
+              <EmployeePreviewRow key={group.numero} group={group} />
+            ))}
+          </ul>
+        </div>
 
-        <div className="space-y-4">
-          {/* Upload + text area */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fileRef.current?.click()}
-              className="gap-1.5"
-            >
-              <Upload className="h-3.5 w-3.5" />
-              Subir .json
-            </Button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".json"
-              className="hidden"
-              onChange={handleFileUpload}
-            />
-            {jsonText && (
-              <Button variant="ghost" size="sm" onClick={handleReset}>
-                <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                Limpiar
-              </Button>
-            )}
-          </div>
-
-          <Textarea
-            aria-label="JSON de incidencias"
-            value={jsonText}
-            onChange={(e) => { setJsonText(e.target.value); setParseResult(null); setImportSuccess(false) }}
-            placeholder={`[\n  {\n    "numero_empleado": "123",\n    "mes": "2025-01",\n    "FALTA INJUSTIFICADA": 2,\n    "VACACIÓN": 1\n  },\n  {\n    "numero_empleado": "456",\n    "mes": "2025-01",\n    "INCAPACIDAD": 3\n  }\n]`}
-            className="min-h-36 resize-y font-sans scrollbar-thin"
-          />
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => tryParse(jsonText)}
-            disabled={!jsonText.trim()}
-          >
-            Validar JSON
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={saving} onClick={reiniciar}>
+            Cancelar
           </Button>
-
-          {/* ── Parse errors ──────────────────────────────────────────── */}
-          {parseResult && parseResult.errors.length > 0 && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <ul className="text-body-sm space-y-0.5 mt-1">
-                  {parseResult.errors.map((e, i) => (
-                    <li key={i}>• {e}</li>
-                  ))}
-                </ul>
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* ── Preview ───────────────────────────────────────────────── */}
-          <AnimatePresence mode="wait">
-            {previewGroups.length > 0 && stats && (
-              <motion.div
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                className="space-y-3"
-              >
-                {/* Summary bar */}
-                <div className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-muted/50 border border-border">
-                  <Users className="h-4 w-4 text-primary shrink-0" />
-                  <div className="flex flex-wrap gap-2 text-body-sm">
-                    <Badge variant="secondary">
-                      {stats.employees} empleado{stats.employees !== 1 ? 's' : ''}
-                    </Badge>
-                    <Badge variant="secondary">
-                      {stats.totalMonths} mes{stats.totalMonths !== 1 ? 'es' : ''}
-                    </Badge>
-                    <Badge variant="secondary">
-                      {stats.importableRecords} registro{stats.importableRecords !== 1 ? 's' : ''}
-                    </Badge>
-                    {stats.matched > 0 && (
-                      <Badge className="bg-success/10 text-success border-success/30">
-                        {stats.matched} activo{stats.matched !== 1 ? 's' : ''}
-                      </Badge>
-                    )}
-                    {stats.bajas > 0 && (
-                      <Badge className="bg-destructive/10 text-destructive border-destructive/30">
-                        {stats.bajas} baja{stats.bajas !== 1 ? 's' : ''} (excluido{stats.bajas !== 1 ? 's' : ''})
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {/* Employee groups */}
-                <div className="max-h-64 overflow-y-auto scrollbar-thin space-y-2 pr-1">
-                  {previewGroups.map(group => (
-                    <EmployeePreviewRow key={group.numero} group={group} />
-                  ))}
-                </div>
-
-                <div className="flex justify-end gap-2 pt-1">
-                  <Button variant="outline" size="sm" onClick={handleReset}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleImport}
-                    disabled={saving || importableRecords.length === 0}
-                    className="gap-1.5"
-                  >
-                    {saving ? (
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    ) : (
-                      <FileUp className="h-3.5 w-3.5" />
-                    )}
-                    Importar {stats.importableRecords} registros
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Import success */}
-          {importSuccess && (
-            <Alert className="border-success/30 bg-success/10">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              <AlertDescription className="text-success text-body-sm">
-                Incidencias importadas correctamente.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Format help */}
-          <details className="group">
-            <summary className="text-body-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors">
-              ¿Cómo formatear el JSON?
-            </summary>
-            <div className="mt-2 p-3 rounded-xl bg-muted/50 border border-border text-body-sm font-sans whitespace-pre-wrap text-muted-foreground leading-relaxed">
-{`[
-  {
-    "numero_empleado": "123",
-    "mes": "2025-01",
-    "FALTA INJUSTIFICADA": 2,
-    "DIA FESTIVO": 1,
-    "VACACIÓN": 3
-  },
-  {
-    "numero_empleado": "456",
-    "mes": "2025-01",
-    "INCAPACIDAD": 5,
-    "PERMISO HORAS": 2
-  },
-  {
-    "numero_empleado": "123",
-    "mes": "2025-02",
-    "SANCIÓN": 1,
-    "DESCANSO": 4
-  }
-]`}
-            </div>
-            <div className="mt-2 text-body-sm text-muted-foreground space-y-1">
-              <p><strong>Reglas:</strong></p>
-              <ul className="list-disc pl-4 space-y-0.5">
-                <li><code>numero_empleado</code> y <code>mes</code> (YYYY-MM) obligatorios</li>
-                <li>Múltiples empleados y meses en mismo archivo</li>
-                <li>Solo incluir categorías con valor &gt; 0</li>
-                <li>Categorías en MAYÚSCULAS</li>
-              </ul>
-              <p className="pt-1"><strong>Categorías:</strong> {INCIDENCIA_CATEGORIES.join(', ')}</p>
-            </div>
-          </details>
+          <Button
+            type="button"
+            size="sm"
+            loading={saving}
+            disabled={saving || importableRecords.length === 0}
+            onClick={() => void handleImport()}
+          >
+            {`Cargar ${stats.importableRecords} ${stats.importableRecords === 1 ? "registro" : "registros"}`}
+          </Button>
         </div>
       </div>
+    )
+  }
 
-      <ModalFooter onCancel={handleClose} cancelLabel="Cerrar" />
-    </ResponsiveShell>
+  return (
+    <JsonPasteStep
+      value={jsonText}
+      placeholder={PLACEHOLDER_JSON}
+      disabled={saving}
+      loading={employeesMissing}
+      hasError={hasParseErrors}
+      onChange={(next) => {
+        setJsonText(next)
+        setParseResult(null)
+      }}
+      onClear={reiniciar}
+      onValidate={validar}
+      errorSlot={
+        hasParseErrors && parseResult ? (
+          <JsonImportError title="Corrige los datos antes de cargarlos">
+            <ul className="list-disc space-y-0.5 pl-4 text-body-sm">
+              {parseResult.errors.map((err, index) => (
+                <li key={`${index}-${err}`}>{err}</li>
+              ))}
+            </ul>
+          </JsonImportError>
+        ) : undefined
+      }
+    />
   )
 }

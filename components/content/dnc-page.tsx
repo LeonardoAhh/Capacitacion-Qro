@@ -1,10 +1,10 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { Building2, Calendar, FilePlus2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { FilterBar, type Filter, type FilterFieldDef } from "@/components/ui/filter-token-bar"
 import { Skeleton } from "@/components/ui/skeleton"
 import { DncCreateDialog } from "@/components/content/dnc-create-dialog"
 import { DncNeedDialog } from "@/components/content/dnc-need-dialog"
@@ -17,6 +17,7 @@ import {
   cargarAnioDnc, cargarCatalogosDnc, crearReporteDnc, eliminarNecesidadDnc, guardarEncabezadoDnc, guardarNecesidadDnc,
   nombreDepartamento, ordenarReportes, programacionPrevia, sincronizarProgramacionDnc, type CambiosEncabezadoDnc, type DatosNecesidad, type DncDepartment, type DncNecesidad, type DncPosition, type DncReporte,
 } from "@/lib/dnc"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 export default function DncPage() {
   const { canEdit } = useRole()
@@ -45,7 +46,7 @@ export default function DncPage() {
       setSavedYears(data.anios)
       setCatalogsReady(true)
     }).catch(cause => {
-      if (active) setCatalogError(cause instanceof Error ? cause.message : "No se pudo cargar el DNC.")
+      if (active) setCatalogError(describeSupabaseError(cause, "No se pudo cargar el DNC"))
     })
     return () => { active = false }
   }, [])
@@ -60,7 +61,7 @@ export default function DncPage() {
         ? current : data.reportes[0]?.id ?? "")
       setLoadedYear(year)
     }).catch(cause => {
-      if (active) setError(cause instanceof Error ? cause.message : "No se pudo cargar el DNC.")
+      if (active) setError(describeSupabaseError(cause, "No se pudo cargar el DNC"))
     })
     return () => { active = false }
   }, [year])
@@ -134,42 +135,62 @@ export default function DncPage() {
       setNeeds(current => current.filter(item => item.id !== need.id))
       notify.success("Necesidad eliminada")
     } catch (cause) {
-      notify.error(cause instanceof Error ? cause.message : "No se pudo eliminar la necesidad.")
+      notify.error(describeSupabaseError(cause, "No se pudo eliminar la necesidad"))
     }
   }
 
-  // Filtros (el valor elegido ya describe el filtro; la etiqueta queda para lectores de pantalla)
-  // y Crear DNC. Con un reporte abierto van en la misma fila que su encabezado y acciones.
-  const filtros = <>
-    <div>
-      <Label htmlFor="dnc-anio" className="sr-only">Año</Label>
-      <Select value={String(year)} onValueChange={value => {
-        setError(null)
-        setYear(Number(value))
-      }}>
-        <SelectTrigger id="dnc-anio" className="w-28"><SelectValue /></SelectTrigger>
-        <SelectContent>
-          {yearOptions.map(option => <SelectItem key={option} value={String(option)}>{option}</SelectItem>)}
-        </SelectContent>
-      </Select>
-    </div>
-    {ready && reports.length > 0 && (
-      <div className="min-w-0 max-w-full">
-        <Label htmlFor="dnc-departamento" className="sr-only">Departamento</Label>
-        <Select value={selectedReportId} onValueChange={setSelectedReportId}>
-          <SelectTrigger id="dnc-departamento" className="w-auto min-w-44 max-w-full"><SelectValue /></SelectTrigger>
-          <SelectContent matchTriggerWidth>
-            {reports.map(reporte => (
-              <SelectItem key={reporte.id} value={reporte.id}>{nombreDepartamento(reporte)}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-    )}
-    {canEdit && ready && availableDepartments.length > 0 && (
-      <Button type="button" variant="outline" onClick={() => setCreateOpen(true)}>Crear DNC</Button>
-    )}
-  </>
+  const dncFields: FilterFieldDef[] = [
+    {
+      id: "anio",
+      label: "Año",
+      icon: <Calendar aria-hidden="true" />,
+      operators: [],
+      options: yearOptions.map((option) => ({ value: String(option), label: String(option) })),
+    },
+    ...(ready && reports.length > 0
+      ? [{
+          id: "departamento",
+          label: "Departamento",
+          icon: <Building2 aria-hidden="true" />,
+          operators: [],
+          options: reports.map((reporte) => ({ value: reporte.id, label: nombreDepartamento(reporte) })),
+        }]
+      : []),
+  ]
+
+  const dncFilters: Filter[] = [
+    { id: "anio", field: "anio", operator: "is", values: [String(year)], locked: true },
+    ...(ready && reports.length > 0 && selectedReportId
+      ? [{ id: "departamento", field: "departamento", operator: "is", values: [selectedReportId], locked: true }]
+      : []),
+  ]
+
+  const filtros = (
+    <>
+      <FilterBar
+        hideAdd
+        aria-label="Filtros de DNC"
+        fields={dncFields}
+        value={dncFilters}
+        onChange={(next) => {
+          const nextYear = Number(next.find((f) => f.field === "anio")?.values[0] ?? year)
+          if (nextYear !== year) {
+            setError(null)
+            setYear(nextYear)
+            return
+          }
+          const nextReport = next.find((f) => f.field === "departamento")?.values[0]
+          if (nextReport && nextReport !== selectedReportId) setSelectedReportId(nextReport)
+        }}
+      />
+      {canEdit && ready && availableDepartments.length > 0 && (
+        <Button type="button" variant="outline" size="sm" onClick={() => setCreateOpen(true)}>
+          <FilePlus2 aria-hidden="true" />
+          Crear DNC
+        </Button>
+      )}
+    </>
+  )
 
   return (
     <div className="space-y-4">

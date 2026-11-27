@@ -19,6 +19,7 @@ import {
   formatFechaHora, KANBAN_COLUMNAS, limpiarAlEscribir, normalizarTarjeta, normalizarTexto, KANBAN_PRIORIDADES, KANBAN_REPETICIONES, KANBAN_TIPOS, MAX_COLABORADORES, MAX_DESCRIPCION, MAX_TITULO, validarContenido, validarTarjeta,
   type DatosTarjeta, type KanbanEstado, type KanbanMiembro, type KanbanPlantilla, type KanbanPrioridad, type KanbanRepeticion, type KanbanTarjeta, type KanbanTipo,
 } from "@/lib/kanban"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface KanbanCardDialogProps {
   tarjeta: KanbanTarjeta | null
@@ -169,7 +170,7 @@ export function KanbanCardDialog({ tarjeta, estadoInicial, base = null, duplican
     try {
       await onSave(datos)
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "No se pudo guardar la tarjeta.")
+      setError(describeSupabaseError(cause, "No se pudo guardar la tarjeta"))
     } finally {
       setSaving(false)
     }

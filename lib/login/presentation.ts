@@ -7,7 +7,6 @@ export const LOGIN = {
   description: "Accede con tu cuenta de ViñoPlastic.",
   pageTitle: "Iniciar sesión",
   pageDescription: "Accede a la plataforma de ViñoPlastic.",
-  loading: "Cargando…",
   email: "Correo electrónico",
   emailPlaceholder: "Ingresa tu correo electrónico",
   password: "Contraseña",

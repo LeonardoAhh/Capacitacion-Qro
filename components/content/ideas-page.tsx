@@ -1,10 +1,17 @@
 "use client"
 
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
-import { CheckCircle2, CircleDot, Clock, Inbox, Lightbulb, RotateCw, TriangleAlert, X, type LucideIcon } from "lucide-react"
+import { CheckCircle2, CircleDot, Clock, Folder, Inbox, Lightbulb, RotateCw, TriangleAlert, type LucideIcon } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { CompactPager } from "@/components/ui/compact-pager"
+import {
+  DEFAULT_FILTER_OPERATORS,
+  FilterBar,
+  matchesFilterTokens,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import { HeaderSearch } from "@/components/ui/header-search"
 import { Label } from "@/components/ui/label"
 import { SECTION_NAV_ACTIVE, SECTION_NAV_ICON, SECTION_NAV_IDLE, SECTION_NAV_ITEM } from "@/components/ui/section-nav-layout"
@@ -76,9 +83,10 @@ function EstadoSelect({
     >
       <SelectTrigger
         variant="ghost"
+        size="sm"
         aria-label={`Estado de la idea de ${idea.autor}: ${actual.label}`}
         aria-busy={disabled || undefined}
-        className="relative touch-target h-(--control-height-sm) min-w-[9rem] border border-border bg-transparent px-2.5 text-body-sm hover:bg-muted data-[state=open]:bg-muted"
+        className="min-w-[9rem] border border-border bg-transparent px-2.5 text-body-sm hover:bg-muted data-[state=open]:bg-muted"
       >
         <SelectValue />
       </SelectTrigger>
@@ -149,7 +157,7 @@ export function IdeasPage() {
   const [ideas, setIdeas] = useState<Idea[] | null>(() => obtenerIdeasCache())
   const [loadError, setLoadError] = useState<string | null>(null)
   const [estado, setEstado] = useState<FiltroEstado>(TODAS)
-  const [seccion, setSeccion] = useState<string>(TODAS)
+  const [sectionFilters, setSectionFilters] = useState<Filter[]>([])
   const [busqueda, setBusqueda] = useState("")
   const [page, setPage] = useState(1)
   const [savingIds, setSavingIds] = useState<ReadonlySet<string>>(() => new Set())
@@ -165,7 +173,7 @@ export function IdeasPage() {
       if (requestId === requestIdRef.current) setIdeas(rows)
     } catch {
       if (requestId === requestIdRef.current) {
-        setLoadError("No se pudieron cargar las ideas de mejora.")
+        setLoadError("No se pudieron cargar las ideas de mejora")
       }
     }
   }, [])
@@ -176,7 +184,7 @@ export function IdeasPage() {
 
   useEffect(() => {
     setPage(1)
-  }, [estado, seccion, busqueda])
+  }, [estado, sectionFilters, busqueda])
 
   const conteos = useMemo(() => {
     const counts: Record<FiltroEstado, number> = { todas: 0, nueva: 0, en_revision: 0, hecha: 0 }
@@ -191,6 +199,16 @@ export function IdeasPage() {
     return [...new Set(ideas.map((idea) => idea.seccion))].sort((a, b) => a.localeCompare(b, "es-MX"))
   }, [ideas])
 
+  const sectionFields = useMemo<FilterFieldDef[]>(() => [
+    {
+      id: "seccion",
+      label: "Sección",
+      icon: <Folder aria-hidden="true" />,
+      operators: DEFAULT_FILTER_OPERATORS,
+      options: secciones.map((nombre) => ({ value: nombre, label: nombre })),
+    },
+  ], [secciones])
+
   // Optimista: actualiza al instante y revierte si la base rechaza el cambio.
   async function cambiarEstado(idea: Idea, nextEstado: EstadoIdea) {
     if (idea.estado === nextEstado || savingIds.has(idea.id)) return
@@ -204,7 +222,7 @@ export function IdeasPage() {
       }
     } catch {
       setIdeas((current) => current?.map((item) => (item.id === idea.id ? { ...item, estado: idea.estado } : item)) ?? current)
-      notify.error("No se pudo cambiar el estado de la idea.")
+      notify.error("No se pudo cambiar el estado de la idea")
     } finally {
       setSavingIds((prev) => {
         const next = new Set(prev)
@@ -240,10 +258,11 @@ export function IdeasPage() {
   if (!ideas) return <IdeasSkeleton />
 
   const termino = normalizar(busqueda.trim())
-  const seccionActiva = seccion === TODAS || secciones.includes(seccion) ? seccion : TODAS
   const visibles = ideas.filter((idea) => {
     if (estado !== TODAS && idea.estado !== estado) return false
-    if (seccionActiva !== TODAS && idea.seccion !== seccionActiva) return false
+    if (!matchesFilterTokens(sectionFilters, (fieldId) => (fieldId === "seccion" ? idea.seccion : null))) {
+      return false
+    }
     if (!termino) return true
     return normalizar(`${idea.texto} ${idea.seccion} ${idea.autor}`).includes(termino)
   })
@@ -252,11 +271,11 @@ export function IdeasPage() {
   const safePage = Math.min(page, totalPages)
   const paginadas = visibles.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
   const activeQueue = QUEUES.find((item) => item.id === estado) ?? QUEUES[0]
-  const hasSecondaryFilters = seccionActiva !== TODAS || busqueda.trim() !== ""
+  const hasSecondaryFilters = sectionFilters.length > 0 || busqueda.trim() !== ""
   const showToolbar = secciones.length > 1 || hasSecondaryFilters || totalPages > 1
 
   const clearSecondaryFilters = () => {
-    setSeccion(TODAS)
+    setSectionFilters([])
     setBusqueda("")
   }
 
@@ -316,34 +335,12 @@ export function IdeasPage() {
           {showToolbar && (
             <div className="flex flex-wrap items-center gap-2">
               {secciones.length > 1 && (
-                <>
-                  <Label htmlFor="ideas-seccion" className="sr-only">Sección</Label>
-                  <Select value={seccionActiva} onValueChange={setSeccion}>
-                    <SelectTrigger id="ideas-seccion" className="w-48">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={TODAS}>Secciones</SelectItem>
-                      {secciones.map((nombre) => (
-                        <SelectItem key={nombre} value={nombre}>{nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
-              )}
-
-              {hasSecondaryFilters && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="touch-target"
-                  onClick={clearSecondaryFilters}
-                  aria-label="Limpiar filtros"
-                >
-                  <X aria-hidden="true" />
-                  Limpiar
-                </Button>
+                <FilterBar
+                  fields={sectionFields}
+                  value={sectionFilters}
+                  onChange={setSectionFilters}
+                  aria-label="Filtros de ideas"
+                />
               )}
 
               <div className="ml-auto flex items-center gap-3">

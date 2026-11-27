@@ -86,8 +86,8 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      // Estilo "line": texto sobre la línea base; el subrayado activo lo dibuja TabsList.
-      "inline-flex min-h-(--control-height) items-center justify-center whitespace-nowrap rounded-t-md px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-inset disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground",
+      // Estilo "line": texto e ícono sobre la línea base; el subrayado activo lo dibuja TabsList.
+      "inline-flex min-h-(--control-height) items-center justify-center gap-1.5 whitespace-nowrap rounded-t-md px-3 text-label-sm text-muted-foreground transition-colors hover:text-foreground focus-inset disabled:pointer-events-none disabled:opacity-50 data-[state=active]:text-foreground [&_svg]:size-4 [&_svg]:shrink-0",
       className
     )}
     {...props}

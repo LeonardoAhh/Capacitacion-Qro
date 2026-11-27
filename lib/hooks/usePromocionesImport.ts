@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from "react"
 import { supabase } from "@/lib/supabase/client"
 import { notify } from "@/lib/notify"
 import type { ReglaPromocionJSON, DatosPromocionJSON } from "@/lib/promociones/types"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 interface CargaResult {
   ok: boolean
@@ -32,11 +33,11 @@ export function usePromocionesImport(onDatosActualizados?: () => void) {
         const raw = ev.target?.result
         if (typeof raw !== "string") throw new Error("No se pudo leer el archivo")
         const parsed = JSON.parse(raw)
-        if (!Array.isArray(parsed)) throw new Error("El archivo debe ser un array JSON")
+        if (!Array.isArray(parsed)) throw new Error("El archivo no tiene el formato esperado")
         setReglasPreview(parsed as ReglaPromocionJSON[])
         setCargaResult(null)
       } catch (err: unknown) {
-        setCargaResult({ ok: false, msg: err instanceof Error ? err.message : "Error al leer el archivo" })
+        setCargaResult({ ok: false, msg: describeSupabaseError(err, "No se pudo leer el archivo") })
       }
     }
     reader.readAsText(file)
@@ -52,11 +53,11 @@ export function usePromocionesImport(onDatosActualizados?: () => void) {
         const raw = ev.target?.result
         if (typeof raw !== "string") throw new Error("No se pudo leer el archivo")
         const parsed = JSON.parse(raw)
-        if (!Array.isArray(parsed)) throw new Error("El archivo debe ser un array JSON")
+        if (!Array.isArray(parsed)) throw new Error("El archivo no tiene el formato esperado")
         setDatosPreview(parsed as DatosPromocionJSON[])
         setDatosResult(null)
       } catch (err: unknown) {
-        setDatosResult({ ok: false, msg: err instanceof Error ? err.message : "Error al leer el archivo" })
+        setDatosResult({ ok: false, msg: describeSupabaseError(err, "No se pudo leer el archivo") })
       }
     }
     reader.readAsText(file)
@@ -92,8 +93,8 @@ export function usePromocionesImport(onDatosActualizados?: () => void) {
       setReglasPreview(null)
       onDatosActualizados?.()
     } catch (err: unknown) {
-      setCargaResult({ ok: false, msg: err instanceof Error ? err.message : "Error al guardar en Supabase" })
-      notify.error("Error al cargar reglas")
+      setCargaResult({ ok: false, msg: describeSupabaseError(err, "No se pudo guardar") })
+      notify.error("No se pudieron cargar las reglas")
     } finally {
       setCargando(false)
     }
@@ -130,8 +131,8 @@ export function usePromocionesImport(onDatosActualizados?: () => void) {
       setDatosPreview(null)
       onDatosActualizados?.()
     } catch (err: unknown) {
-      setDatosResult({ ok: false, msg: err instanceof Error ? err.message : "Error al guardar en Supabase" })
-      notify.error("Error al cargar datos")
+      setDatosResult({ ok: false, msg: describeSupabaseError(err, "No se pudo guardar") })
+      notify.error("No se pudieron cargar los datos")
     } finally {
       setDatosCargando(false)
     }

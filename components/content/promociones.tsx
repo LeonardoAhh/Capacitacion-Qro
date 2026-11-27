@@ -4,13 +4,20 @@ import React, { useState, useMemo, useCallback } from "react"
 import Link from "next/link"
 import {
   ChartNoAxesColumnIncreasing,
+  CircleDot,
   Download,
   FileSpreadsheet,
   FileText,
   SlidersHorizontal,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  DEFAULT_FILTER_OPERATORS,
+  FilterBar,
+  matchesFilterTokens,
+  type Filter,
+  type FilterFieldDef,
+} from "@/components/ui/filter-token-bar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -57,6 +64,16 @@ const ESTADOS_FILTRO = [
   { value: "bloqueado_examen", label: "Penalizado" },
 ]
 
+const PROMOCION_FILTER_FIELDS: FilterFieldDef[] = [
+  {
+    id: "estado",
+    label: "Estado",
+    icon: <CircleDot aria-hidden="true" />,
+    operators: DEFAULT_FILTER_OPERATORS,
+    options: ESTADOS_FILTRO,
+  },
+]
+
 export default function PromocionesContent({
   empleados,
   loading = false,
@@ -72,7 +89,7 @@ export default function PromocionesContent({
 }) {
   const { isReadOnly } = useRole()
   const [busqueda, setBusqueda] = useState("")
-  const [filtroStatus, setFiltroStatus] = useState("todos")
+  const [filters, setFilters] = useState<Filter[]>([])
   const [pagina, setPagina] = useState(1)
   const [empleadoPromover, setEmpleadoPromover] = useState<EmpleadoPromocion | null>(null)
   const [empleadoExamen, setEmpleadoExamen] = useState<EmpleadoPromocion | null>(null)
@@ -98,7 +115,9 @@ export default function PromocionesContent({
     const conCategoria: EmpleadoPromocion[] = []
     const sinCategoria: EmpleadoPromocion[] = []
     for (const item of empleadosIndexados) {
-      if (filtroStatus !== "todos" && item.aptitud !== filtroStatus) continue
+      if (!matchesFilterTokens(filters, (fieldId) => (fieldId === "estado" ? item.aptitud : null))) {
+        continue
+      }
       if (
         query !== "" &&
         !item.nombreLower.includes(query) &&
@@ -111,9 +130,9 @@ export default function PromocionesContent({
       else sinCategoria.push(item.emp)
     }
     return [...conCategoria, ...sinCategoria]
-  }, [empleadosIndexados, busqueda, filtroStatus])
+  }, [empleadosIndexados, busqueda, filters])
 
-  React.useEffect(() => { setPagina(1) }, [busqueda, filtroStatus])
+  React.useEffect(() => { setPagina(1) }, [busqueda, filters])
 
   const totalPaginas = Math.ceil(todosOrdenados.length / PAGE_SIZE)
   const { paginadosConCategoria, paginadosSinCategoria } = useMemo(() => {
@@ -127,37 +146,42 @@ export default function PromocionesContent({
     return { paginadosConCategoria: con, paginadosSinCategoria: sin }
   }, [todosOrdenados, pagina])
 
-  const hasFilters = busqueda || filtroStatus !== "todos"
+  const hasFilters = busqueda !== "" || filters.length > 0
 
   const [exporting, setExporting] = useState(false)
-  const exportMeta = useMemo(
-    () => ({ filtros: { busqueda, estado: filtroStatus } }),
-    [busqueda, filtroStatus]
-  )
+  const exportMeta = useMemo(() => {
+    const estadoValues = filters.filter((f) => f.field === "estado").flatMap((f) => f.values)
+    return {
+      filtros: {
+        busqueda,
+        estado: estadoValues.length ? estadoValues.join(",") : "todos",
+      },
+    }
+  }, [busqueda, filters])
 
   const handleExportPDF = useCallback(async () => {
-    if (todosOrdenados.length === 0) { notify.error("No hay registros para exportar"); return }
+    if (todosOrdenados.length === 0) { notify.error("No hay registros para descargar"); return }
     setExporting(true)
     try {
       await exportPromocionesPDF(todosOrdenados, exportMeta)
       notify.success(`PDF generado (${todosOrdenados.length} registros)`)
     } catch (e) {
       console.error(e)
-      notify.error("Error al generar el PDF")
+      notify.error("No se pudo descargar el PDF")
     } finally {
       setExporting(false)
     }
   }, [todosOrdenados, exportMeta])
 
   const handleExportExcel = useCallback(async () => {
-    if (todosOrdenados.length === 0) { notify.error("No hay registros para exportar"); return }
+    if (todosOrdenados.length === 0) { notify.error("No hay registros para descargar"); return }
     setExporting(true)
     try {
       await exportPromocionesExcel(todosOrdenados, exportMeta)
       notify.success(`Excel generado (${todosOrdenados.length} registros)`)
     } catch (e) {
       console.error(e)
-      notify.error("Error al generar el Excel")
+      notify.error("No se pudo descargar el Excel")
     } finally {
       setExporting(false)
     }
@@ -197,15 +221,13 @@ export default function PromocionesContent({
         placeholder="Buscar empleado, puesto, número…" />
       <div className="@container">
       <div className="flex flex-wrap items-center gap-2">
-        <Select value={filtroStatus} onValueChange={setFiltroStatus} disabled={loading}>
-          <SelectTrigger className="w-36 shrink-0" aria-label="Filtrar por estado">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todos">Estados</SelectItem>
-            {ESTADOS_FILTRO.map(({ value, label }) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
-          </SelectContent>
-        </Select>
+        <FilterBar
+          fields={PROMOCION_FILTER_FIELDS}
+          value={filters}
+          onChange={setFilters}
+          disabled={loading}
+          aria-label="Filtros de categorías"
+        />
         <div className="ml-auto flex shrink-0 items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -213,12 +235,13 @@ export default function PromocionesContent({
                   variant="outline"
                   size="sm"
                   className="touch-target"
-                  disabled={loading || exporting || todosOrdenados.length === 0}
+                  disabled={loading || todosOrdenados.length === 0}
+                  loading={exporting}
                   data-testid="promociones-export-trigger"
-                  aria-label={exporting ? "Generando…" : "Descargar"}
+                  aria-label="Descargar"
                 >
                   <Download aria-hidden="true" />
-                  <span className="hidden @xl:inline">{exporting ? "Generando…" : "Descargar"}</span>
+                  <span className="hidden @xl:inline">Descargar</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-52">

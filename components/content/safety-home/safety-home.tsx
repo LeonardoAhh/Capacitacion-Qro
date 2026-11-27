@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, ClipboardCheck, Hourglass, LayoutGrid, List, Plus, RotateCw } from "lucide-react"
+import { AlertCircle, ClipboardCheck, Hourglass, LayoutGrid, List, Loader2, Plus, RotateCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -102,7 +102,7 @@ export function SafetyHome() {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const detailSide = useMediaQuery(FINDING_DETAIL_SIDE_QUERY)
 
-  const refreshFindings = useCallback(async (preferredWeek?: string, fallbackError = "No se pudieron cargar los hallazgos.") => {
+  const refreshFindings = useCallback(async (preferredWeek?: string, fallbackError = "No se pudieron cargar los hallazgos") => {
     try {
       const findings = await loadFindings()
       const weeks = sortWeekKeysDesc([...new Set(findings.map(weekKeyOf))])
@@ -128,7 +128,7 @@ export function SafetyHome() {
       setSelectedWeek((current) => (current && weeks.includes(current) ? current : weeks[0] ?? ""))
       setError("")
     }).catch((err) => {
-      if (active) setError(describeSupabaseError(err, "No se pudieron cargar los hallazgos."))
+      if (active) setError(describeSupabaseError(err, "No se pudieron cargar los hallazgos"))
     }).finally(() => {
       if (active) setLoading(false)
     })
@@ -173,14 +173,14 @@ export function SafetyHome() {
           <div className="flex flex-wrap items-center gap-2 sm:justify-end">
             {/* Filtro de vencidos (todas las semanas); solo aparece si hay alguno. */}
             {overdueFindings.length > 0 && (
-              <Button type="button" variant="outline" aria-pressed={showingOverdue}
+              <Button type="button" variant="outline" size="sm" aria-pressed={showingOverdue}
                 className={cn("tabular-nums", showingOverdue && "border-destructive text-destructive hover:text-destructive")}
                 onClick={() => { setOnlyOverdue(!showingOverdue); setPage(1); setSelectedId(null) }}>
                 <Hourglass aria-hidden="true" />Vencidos {overdueFindings.length}
               </Button>
             )}
             <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length || showingOverdue}>
-              <SelectTrigger variant="ghost" aria-label="Seleccionar semana" className="font-medium max-sm:min-w-0 max-sm:flex-1 max-sm:justify-between">
+              <SelectTrigger variant="ghost" size="sm" aria-label="Seleccionar semana" className="font-medium max-sm:min-w-0 max-sm:flex-1 max-sm:justify-between">
                 <SelectValue placeholder="Sin semanas" />
               </SelectTrigger>
               <SelectContent matchTriggerWidth>
@@ -200,7 +200,7 @@ export function SafetyHome() {
             )}
 
             {canEdit && (
-              <Button type="button" onClick={() => setIsCreateOpen(true)}>
+              <Button type="button" size="sm" onClick={() => setIsCreateOpen(true)}>
                 <Plus aria-hidden="true" />Crear
               </Button>
             )}
@@ -343,6 +343,7 @@ export function SafetyHome() {
               <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
               <AlertDialogAction
                 disabled={isDeleting}
+                aria-busy={isDeleting || undefined}
                 className="bg-destructive text-destructive-foreground ui-hover-destructive"
                 onClick={async (event) => {
                   event.preventDefault()
@@ -360,14 +361,15 @@ export function SafetyHome() {
                     setDeleting(null)
                     setError("")
                   } catch (err) {
-                    setError(describeSupabaseError(err, "No se pudo borrar el hallazgo."))
+                    setError(describeSupabaseError(err, "No se pudo borrar el hallazgo"))
                     setDeleting(null)
                   } finally {
                     setIsDeleting(false)
                   }
                 }}
               >
-                {isDeleting ? "Borrando…" : "Borrar"}
+                {isDeleting && <Loader2 className="animate-spin motion-reduce:animate-none" aria-hidden="true" />}
+                Borrar
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

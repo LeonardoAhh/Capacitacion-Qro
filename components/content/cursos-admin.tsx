@@ -8,10 +8,8 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  GripVertical,
   QrCode,
   AlertCircle,
-  Check,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,9 +23,9 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ResponsiveShell, ModalHeader, ModalFooter } from "@/components/ui/responsive-shell"
 import { useCursosPublicos, type CursoPublico, type CursoPublicoInput } from "@/lib/hooks"
 import { useRole } from "@/lib/hooks"
-import { RoleGate } from "@/components/role-gate"
 import { notify } from "@/lib/notify"
 import { detectarCategoria, getToneClasses } from "@/lib/constants/cursos-categorias"
+import { describeSupabaseError } from "@/lib/supabase/errors"
 
 // ─── Cover semántico ────────────────────────────
 
@@ -154,7 +152,7 @@ function CursoDialog({ open, saving, inicial, onClose, onSave }: CursoDialogProp
 
   const validate = (): boolean => {
     const e: typeof errors = {}
-    if (!form.nombre.trim()) e.nombre = "El nombre es requerido"
+    if (!form.nombre.trim()) e.nombre = "Falta el nombre"
     if (!form.url.trim()) {
       e.url = "La URL es requerida"
     } else {
@@ -413,7 +411,7 @@ function CursoRow({ curso, canEdit, onEdit, onToggle, onDelete }: CursoRowProps)
 
 export default function CursosAdminContent() {
   const { canEdit } = useRole()
-  const { cursos, loading, error, crear, actualizar, eliminar } = useCursosPublicos()
+  const { cursos, loading, crear, actualizar, eliminar } = useCursosPublicos()
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<CursoPublico | null>(null)
   const [saving, setSaving] = useState(false)
@@ -442,7 +440,7 @@ export default function CursosAdminContent() {
       }
       setDialogOpen(false)
     } catch (e) {
-      notify.error(e instanceof Error ? e.message : "Error al guardar")
+      notify.error(describeSupabaseError(e, "No se pudo guardar"))
     } finally {
       setSaving(false)
     }
@@ -453,7 +451,7 @@ export default function CursosAdminContent() {
       await actualizar(curso.id, { activo: !curso.activo })
       notify.success(curso.activo ? "Curso ocultado" : "Curso visible")
     } catch {
-      notify.error("Error al actualizar")
+      notify.error("No se pudo actualizar")
     }
   }
 
@@ -465,7 +463,7 @@ export default function CursosAdminContent() {
       notify.success("Curso eliminado")
       setDeleteTarget(null)
     } catch {
-      notify.error("Error al eliminar")
+      notify.error("No se pudo eliminar")
     } finally {
       setDeleting(false)
     }
@@ -485,14 +483,6 @@ export default function CursosAdminContent() {
           </div>
         </div>
 
-        {/* Error state */}
-        {error && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-
         {/* Loading skeletons */}
         {loading && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -503,7 +493,7 @@ export default function CursosAdminContent() {
         )}
 
         {/* Empty */}
-        {!loading && !error && cursos.length === 0 && (
+        {!loading && cursos.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3 border rounded-xl bg-muted/30">
             <QrCode size={40} className="text-muted-foreground/40" />
             <p className="text-muted-foreground text-body-md">

@@ -9,7 +9,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
       <input
         type={type}
         className={cn(
-          "flex h-(--control-height) w-full min-w-0 rounded-md border border-input bg-card px-3 py-1 text-body-lg text-foreground transition-colors file:cursor-pointer file:border-0 file:bg-transparent file:text-body-md file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:bg-muted read-only:text-muted-foreground aria-[invalid=true]:border-destructive disabled:cursor-not-allowed disabled:opacity-50 md:text-body-md",
+          "flex h-(--control-height) w-full min-w-0 rounded-md border border-border bg-card px-3 py-1 text-body-lg text-foreground transition-colors hover:border-muted-foreground/60 file:cursor-pointer file:border-0 file:bg-transparent file:text-body-md file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:bg-muted read-only:text-muted-foreground read-only:hover:border-border aria-[invalid=true]:border-destructive disabled:cursor-not-allowed disabled:opacity-50 md:text-body-md",
           (type === "number" || type === "date") && "tabular-nums",
           type === "date" && "appearance-none leading-tight py-0",
           className
