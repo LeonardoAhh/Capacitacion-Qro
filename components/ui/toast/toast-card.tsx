@@ -113,6 +113,18 @@ export function ToastCard({ toast, effect, placement, paused, reducedMotion, onH
   // Con materialize la tarjeta entra y sale por tramado; si no, por transparencia.
   const visible = placement.index < 3 && (materialize || (mounted && !gone))
   const textVisible = cardReady && !toast.leaving
+  const inlineAction = Boolean(toast.action && !toast.description)
+  const actionButton = toast.action ? (
+    <Button
+      type="button"
+      variant="outline"
+      size="xs"
+      className={cn(inlineAction ? "shrink-0" : "mt-2")}
+      onClick={() => { toast.action?.onClick(); if (toast.action?.closeOnClick !== false) closeToast(toast.id) }}
+    >
+      {toast.action.label}
+    </Button>
+  ) : null
   const style: CSSProperties = {
     zIndex: 10 - placement.index,
     height: placement.height,
@@ -139,14 +151,18 @@ export function ToastCard({ toast, effect, placement, paused, reducedMotion, onH
     >
       <div
         ref={contentRef}
-        className={cn("flex gap-3 px-4 py-3 transition-opacity duration-150", placement.covered && "opacity-0")}
+        className={cn(
+          "flex gap-3 px-4 py-3 transition-opacity duration-150",
+          inlineAction && "items-center pr-10",
+          placement.covered && "opacity-0",
+        )}
       >
         {/* Alto de una línea del título: la marca queda centrada en la primera línea. */}
         <span className="flex h-[1lh] items-center text-label-sm">
           <ToastMark toneClass={toneClass} loading={toast.kind === "loading"} reducedMotion={reducedMotion} />
         </span>
         {/* Máximo dos líneas: el título solo, o una de título y una de descripción. */}
-        <div className="min-w-0 flex-1 pr-6">
+        <div className={cn("flex min-w-0 flex-1 flex-col items-start", !inlineAction && "pr-6")}>
           <DitherText
             text={toast.title}
             visible={textVisible}
@@ -162,12 +178,9 @@ export function ToastCard({ toast, effect, placement, paused, reducedMotion, onH
               {toast.description}
             </p>
           )}
-          {toast.action && (
-            <Button type="button" variant="outline" size="xs" className="mt-2" onClick={() => { toast.action?.onClick(); if (toast.action?.closeOnClick !== false) closeToast(toast.id) }}>
-              {toast.action.label}
-            </Button>
-          )}
+          {!inlineAction && actionButton}
         </div>
+        {inlineAction && actionButton}
       </div>
       {/* La X aparece al pasar el puntero o con el teclado; en pantallas táctiles siempre se ve. */}
       <Button
@@ -177,7 +190,8 @@ export function ToastCard({ toast, effect, placement, paused, reducedMotion, onH
         aria-label="Cerrar notificación"
         onClick={() => closeToast(toast.id)}
         className={cn(
-          "absolute right-2 top-2 size-7 px-0 text-muted-foreground opacity-0 transition-opacity",
+          "absolute right-2 size-7 px-0 text-muted-foreground opacity-0 transition-opacity",
+          inlineAction ? "top-1/2 -translate-y-1/2" : "top-2",
           "group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100",
           placement.covered && "invisible",
         )}
