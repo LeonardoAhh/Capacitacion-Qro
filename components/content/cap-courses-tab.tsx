@@ -1,6 +1,6 @@
 "use client"
 import { useState, useMemo } from "react"
-import { Download, FileSpreadsheet, Plus } from "lucide-react"
+import { Download, FileSpreadsheet, FileUp, Plus } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Button } from "@/components/ui/button"
 import { HeaderSearch } from "@/components/ui/header-search"
@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 import { downloadExcelReport } from "@/lib/capacitacion/excel"
 import { CapReportPreviewDialog } from "@/components/content/cap-report-preview-dialog"
 import { CapCourseAuditDialog } from "@/components/content/cap-course-audit-dialog"
+import { CapCourseItDialog } from "@/components/content/cap-course-it-dialog"
 import { CapCourseDetailView } from "@/components/content/cap-course-detail-view"
 import type { Course, Position, PositionCourse, Employee, EmployeeCourse } from "@/lib/hooks"
 
@@ -75,6 +76,7 @@ export function CapCoursesTab({
 
   const [previewOpen, setPreviewOpen] = useState(false)
   const [auditOpen, setAuditOpen] = useState(false)
+  const [itExportOpen, setItExportOpen] = useState(false)
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null)
 
   const handleDownload = async () => {
@@ -104,6 +106,10 @@ export function CapCoursesTab({
             <Button variant="outline" size="sm" className="touch-target" disabled={loadingCourses || loadingDetails} onClick={() => setPreviewOpen(true)}>
               <Download aria-hidden="true" />
               <span>Reporte</span>
+            </Button>
+            <Button variant="outline" size="sm" className="touch-target" disabled={loadingCourses || loadingDetails} onClick={() => setItExportOpen(true)}>
+              <FileUp aria-hidden="true" />
+              <span>Formato IT</span>
             </Button>
             <div className="ml-auto flex items-center gap-2">
               {!isReadOnly && (
@@ -187,6 +193,14 @@ export function CapCoursesTab({
       <CapCourseAuditDialog
         open={auditOpen}
         onOpenChange={setAuditOpen}
+        courses={courses}
+        employees={employees}
+        empCourses={empCourses}
+      />
+
+      <CapCourseItDialog
+        open={itExportOpen}
+        onOpenChange={setItExportOpen}
         courses={courses}
         employees={employees}
         empCourses={empCourses}
