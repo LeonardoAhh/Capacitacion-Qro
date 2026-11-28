@@ -14,6 +14,8 @@ import { normalizeCourseName } from "@/lib/hooks/useCapacitacion"
 import { notify } from "@/lib/notify"
 import { cn } from "@/lib/utils"
 
+const CODIGOS_STORAGE_KEY = "cap:it-codigos-curso"
+
 interface CapCourseItDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -45,18 +47,45 @@ function compareNumero(a: string, b: string): number {
   return a.localeCompare(b, "es-MX", { numeric: true })
 }
 
+function leerCodigosGuardados(): Record<string, string> {
+  if (typeof window === "undefined") return {}
+  try {
+    const raw = window.localStorage.getItem(CODIGOS_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw) as unknown
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? (parsed as Record<string, string>)
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+function guardarCodigoCurso(courseId: string, codigo: string) {
+  try {
+    const actuales = leerCodigosGuardados()
+    actuales[courseId] = codigo
+    window.localStorage.setItem(CODIGOS_STORAGE_KEY, JSON.stringify(actuales))
+  } catch {
+    // Almacenamiento no disponible en contextos restringidos.
+  }
+}
+
 /**
  * Exporta los registros de un curso y una fecha de aplicación específicos en el formato
- * requerido por la plataforma de IT: NoEmpleado, Nombre (del curso), FechaAplicacion y Calificacion.
+ * requerido por la plataforma de IT (hoja "hoja1"):
+ * NoEmpleado, CodCurso, FechaAplicacion, Calificacion y Observaciones.
  */
 export function CapCourseItDialog({ open, onOpenChange, courses, employees, empCourses }: CapCourseItDialogProps) {
   const [selectedCourseId, setSelectedCourseId] = useState("")
+  const [codCurso, setCodCurso] = useState("")
   const [selectedDate, setSelectedDate] = useState("")
   const [pickerOpen, setPickerOpen] = useState(false)
   const [courseSearch, setCourseSearch] = useState("")
   const [isExporting, setIsExporting] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const listId = useId()
+  const codeFieldId = useId()
   const dateFieldId = useId()
 
   useEffect(() => {
@@ -137,19 +166,22 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
     return [...byNumero.values()].sort((a, b) => compareNumero(a.numero, b.numero))
   }, [selectedCourse, activeDate, courseRecords, employeeById])
 
+  const trimmedCode = codCurso.trim()
+
   const handleClose = () => {
     if (!isExporting) onOpenChange(false)
   }
 
   const pickCourse = (courseId: string) => {
     setSelectedCourseId(courseId)
+    setCodCurso(leerCodigosGuardados()[courseId] ?? "")
     setSelectedDate("")
     setPickerOpen(false)
     setCourseSearch("")
   }
 
   const handleExport = async () => {
-    if (!selectedCourse || !activeDate || exportRows.length === 0 || isExporting) return
+    if (!selectedCourse || !activeDate || !trimmedCode || exportRows.length === 0 || isExporting) return
     setIsExporting(true)
 
     try {
@@ -157,22 +189,25 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
       // @ts-expect-error file-saver no incluye declaraciones de tipos en este proyecto
       const { saveAs } = await import("file-saver")
       const workbook = new ExcelJS.Workbook()
-      const sheet = workbook.addWorksheet("Cursos")
+      const sheet = workbook.addWorksheet("hoja1")
 
       sheet.columns = [
         { header: "NoEmpleado", key: "noEmpleado", width: 15 },
-        { header: "Nombre", key: "nombre", width: 38 },
+        { header: "CodCurso", key: "codCurso", width: 16 },
         { header: "FechaAplicacion", key: "fechaAplicacion", width: 18 },
         { header: "Calificacion", key: "calificacion", width: 14 },
+        { header: "Observaciones", key: "observaciones", width: 24 },
       ]
 
+      const parsedCode = /^\d+$/.test(trimmedCode) ? Number(trimmedCode) : trimmedCode
       for (const row of exportRows) {
         const parsedNo = /^\d+$/.test(row.numero) ? Number(row.numero) : row.numero
         const added = sheet.addRow({
           noEmpleado: parsedNo,
-          nombre: selectedCourse.name,
+          codCurso: parsedCode,
           fechaAplicacion: parseIsoToUtcDate(row.fecha),
           calificacion: row.calificacion ?? "",
+          observaciones: "",
         })
         added.getCell("fechaAplicacion").numFmt = "dd/mm/yyyy"
       }
@@ -182,6 +217,7 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
       headerRow.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF92D050" } }
       headerRow.alignment = { vertical: "middle", horizontal: "center" }
 
+      guardarCodigoCurso(selectedCourse.id, trimmedCode)
       const buffer = await workbook.xlsx.writeBuffer()
       saveAs(new Blob([buffer]), `${sanitizeFileName(selectedCourse.name)}.xlsx`)
       notify.success(`Excel descargado (${exportRows.length.toLocaleString("es-MX")} registros)`)
@@ -206,7 +242,7 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
 
       <div className="space-y-4 overflow-y-auto bg-card px-4 py-4 sm:px-6">
         <p className="text-body-sm text-muted-foreground">
-          Columnas: NoEmpleado, Nombre, FechaAplicacion y Calificacion.
+          Hoja: hoja1 · Columnas: NoEmpleado, CodCurso, FechaAplicacion, Calificacion y Observaciones.
         </p>
 
         <div className="space-y-2">
@@ -294,24 +330,39 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
         </div>
 
         {selectedCourse && (
-          <div className="space-y-2">
-            <Label htmlFor={dateFieldId}>Fecha de aplicación</Label>
-            <Select
-              value={activeDate}
-              onValueChange={setSelectedDate}
-              disabled={isExporting || availableDates.length === 0}
-            >
-              <SelectTrigger id={dateFieldId} className="w-full tabular-nums">
-                <SelectValue placeholder="Sin fechas registradas" />
-              </SelectTrigger>
-              <SelectContent matchTriggerWidth className="max-h-60">
-                {availableDates.map(item => (
-                  <SelectItem key={item.iso} value={item.iso}>
-                    {item.label} ({item.count} {item.count === 1 ? "empleado" : "empleados"})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor={codeFieldId}>CodCurso</Label>
+              <Input
+                id={codeFieldId}
+                autoComplete="off"
+                disabled={isExporting}
+                placeholder="Ej. 104"
+                value={codCurso}
+                onChange={event => setCodCurso(event.target.value)}
+                className="tabular-nums"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor={dateFieldId}>Fecha de aplicación</Label>
+              <Select
+                value={activeDate}
+                onValueChange={setSelectedDate}
+                disabled={isExporting || availableDates.length === 0}
+              >
+                <SelectTrigger id={dateFieldId} className="w-full tabular-nums">
+                  <SelectValue placeholder="Sin fechas registradas" />
+                </SelectTrigger>
+                <SelectContent matchTriggerWidth className="max-h-60">
+                  {availableDates.map(item => (
+                    <SelectItem key={item.iso} value={item.iso}>
+                      {item.label} ({item.count})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
 
@@ -337,7 +388,7 @@ export function CapCourseItDialog({ open, onOpenChange, courses, employees, empC
         saving={isExporting}
         confirmLabel="Descargar Excel"
         confirmIcon={<Download className="size-4" aria-hidden="true" />}
-        confirmDisabled={exportRows.length === 0}
+        confirmDisabled={!trimmedCode || exportRows.length === 0}
       />
     </ResponsiveShell>
   )
