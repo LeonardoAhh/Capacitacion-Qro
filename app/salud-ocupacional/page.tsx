@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <Dashboard fullWidth fillHeight content={<SaludOcupacionalPage />} />
+  return <Dashboard fillHeight content={<SaludOcupacionalPage />} />
 }

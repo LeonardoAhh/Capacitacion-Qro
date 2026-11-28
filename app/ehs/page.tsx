@@ -8,5 +8,5 @@ export const metadata: Metadata = {
 }
 
 export default function SafetyHomePage() {
-  return <Dashboard fullWidth content={<SafetyHome />} />
+  return <Dashboard content={<SafetyHome />} />
 }

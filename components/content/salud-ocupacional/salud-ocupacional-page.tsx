@@ -5,11 +5,9 @@ import { AlertCircle, Plus, RotateCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { formatDiaCompleto, MonthCalendar, type CalendarEvent } from "@/components/ui/month-calendar"
-import { DETAIL_SIDE_QUERY } from "@/components/ui/side-detail-panel"
 import { Skeleton } from "@/components/ui/skeleton"
 import { hoyISO } from "@/lib/fechas"
 import { useRole } from "@/lib/hooks"
-import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { notify } from "@/lib/notify"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import {
@@ -29,7 +27,6 @@ export function SaludOcupacionalPage() {
   const [detalle, setDetalle] = useState<string | null>(null)
   const [dialogo, setDialogo] = useState<Dialogo>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const detailSide = useMediaQuery(DETAIL_SIDE_QUERY)
   const { canManageSafety } = useRole()
   const [accidentes, setAccidentes] = useState<Accidente[]>([])
   const [loading, setLoading] = useState(true)
@@ -123,7 +120,7 @@ export function SaludOcupacionalPage() {
   if (detalle && delDetalle.length) {
     return <>
       <AccidentesDetalle titulo={formatDiaCompleto(detalle)} accidentes={delDetalle} canEdit={canManageSafety}
-        selectedId={selectedId} side={detailSide} onSelect={setSelectedId}
+        selectedId={selectedId} onSelect={setSelectedId}
         onBack={() => { setDetalle(null); setSelectedId(null) }} onCreate={() => setDialogo({ modo: "crear", fecha: detalle })}
         onEdit={accidente => setDialogo({ modo: "editar", accidente })} onDelete={eliminar} />
       {modal}

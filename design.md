@@ -210,21 +210,41 @@ Cards are rectangles at 12–16px radius; marketing buttons and category tabs ar
 **`button-icon`** — functional icon control
 - Background `{colors.canvas-elevated}`, text `{colors.ink}`, 1px hairline `{colors.hairline}`, type `{typography.body-lg}`, rounded `{rounded.sm}`, no padding. Circular avatar is the only use of `{rounded.full}`.
 
+**Workspace toolbar sizing (`size="sm"` / `--control-height-sm`)**
+- Page toolbars, inline action rows, and floating detail bars standardize on `36px` visual height (`32px` in dense mode) via `Button size="sm"`, `SelectTrigger size="sm"`, and `w-(--control-height-sm) px-0` for icon-only toolbar controls. Visual compaction always pairs with `relative touch-target` so interactive hit areas stay at least `44×44px`.
+
 ### Inputs & Forms
 
 **`text-input`** — default form field
-- Background `{colors.canvas-elevated}`, ink text `{colors.ink}`, 1px hairline `{colors.hairline}`, type `{typography.body-md}`, rounded `{rounded.sm}`, padding `{spacing.xs} {spacing.sm}`.
+- Background `bg-card` (`{colors.canvas-elevated}`), ink text `text-foreground`, 1px hairline `border-border` (`{colors.hairline}`, never heavy `border-input`), type `{typography.body-md}`, rounded `{rounded.sm}` (`6px`), padding `{spacing.xs} {spacing.sm}`. `Input`, `Textarea`, `SelectTrigger`, and `WeekStripCalendar` share this exact hairline chrome and subtle hover tint.
+- When inputs sit inside page toolbars or horizontal capture rows on desktop (`md+`), align height to `md:h-(--control-height-sm)` (`36px`) while keeping `44px` (`--control-height`) on mobile touch screens.
 
 **`choice-toggle`** — single-choice buttons inside forms (Yes/No, severity levels)
-- One button per option in an equal-width row, separated by `{spacing.xs}`. Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, rounded `{rounded.sm}`, control height, type `{typography.body-md}` at regular weight. Selected: border and text in the theme `--primary`, still no fill, weight 500. Hover: the grey `--accent` fill of outline buttons on both options; the selected one keeps its primary border and text. Exposes `aria-pressed` and stays inside a labelled group. Do not use radio circles or a grey track for these choices.
+- One button per option in an equal-width row, separated by `{spacing.xs}`. Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, rounded `{rounded.sm}`, control height, type `{typography.body-md}` at regular weight. Selected: border and text in the theme `--primary`, still no fill, weight 500. Hover: the grey `--accent` fill of outline buttons on both options; the selected one keeps its primary border and text. Exposes `aria-pressed` and stays inside a labelled group. Do not use radio circles or a grey track for these choices. Reserve `ChoiceToggle` strictly for form fields, never for view or section tabs.
 
-**`toolbar-filters`** — filters in page toolbars
-- One filter: a plain select, never the grouped menu. Two or more filters that do not fit on one line: the single `Filtros` button (icon + text) that groups them as sub-menus.
-- Selects carry text only, no leading icon. Their "no filter" option is the filter's plural noun (`Departamentos`, `Estados`, `Periodos`), never "Todos los …". Option labels are short words with no parenthetical details; the select is wide enough for its longest option so nothing truncates.
-- Filter controls never collapse to icon-only. The clear action is a ghost button with an `X` icon and the text `Limpiar`, shown only while a filter is active.
+**`filter-token-bar`**: unified filters in page toolbars (`components/ui/filter-token-bar.tsx`)
+- One shared token filter bar across both workspaces replaces standalone selects and grouped `Filtros` dropdowns.
+- Mandatory context selectors (Month, Year, Department, Period) render as `locked` tokens (`[Icon Field | Value]`) with `hideAdd` when no optional filters exist.
+- Optional filters add tokens through the dashed `+ Filtrar` button (`h-(--control-height-sm)`), support operators (`es`, `no es`, `es cualquiera de`), hold incomplete selections in internal draft state without emitting empty filters, and show a ghost `Limpiar` button only while filters are active.
+- Popovers anchor flush-left to the token (`[data-fb-token]`), use compact width when non-searchable and `min-w-[13rem]` when searchable, and set `data-side="bottom"` or `"top"`.
 - Search does not live in the toolbar: it goes in the header magnifier (`HeaderSearch`).
 
+**`tabs`**: canonical navigation and view switcher (`components/ui/tabs.tsx`)
+- Both workspaces share one tab style: clean underline tabs with a `2px` `--primary` active bottom bar, `text-label-sm`, transparent background, and optional `size-4` leading icon (`gap-1.5`). Do not build boxed, pill, or button-group tab bars.
+
 ### Cards & Containers
+
+**`floating-surfaces`**: popovers, menus, tooltips, floating toolbars (`ui-floating-surface`)
+- Level-2 elevation: `1px` `border-border`, `bg-card`, `--floating-shadow`, `6px` radius (`--radius-control`), `sideOffset = 6`, `overflow-hidden`, `z-50`, and `130ms` transition. Custom floating popovers with `role="dialog"` must declare `data-side="bottom"` or `"top"` to opt out of the global sheet safe-area padding rule.
+
+**`tables`**: data tables (`components/ui/table.tsx`)
+- The scroll wrapper uses `overflow-x-auto overflow-y-hidden` so horizontal scrolling works on narrow screens while `touch-target::after` on compact row actions never creates phantom vertical scrollbars.
+
+**`floating-detail-panel`**: item detail overlay (`components/ui/floating-detail-panel.tsx`)
+- Centered `ResponsiveShell` dialog (bottom sheet on mobile) with a top-right `ui-floating-surface` bar combining `size="sm"` `< 1 de N >` controls, a `1px` vertical divider, and the `X` close button. Document-level `ArrowLeft` / `ArrowRight` handles keyboard navigation immediately on open. In 2-column `ownScroll` views (such as `FindingDetail`), left data scrolls independently with bottom-anchored metadata under a `1px` hairline while right media spans full height (`md:h-full md:min-h-80`) separated by a `1px` border.
+
+**`bulk-json-import`**: 2-step JSON import (`components/content/plantilla/json-import-step.tsx`)
+- Lives in lateral sidebar tabs (`SECTION_NAV_*`), not modals. Step 1 shows a fixed-height non-resizable paste textarea (`h-64 resize-none`) with a concise single-object placeholder that produces no scrollbar when empty, plus `Validar` (validation errors stay inline). Step 2 hides the editor and shows review stats, `Editar JSON`, `Cancelar`, and the primary load button.
 
 **`feature-card`** — flat hairline content card
 - Background `{colors.canvas-elevated}`, 1px hairline `{colors.hairline}`, ink text `{colors.ink}`, type `{typography.body-md}`, rounded `{rounded.md}`, padding `{spacing.lg}`. The workhorse grid tile, often holding a node-graph or code illustration.

@@ -3,7 +3,7 @@
  * hallazgos por departamento y el detalle de cada hallazgo con sus fotos y su cierre.
  */
 import type jsPDF from "jspdf"
-import type { FindingPreview } from "@/components/content/safety-home/finding-card"
+import type { FindingPreview } from "@/components/content/safety-home/finding-constraints"
 import { findingDueDate, isFindingOverdue } from "@/components/content/safety-home/finding-constraints"
 import { isPdfPath } from "@/components/content/safety-home/finding-file-types"
 import { hoyISO, isoATexto, semanaIso } from "@/lib/fechas"

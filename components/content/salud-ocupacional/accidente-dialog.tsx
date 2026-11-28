@@ -12,7 +12,7 @@ import { describeSupabaseError } from "@/lib/supabase/errors"
 import { FIELD } from "./accidente-campos"
 import { AccidenteAtencion } from "./accidente-atencion"
 import { AccidenteClasificacion } from "./accidente-clasificacion"
-import { aDatos, errorDelPaso, formularioInicial, type FormularioAccidente, type Paso } from "./accidente-form"
+import { aDatos, errorDelPaso, FECHA_ACCIDENTE_LABEL, fechaAccidenteValida, formularioInicial, type FormularioAccidente, type Paso } from "./accidente-form"
 import { EmpleadoSelect } from "./empleado-select"
 import { notify } from "@/lib/notify"
 
@@ -92,9 +92,9 @@ export function AccidenteDialog({ accidente, fecha, onClose, onSave }: {
         {step === 1 && <>
           <div className="grid gap-4 sm:grid-cols-[12rem_minmax(0,1fr)]">
             <div className={FIELD}>
-              <Label htmlFor="accidente-fecha">Fecha</Label>
+              <Label htmlFor="accidente-fecha">{FECHA_ACCIDENTE_LABEL}</Label>
               <DateTextInput id="accidente-fecha" value={form.fecha} disabled={saving}
-                aria-invalid={Boolean(error && !form.fecha)}
+                aria-invalid={Boolean(error && !fechaAccidenteValida(form.fecha))}
                 onValueChange={value => cambiar("fecha", value)} />
             </div>
             <div className={FIELD}>

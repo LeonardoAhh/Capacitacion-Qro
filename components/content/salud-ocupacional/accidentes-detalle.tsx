@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { LIST_WITH_DETAIL_GRID } from "@/components/ui/side-detail-panel"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { ATENCIONES, TONO_RIESGO, type Accidente } from "@/lib/salud-ocupacional"
 import { cn } from "@/lib/utils"
@@ -14,26 +13,22 @@ import { AccidentePanel } from "./accidente-panel"
 const HEAD = "whitespace-nowrap text-eyebrow uppercase"
 const siNo = (value: boolean) => value ? "Sí" : "No"
 
-/** Columnas que se ocultan cuando el panel de detalle ocupa el lado derecho (como Safe Walk). */
-function columnas(narrow: boolean) {
-  return {
-    riesgo: narrow ? "hidden" : "hidden w-20 text-center xl:table-cell",
-    reporte: narrow ? "hidden" : "hidden w-24 text-center xl:table-cell",
-    // Cabe en una línea con las tres atenciones en su nombre corto.
-    atencion: narrow ? "hidden" : "hidden w-72 xl:table-cell",
-  }
+/** Columnas secundarias: aparecen desde pantallas anchas. */
+const COL = {
+  riesgo: "hidden w-20 text-center xl:table-cell",
+  reporte: "hidden w-24 text-center xl:table-cell",
+  // Cabe en una línea con las tres atenciones en su nombre corto.
+  atencion: "hidden w-72 xl:table-cell",
 }
 
 /**
  * Detalle de un día: reemplaza calendario y panel lateral con la tabla de sus accidentes.
- * Clic en una fila abre su detalle a un lado; editar y eliminar desde el menú de cada fila.
+ * Clic en una fila abre su detalle en un panel flotante; editar y eliminar desde el menú de cada fila.
  */
-export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdit, onBack, onSelect, onCreate, onEdit, onDelete }: {
+export function AccidentesDetalle({ titulo, accidentes, selectedId, canEdit, onBack, onSelect, onCreate, onEdit, onDelete }: {
   titulo: string
   accidentes: Accidente[]
   selectedId: string | null
-  /** Panel a un lado (lg+) o en hoja inferior. */
-  side: boolean
   canEdit: boolean
   onBack: () => void
   onSelect: (id: string | null) => void
@@ -41,15 +36,15 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
   onEdit: (accidente: Accidente) => void
   onDelete: (accidente: Accidente) => void
 }) {
-  const seleccionado = accidentes.find(accidente => accidente.id === selectedId) ?? null
-  const col = columnas(Boolean(seleccionado) && side)
+  const indice = accidentes.findIndex(accidente => accidente.id === selectedId)
+  const seleccionado = indice >= 0 ? accidentes[indice] : null
 
   return (
     // minmax(0,1fr): la columna no crece con el ancho mínimo de la tabla (en móvil empujaba
     // título, Crear y el modal de detalle fuera de la pantalla).
     <section aria-labelledby="accidentes-detalle-title" className="grid grid-cols-[minmax(0,1fr)] content-start gap-4">
       <header className="flex items-center gap-2">
-        <Button type="button" variant="ghost" size="icon" className="shrink-0 text-muted-foreground" aria-label="Volver al calendario" onClick={onBack}>
+        <Button type="button" variant="ghost" size="sm" className="w-(--control-height-sm) shrink-0 px-0 text-muted-foreground" aria-label="Volver al calendario" onClick={onBack}>
           <ArrowLeft aria-hidden="true" />
         </Button>
         <div className="min-w-0 flex-1">
@@ -57,13 +52,13 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
           <p className="text-body-sm text-muted-foreground">{accidentes.length} {accidentes.length === 1 ? "accidente registrado" : "accidentes registrados"}</p>
         </div>
         {canEdit && (
-          <Button type="button" className="shrink-0" aria-label="Registrar accidente en este día" onClick={onCreate}>
+          <Button type="button" size="sm" className="shrink-0" aria-label="Registrar accidente en este día" onClick={onCreate}>
             <Plus aria-hidden="true" /><span className="hidden sm:inline">Registrar</span>
           </Button>
         )}
       </header>
 
-      <div className={seleccionado && side ? LIST_WITH_DETAIL_GRID : undefined}>
+      <>
         <Card className="min-w-0 overflow-hidden">
           <Table className="table-fixed">
             <caption className="sr-only">Accidentes del {titulo}; elige uno para ver su detalle</caption>
@@ -73,9 +68,9 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
                     el nombre completo cabe y «¿Qué ocurrió?» toma el resto. */}
                 <TableHead scope="col" className={cn(HEAD, "sm:w-1/2 xl:w-1/3")}>Colaborador</TableHead>
                 <TableHead scope="col" className={cn(HEAD, "hidden sm:table-cell")}>¿Qué ocurrió?</TableHead>
-                <TableHead scope="col" className={cn(HEAD, col.riesgo)}>Riesgo</TableHead>
-                <TableHead scope="col" className={cn(HEAD, col.reporte)}>Reporte</TableHead>
-                <TableHead scope="col" className={cn(HEAD, col.atencion)}>Atención</TableHead>
+                <TableHead scope="col" className={cn(HEAD, COL.riesgo)}>Riesgo</TableHead>
+                <TableHead scope="col" className={cn(HEAD, COL.reporte)}>Reporte</TableHead>
+                <TableHead scope="col" className={cn(HEAD, COL.atencion)}>Atención</TableHead>
                 {canEdit && <TableHead className="w-14 px-1"><span className="sr-only">Acciones</span></TableHead>}
               </TableRow>
             </TableHeader>
@@ -95,13 +90,13 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
                       </button>
                     </TableCell>
                     <TableCell className="hidden truncate text-body-sm text-foreground sm:table-cell">{accidente.descripcion}</TableCell>
-                    <TableCell className={cn(col.riesgo, "text-body-sm")}>
+                    <TableCell className={cn(COL.riesgo, "text-body-sm")}>
                       {accidente.riesgoTrabajo
                         ? <span className="inline-flex items-center gap-1.5 text-foreground"><span aria-hidden="true" className={cn("size-2 rounded-sm", TONO_RIESGO.dot)} />Sí</span>
                         : <span className="text-muted-foreground">No</span>}
                     </TableCell>
-                    <TableCell className={cn(col.reporte, "text-body-sm")}>{siNo(accidente.reporteGenerado)}</TableCell>
-                    <TableCell className={col.atencion}>
+                    <TableCell className={cn(COL.reporte, "text-body-sm")}>{siNo(accidente.reporteGenerado)}</TableCell>
+                    <TableCell className={COL.atencion}>
                       {atenciones.length
                         ? <span className="flex gap-1 whitespace-nowrap">
                             <span className="sr-only">{atenciones.map(atencion => atencion.label).join(", ")}</span>
@@ -139,9 +134,14 @@ export function AccidentesDetalle({ titulo, accidentes, selectedId, side, canEdi
         </Card>
 
         {seleccionado && (
-          <AccidentePanel key={seleccionado.id} accidente={seleccionado} side={side} onClose={() => onSelect(null)} />
+          <AccidentePanel accidente={seleccionado} onClose={() => onSelect(null)} navigation={{
+            index: indice + 1,
+            total: accidentes.length,
+            onPrevious: () => onSelect(accidentes[indice - 1]?.id ?? selectedId),
+            onNext: () => onSelect(accidentes[indice + 1]?.id ?? selectedId),
+          }} />
         )}
-      </div>
+      </>
     </section>
   )
 }

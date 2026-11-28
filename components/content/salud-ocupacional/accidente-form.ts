@@ -1,5 +1,6 @@
 import { DIAS_MAX, type Accidente, type AtencionAccidente, type DatosAccidente, type PasoSeguimiento, type Severidad } from "@/lib/salud-ocupacional"
 import type { EmpleadoElegido } from "./empleado-select"
+import { hoyISO } from "@/lib/fechas"
 
 export type SiNo = "si" | "no" | ""
 const aSiNo = (value: boolean | null | undefined): SiNo => value == null ? "" : value ? "si" : "no"
@@ -49,14 +50,26 @@ const diasValidos = (value: string) => {
 }
 
 /** Qué falta para pasar del paso; null si está completo. */
+/**
+ * La fecha es el día en que ocurrió el accidente: no puede ser posterior a hoy (con "Fecha" a
+ * secas se capturaban fechas futuras, como pasaba en Safe Walk).
+ */
+export const FECHA_ACCIDENTE_LABEL = "Ocurrió el"
+
+export function fechaAccidenteValida(iso: string, hoy = hoyISO()): boolean {
+  return Boolean(iso) && iso <= hoy
+}
+
 export function errorDelPaso(form: FormularioAccidente, paso: Paso): string | null {
   if (paso === 1) {
-    return !form.fecha || !form.empleado || !form.descripcion.trim()
-      ? "Escribe una fecha válida (DD/MM/AAAA), elige al colaborador y describe qué ocurrió."
-      : null
+    if (!form.fecha) return "Falta la fecha del accidente"
+    if (!fechaAccidenteValida(form.fecha)) return "La fecha no puede ser posterior a hoy"
+    if (!form.empleado) return "Falta el colaborador"
+    if (!form.descripcion.trim()) return "Falta describir qué ocurrió"
+    return null
   }
   if (paso === 2) {
-    if (!form.severidad || !form.riesgo || !form.reporte) return "Indica la severidad, si fue riesgo de trabajo y si se generó el reporte de incidente."
+    if (!form.severidad || !form.riesgo || !form.reporte) return "Falta la severidad, el riesgo o el reporte"
     if (form.riesgo === "si" && !form.incapacidad) return "Indica si hubo incapacidad."
     if (form.riesgo === "si" && form.incapacidad === "si" && !diasValidos(form.diasIncapacidad)) return `Escribe los días de incapacidad (1 a ${DIAS_MAX}).`
     return null

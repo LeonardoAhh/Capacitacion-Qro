@@ -11,13 +11,25 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Skeleton } from "@/components/ui/skeleton"
 import { isoATexto } from "@/lib/fechas"
 import { cn } from "@/lib/utils"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import { findingDueDate, isFindingOverdue, type FindingDeadline, type FindingStatus } from "./finding-constraints"
 
-const STATUS_META: Record<FindingStatus, { icon: LucideIcon; className: string }> = {
-  Abierto: { icon: CircleAlert, className: "border-destructive/20 bg-destructive/10 text-destructive" },
-  "En seguimiento": { icon: Clock3, className: "border-warning/30 bg-warning/10 text-warning-deep" },
-  Cerrado: { icon: CircleCheck, className: "border-success/20 bg-success/10 text-success" },
+const STATUS_META: Record<FindingStatus, { icon: LucideIcon; className: string; solidClassName: string }> = {
+  Abierto: {
+    icon: CircleAlert,
+    className: "border-destructive/20 bg-destructive/10 text-destructive",
+    solidClassName: "border-border bg-card text-destructive",
+  },
+  "En seguimiento": {
+    icon: Clock3,
+    className: "border-warning/30 bg-warning/10 text-warning-deep",
+    solidClassName: "border-border bg-card text-warning-deep",
+  },
+  Cerrado: {
+    icon: CircleCheck,
+    className: "border-success/20 bg-success/10 text-success",
+    solidClassName: "border-border bg-card text-success",
+  },
 }
 
 const DEADLINE_CLASS: Record<FindingDeadline, string> = {
@@ -26,21 +38,33 @@ const DEADLINE_CLASS: Record<FindingDeadline, string> = {
   "15 días": "border-urgency-low/30 bg-urgency-low/10 text-urgency-low",
 }
 
+const DEADLINE_SOLID_CLASS: Record<FindingDeadline, string> = {
+  "Corrección Inmediata": "border-border bg-card text-destructive",
+  "1 semana": "border-border bg-card text-warning-deep",
+  "15 días": "border-border bg-card text-urgency-low",
+}
+
 const OVERDUE_CLASS = "border-destructive bg-destructive text-destructive-foreground"
 
-const BADGE = "max-w-full gap-1 font-normal [&_svg]:size-3 [&_svg]:shrink-0"
+const BADGE = "max-w-full gap-1 font-medium [&_svg]:size-3.5 [&_svg]:shrink-0"
 
-/** Estatus y plazo del hallazgo. `nowrap`: en una línea, recortados si no caben (tablas). */
-export function FindingBadges({ finding, nowrap = false, className }: { finding: FindingPreview; nowrap?: boolean; className?: string }) {
+/** Estatus y plazo del hallazgo. `nowrap`: en una línea, recortados si no caben (tablas). `surface="solid"`: fondo opaco legible sobre foto. */
+export function FindingBadges({ finding, nowrap = false, surface = "tinted", className }: {
+  finding: FindingPreview
+  nowrap?: boolean
+  surface?: "tinted" | "solid"
+  className?: string
+}) {
   const status = STATUS_META[finding.status]
   const StatusIcon = status.icon
   const overdue = isFindingOverdue(finding)
   const due = findingDueDate(finding)
   const dueText = due ? isoATexto(due) : ""
+  const solid = surface === "solid"
   const badge = cn(BADGE, nowrap ? "whitespace-nowrap [&>span:last-child]:min-w-0 [&>span:last-child]:truncate" : "whitespace-normal")
   return (
     <div className={cn("flex flex-wrap gap-2", className)}>
-      <Badge variant="outline" size="sm" className={cn(badge, status.className)} title={finding.status}>
+      <Badge variant="outline" size="sm" className={cn(badge, solid ? status.solidClassName : status.className)} title={finding.status}>
         <StatusIcon aria-hidden="true" /><span>{finding.status}</span>
       </Badge>
       {/* Vencido reemplaza al plazo: lo que importa es que ya se pasó, no cuánto tenía. */}
@@ -49,7 +73,7 @@ export function FindingBadges({ finding, nowrap = false, className }: { finding:
           <Hourglass aria-hidden="true" /><span>Vencido<span className="sr-only"> el {dueText}</span></span>
         </Badge>
       ) : finding.deadline && (
-        <Badge variant="outline" size="sm" className={cn(badge, DEADLINE_CLASS[finding.deadline])}
+        <Badge variant="outline" size="sm" className={cn(badge, solid ? DEADLINE_SOLID_CLASS[finding.deadline] : DEADLINE_CLASS[finding.deadline])}
           title={dueText && finding.status !== "Cerrado" ? `Plazo: ${finding.deadline} · vence el ${dueText}` : `Plazo: ${finding.deadline}`}>
           <Hourglass aria-hidden="true" /><span><span className="sr-only">Plazo: </span>{finding.deadline}</span>
         </Badge>
@@ -99,9 +123,9 @@ function FindingImageLoader({ src, alt, sizes }: FindingImageProps) {
 }
 
 /** Dato con ícono: etiqueta pequeña y valor completo (sin cortar nombres largos). */
-export function Dato({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+export function Dato({ icon: Icon, label, value, className }: { icon: LucideIcon; label: string; value: string; className?: string }) {
   return (
-    <div className="min-w-0">
+    <div className={cn("min-w-0", className)}>
       <dt className="flex items-center gap-1.5 text-body-sm text-muted-foreground">
         <Icon className="size-3.5 shrink-0" aria-hidden="true" />{label}
       </dt>
@@ -155,49 +179,5 @@ export function FindingActionsMenu({ finding, onEdit, onDelete, onManageCompleti
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
-}
-
-interface CompletionEvidenceStripProps {
-  finding: FindingPreview
-  canEdit: boolean
-  onView: (finding: FindingPreview) => void
-  onManage: (finding: FindingPreview) => void
-  className?: string
-}
-
-/** Evidencia de cumplimiento: franja que invita a completar el pendiente. */
-export function CompletionEvidenceStrip({ finding, canEdit, onView, onManage, className }: CompletionEvidenceStripProps) {
-  const hasEvidence = finding.completionEvidencePaths.length > 0
-  return (
-    <div className={cn("flex min-w-0 items-center gap-2 rounded-md border px-3 py-1.5",
-      hasEvidence ? "border-border" : "border-dashed border-border bg-muted/40", className)}>
-      <Paperclip className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      <p className="min-w-0 flex-1 text-body-sm text-muted-foreground">
-        {hasEvidence ? "Evidencia de cumplimiento adjunta" : "Sin evidencia de cumplimiento"}
-      </p>
-      {hasEvidence ? (
-        <>
-          {canEdit && (
-            <Button type="button" variant="ghost" size="sm" className="shrink-0"
-              aria-label={`Cambiar evidencia de cumplimiento de ${finding.title}`}
-              onClick={() => onManage(finding)}>
-              Cambiar
-            </Button>
-          )}
-          <Button type="button" variant="outline" size="sm" className="shrink-0"
-            aria-label={`Ver evidencia de cumplimiento de ${finding.title}`}
-            onClick={() => onView(finding)}>
-            Ver
-          </Button>
-        </>
-      ) : canEdit && (
-        <Button type="button" variant="outline" size="sm" className="shrink-0"
-          aria-label={`Adjuntar evidencia de cumplimiento a ${finding.title}`}
-          onClick={() => onManage(finding)}>
-          Adjuntar
-        </Button>
-      )}
-    </div>
   )
 }

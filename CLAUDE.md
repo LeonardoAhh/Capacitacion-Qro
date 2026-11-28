@@ -1,3 +1,11 @@
+# ViñoPlastic
+
+Antes de editar o generar UI, lee:
+- `AGENTS.md`: reglas operativas, tokens, primitivas canonicas (`components/ui/*`), checklist y limites del proyecto.
+- `design.md`: especificacion visual completa del sistema Ubuntu / Vercel-like y patrones de ambos workspaces (`Capacitación` y `Seguridad e Higiene`).
+
+Regla clave: los ajustes de altura, borde, foco, popover, tabs, filtros o scroll se corrigen directo en la primitiva (`components/ui/*`), nunca con parches ad-hoc por vista.
+
 <!-- antislop:start -->
 ## antislop
 For UI, copy, people, mobile layout, or code comments work, read these installed skill files directly (use these paths even if a same-named global skill exists):

@@ -5,7 +5,7 @@ import { ArrowLeft, ExternalLink, FileText, Image as ImageIcon } from "lucide-re
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import { isPdfPath } from "./finding-file-types"
 
 interface CompletionEvidenceViewerProps {

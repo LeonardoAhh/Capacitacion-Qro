@@ -1,27 +1,15 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { AlertCircle, ClipboardCheck, Hourglass, LayoutGrid, List, Loader2, Plus, RotateCw } from "lucide-react"
+import { AlertCircle, CalendarDays, ClipboardCheck, Hourglass, Loader2, Plus, RotateCw } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { CompactPager } from "@/components/ui/compact-pager"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { LIST_WITH_DETAIL_GRID } from "@/components/ui/side-detail-panel"
-import { Skeleton } from "@/components/ui/skeleton"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { FilterBar, type FilterFieldDef } from "@/components/ui/filter-token-bar"
 import { textoAISO } from "@/lib/fechas"
-import { useMediaQuery } from "@/lib/hooks/useMediaQuery"
 import { useRole } from "@/lib/hooks/useRole"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { cn } from "@/lib/utils"
@@ -30,40 +18,15 @@ import { CompletionEvidenceDialog } from "./completion-evidence-dialog"
 import { CompletionEvidenceViewer } from "./completion-evidence-viewer"
 import { CreateFindingDialog } from "./create-finding-dialog"
 import { EditFindingDialog } from "./edit-finding-dialog"
-import { FindingCard, type FindingPreview } from "./finding-card"
-import { FINDING_PREVIEW_RATIO, findingDueDate, isFindingOverdue, isoWeek, sortWeekKeysDesc } from "./finding-constraints"
-import { FINDING_DETAIL_SIDE_QUERY, FindingDetailPanel } from "./finding-detail"
+import type { FindingPreview } from "./finding-constraints"
+import { findingDueDate, isFindingOverdue, isoWeek, sortWeekKeysDesc } from "./finding-constraints"
+import { FindingFloatingPanel } from "./finding-detail"
 import { FindingList, FindingListSkeleton } from "./finding-list"
 import { deleteFinding, loadFindings } from "./findings-data"
 import { ImageExpansion } from "./image-expansion"
 
-const FINDINGS_PER_PAGE = 2
-
-type FindingsView = "tarjetas" | "lista"
-const VIEW_TRIGGER = "gap-1.5 max-sm:flex-1 [&_svg]:size-4 [&_svg]:shrink-0"
-
 function weekKeyOf(finding: Pick<FindingPreview, "year" | "week">): string {
   return `${finding.year}-${finding.week}`
-}
-
-function FindingSkeletons() {
-  return (
-    <div role="status" className="space-y-4" aria-label="Cargando hallazgos">
-      <span className="sr-only">Cargando hallazgos…</span>
-      <div className="grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2">
-        <Card className="space-y-4 p-(--card-padding)">
-          <Skeleton className="h-6 w-1/2" />
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <div className="grid grid-cols-2 gap-4 pt-4">
-            <Skeleton className="h-4 w-2/3" />
-            <Skeleton className="h-4 w-2/3" />
-          </div>
-        </Card>
-        <Skeleton className="w-full rounded-xl" style={{ aspectRatio: String(FINDING_PREVIEW_RATIO) }} />
-      </div>
-    </div>
-  )
 }
 
 /** Sin hallazgos: el botón Crear de la barra ya es la acción, aquí no se repite. */
@@ -97,10 +60,7 @@ export function SafetyHome() {
   const [selectedWeek, setSelectedWeek] = useState("")
   /** Solo vencidos, de todas las semanas: los atrasados casi nunca son de la semana actual. */
   const [onlyOverdue, setOnlyOverdue] = useState(false)
-  const [page, setPage] = useState(1)
-  const [view, setView] = useState<FindingsView>("lista")
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const detailSide = useMediaQuery(FINDING_DETAIL_SIDE_QUERY)
 
   const refreshFindings = useCallback(async (preferredWeek?: string, fallbackError = "No se pudieron cargar los hallazgos") => {
     try {
@@ -112,7 +72,6 @@ export function SafetyHome() {
         if (current && weeks.includes(current)) return current
         return weeks[0] ?? ""
       })
-      if (preferredWeek) setPage(1)
       setError("")
     } catch (err) {
       setError(describeSupabaseError(err, fallbackError))
@@ -146,65 +105,57 @@ export function SafetyHome() {
     () => showingOverdue ? overdueFindings : findingPreviews.filter((finding) => weekKeyOf(finding) === selectedWeek),
     [showingOverdue, overdueFindings, findingPreviews, selectedWeek],
   )
-  const totalPages = Math.ceil(filteredFindings.length / FINDINGS_PER_PAGE)
-  const currentPage = Math.min(page, Math.max(1, totalPages))
-  const pageStart = (currentPage - 1) * FINDINGS_PER_PAGE
-  const visibleFindings = filteredFindings.slice(pageStart, pageStart + FINDINGS_PER_PAGE)
-  const selectedFinding = filteredFindings.find((finding) => finding.id === selectedId) ?? null
+  const selectedIndex = filteredFindings.findIndex((finding) => finding.id === selectedId)
+  const selectedFinding = selectedIndex >= 0 ? filteredFindings[selectedIndex] : null
 
+  // El detalle es un modal: se cierra antes de abrir la imagen o la evidencia encima.
   const fromDetail = (action: (finding: FindingPreview) => void) => (finding: FindingPreview) => {
-    if (!detailSide) setSelectedId(null)
+    setSelectedId(null)
     action(finding)
   }
 
-  return (
-    <Tabs asChild value={view} onValueChange={(value) => setView(value as FindingsView)}>
-      <section className="flex flex-col gap-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-          <TabsList aria-label="Vista de hallazgos" className="max-sm:w-full">
-            <TabsTrigger value="lista" className={VIEW_TRIGGER}>
-              <List aria-hidden="true" />Lista
-            </TabsTrigger>
-            <TabsTrigger value="tarjetas" className={VIEW_TRIGGER}>
-              <LayoutGrid aria-hidden="true" />Tarjetas
-            </TabsTrigger>
-          </TabsList>
+  // Semana: filtro obligatorio (token fijo, solo cambia su valor), como Año y Mes en DNC y Plan Anual.
+  const weekField: FilterFieldDef = {
+    id: "semana",
+    label: "Semana",
+    icon: <CalendarDays aria-hidden="true" />,
+    operators: [],
+    options: populatedWeeks.map((key) => {
+      const [year, week] = key.split("-")
+      return { value: key, label: `${week} · ${year}` }
+    }),
+  }
 
-          <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+  return (
+      <section className="flex flex-col gap-6">
+        {/* Filtros a la izquierda y Crear a la derecha, como en Exámenes. */}
+        <div className="flex flex-wrap items-center gap-2">
+            {selectedWeek && (
+              <FilterBar
+                hideAdd
+                aria-label="Semana de los hallazgos"
+                fields={[weekField]}
+                value={[{ id: "semana", field: "semana", operator: "is", values: [selectedWeek], locked: true }]}
+                disabled={showingOverdue}
+                onChange={(next) => {
+                  const week = next[0]?.values[0]
+                  if (week && week !== selectedWeek) { setSelectedWeek(week); setSelectedId(null) }
+                }}
+              />
+            )}
             {/* Filtro de vencidos (todas las semanas); solo aparece si hay alguno. */}
             {overdueFindings.length > 0 && (
               <Button type="button" variant="outline" size="sm" aria-pressed={showingOverdue}
                 className={cn("tabular-nums", showingOverdue && "border-destructive text-destructive hover:text-destructive")}
-                onClick={() => { setOnlyOverdue(!showingOverdue); setPage(1); setSelectedId(null) }}>
+                onClick={() => { setOnlyOverdue(!showingOverdue); setSelectedId(null) }}>
                 <Hourglass aria-hidden="true" />Vencidos {overdueFindings.length}
               </Button>
             )}
-            <Select value={selectedWeek} onValueChange={(value) => { setSelectedWeek(value); setPage(1); setSelectedId(null) }} disabled={!populatedWeeks.length || showingOverdue}>
-              <SelectTrigger variant="ghost" size="sm" aria-label="Seleccionar semana" className="font-medium max-sm:min-w-0 max-sm:flex-1 max-sm:justify-between">
-                <SelectValue placeholder="Sin semanas" />
-              </SelectTrigger>
-              <SelectContent matchTriggerWidth>
-                {populatedWeeks.map((key) => {
-                  const [year, week] = key.split("-")
-                  return (
-                    <SelectItem key={key} value={key}>
-                      Semana {week} · {year}
-                    </SelectItem>
-                  )
-                })}
-              </SelectContent>
-            </Select>
-
-            {view === "tarjetas" && (
-              <CompactPager label="Paginación de hallazgos" page={currentPage} totalPages={totalPages} onPageChange={setPage} />
-            )}
-
             {canEdit && (
-              <Button type="button" size="sm" onClick={() => setIsCreateOpen(true)}>
+              <Button type="button" size="sm" className="ml-auto" onClick={() => setIsCreateOpen(true)}>
                 <Plus aria-hidden="true" />Crear
               </Button>
             )}
-          </div>
         </div>
 
         {error && (
@@ -226,36 +177,16 @@ export function SafetyHome() {
           </Alert>
         )}
 
-        <TabsContent value="tarjetas" className="mt-0 space-y-4">
-          {loading ? (
-            <FindingSkeletons />
-          ) : filteredFindings.length > 0 ? (
-            visibleFindings.map((finding) => (
-              <FindingCard
-                key={finding.id}
-                finding={finding}
-                onExpand={setExpandedImage}
-                onExpandCompletion={setExpandedCompletion}
-                onManageCompletion={setManagingCompletion}
-                canEdit={canEdit}
-                onEdit={setEditing}
-                onDelete={setDeleting}
-              />
-            ))
-          ) : !error ? (
-            <FindingEmptyState canEdit={canEdit} />
-          ) : null}
-        </TabsContent>
 
-        <TabsContent value="lista" className="mt-0">
+        <div>
           {loading ? (
             <FindingListSkeleton />
           ) : filteredFindings.length > 0 ? (
-            <div className={selectedFinding && detailSide ? LIST_WITH_DETAIL_GRID : undefined}>
+            <>
               <FindingList
                 findings={filteredFindings}
                 selectedId={selectedFinding?.id ?? null}
-                narrow={!!selectedFinding && detailSide}
+                narrow={false}
                 onSelect={(finding) => setSelectedId(finding.id)}
                 canEdit={canEdit}
                 onEdit={setEditing}
@@ -263,20 +194,24 @@ export function SafetyHome() {
                 onManageCompletion={setManagingCompletion}
               />
               {selectedFinding && (
-                <FindingDetailPanel
-                  key={selectedFinding.id}
-                  side={detailSide}
+                <FindingFloatingPanel
                   finding={selectedFinding}
+                  navigation={{
+                    index: selectedIndex + 1,
+                    total: filteredFindings.length,
+                    onPrevious: () => setSelectedId(filteredFindings[selectedIndex - 1]?.id ?? selectedId),
+                    onNext: () => setSelectedId(filteredFindings[selectedIndex + 1]?.id ?? selectedId),
+                  }}
                   onClose={() => setSelectedId(null)}
                   onExpand={fromDetail(setExpandedImage)}
                   onViewCompletion={fromDetail(setExpandedCompletion)}
                 />
               )}
-            </div>
+            </>
           ) : !error ? (
             <FindingEmptyState canEdit={canEdit} />
           ) : null}
-        </TabsContent>
+        </div>
 
         {expandedImage && (
           <ImageExpansion
@@ -354,10 +289,8 @@ export function SafetyHome() {
                     const remaining = findingPreviews.filter((item) => item.id !== deleting.id)
                     const remainingWeeks = sortWeekKeysDesc([...new Set(remaining.map(weekKeyOf))])
                     const nextWeek = remainingWeeks.includes(selectedWeek) ? selectedWeek : remainingWeeks[0] ?? ""
-                    const nextWeekCount = remaining.filter((item) => weekKeyOf(item) === nextWeek).length
                     setFindingPreviews(remaining)
                     setSelectedWeek(nextWeek)
-                    setPage((current) => Math.min(current, Math.max(1, Math.ceil(nextWeekCount / FINDINGS_PER_PAGE))))
                     setDeleting(null)
                     setError("")
                   } catch (err) {
@@ -386,6 +319,5 @@ export function SafetyHome() {
           }
         />
       </section>
-    </Tabs>
   )
 }

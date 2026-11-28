@@ -212,9 +212,27 @@ ButtonIcon	Fondo canvas-elevated, texto ink, hairline, radius: 6px	Controles de 
 Regla dura: marketing = pill neutro de tinta. Nav/app = cuadrado 6px grafito (--primary). No mezcles las dos formas en el mismo contexto.
 
 Inputs
-TextInput: fondo canvas-elevated, texto ink, 1px solid var(--hairline), radius: 6px, padding 8px 12px, body-md.
+TextInput: fondo bg-card (canvas-elevated), texto foreground, 1px solid border-border (nunca border-input oscuro), radius 6px, padding 8px 12px, body-md. Input, Textarea, SelectTrigger y WeekStripCalendar comparten este mismo borde hairline. En barras de herramientas o captura horizontal en escritorio, usa md:h-(--control-height-sm) (36px) conservando 44px en movil.
 
 Focus: outline: 1.5px solid var(--ring) (muted-foreground); outline-offset: 1px; — nunca box-shadow de glow. Es una sola regla en app/globals.css; los componentes no declaran su foco, solo usan .focus-inset cuando su contenedor recorta el contorno.
+
+Controles compactos de toolbar
+Botones de barras superiores, acciones inline, SelectTrigger size="sm", tokens de filtro y controles flotantes usan altura --control-height-sm (36px visual, 32px en modo compacto) con relative touch-target para mantener hit area de 44×44px. Los botones solo-icono de toolbar usan size="sm" y w-(--control-height-sm) px-0. Todo ajuste transversal de altura, borde, popover o scroll va directo en la primitiva de components/ui/*, nunca en parches locales.
+
+Filtros unificados (components/ui/filter-token-bar.tsx)
+Usa FilterBar en ambos workspaces. Contextos obligatorios (Mes, Año, Departamento, Periodo) van como tokens locked con hideAdd si no hay filtros opcionales; filtros opcionales usan + Filtrar, operadores (es, no es, es cualquiera de) y Limpiar solo cuando hay filtros activos. La busqueda global va en HeaderSearch.
+
+Tabs unificados (components/ui/tabs.tsx)
+Un solo patron de tabs en todo el sistema: linea inferior --primary de 2px, texto label-sm e icono opcional size-4. No construyas barras segmentadas con fondo o borde para cambiar de vista; ChoiceToggle se reserva exclusivamente para opciones dentro de formularios.
+
+Popovers, tablas y paneles de detalle
+Superficies flotantes (Popover, Tooltip, menus, barras flotantes): ui-floating-surface (hairline + --floating-shadow + radius 6px), sideOffset={6}, overflow-hidden y transicion de 130ms. Todo popover custom con role="dialog" debe llevar data-side="bottom" o "top".
+Tablas (components/ui/table.tsx): el wrapper usa overflow-x-auto overflow-y-hidden para que touch-target::after no genere scroll vertical fantasma.
+Paneles de detalle flotantes (components/ui/floating-detail-panel.tsx): barra flotante ui-floating-surface con botones size="sm", divisor hairline de 1px entre paginacion y cierre, teclado ArrowLeft/ArrowRight en document y layout de 2 columnas con foto full-bleed (border-l) y datos con ownScroll.
+
+Importacion JSON y Novedades
+Cargas masivas JSON: flujo compartido de 2 pasos (components/content/plantilla/json-import-step.tsx) dentro del menu lateral (SECTION_NAV_*): Paso 1 pegar + Validar (textarea fija sin scroll en placeholder), Paso 2 resumen + Editar JSON / Cargar.
+Novedades (lib/changelog.ts): español cotidiano sin jerga tecnica, titulos de una linea (<= 35 caracteres) y viñetas cortas que quepan en sm:h-[19rem] sin scroll vertical.
 
 Cards
 FeatureCard: canvas-elevated, hairline, radius: 12px, padding 24px, body-md.
@@ -336,7 +354,8 @@ Checklist rápida — el agente debe verificarla:
 □ ¿Los controles interactivos tienen ≥44px de hit area?
 □ ¿El focus es visible y sale de la regla única de globals.css (--ring, sin clases propias)?
 □ ¿Los colores salen de var(--token), no de hex hardcodeado?
-□ ¿Compila (pnpm build / npm run build) y pasa lint?
+□ ¿Los controles de toolbar usan size="sm" (--control-height-sm), los inputs usan border-border bg-card, los filtros usan FilterBar y los tabs usan Tabs de linea inferior?
+□ ¿Compila (npm run build) y pasa impeccable detect --json sin hallazgos?
 9. Cuándo preguntar en vez de asumir
 Detente y pregunta al humano si:
 

@@ -1,10 +1,9 @@
-import { hoyISO, sumarDias, textoAISO } from "@/lib/fechas"
+import { formatFechaCorta, hoyISO, sumarDias, textoAISO } from "@/lib/fechas"
 
 export const MAX_FINDING_TITLE_LENGTH = 40
 // Debe coincidir con safety_findings_description_length (supabase/migrations).
 export const MAX_FINDING_DESCRIPTION_LENGTH = 1000
-export const FINDING_PREVIEW_RATIO = 21 / 9
-/** Más baja que la tarjeta: en el panel de la lista la prioridad es la descripción. */
+/** Foto del detalle, baja y ancha: en el panel la prioridad es la descripción. */
 export const FINDING_DETAIL_IMAGE_RATIO = 3 / 1
 export const MAX_FINDING_IMAGES = 6
 
@@ -13,6 +12,37 @@ export type FindingStatus = (typeof FINDING_STATUSES)[number]
 
 export const FINDING_DEADLINES = ["Corrección Inmediata", "1 semana", "15 días"] as const
 export type FindingDeadline = (typeof FINDING_DEADLINES)[number]
+
+/** Hallazgo como lo muestran la lista, el detalle y el PDF semanal. */
+export interface FindingPreview {
+  id: string
+  week: number
+  year: number
+  title: string
+  description: string
+  area: string
+  date: string
+  status: FindingStatus
+  deadline: FindingDeadline | null
+  responsible?: string
+  src: string
+  evidences?: string[]
+  alt: string
+  evidencePaths: string[]
+  completionEvidencePaths: string[]
+  completionEvidences?: string[]
+}
+
+/**
+ * La fecha de un hallazgo es el día en que se detectó en el recorrido (no su límite: ese sale del
+ * plazo). Con "Fecha" a secas se capturaban fechas futuras.
+ */
+export const FINDING_DATE_LABEL = "Detectado el"
+
+/** Detectado hoy o antes: un hallazgo no puede ser de un día que no ha llegado. */
+export function isFindingDateValid(iso: string, today = hoyISO()): boolean {
+  return Boolean(iso) && iso <= today
+}
 
 /** Días desde la fecha del hallazgo hasta su límite; "Corrección Inmediata" vence el mismo día. */
 const DEADLINE_DAYS: Record<FindingDeadline, number> = {
@@ -52,4 +82,9 @@ export function sortWeekKeysDesc(keys: string[]): string[] {
     const [yearB, weekB] = b.split("-").map(Number)
     return yearB - yearA || weekB - weekA
   })
+}
+
+/** Opción del plazo con su vencimiento ("15 días · vence 13 dic") según la fecha capturada. */
+export function deadlineOptionLabel(deadline: FindingDeadline, iso: string): string {
+  return iso ? `${deadline} · vence ${formatFechaCorta(sumarDias(iso, DEADLINE_DAYS[deadline]))}` : deadline
 }

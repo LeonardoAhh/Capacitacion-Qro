@@ -3,7 +3,7 @@
 import { Skeleton } from "@/components/ui/skeleton"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { cn } from "@/lib/utils"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import { UNASSIGNED_LABEL } from "./finding-constraints"
 import { CompletionEvidenceBadge, FindingActionsMenu, FindingBadges } from "./finding-parts"
 
@@ -45,7 +45,7 @@ export function FindingList({ findings, selectedId, narrow, onSelect, canEdit, o
             <TableHead className={cn(col.status, HEAD)}>Estatus · Plazo</TableHead>
             <TableHead className={HEAD}>Hallazgo</TableHead>
             <TableHead className={cn(col.area, HEAD)}>Área · Responsable</TableHead>
-            <TableHead className={cn(col.date, HEAD)}>Fecha</TableHead>
+            <TableHead className={cn(col.date, HEAD)}>Detectado</TableHead>
             <TableHead className={cn(col.evidence, HEAD)}>Evidencia</TableHead>
             {canEdit && <TableHead className="w-14 px-1"><span className="sr-only">Acciones</span></TableHead>}
           </TableRow>

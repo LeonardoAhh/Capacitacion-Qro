@@ -11,10 +11,13 @@ import { Textarea } from "@/components/ui/textarea"
 import { JEFES_DE_AREA_POR_DEPARTAMENTO } from "@/lib/catalogos/personal"
 import { isoATexto, textoAISO } from "@/lib/fechas"
 import { describeSupabaseError } from "@/lib/supabase/errors"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import { updateFinding } from "./findings-data"
 import {
+  deadlineOptionLabel,
+  FINDING_DATE_LABEL,
   FINDING_DEADLINES,
+  isFindingDateValid,
   FINDING_STATUSES,
   MAX_FINDING_DESCRIPTION_LENGTH,
   MAX_FINDING_TITLE_LENGTH,
@@ -52,6 +55,10 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
 
     if (!title.trim() || !description.trim() || !area || !responsible || !dateIso) {
       notify.error("Faltan datos o la fecha no es válida")
+      return
+    }
+    if (!isFindingDateValid(dateIso)) {
+      notify.error("La fecha no puede ser posterior a hoy", { description: "Es el día en que se detectó" })
       return
     }
     if (title.trim().length > MAX_FINDING_TITLE_LENGTH) {
@@ -142,12 +149,12 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="edit-finding-date">Fecha</Label>
+              <Label htmlFor="edit-finding-date">{FINDING_DATE_LABEL}</Label>
               <DateTextInput
                 id="edit-finding-date"
                 value={dateIso}
                 disabled={saving}
-                aria-invalid={submitted && !dateIso}
+                aria-invalid={submitted && !isFindingDateValid(dateIso)}
                 onValueChange={(nextIso) => setDateIso(nextIso)}
               />
             </div>
@@ -156,7 +163,7 @@ export function EditFindingDialog({ finding, onClose, onSaved }: Props) {
               <Select value={deadline} onValueChange={(value) => setDeadline(value as FindingDeadline)} disabled={saving}>
                 <SelectTrigger id="edit-finding-deadline"><SelectValue placeholder="Seleccionar plazo" /></SelectTrigger>
                 <SelectContent matchTriggerWidth>
-                  {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                  {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{deadlineOptionLabel(option, dateIso)}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>

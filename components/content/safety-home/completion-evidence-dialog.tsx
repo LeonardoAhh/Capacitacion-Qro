@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import { addCompletionEvidence } from "./findings-data"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import { FindingFileField } from "./finding-file-field"
 import { notify } from "@/lib/notify"
 

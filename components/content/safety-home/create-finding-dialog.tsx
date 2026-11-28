@@ -25,7 +25,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { JEFES_DE_AREA_POR_DEPARTAMENTO } from "@/lib/catalogos/personal"
 import { describeSupabaseError } from "@/lib/supabase/errors"
 import {
+  deadlineOptionLabel,
+  FINDING_DATE_LABEL,
   FINDING_DEADLINES,
+  isFindingDateValid,
   FINDING_STATUSES,
   isoWeek,
   MAX_FINDING_DESCRIPTION_LENGTH,
@@ -36,6 +39,7 @@ import {
 import { FindingFileField } from "./finding-file-field"
 import { createFinding } from "./findings-data"
 import { notify } from "@/lib/notify"
+import { hoyISO } from "@/lib/fechas"
 
 interface CreateFindingDialogProps {
   open: boolean
@@ -54,7 +58,8 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
   const [description, setDescription] = useState("")
   const [status, setStatus] = useState<FindingStatus>("Abierto")
   const [deadline, setDeadline] = useState<FindingDeadline | "">("")
-  const [dateIso, setDateIso] = useState("")
+  // Casi siempre se captura el mismo día del recorrido: empieza en hoy.
+  const [dateIso, setDateIso] = useState(hoyISO)
   const [images, setImages] = useState<File[]>([])
   const [submitted, setSubmitted] = useState(false)
   const [step, setStep] = useState<1 | 2 | 3>(1)
@@ -73,7 +78,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
       setDescription("")
       setStatus("Abierto")
       setDeadline("")
-      setDateIso("")
+      setDateIso(hoyISO())
       setImages([])
       setSubmitted(false)
       setStep(1)
@@ -107,6 +112,10 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
     if (step === 2) {
       if (!department || !responsible || !dateIso) {
         notify.error("Falta departamento, responsable o fecha")
+        return
+      }
+      if (!isFindingDateValid(dateIso)) {
+        notify.error("La fecha no puede ser posterior a hoy", { description: "Es el día en que se detectó" })
         return
       }
       setSubmitted(false)
@@ -257,13 +266,13 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="finding-date">Fecha</Label>
+                  <Label htmlFor="finding-date">{FINDING_DATE_LABEL}</Label>
                   <DateTextInput
                     id="finding-date"
                     value={dateIso}
                     disabled={saving}
                     onValueChange={(nextIso) => setDateIso(nextIso)}
-                    aria-invalid={submitted && !dateIso}
+                    aria-invalid={submitted && !isFindingDateValid(dateIso)}
                   />
                 </div>
               </div>
@@ -276,7 +285,7 @@ export function CreateFindingDialog({ open, onOpenChange, onCreate }: CreateFind
                       <SelectValue placeholder="Seleccionar plazo" />
                     </SelectTrigger>
                     <SelectContent matchTriggerWidth>
-                      {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{option}</SelectItem>)}
+                      {FINDING_DEADLINES.map((option) => <SelectItem key={option} value={option}>{deadlineOptionLabel(option, dateIso)}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>

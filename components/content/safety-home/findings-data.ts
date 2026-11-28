@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client"
 import { isoATexto, textoAISO } from "@/lib/fechas"
-import type { FindingPreview } from "./finding-card"
+import type { FindingPreview } from "./finding-constraints"
 import {
   FINDING_DEADLINES,
   isoWeek,
