@@ -1,41 +1,37 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { AnimatePresence, motion } from "framer-motion"
-import { CircleCheck, Download, LoaderCircle } from "lucide"
-import { X } from "lucide-react"
-import { useAppReducedMotion } from "@/components/app-transition"
-import { Button } from "@/components/ui/button"
-import { NoticeIcon } from "@/components/ui/notice-icon"
+import { addToast, closeToast } from "@/components/ui/toast/toast-store"
 import { APP_UPDATE_COMPLETED_KEY, useAppUpdate } from "@/lib/hooks/useAppUpdate"
 
-type BannerPreview = "available" | "applying" | "updated" | null
+type BannerState = "available" | "applying" | "updated" | null
 
 type BannerPreviewWindow = Window & {
   __previewUpdateBanner?: () => void
   __hideUpdateBanner?: () => void
 }
 
-const COPY = {
-  available: { title: "Nueva versión disponible", description: "Actualiza para no perderte las últimas funciones." },
-  applying: { title: "Actualizando…", description: "Esto tarda unos segundos." },
-  updated: { title: "Aplicación actualizada", description: "Ya tienes la versión más reciente." },
-} as const
+const UPDATE_TOAST_ID = "app-update"
+const UPDATED_DURATION_MS = 3000
 
+/**
+ * Avisa sobre actualizaciones del sistema usando el mismo Toaster global:
+ * un solo toast compacto sin descripciones largas que pasa de disponible
+ * a cargando y finalmente a actualizado en su lugar.
+ */
 export function UpdateBanner() {
   const { status, applyUpdate } = useAppUpdate()
-  const [preview, setPreview] = useState<BannerPreview>(null)
+  const [preview, setPreview] = useState<BannerState>(null)
+  const [previewNonce, setPreviewNonce] = useState(0)
   const [completed, setCompleted] = useState(false)
-  const [dismissed, setDismissed] = useState(false)
-  const reduced = useAppReducedMotion()
 
   useEffect(() => {
     if (process.env.NODE_ENV !== "development") return
 
     const previewWindow = window as BannerPreviewWindow
     previewWindow.__previewUpdateBanner = () => {
-      setDismissed(false)
       setPreview("available")
+      setPreviewNonce(n => n + 1)
     }
     previewWindow.__hideUpdateBanner = () => setPreview(null)
 
@@ -57,94 +53,74 @@ export function UpdateBanner() {
 
   useEffect(() => {
     if (!completed) return
-    const timer = setTimeout(() => setCompleted(false), 4000)
+    const timer = setTimeout(() => setCompleted(false), UPDATED_DURATION_MS)
     return () => clearTimeout(timer)
   }, [completed])
 
   useEffect(() => {
-    if (preview === null || preview === "available") return
-    const timer = setTimeout(() => setPreview(preview === "applying" ? "updated" : null), preview === "applying" ? 700 : 4000)
+    if (preview !== "applying") return
+    const timer = setTimeout(() => setPreview("updated"), 700)
     return () => clearTimeout(timer)
   }, [preview])
 
-  const applying = preview === "applying" || (preview === null && status === "applying")
-  const updated = preview === "updated" || (preview === null && completed)
-  const available = preview === "available" || (preview === null && status === "available")
-  const visible = applying || updated || (available && !dismissed)
-  const state = updated ? "updated" : applying ? "applying" : "available"
-  const copy = COPY[state]
+  const state: BannerState = preview !== null
+    ? preview
+    : completed
+      ? "updated"
+      : status === "applying"
+        ? "applying"
+        : status === "available"
+          ? "available"
+          : null
 
-  const handleUpdate = () => {
-    if (preview !== null) {
-      setPreview("applying")
+  useEffect(() => {
+    if (state === null) {
+      closeToast(UPDATE_TOAST_ID)
       return
     }
-    applyUpdate()
-  }
 
-  const handleDismiss = () => {
-    if (preview !== null) {
-      setPreview(null)
+    if (state === "available") {
+      addToast({
+        id: UPDATE_TOAST_ID,
+        kind: "info",
+        title: "Nueva versión disponible",
+        description: undefined,
+        duration: Infinity,
+        action: {
+          label: "Actualizar",
+          closeOnClick: false,
+          onClick: () => {
+            if (preview !== null) setPreview("applying")
+            else applyUpdate()
+          },
+        },
+      })
       return
     }
-    if (completed) {
-      setCompleted(false)
+
+    if (state === "applying") {
+      addToast({
+        id: UPDATE_TOAST_ID,
+        kind: "loading",
+        title: "Actualizando…",
+        description: undefined,
+        duration: Infinity,
+        action: undefined,
+      })
       return
     }
-    setDismissed(true)
-  }
 
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          initial={reduced ? false : { opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduced ? undefined : { opacity: 0, y: -16 }}
-          transition={{ duration: reduced ? 0 : 0.2 }}
-          className="app-update-banner"
-        >
-          <div
-            role="status"
-            aria-live="polite"
-            className="ui-floating-surface flex min-h-14 items-center gap-3 rounded-(--notice-radius) py-2 pl-3 pr-2"
-          >
-            <NoticeIcon
-              icon={updated ? CircleCheck : applying ? LoaderCircle : Download}
-              tone={updated ? "success" : "neutral"}
-              spin={applying}
-            />
-            <div className="min-w-0 flex-1">
-              <p className="break-words text-label-sm text-foreground">{copy.title}</p>
-              <p className="break-words text-body-sm text-muted-foreground">{copy.description}</p>
-            </div>
-            {!updated && (
-              <Button
-                type="button"
-                size="sm"
-                className="shrink-0"
-                onClick={handleUpdate}
-                disabled={applying}
-                aria-busy={applying}
-              >
-                Actualizar
-              </Button>
-            )}
-            {!applying && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="xs"
-                className="size-8 shrink-0 px-0 text-muted-foreground hover:text-foreground"
-                aria-label="Cerrar aviso de actualización"
-                onClick={handleDismiss}
-              >
-                <X aria-hidden="true" />
-              </Button>
-            )}
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
+    addToast({
+      id: UPDATE_TOAST_ID,
+      kind: "success",
+      title: "Aplicación actualizada",
+      description: undefined,
+      duration: UPDATED_DURATION_MS,
+      action: undefined,
+    })
+  }, [state, preview, previewNonce, applyUpdate])
+
+  useEffect(() => () => closeToast(UPDATE_TOAST_ID), [])
+
+  return null
 }

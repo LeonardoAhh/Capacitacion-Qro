@@ -14,6 +14,8 @@ export type ToastId = string | number
 export interface ToastAction {
   label: string
   onClick: () => void
+  /** Si es false, pulsar la acción deja el toast abierto para actualizarlo en su lugar. */
+  closeOnClick?: boolean
 }
 
 export interface ToastInput {

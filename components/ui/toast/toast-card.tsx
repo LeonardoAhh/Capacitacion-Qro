@@ -163,7 +163,7 @@ export function ToastCard({ toast, effect, placement, paused, reducedMotion, onH
             </p>
           )}
           {toast.action && (
-            <Button type="button" variant="outline" size="xs" className="mt-2" onClick={() => { toast.action?.onClick(); closeToast(toast.id) }}>
+            <Button type="button" variant="outline" size="xs" className="mt-2" onClick={() => { toast.action?.onClick(); if (toast.action?.closeOnClick !== false) closeToast(toast.id) }}>
               {toast.action.label}
             </Button>
           )}
