@@ -348,7 +348,7 @@ export default function CapacitacionContent() {
         {currentTab === "compartir-pendientes" ? (
           <IngresosSharePage />
         ) : currentTab === "cargar-cursos" ? (
-          <CargarCursosPage />
+          <CargarCursosPage onSaved={invalidateCoursesTabData} />
         ) : currentTab === "incidencias" ? (
           <IncidenciasBulkImport
             employeeNames={employeeNames}

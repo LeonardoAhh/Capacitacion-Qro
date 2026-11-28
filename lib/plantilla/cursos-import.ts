@@ -31,7 +31,7 @@ export interface CursosArchivo {
   errores: string[]
 }
 
-function leerCalificacion(value: unknown): number | null | undefined {
+export function leerCalificacion(value: unknown): number | null | undefined {
   const texto = leerTexto(value)
   if (texto === "") return null
   // Acepta punto o coma decimal, hasta dos decimales (la columna es numeric(5, 2)).

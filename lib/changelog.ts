@@ -33,6 +33,15 @@ export interface Novedad {
 
 export const CHANGELOG: readonly Novedad[] = [
   {
+    id: "2026-11-28",
+    fecha: "2026-11-28",
+    titulo: "Captura rápida de cursos",
+    cambios: [
+      { seccion: "Plantilla", texto: "En Cargar cursos ahora puedes capturar varios empleados uno tras otro con fecha, curso, calificación y número." },
+      { seccion: "Plantilla", texto: "Puedes ajustar la calificación directo en la lista antes de guardar, o seguir cargando por texto." },
+    ],
+  },
+  {
     id: "2026-11-27",
     fecha: "2026-11-27",
     titulo: "Plantilla, Formato TE y PDF",
